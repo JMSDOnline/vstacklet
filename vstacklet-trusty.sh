@@ -2,9 +2,9 @@
 server_ip=$(ifconfig | sed -n 's/.*inet addr:\([0-9.]\+\)\s.*/\1/p' | grep -v 127 | head -n 1);
 sitename=$(hostname -s);
 
-echo '[quick-lemp] LEMP Stack Installation'
+echo '[vstacklet] Varnish LEMP Stack Installation'
 echo 'Configured for Ubuntu 14.04.'
-echo 'Installs Nginx, Varnish, MariaDB, PHP-FPM, and uWSGI.'
+echo 'Installs Nginx, Varnish, MariaDB, PHP-FPM, Sendmail, and CSF.'
 echo
 read -p 'Do you want to continue? [y/N] ' -n 1 -r
 echo
@@ -39,8 +39,7 @@ echo -e '\n[Nginx]'
 apt-get -y install nginx
 service nginx stop
 mv /etc/nginx /etc/nginx-previous
-curl -L https://github.com/h5bp/server-configs-nginx/archive/1.0.0.tar.gz | tar -xz
-# Newer: https://github.com/h5bp/server-configs-nginx/archive/master.zip
+curl -L https://github.com/JMSDOnline/server-configs-nginx/archive/1.0.0.tar.gz | tar -xz
 mv server-configs-nginx-1.0.0 /etc/nginx
 cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx
 sed -i.bak -e
@@ -54,10 +53,10 @@ read -p 'Do you want to create a self-signed SSL cert and configure HTTPS? [y/N]
 echo
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  conf1="  listen [::]:443 ssl default_server;\n  listen 443 ssl default_server;\n"
-  conf2="  include h5bp/directive-only/ssl.conf;\n  ssl_certificate /etc/ssl/certs/nginx.crt;\n  ssl_certificate_key /etc/ssl/private/nginx.key;"
-  openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/nginx.key -out /etc/ssl/certs/nginx.crt
-  chmod 400 /etc/ssl/private/nginx.key
+  conf1="  listen [::]:443 ssl http2;\n  listen *:443 ssl http2;\n"
+  conf2="  include h5bp/directive-only/ssl.conf;\n  ssl_certificate /etc/ssl/certs/$sitename.crt;\n  ssl_certificate_key /etc/ssl/private/$sitename.key;"
+  openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/nginx/private/$sitename.key -out /etc/ssl/nginx/certs/$sitename.crt
+  chmod 400 /etc/ssl/nginx/private/$sitename.key
 else
   conf1=
   conf2=
@@ -65,46 +64,43 @@ else
 fi
 
 echo -e "server {
-  listen [::]:8080 default_server;
-  listen 8080 default_server;
-$conf1
-  server_name _;
+    listen *:8080;
+    $conf1
+    server_name $sitename;
 
-$conf2
-  root /srv/www/$sitename/public;
+    access_log /srv/www/$sitename_access.log;
+    error_log /srv/www/$sitename_error.log;
 
-  charset utf-8;
+    $conf2
+    root /var/www/$sitename/public;
+    index index.html index.htm index.php;
 
-  error_page 404 /404.html;
-
-  location = /favicon.ico { log_not_found off; access_log off; }
-
-  location = /robots.txt { allow all; log_not_found off; access_log off; }
-
-  location ^~ /static/ {
-    alias /srv/www/$sitename/app/static;
-  }
-
-  location ~ \\.php\$ {
-    try_files \$uri =404;
-    fastcgi_pass unix:/var/run/php5-fpm.sock;
-    fastcgi_param SCRIPT_FILENAME \$request_filename;
+location ~ [^/]\.php(/|$) {
+    # Zero-day exploit defense.
+    # http://forum.nginx.org/read.php?2,88845,page=3
+    # Won't work properly (404 error) if the file is not stored on this server, which is entirely possible with php-fpm/php-fcgi.
+    # Comment the 'try_files' line out if you set up php-fpm/php-fcgi on another machine.  And then cross your fingers that you won't get hacked.
+    try_files $uri =404;
+    fastcgi_split_path_info ^(.+\.php)(/.+)$;
     fastcgi_index index.php;
-    include fastcgi_params;
-  }
+    include fcgi.conf;
+    fastcgi_pass unix:/var/run/php5-fpm.sock;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
 
-  location / { try_files \$uri @$sitename; }
+    # WordPress Specific
+    # include wordpress.conf;
+    # include restrictions.conf;
+    # We only enable this option if W3TC is in effect on a WordPress install
+    # include /srv/www/$sitename/public/nginx.conf;
 
-  location @$sitename {
-    include uwsgi_params;
-    uwsgi_pass unix:/tmp/$sitename.sock;
-  }
-}" > /etc/nginx/sites-available/$sitename
+}" > /etc/nginx/conf.d/$sitename.conf
 
 mkdir -p /srv/www/$sitename/app/static
 mkdir -p /srv/www/$sitename/app/templates
 mkdir -p /srv/www/$sitename/public
-ln -s /etc/nginx/sites-available/$sitename /etc/nginx/sites-enabled/$sitename
+# In NginX 1.9.x the use of conf.d seems appropriate
+# ln -s /etc/nginx/sites-available/$sitename /etc/nginx/sites-enabled/$sitename
 
 # Varnish
 echo -e '\n[Varnish]'
@@ -117,47 +113,6 @@ echo -e '\n[PHP-FPM]'
 apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt
 echo '<?php phpinfo(); ?>' > /srv/www/$sitename/public/checkinfo.php
 
-
-# uWSGI
-echo -e '\n[uWSGI]'
-pip install uwsgi
-mkdir /etc/uwsgi
-mkdir /var/log/uwsgi
-echo 'description "uWSGI Emperor"
-start on runlevel [2345]
-stop on runlevel [06]
-exec uwsgi --die-on-term --emperor /etc/uwsgi --logto /var/log/uwsgi/uwsgi.log' > /etc/init/uwsgi-emperor.conf
-echo '[uwsgi]
-chdir = /srv/www/$sitename
-logto = /var/log/uwsgi/$sitename.log
-virtualenv = /srv/www/$sitename/venv
-socket = /tmp/$sitename.sock
-uid = www-data
-gid = www-data
-master = true
-wsgi-file = wsgi.py
-callable = app
-vacuum = true' > /etc/uwsgi/$sitename.ini
-tee -a /srv/www/$sitename/wsgi.py > /dev/null <<EOF
-from flask import Flask
-
-app = Flask(__name__)
-from flask import render_template
-
-@app.route('/')
-def index():
-    return "<html><head><link href='https://fonts.googleapis.com/css?family=Noto+Sans' rel='stylesheet' type='text/css'></head><body class='container' style=\"font-family: 'Noto Sans', sans-serif;\"><blockquote><h1>You've got a LEMP stack!!</h1><p>The Python app using uWSGI works! <a href='checkinfo.php'>Try out the PHP page.</a></p><footer><a href='https://github.com/jbradach'>@jbradach</a></footer></blockquote></body></html>"
-EOF
-
-# virtualenv
-echo -e '\n[virtualenv]'
-pip install virtualenv
-cd /srv/www/$sitename
-virtualenv venv
-source venv/bin/activate
-pip install flask
-deactivate
-
 # Permissions
 echo -e '\n[Adjusting Permissions]'
 chgrp -R www-data /srv/www/*
@@ -169,7 +124,6 @@ echo -e '\n[MariaDB]'
 export DEBIAN_FRONTEND=noninteractive
 apt-get -q -y install mariadb-server
 echo
-start uwsgi-emperor
 service nginx restart
 service varnish restart
 service php5-fpm restart
