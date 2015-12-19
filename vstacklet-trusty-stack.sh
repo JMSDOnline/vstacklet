@@ -252,6 +252,11 @@ function _sendmail() {
 echo -e '\n[Installing Sendmail]'
 apt-get -y install sendmail >>"${OUTTO}" 2>&1;
 sendmailconfig -y
+# add administrator email
+echo -e '\n[Add Administrator Email for Aliases Inclusion]'
+read -p "Email: " admin_email
+echo 'Thank you! I am now adding ${bold}$admin_email${normal} as an alternate to root in the /etc/aliases file'
+echo
 # install aliases
 echo -e "mailer-daemon: postmaster
 postmaster: root
