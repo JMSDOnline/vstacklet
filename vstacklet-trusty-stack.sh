@@ -165,7 +165,7 @@ echo "${sub_title}Installing and Configuring Nginx ... ${normal}"
 apt-get -y install nginx >>"${OUTTO}" 2>&1;
 service nginx stop >>"${OUTTO}" 2>&1;
 mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
-curl -L https://github.com/JMSDOnline/vstacklet-server-configs/archive/v0.1-alpha.tar.gz | tar -xz >>"${OUTTO}" 2>&1;
+curl -L https://github.com/JMSDOnline/vstacklet-server-configs/archive/v0.1-alpha.tar.gz>>"${OUTTO}" 2>&1 | tar -xz >>"${OUTTO}" 2>&1;
 mv vstacklet-server-configs-0.1-alpha /etc/nginx >>"${OUTTO}" 2>&1;
 cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
 # sed -i.bak -e
