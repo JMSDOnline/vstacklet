@@ -65,7 +65,7 @@ chmod +x quicklemp-ubuntu-stack.sh
 ```
 ##### 14.04 only
 ```
-curl -LO https://raw.github.com/jbradach/quick-lemp/master/quicklemp-trusty-stack.sh
-chmod +x quicklemp-trusty-stack.sh
-./quicklemp-trusty-stack.sh
+curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet-trusty.sh
+chmod +x vstacklet-trusty.sh
+./vstacklet-trusty.sh
 ```
