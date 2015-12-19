@@ -122,8 +122,8 @@ echo
 # package and repo addition (b) _add signed keys_
 echo "${sub_title}Installing signed keys ... ${normal}"
 apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db >>"${OUTTO}" 2>&1;
-curl https://repo.varnish-cache.org/ubuntu/GPG-key.txt>>"${OUTTO}" 2>&1 | apt-key add - >>"${OUTTO}" 2>&1;
-curl http://nginx.org/keys/nginx_signing.key>>"${OUTTO}" 2>&1 | apt-key add - >>"${OUTTO}" 2>&1;
+curl https://repo.varnish-cache.org/ubuntu/GPG-key.txt | apt-key add -
+curl http://nginx.org/keys/nginx_signing.key | apt-key add -
 echo "${OK}"
 echo
 
@@ -162,10 +162,10 @@ echo
 # install nginx function (4)
 # function _nginx() {
 echo "${sub_title}Installing and Configuring Nginx ... ${normal}"
-apt-get -y install nginx >>"${OUTTO}" 2>&1;
+apt-get --force-yes install nginx >>"${OUTTO}" 2>&1;
 service nginx stop >>"${OUTTO}" 2>&1;
 mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
-curl -L https://github.com/JMSDOnline/vstacklet-server-configs/archive/v0.1-alpha.tar.gz>>"${OUTTO}" 2>&1 | tar -xz >>"${OUTTO}" 2>&1;
+curl -L https://github.com/JMSDOnline/vstacklet-server-configs/archive/v0.1-alpha.tar.gz >>"${OUTTO}" 2>&1 | tar -xz >>"${OUTTO}" 2>&1;
 mv vstacklet-server-configs-0.1-alpha /etc/nginx >>"${OUTTO}" 2>&1;
 cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
 # sed -i.bak -e
