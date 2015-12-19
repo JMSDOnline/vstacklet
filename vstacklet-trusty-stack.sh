@@ -162,7 +162,7 @@ echo
 # install nginx function (4)
 # function _nginx() {
 echo "${sub_title}Installing and Configuring Nginx ... ${normal}"
-apt-get --force-yes install nginx >>"${OUTTO}" 2>&1;
+apt-get -y install nginx >>"${OUTTO}" 2>&1;
 service nginx stop >>"${OUTTO}" 2>&1;
 mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
 curl -L https://github.com/JMSDOnline/vstacklet-server-configs/archive/v0.1-alpha.tar.gz >>"${OUTTO}" 2>&1 | tar -xz >>"${OUTTO}" 2>&1;
