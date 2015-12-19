@@ -168,7 +168,7 @@ mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
 curl -L https://github.com/JMSDOnline/vstacklet-server-configs/archive/v0.1-alpha.tar.gz | tar -xz >>"${OUTTO}" 2>&1;
 mv vstacklet-server-configs-0.1-alpha /etc/nginx >>"${OUTTO}" 2>&1;
 cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
-sed -i.bak -e
+# sed -i.bak -e
 sed -i.bak -e "s/www www/www-data www-data/" \
   -e "s/logs\/error.log/\/var\/log\/nginx\/error.log/" \
   -e "s/logs\/access.log/\/var\/log\/nginx\/access.log/" /etc/nginx/nginx.conf
