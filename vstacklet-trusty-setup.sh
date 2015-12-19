@@ -37,7 +37,7 @@ if [[ "${dis}" != "Ubuntu" ]]; then
   echo "${dis}: You do not appear to be running Ubuntu"
   echo 'Exiting...'
   exit 1
-elif [[ ! "${rel}" =~ ("12.04"|"13.04"|"14.04"|"15.04") ]]; then #
+elif [[ ! "${rel}" =~ ("14.04") ]]; then #
   echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
   echo 'Exiting...'
   exit 1
@@ -99,8 +99,8 @@ else
     echo "/etc/ssh/sshd_config does not exist, skipping ahead..."
 fi
 
-# firewall CSF
-# Install CSF firewall dependencies
+# firewall csf
+# install csf firewall dependencies
 echo -e '\n[Install CSF Firewall]'
 apt-get -y install libwww-perl
 wget http://www.configserver.com/free/csf.tgz
@@ -109,6 +109,12 @@ ufw disable
 cd csf
 sh install.sh
 perl /usr/local/csf/bin/csftest.pl
+# install geolitecity database
+wget -q http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
+gunzip GeoLiteCity.dat.gz
+mkdir -p /usr/share/GeoIP
+rm -rf GeoLiteCity.dat.gz
+mv GeoLiteCity.dat /usr/share/GeoIP/GeoIPCity.dat
 
 # Firewall UFW -- (replaced by CSF)
 # apt-get install ufw
