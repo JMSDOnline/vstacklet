@@ -12,7 +12,7 @@ cat <<!
 
 ${bold}[vstacklet] Server Setup${normal}
 
-Configured and tested for Ubuntu 12.04, 13.04, 14.04, and 15.04.
+Configured and tested for Ubuntu 14.04.
 Performs very basic initial steps for a fresh Ubuntu installation.
 
 !
