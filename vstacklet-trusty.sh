@@ -1,6 +1,6 @@
 #!/bin/bash
-server_ip="ifconfig | sed -n 's/.*inet addr:\([0-9.]\+\)\s.*/\1/p' | grep -v 127 | head -n 1"
-sitename="hostname -s"
+server_ip=$(ifconfig | sed -n 's/.*inet addr:\([0-9.]\+\)\s.*/\1/p' | grep -v 127 | head -n 1);
+sitename=$(hostname -s);
 
 echo '[quick-lemp] LEMP Stack Installation'
 echo 'Configured for Ubuntu 14.04.'
