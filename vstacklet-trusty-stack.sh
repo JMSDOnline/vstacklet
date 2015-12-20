@@ -130,9 +130,9 @@ echo
 # package and repo addition (c) _add signed keys_
 echo "${sub_title}Installing signed keys ... ${normal}"
 apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db >>"${OUTTO}" 2>&1;
-echo "${bold}${green} ... applying varnish key ... ${normal}"
+echo "${green}applying varnish key ... ${normal}"
 curl -s https://repo.varnish-cache.org/ubuntu/GPG-key.txt | apt-key add - 
-echo "${bold}${green} ... applying nginx key ... ${normal}"
+echo "${green}applying nginx key ... ${normal}"
 curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - 
 echo "${OK}"
 echo
