@@ -115,15 +115,15 @@ sed -i.bak -e 's/^#force_color/force_color/' \
 # Update packages and add MariaDB, Varnish 4, and Nginx 1.9.9 (mainline) repositories
 # package and repo addition (a) _install common properties_
 echo "${sub_title}Installing Common Software Properties ... ${normal}"
-apt-get install software-properties-common >>"${OUTTO}" 2>&1;
+apt-get install software-properties-common unzip >>"${OUTTO}" 2>&1;
 echo "${OK}"
 echo
 
 # package and repo addition (b) _add signed keys_
 echo "${sub_title}Installing signed keys ... ${normal}"
 apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db >>"${OUTTO}" 2>&1;
-curl https://repo.varnish-cache.org/ubuntu/GPG-key.txt | apt-key add - >/dev/null 2>&1
-curl http://nginx.org/keys/nginx_signing.key | apt-key add - >/dev/null 2>&1
+curl https://repo.varnish-cache.org/ubuntu/GPG-key.txt >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1
+curl http://nginx.org/keys/nginx_signing.key >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1
 echo "${OK}"
 echo
 
@@ -165,7 +165,8 @@ echo "${sub_title}Installing and Configuring Nginx ... ${normal}"
 apt-get -y install nginx >>"${OUTTO}" 2>&1;
 service nginx stop >>"${OUTTO}" 2>&1;
 mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
-curl -L https://github.com/JMSDOnline/vstacklet-server-configs/archive/v0.1-alpha.tar.gz >/dev/null 2>&1 | tar -xz >>"${OUTTO}" 2>&1;
+wget https://github.com/JMSDOnline/vstacklet-server-configs/archive/v0.1-alpha.zip>/dev/null 2>&1
+unzip -qq v0.1-alpha.zip
 mv vstacklet-server-configs-0.1-alpha /etc/nginx >>"${OUTTO}" 2>&1;
 cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
 # sed -i.bak -e
