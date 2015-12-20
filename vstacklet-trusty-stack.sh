@@ -58,11 +58,13 @@ echo "${bold}Installs and configures LEMP stack with Varnish support for PHP App
 echo
 echo
 
-read -p "${bold}Do you want to continue?  [y/${red}N${normal}] " -n 1 -r
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-  echo 'Exiting...'
-  exit 1
-fi
+echo -ne "Do you want to continue?  (Default: ${green}${bold}Y${normal}) "; read input
+   case $input in
+      [yY] | [yY][Ee][Ss] | "" ) true ;;
+      [nN] | [nN][Oo] ) echo "${red}Exiting...${normal}"
+      exit 1;;
+   *) ;;
+   esac
 echo
 echo
 echo "${green}Checking distribution ...${normal}"
@@ -115,19 +117,49 @@ sed -i.bak -e 's/^#force_color/force_color/' \
 # Update packages and add MariaDB, Varnish 4, and Nginx 1.9.9 (mainline) repositories
 # package and repo addition (a) _install common properties_
 echo "${sub_title}Installing Common Software Properties ... ${normal}"
-apt-get -y install software-properties-common unzip >>"${OUTTO}" 2>&1;
+apt-get -y install software-properties-common >>"${OUTTO}" 2>&1;
 echo "${OK}"
 echo
 
-# package and repo addition (b) _add signed keys_
+# package and repo addition (b) _install softwares and packages_
+echo "${sub_title}Installing Additional Packages & Dependencies ... ${normal}"
+apt-get -y install unzip dos2unix htop iotop >>"${OUTTO}" 2>&1;
+# install ioncube loader
+echo
+read -p "Do you want to install IonCube Loader?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
+echo
+
+if [[ $REPLY =~ ^[nN]$ ]]; then
+  echo "${cyan}Skipping IonCube Loader Installation...${normal}"
+else
+  echo "${green}Installing IonCube Loader...${normal}"
+  mkdir tmp 2>&1;
+  cd tmp 2>&1;
+  wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
+  tar xvfz ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
+  cd ioncube >/dev/null 2>&1;
+  cp ioncube_loader_lin_5.5.so /usr/lib/php5/20121212/ >/dev/null 2>&1;
+  echo -e "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" > /etc/php5/fpm/conf.d/20-ioncube.ini
+  echo "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" >> /etc/php5/fpm/php.ini
+  cd
+  rm -rf tmp*
+  echo "${OK}"
+fi
+
+echo "${OK}"
+echo
+
+# package and repo addition (c) _add signed keys_
 echo "${sub_title}Installing signed keys ... ${normal}"
 apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db >>"${OUTTO}" 2>&1;
+echo "${bold}${green} ... applying varnish key ... ${normal}"
 curl -s https://repo.varnish-cache.org/ubuntu/GPG-key.txt | apt-key add - 
+echo "${bold}${green} ... applying nginx key ... ${normal}"
 curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - 
 echo "${OK}"
 echo
 
-# package and repo addition (c) _add respo sources_
+# package and repo addition (d) _add respo sources_
 echo "${sub_title}Adding trusted repositories ... ${normal}"
 cat >/etc/apt/sources.list.d/mariadb.list<<EOF
 deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu trusty main
@@ -142,8 +174,8 @@ EOF
 echo "${OK}"
 echo
 
-# package and repo addition (d) _update and upgrade_
-echo "${sub_title}Updating and tidying up leftovers, please hold ... ${normal}"
+# package and repo addition (e) _update and upgrade_
+echo "${sub_title}Applying Updates ... please hold ... ${normal}"
 apt-get -y update >>"${OUTTO}" 2>&1;
 apt-get -y upgrade >>"${OUTTO}" 2>&1;
 # apt-get -y autoremove >>"${OUTTO}" 2>&1;
@@ -179,7 +211,7 @@ sed -i.bak -e "s/logs\/static.log/\/var\/log\/nginx\/static.log/" /etc/nginx/vst
 cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$sitename.conf
 
 echo
-read -p "${bold}${blue}Do you want to create a self-signed SSL cert and configure HTTPS?${normal}  ${bold}[y/${red}${bold}N${normal}] " -n 1 -r
+read -p "Do you want to create a self-signed SSL cert and configure HTTPS?  (Default: ${red}${bold}N${normal})  " -n 1 -r
 echo
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -190,12 +222,14 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   sed -i "s/conf1/$conf1/" /etc/nginx/conf.d/$sitename.conf
   sed -i "s/conf2/$conf2/" /etc/nginx/conf.d/$sitename.conf
   sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
+  echo "${bold}${green} ... ssl cert creation completed ... ${normal}"
 else
+  echo "${cyan}Skipping SSL Certificate Creation...${normal}"
   sed -i "s/conf1/^$/" /etc/nginx/conf.d/$sitename.conf
   sed -i "s/conf2/^$/" /etc/nginx/conf.d/$sitename.conf
   sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
 fi
-
+echo "${bold}${green}Creating Directory Structure for $sitename ... ${normal}"
 mkdir -p /srv/www/$sitename/app/static >/dev/null 2>&1;
 mkdir -p /srv/www/$sitename/app/templates >/dev/null 2>&1;
 mkdir -p /srv/www/$sitename/public >/dev/null 2>&1;
@@ -217,7 +251,7 @@ echo
 
 # install php function (6)
 # function _php() {
-echo "${sub_title}Installing and adjusting PHP-FPM ... ${normal}"
+echo "${sub_title}Installing and Adjusting PHP-FPM ... ${normal}"
 apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
 sed -i.bak -e "s/post_max_size = 8M/post_max_size = 32M/" \
   -e "s/upload_max_filesize = 2M/upload_max_filesize = 64M/" \
@@ -228,9 +262,9 @@ sed -i.bak -e "s/post_max_size = 8M/post_max_size = 32M/" \
   -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
   -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
   -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php5/fpm/php.ini
-  
+# ensure opcache module is activated
 php5enmod opcache
-
+# write checkinfo for php verification
 echo '<?php phpinfo(); ?>' > /srv/www/$sitename/public/checkinfo.php
 echo "${OK}"
 echo
@@ -265,6 +299,7 @@ echo "${bold}Add Administrator Email for Aliases Inclusion${normal}"
 read -p "Email: " admin_email
 echo "${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
 echo
+echo "${bold}${green} ... finalizing sendmail installation ... ${normal}"
 # install aliases
 echo -e "mailer-daemon: postmaster
 postmaster: root
@@ -284,7 +319,7 @@ echo
 
 # finalize and restart services function (10)
 # function _services() {
-echo "${sub_title}Finalizing Installation & Restarting Services ... ${normal}"
+echo "${sub_title}Completing Installation & Restarting Services ... ${normal}"
 echo
 service nginx restart >>"${OUTTO}" 2>&1;
 service varnish restart >>"${OUTTO}" 2>&1;
@@ -321,7 +356,11 @@ echo '           _______________||______`--------------- '
 echo
 echo
 echo
-echo "${bold}${green}[vstacklet] Varnish LEMP Stack Installation Completed ${normal}"
+echo "${white}${on_green}    [vstacklet] Varnish LEMP Stack Installation Completed    ${normal}"
+echo
+echo "${bold}Visit ${green}http://${server_ip}/checkinfo.php${normal} ${bold}to verify your install. ${normal}"
+echo "${bold}Remember to remove the checkinfo.php file after verification. ${normal}"
+echo
 date
 # }
 
