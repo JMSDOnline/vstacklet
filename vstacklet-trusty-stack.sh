@@ -176,9 +176,9 @@ apt-get -y install nginx >>"${OUTTO}" 2>&1;
 update-rc.d nginx defaults >>"${OUTTO}" 2>&1;
 service nginx stop >>"${OUTTO}" 2>&1;
 mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
-wget https://github.com/JMSDOnline/vstacklet-server-configs/archive/v1.2.zip >/dev/null 2>&1;
-unzip -qq v1.2.zip
-mv vstacklet-server-configs-1.2 /etc/nginx >>"${OUTTO}" 2>&1;
+wget https://github.com/JMSDOnline/vstacklet-server-configs/archive/v1.3.zip >/dev/null 2>&1;
+unzip -qq v1.3.zip
+mv vstacklet-server-configs-1.3 /etc/nginx >>"${OUTTO}" 2>&1;
 cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
 # sed -i.bak -e
 sed -i.bak -e "s/www www/www-data www-data/" \
@@ -384,12 +384,12 @@ echo
 read -p "Do you want to create a self-signed SSL cert and configure HTTPS?  (Default: ${red}${bold}N${normal})  " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  conf1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
-  conf2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/etc\/ssl\/certs\/$sitename.crt;\n    ssl_certificate_key \/etc\/ssl\/private\/$sitename.key;"
+  sslconf1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
+  sslconf2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/etc\/ssl\/certs\/$sitename.crt;\n    ssl_certificate_key \/etc\/ssl\/private\/$sitename.key;"
   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
   chmod 400 /etc/ssl/private/$sitename.key
-  sed -i "s/conf1/$conf1/" /etc/nginx/conf.d/$sitename.conf
-  sed -i "s/conf2/$conf2/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/sslconf1/$sslconf1/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/sslconf2/$sslconf2/" /etc/nginx/conf.d/$sitename.conf
   sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 else
