@@ -188,26 +188,6 @@ sed -i.bak -e "s/logs\/static.log/\/var\/log\/nginx\/static.log/" /etc/nginx/vst
 
 cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$sitename.conf
 
-echo
-read -p "Do you want to create a self-signed SSL cert and configure HTTPS?  (Default: ${red}${bold}N${normal})  " -n 1 -r
-echo
-
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-  conf1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
-  conf2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/etc\/ssl\/certs\/$sitename.crt;\n    ssl_certificate_key \/etc\/ssl\/private\/$sitename.key;"
-  openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
-  chmod 400 /etc/ssl/private/$sitename.key
-  sed -i "s/conf1/$conf1/" /etc/nginx/conf.d/$sitename.conf
-  sed -i "s/conf2/$conf2/" /etc/nginx/conf.d/$sitename.conf
-  sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
-  echo "${bold}${green} ... ssl cert creation completed ... ${normal}"
-else
-  echo "${cyan}Skipping SSL Certificate Creation...${normal}"
-  sed -i "s/conf1/^$/" /etc/nginx/conf.d/$sitename.conf
-  sed -i "s/conf2/^$/" /etc/nginx/conf.d/$sitename.conf
-  sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
-fi
-echo "${bold}${green}Creating Directory Structure for $sitename ... ${normal}"
 mkdir -p /srv/www/$sitename/app/static >/dev/null 2>&1;
 mkdir -p /srv/www/$sitename/app/templates >/dev/null 2>&1;
 mkdir -p /srv/www/$sitename/public >/dev/null 2>&1;
@@ -254,13 +234,12 @@ echo "${sub_title}Preparing IonCube Loader Installation ... ${normal}"
 
 echo
 read -p "Do you want to install IonCube Loader?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-echo
 
 if [[ $REPLY =~ ^[nN]$ ]]; then
   echo "${cyan}Skipping IonCube Loader Installation...${normal}"
   echo
 else
-  echo "${green}Installing IonCube Loader...${normal}"
+  echo "${bold}${green}Installing IonCube Loader...${normal}"
   mkdir tmp 2>&1;
   cd tmp 2>&1;
   wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
@@ -301,11 +280,11 @@ echo "${sub_title}Preparing Sendmail Installation ... ${normal}"
 apt-get -y install sendmail >>"${OUTTO}" 2>&1;
 export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
 # add administrator email
-echo "${bold}Add Administrator Email for Aliases Inclusion${normal}"
+echo "${bold}Add an Administrator Email Below for Aliases Inclusion${normal}"
 read -p "Email: " admin_email
 echo "${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
 echo
-echo "${bold}${green} ... finalizing sendmail installation ... ${normal}"
+echo "${green}finalizing sendmail installation ... ${normal}"
 # install aliases
 echo -e "mailer-daemon: postmaster
 postmaster: root
@@ -320,6 +299,143 @@ abuse: root
 root: $admin_email" > /etc/aliases
 newaliases >>"${OUTTO}" 2>&1;
 echo "${OK}"
+echo
+# }
+
+# finalize and restart services function (11)
+# function _security() {
+echo "${sub_title}Run Final Security & Enhancements Sweep ... ${normal}"
+echo
+echo "${bold}You will now be asked a series of final questions, most of these are a matter of perferrence and if you do not know how to respond... just answer yes... this process is geared towards adding in beneficial security measures and enhancements.${normal}"
+echo
+
+# Round 1 - Location
+echo "${bold}${title}    Round 1 - Location Edits    ${normal}"
+echo 
+
+# Loc - Q1
+read -p "Do you want to enable Built-in filename-based cache busting?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+  echo "${cyan}Skipping...${normal}"
+  sed -i "s/loc_conf1/^$/" /etc/nginx/conf.d/$sitename.conf
+else
+  loc_conf1="include vstacklet\/location\/cache-busting.conf;"
+  sed -i "s/loc_conf1/$loc_conf1/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+fi
+
+# Loc - Q2
+read -p "Do you want to enable Cross domain webfont access?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+  echo "${cyan}Skipping...${normal}"
+  sed -i "s/loc_conf2/^$/" /etc/nginx/conf.d/$sitename.conf
+else
+  loc_conf2="include vstacklet\/location\/cross-domain-fonts.conf;"
+  sed -i "s/loc_conf2/$loc_conf2/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+fi
+
+# Loc - Q3
+read -p "Do you want to enable Expire rules for static content?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+  echo "${cyan}Skipping...${normal}"
+  sed -i "s/loc_conf3/^$/" /etc/nginx/conf.d/$sitename.conf
+else
+  loc_conf3="include vstacklet\/location\/expires.conf;"
+  sed -i "s/loc_conf3/$loc_conf3/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+fi
+
+# Loc - Q4
+read -p "Do you want to Remove PHP extension from static php applications?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+  echo "${cyan}Skipping...${normal}"
+  sed -i "s/loc_conf4/^$/" /etc/nginx/conf.d/$sitename.conf
+else
+  loc_conf4="include vstacklet\/location\/expires.conf;"
+  sed -i "s/loc_conf4/$loc_conf4/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+fi
+
+# Loc - Q5
+read -p "Do you want to Prevent clients from accessing hidden files (starting with a dot)?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+  echo "${cyan}Skipping...${normal}"
+  sed -i "s/loc_conf5/^$/" /etc/nginx/conf.d/$sitename.conf
+else
+  loc_conf5="include vstacklet\/location\/expires.conf;"
+  sed -i "s/loc_conf5/$loc_conf5/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+fi
+echo
+
+# Round 2 - Security
+echo "${bold}${title}    Round 2 - Security Enhancements    ${normal}"
+echo 
+
+# Sec - Q1
+read -p "Do you want to create a self-signed SSL cert and configure HTTPS?  (Default: ${red}${bold}N${normal})  " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+  conf1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
+  conf2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/etc\/ssl\/certs\/$sitename.crt;\n    ssl_certificate_key \/etc\/ssl\/private\/$sitename.key;"
+  openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
+  chmod 400 /etc/ssl/private/$sitename.key
+  sed -i "s/conf1/$conf1/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/conf2/$conf2/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+else
+  echo "${cyan}Skipping SSL Certificate Creation...${normal}"
+  sed -i "s/conf1/^$/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/conf2/^$/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
+fi
+
+# Sec - Q2
+read -p "Do you want to Block access from specific user agents?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+  echo "${cyan}Skipping...${normal}"
+  sed -i "s/sec_conf1/^$/" /etc/nginx/conf.d/$sitename.conf
+else
+  sec_conf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
+  sed -i "s/sec_conf1/$sec_conf1/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+fi
+echo
+
+# Sec - Q3
+read -p "Do you want to Protect against common file injection attacks?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+  echo "${cyan}Skipping...${normal}"
+  sed -i "s/sec_conf2/^$/" /etc/nginx/conf.d/$sitename.conf
+else
+  sec_conf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
+  sed -i "s/sec_conf2/$sec_conf2/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+fi
+echo
+
+# Sec - Q4
+read -p "Do you want to Disable PHP Easter Eggs?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+  echo "${cyan}Skipping...${normal}"
+  sed -i "s/sec_conf3/^$/" /etc/nginx/conf.d/$sitename.conf
+else
+  sec_conf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
+  sed -i "s/sec_conf3/$sec_conf3/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+fi
+echo
+echo "[ ${green}Security Sweep & Enhancements Complete${normal} ]"
 echo
 # }
 
@@ -362,7 +478,7 @@ echo '           _______________||______`--------------- '
 echo
 echo
 echo
-echo "${white}${on_green}    [vstacklet] Varnish LEMP Stack Installation Completed    ${normal}"
+echo "${black}${on_green}    [vstacklet] Varnish LEMP Stack Installation Completed    ${normal}"
 echo
 echo "${bold}Visit ${green}http://${server_ip}/checkinfo.php${normal} ${bold}to verify your install. ${normal}"
 echo "${bold}Remember to remove the checkinfo.php file after verification. ${normal}"
