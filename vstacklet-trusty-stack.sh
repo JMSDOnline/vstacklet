@@ -384,18 +384,18 @@ echo
 read -p "Do you want to create a self-signed SSL cert and configure HTTPS?  (Default: ${red}${bold}N${normal})  " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  sslconf1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
-  sslconf2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/etc\/ssl\/certs\/$sitename.crt;\n    ssl_certificate_key \/etc\/ssl\/private\/$sitename.key;"
+  insert1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
+  insert2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/etc\/ssl\/certs\/$sitename.crt;\n    ssl_certificate_key \/etc\/ssl\/private\/$sitename.key;"
   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
   chmod 400 /etc/ssl/private/$sitename.key
-  sed -i "s/sslconf1/$sslconf1/" /etc/nginx/conf.d/$sitename.conf
-  sed -i "s/sslconf2/$sslconf2/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/insert1/$insert1/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/insert2/$insert2/" /etc/nginx/conf.d/$sitename.conf
   sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 else
   echo "${cyan}Skipping SSL Certificate Creation...${normal}"
-  sed -i "s/conf1/#/" /etc/nginx/conf.d/$sitename.conf
-  sed -i "s/conf2/#/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/insert1/#/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/insert2/#/" /etc/nginx/conf.d/$sitename.conf
   sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
 fi
 
