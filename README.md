@@ -16,8 +16,9 @@ Components include a recent mainline version of Nginx (1.9.9) using configuratio
 Deploys a proper directory strucutre and creates a PHP page for testing.
 
 Script Features
-----------------
+--------
   * Quiet installer - no more long scrolling text vomit, just see what's important; when it's presented.
+  * Script writes output to /root/vstacklet.log for additional observations.
   * Color Coding for emphasis on install processes.
   * Defaults are set to (Y) - just hit enter if you accept.
   * Fast and Lightweight install.
