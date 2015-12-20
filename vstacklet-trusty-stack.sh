@@ -122,8 +122,8 @@ echo
 # package and repo addition (b) _add signed keys_
 echo "${sub_title}Installing signed keys ... ${normal}"
 apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db >>"${OUTTO}" 2>&1;
-curl https://repo.varnish-cache.org/ubuntu/GPG-key.txt >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1;
-curl http://nginx.org/keys/nginx_signing.key >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1;
+curl https://repo.varnish-cache.org/ubuntu/GPG-key.txt | apt-key add - >/dev/null 2>&1;
+curl http://nginx.org/keys/nginx_signing.key | apt-key add - >/dev/null 2>&1;
 echo "${OK}"
 echo
 
@@ -153,10 +153,10 @@ echo
 
 # depencies and pip function (3)
 # function _dependencies() {
-echo "${sub_title}Installing and Building Essential Python ... ${normal}"
-apt-get -y install build-essential debconf-utils python-dev libpcre3-dev libssl-dev python-pip >>"${OUTTO}" 2>&1;
-echo "${OK}"
-echo
+# echo "${sub_title}Installing and Building Essential Python ... ${normal}"
+# apt-get -y install build-essential debconf-utils python-dev libpcre3-dev libssl-dev python-pip >>"${OUTTO}" 2>&1;
+# echo "${OK}"
+# echo
 # }
 
 # install nginx function (4)
@@ -176,7 +176,7 @@ sed -i.bak -e "s/www www/www-data www-data/" \
 sed -i.bak -e "s/logs\/static.log/\/var\/log\/nginx\/static.log/" /etc/nginx/vstacklet/location/expires.conf
 
 echo
-read -p "${bold}${blue}Do you want to create a self-signed SSL cert and configure HTTPS?${normal}  ${bold}[y/${red}${bold}N${normal}]" -n 1 -r
+read -p "${bold}${blue}Do you want to create a self-signed SSL cert and configure HTTPS?${normal}  ${bold}[y/${red}${bold}N${normal}] " -n 1 -r
 echo
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
