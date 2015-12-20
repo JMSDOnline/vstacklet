@@ -124,27 +124,6 @@ echo
 # package and repo addition (b) _install softwares and packages_
 echo "${sub_title}Installing Additional Packages & Dependencies ... ${normal}"
 apt-get -y install unzip dos2unix htop iotop >>"${OUTTO}" 2>&1;
-# install ioncube loader
-echo
-read -p "Do you want to install IonCube Loader?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-echo
-
-if [[ $REPLY =~ ^[nN]$ ]]; then
-  echo "${cyan}Skipping IonCube Loader Installation...${normal}"
-else
-  echo "${green}Installing IonCube Loader...${normal}"
-  mkdir tmp 2>&1;
-  cd tmp 2>&1;
-  wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
-  tar xvfz ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
-  cd ioncube >/dev/null 2>&1;
-  cp ioncube_loader_lin_5.5.so /usr/lib/php5/20121212/ >/dev/null 2>&1;
-  echo -e "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" > /etc/php5/fpm/conf.d/20-ioncube.ini
-  echo "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" >> /etc/php5/fpm/php.ini
-  cd
-  rm -rf tmp*
-fi
-
 echo "${OK}"
 echo
 
@@ -269,7 +248,35 @@ echo "${OK}"
 echo
 # }
 
-# adjust permissions function (7)
+# install ioncube loader function (7)
+# function _ioncube() {
+echo "${sub_title}Preparing IonCube Loader Installation ... ${normal}"
+
+echo
+read -p "Do you want to install IonCube Loader?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
+echo
+
+if [[ $REPLY =~ ^[nN]$ ]]; then
+  echo "${cyan}Skipping IonCube Loader Installation...${normal}"
+  echo
+else
+  echo "${green}Installing IonCube Loader...${normal}"
+  mkdir tmp 2>&1;
+  cd tmp 2>&1;
+  wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
+  tar xvfz ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
+  cd ioncube >/dev/null 2>&1;
+  cp ioncube_loader_lin_5.5.so /usr/lib/php5/20121212/ >/dev/null 2>&1;
+  echo -e "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" > /etc/php5/fpm/conf.d/20-ioncube.ini
+  echo "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" >> /etc/php5/fpm/php.ini
+  cd
+  rm -rf tmp*
+  echo "${OK}"
+  echo
+fi
+# }
+
+# adjust permissions function (8)
 # function _perms() {
 echo "${sub_title}Adjusting Permissions ... ${normal}"
 chgrp -R www-data /srv/www/*
@@ -279,7 +286,7 @@ echo "${OK}"
 echo
 # }
 
-# install mariadb function (8)
+# install mariadb function (9)
 # function _mariadb() {
 echo "${sub_title}Installing MariaDB Drop-in Replacement ... ${normal}"
 export DEBIAN_FRONTEND=noninteractive
@@ -288,7 +295,7 @@ echo "${OK}"
 echo
 # }
 
-# install sendmail function (9)
+# install sendmail function (10)
 # function _sendmail() {
 echo "${sub_title}Preparing Sendmail Installation ... ${normal}"
 apt-get -y install sendmail >>"${OUTTO}" 2>&1;
@@ -316,7 +323,7 @@ echo "${OK}"
 echo
 # }
 
-# finalize and restart services function (10)
+# finalize and restart services function (11)
 # function _services() {
 echo "${sub_title}Completing Installation & Restarting Services ... ${normal}"
 echo
@@ -327,7 +334,7 @@ service sendmail restart >>"${OUTTO}" 2>&1;
 echo
 # }
 
-# function to show finished data (11)
+# function to show finished data (12)
 # function _finished() {
 echo
 echo
