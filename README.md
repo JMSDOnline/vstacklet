@@ -26,6 +26,14 @@ Script Features
 
 **View the script in action @ [VStacklet Installer](https://youtu.be/0Kwq1dDl71g)**
 
+Total script install time on a $5 [Digital Ocean Droplet](https://www.digitalocean.com/?refcode=917d3ff0e1c8) sits at 09:34. This time assumes you are sitting attentively with the script running. There are a limited number of interactions to be made with the script, however, I feel it is important to have some sort of interaction... at the very least so you are familiar with what is being installed etc.
+
+![preview 1](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p1.png "vstacklet preview 1")
+![preview 2](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p2.png "vstacklet preview 2")
+![preview 3](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p3.png "vstacklet preview 3")
+![preview 4](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p4.png "vstacklet preview 4")
+![preview 5](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p5.png "vstacklet preview 5")
+
  Scripts
 --------
 __Setup__ - Basic setup for new Ubuntu server.
