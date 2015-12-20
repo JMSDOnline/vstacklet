@@ -167,8 +167,8 @@ update-rc.d nginx defaults >>"${OUTTO}" 2>&1;
 service nginx stop >>"${OUTTO}" 2>&1;
 mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
 wget https://github.com/JMSDOnline/vstacklet-server-configs/archive/v0.2-alpha.zip >/dev/null 2>&1;
-unzip -qq v0.1-alpha.zip
-mv vstacklet-server-configs-0.1-alpha /etc/nginx >>"${OUTTO}" 2>&1;
+unzip -qq v0.2-alpha.zip
+mv vstacklet-server-configs-0.2-alpha /etc/nginx >>"${OUTTO}" 2>&1;
 cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
 # sed -i.bak -e
 sed -i.bak -e "s/www www/www-data www-data/" \
