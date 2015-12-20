@@ -176,9 +176,9 @@ apt-get -y install nginx >>"${OUTTO}" 2>&1;
 update-rc.d nginx defaults >>"${OUTTO}" 2>&1;
 service nginx stop >>"${OUTTO}" 2>&1;
 mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
-wget https://github.com/JMSDOnline/vstacklet-server-configs/archive/v1.1.zip >/dev/null 2>&1;
-unzip -qq v1.1.zip
-mv vstacklet-server-configs-1.1 /etc/nginx >>"${OUTTO}" 2>&1;
+wget https://github.com/JMSDOnline/vstacklet-server-configs/archive/v1.2.zip >/dev/null 2>&1;
+unzip -qq v1.2.zip
+mv vstacklet-server-configs-1.2 /etc/nginx >>"${OUTTO}" 2>&1;
 cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
 # sed -i.bak -e
 sed -i.bak -e "s/www www/www-data www-data/" \
@@ -306,7 +306,10 @@ echo
 # function _security() {
 echo "${sub_title}Run Final Security & Enhancements Sweep ... ${normal}"
 echo
-echo "${bold}You will now be asked a series of final questions, most of these are a matter of perferrence and if you do not know how to respond... just answer yes... this process is geared towards adding in beneficial security measures and enhancements.${normal}"
+echo "${bold}You will now be asked a series of final questions, ${normal}"
+echo "${bold}most of these are a matter of perferrence.${normal}" 
+echo "${bold}With the acception of ${underline}'Remove PHP extension'${reset_underline}${bold}. ${normal}"
+echo "${bold}This option is not needed if using a CMS.${normal}"
 echo
 
 # Round 1 - Location
@@ -317,10 +320,10 @@ echo
 read -p "Do you want to enable Built-in filename-based cache busting?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
-  sed -i "s/loc_conf1/#/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/locconf1/#/" /etc/nginx/conf.d/$sitename.conf
 else
-  loc_conf1="include vstacklet\/location\/cache-busting.conf;"
-  sed -i "s/loc_conf1/$loc_conf1/" /etc/nginx/conf.d/$sitename.conf
+  locconf1="include vstacklet\/location\/cache-busting.conf;"
+  sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
 echo
@@ -329,10 +332,10 @@ echo
 read -p "Do you want to enable Cross domain webfont access?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
-  sed -i "s/loc_conf2/#/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/locconf2/#/" /etc/nginx/conf.d/$sitename.conf
 else
-  loc_conf2="include vstacklet\/location\/cross-domain-fonts.conf;"
-  sed -i "s/loc_conf2/$loc_conf2/" /etc/nginx/conf.d/$sitename.conf
+  locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
+  sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
 echo
@@ -341,10 +344,10 @@ echo
 read -p "Do you want to enable Expire rules for static content?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
-  sed -i "s/loc_conf3/#/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/locconf3/#/" /etc/nginx/conf.d/$sitename.conf
 else
-  loc_conf3="include vstacklet\/location\/expires.conf;"
-  sed -i "s/loc_conf3/$loc_conf3/" /etc/nginx/conf.d/$sitename.conf
+  locconf3="include vstacklet\/location\/expires.conf;"
+  sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
 echo
@@ -353,10 +356,10 @@ echo
 read -p "Do you want to Remove PHP extension from static php applications?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
-  sed -i "s/loc_conf4/#/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/locconf4/#/" /etc/nginx/conf.d/$sitename.conf
 else
-  loc_conf4="include vstacklet\/location\/extensionless-php.conf;"
-  sed -i "s/loc_conf4/$loc_conf4/" /etc/nginx/conf.d/$sitename.conf
+  locconf4="include vstacklet\/location\/extensionless-php.conf;"
+  sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
 echo
@@ -365,10 +368,10 @@ echo
 read -p "Do you want to Prevent clients from accessing hidden files (starting with a dot)?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
-  sed -i "s/loc_conf5/#/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/locconf5/#/" /etc/nginx/conf.d/$sitename.conf
 else
-  loc_conf5="include vstacklet\/location\/protect-system-files.conf;"
-  sed -i "s/loc_conf5/$loc_conf5/" /etc/nginx/conf.d/$sitename.conf
+  locconf5="include vstacklet\/location\/protect-system-files.conf;"
+  sed -i "s/locconf5/$locconf5/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
 echo
@@ -400,10 +403,10 @@ fi
 read -p "Do you want to Block access from specific user agents?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
-  sed -i "s/sec_conf1/#/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/secconf1/#/" /etc/nginx/conf.d/$sitename.conf
 else
-  sec_conf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
-  sed -i "s/sec_conf1/$sec_conf1/" /etc/nginx/conf.d/$sitename.conf
+  secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
+  sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
 echo
@@ -412,10 +415,10 @@ echo
 read -p "Do you want to Protect against common file injection attacks?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
-  sed -i "s/sec_conf2/#/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/secconf2/#/" /etc/nginx/conf.d/$sitename.conf
 else
-  sec_conf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
-  sed -i "s/sec_conf2/$sec_conf2/" /etc/nginx/conf.d/$sitename.conf
+  secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
+  sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
 echo
@@ -424,10 +427,10 @@ echo
 read -p "Do you want to Disable PHP Easter Eggs?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
-  sed -i "s/sec_conf3/#/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/secconf3/#/" /etc/nginx/conf.d/$sitename.conf
 else
-  sec_conf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
-  sed -i "s/sec_conf3/$sec_conf3/" /etc/nginx/conf.d/$sitename.conf
+  secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
+  sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
 echo
@@ -480,6 +483,7 @@ echo "${bold}Visit ${green}http://${server_ip}/checkinfo.php${normal} ${bold}to 
 echo "${bold}Remember to remove the checkinfo.php file after verification. ${normal}"
 echo
 date
+echo
 # }
 
 exit 0
