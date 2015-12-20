@@ -187,7 +187,6 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   conf2="include vstacklet/directive-only/ssl.conf;\n    ssl_certificate /etc/ssl/certs/$sitename.crt;\n    ssl_certificate_key /etc/ssl/private/$sitename.key;"
   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
   chmod 400 /etc/ssl/private/$sitename.key
-  
   sed -i "s/conf1/$conf1/" /etc/nginx/conf.d/$sitename.conf
   sed -i "s/conf2/$conf2/" /etc/nginx/conf.d/$sitename.conf
   sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
