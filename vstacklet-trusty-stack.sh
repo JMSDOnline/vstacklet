@@ -163,6 +163,7 @@ echo
 # function _nginx() {
 echo "${sub_title}Installing and Configuring Nginx ... ${normal}"
 apt-get -y install nginx >>"${OUTTO}" 2>&1;
+update-rc.d nginx defaults >>"${OUTTO}" 2>&1;
 service nginx stop >>"${OUTTO}" 2>&1;
 mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
 wget https://github.com/JMSDOnline/vstacklet-server-configs/archive/v0.1-alpha.zip >/dev/null 2>&1;
@@ -180,8 +181,8 @@ read -p "${bold}${blue}Do you want to create a self-signed SSL cert and configur
 echo
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  conf1="  listen [::]:443 ssl http2;\n  listen *:443 ssl http2;\n"
-  conf2="  include vstacklet/directive-only/ssl.conf;\n  ssl_certificate /etc/ssl/certs/$sitename.crt;\n  ssl_certificate_key /etc/ssl/private/$sitename.key;"
+  conf1="listen [::]:443 ssl http2;\n  listen *:443 ssl http2;\n"
+  conf2="include vstacklet/directive-only/ssl.conf;\n  ssl_certificate /etc/ssl/certs/$sitename.crt;\n  ssl_certificate_key /etc/ssl/private/$sitename.key;"
   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
   chmod 400 /etc/ssl/private/$sitename.key
 else
@@ -190,38 +191,7 @@ else
   conf3=
 fi
 
-echo -e "server {
-    listen *:8080;
-    $conf1
-    server_name $sitename;
-
-    access_log /srv/www/$sitename_access.log;
-    error_log /srv/www/$sitename_error.log;
-
-    $conf2
-    root /var/www/$sitename/public;
-    index index.html index.htm index.php;
-
-location ~ [^/]\.php(/|$) {
-    # Zero-day exploit defense.
-    # http://forum.nginx.org/read.php?2,88845,page=3
-    # Won't work properly (404 error) if the file is not stored on this server, which is entirely possible with php-fpm/php-fcgi.
-    # Comment the 'try_files' line out if you set up php-fpm/php-fcgi on another machine.  And then cross your fingers that you won't get hacked.
-    try_files $uri =404;
-    fastcgi_split_path_info ^(.+\.php)(/.+)$;
-    fastcgi_index index.php;
-    include fcgi.conf;
-    fastcgi_pass unix:/var/run/php5-fpm.sock;
-    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-    }
-
-    # WordPress Specific
-    # include wordpress.conf;
-    # include restrictions.conf;
-    # We only enable this option if W3TC is in effect on a WordPress install
-    # include /srv/www/$sitename/public/nginx.conf;
-
-}" > /etc/nginx/conf.d/$sitename.conf
+cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$sitename.conf
 
 mkdir -p /srv/www/$sitename/app/static >/dev/null 2>&1;
 mkdir -p /srv/www/$sitename/app/templates >/dev/null 2>&1;
@@ -244,8 +214,15 @@ echo
 
 # install php function (6)
 # function _php() {
-echo "${sub_title}Installing PHP-FPM ... ${normal}"
-apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
+echo "${sub_title}Installing and adjusting PHP-FPM ... ${normal}"
+apt-get -y install php5-common php5-mysqlnd php5-mysql php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
+sed -i.bak -e "s/www www/www-data www-data/" \
+  -e "s/post_max_size = 8M/post_max_size = 32M/" \
+  -e "s/upload_max_filesize = 2M/upload_max_filesize = 64M/" \
+  -e "s/expose_php = On/expose_php = Off/" \
+  -e "s/128M/512M/" \
+  -e "s/cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
+  -e "s/;opcache.enable=0/opcache.enable=0/" /etc/php5/fpm/php.ini
 echo '<?php phpinfo(); ?>' > /srv/www/$sitename/public/checkinfo.php
 echo "${OK}"
 echo
@@ -292,7 +269,7 @@ www: root
 ftp: root
 abuse: root
 root: $admin_email" > /etc/aliases
-newaliases >>"${OUTTO}" 2>&1;
+newaliases
 echo "${OK}"
 echo
 # }
