@@ -315,7 +315,6 @@ echo
 
 # Loc - Q1
 read -p "Do you want to enable Built-in filename-based cache busting?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-echo
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
   sed -i "s/loc_conf1/^$/" /etc/nginx/conf.d/$sitename.conf
@@ -324,10 +323,10 @@ else
   sed -i "s/loc_conf1/$loc_conf1/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
+echo
 
 # Loc - Q2
 read -p "Do you want to enable Cross domain webfont access?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-echo
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
   sed -i "s/loc_conf2/^$/" /etc/nginx/conf.d/$sitename.conf
@@ -336,10 +335,10 @@ else
   sed -i "s/loc_conf2/$loc_conf2/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
+echo
 
 # Loc - Q3
 read -p "Do you want to enable Expire rules for static content?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-echo
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
   sed -i "s/loc_conf3/^$/" /etc/nginx/conf.d/$sitename.conf
@@ -348,10 +347,10 @@ else
   sed -i "s/loc_conf3/$loc_conf3/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
+echo
 
 # Loc - Q4
 read -p "Do you want to Remove PHP extension from static php applications?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-echo
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
   sed -i "s/loc_conf4/^$/" /etc/nginx/conf.d/$sitename.conf
@@ -360,10 +359,10 @@ else
   sed -i "s/loc_conf4/$loc_conf4/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
+echo
 
 # Loc - Q5
 read -p "Do you want to Prevent clients from accessing hidden files (starting with a dot)?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-echo
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
   sed -i "s/loc_conf5/^$/" /etc/nginx/conf.d/$sitename.conf
@@ -399,7 +398,6 @@ fi
 
 # Sec - Q2
 read -p "Do you want to Block access from specific user agents?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-echo
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
   sed -i "s/sec_conf1/^$/" /etc/nginx/conf.d/$sitename.conf
@@ -412,7 +410,6 @@ echo
 
 # Sec - Q3
 read -p "Do you want to Protect against common file injection attacks?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-echo
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
   sed -i "s/sec_conf2/^$/" /etc/nginx/conf.d/$sitename.conf
@@ -425,7 +422,6 @@ echo
 
 # Sec - Q4
 read -p "Do you want to Disable PHP Easter Eggs?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-echo
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
   sed -i "s/sec_conf3/^$/" /etc/nginx/conf.d/$sitename.conf
