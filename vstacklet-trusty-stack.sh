@@ -182,8 +182,8 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   conf1="  listen [::]:443 ssl http2;\n  listen *:443 ssl http2;\n"
   conf2="  include vstacklet/directive-only/ssl.conf;\n  ssl_certificate /etc/ssl/certs/$sitename.crt;\n  ssl_certificate_key /etc/ssl/private/$sitename.key;"
-  openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/nginx/private/$sitename.key -out /etc/ssl/nginx/certs/$sitename.crt
-  chmod 400 /etc/ssl/nginx/private/$sitename.key
+  openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
+  chmod 400 /etc/ssl/private/$sitename.key
 else
   conf1=
   conf2=
@@ -235,7 +235,7 @@ echo
 # install varnish function (5)
 # function _varnish() {
 echo "${sub_title}Installing and Configuring Varnish ... ${normal}"
-apt-get install varnish >>"${OUTTO}" 2>&1;
+apt-get -y install varnish >>"${OUTTO}" 2>&1;
 sed -i "s/127.0.0.1/$server_ip/" /etc/varnish/default.vcl
 sed -i "s/6081/80/" /etc/default/varnish
 echo "${OK}"
