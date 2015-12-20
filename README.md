@@ -3,7 +3,7 @@ VStacklet
 
 Scripts to quickly install a [LEMP Stack](https://lemp.io) and perform basic configuration of new Ubuntu 14.04, and 15.04 [untested] servers.
 
-**NOTE:** This is a modification of it's original branch provided by [quick-lemp](https://github.com/jbradach/quick-lemp/). Installation scripts marked as Ubuntu 14.04 ONLY are those of heavy changes provided by myself (JMSolo Designs). These changes include ushering in CSF, Varnish as well as installing and configuring Sendmail and phpMyAdmin **To be added soon** for ease of use. 
+**NOTE:** This is a modification of it's original branch provided by <a href="https://github.com/jbradach/quick-lemp/" target="_blank">quick-lemp</a>. Installation scripts marked as Ubuntu 14.04 ONLY are those of heavy changes provided by myself (JMSolo Designs). These changes include ushering in CSF, Varnish as well as installing and configuring Sendmail and phpMyAdmin **To be added soon** for ease of use. 
 
 Quick-Lemp is geared towards python based application installs and using default Boilerplate templates on Nginx/stable versions of no higher than 1.8. This limits the use of new functions and features in Nginx, nothing wrong with that, but some of us are sticklers for recent version. 
 
@@ -22,11 +22,12 @@ Script Features
   * Color Coding for emphasis on install processes.
   * Defaults are set to (Y) - just hit enter if you accept.
   * Fast and Lightweight install.
+  * HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="http://h2.nix-admin.com/" target="_blank">HTTP/2 Checker</a>
   * Everything you need to get that Nginx + Varnish server up and running!
 
-**View the script in action @ [VStacklet Installer](https://youtu.be/0Kwq1dDl71g)**
+**View the script in action @ <a href="https://youtu.be/0Kwq1dDl71g" target="_blank">VStacklet Installer</a>** (_external to Youtube_)
 
-Total script install time on a $5 [Digital Ocean Droplet](https://www.digitalocean.com/?refcode=917d3ff0e1c8) sits at 09:34. This time assumes you are sitting attentively with the script running. There are a limited number of interactions to be made with the script, however, I feel it is important to have some sort of interaction... at the very least so you are familiar with what is being installed etc.
+Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 09:34. This time assumes you are sitting attentively with the script running. There are a limited number of interactions to be made with the script, however, I feel it is important to have some sort of interaction... at the very least so you are familiar with what is being installed etc.
 
 ![preview 1](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p1.png "vstacklet preview 1")
 ![preview 2](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p2.png "vstacklet preview 2")
