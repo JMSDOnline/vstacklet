@@ -216,7 +216,7 @@ echo
 # function _php() {
 echo "${sub_title}Installing and adjusting PHP-FPM ... ${normal}"
 apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
-sed -i.bak -e "s/post_max_size = 8M/post_max_size = 32M//" \
+sed -i.bak -e "s/post_max_size = 8M/post_max_size = 32M/" \
   -e "s/upload_max_filesize = 2M/upload_max_filesize = 64M/" \
   -e "s/expose_php = On/expose_php = Off/" \
   -e "s/128M/512M/" \
