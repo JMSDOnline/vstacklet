@@ -176,22 +176,25 @@ sed -i.bak -e "s/www www/www-data www-data/" \
   -e "s/logs\/access.log/\/var\/log\/nginx\/access.log/" /etc/nginx/nginx.conf
 sed -i.bak -e "s/logs\/static.log/\/var\/log\/nginx\/static.log/" /etc/nginx/vstacklet/location/expires.conf
 
+cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$sitename.conf
+
 echo
 read -p "${bold}${blue}Do you want to create a self-signed SSL cert and configure HTTPS?${normal}  ${bold}[y/${red}${bold}N${normal}] " -n 1 -r
 echo
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  conf1="listen [::]:443 ssl http2;\n  listen *:443 ssl http2;\n"
-  conf2="include vstacklet/directive-only/ssl.conf;\n  ssl_certificate /etc/ssl/certs/$sitename.crt;\n  ssl_certificate_key /etc/ssl/private/$sitename.key;"
+  conf1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
+  conf2="include vstacklet/directive-only/ssl.conf;\n    ssl_certificate /etc/ssl/certs/$sitename.crt;\n    ssl_certificate_key /etc/ssl/private/$sitename.key;"
   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
   chmod 400 /etc/ssl/private/$sitename.key
+  sed -i -e "s/conf1/$conf1/" \
+    -e "s/conf2/$conf2/" \
+    -e "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
 else
-  conf1=
-  conf2=
-  conf3=
+  sed -i -e "s/conf1/ /" \
+    -e "s/conf2/ /" \
+    -e "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
 fi
-
-cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$sitename.conf
 
 mkdir -p /srv/www/$sitename/app/static >/dev/null 2>&1;
 mkdir -p /srv/www/$sitename/app/templates >/dev/null 2>&1;
@@ -250,7 +253,7 @@ echo
 # function _sendmail() {
 echo "${sub_title}Preparing Sendmail Installation ... ${normal}"
 apt-get -y install sendmail >>"${OUTTO}" 2>&1;
-sendmailconfig -y
+export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
 # add administrator email
 echo "Add Administrator Email for Aliases Inclusion"
 read -p "Email: " admin_email
@@ -268,7 +271,7 @@ www: root
 ftp: root
 abuse: root
 root: $admin_email" > /etc/aliases
-newaliases
+newaliases >>"${OUTTO}" 2>&1;
 echo "${OK}"
 echo
 # }
