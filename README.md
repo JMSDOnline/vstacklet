@@ -24,6 +24,8 @@ Script Features
   * Fast and Lightweight install.
   * Everything you need to get that Nginx + Varnish server up and running!
 
+**View the script in action @ [VStacklet Installer](https://youtu.be/0Kwq1dDl71g)**
+
  Scripts
 --------
 __Setup__ - Basic setup for new Ubuntu server.
