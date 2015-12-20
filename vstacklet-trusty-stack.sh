@@ -115,7 +115,7 @@ sed -i.bak -e 's/^#force_color/force_color/' \
 # Update packages and add MariaDB, Varnish 4, and Nginx 1.9.9 (mainline) repositories
 # package and repo addition (a) _install common properties_
 echo "${sub_title}Installing Common Software Properties ... ${normal}"
-apt-get install software-properties-common unzip >>"${OUTTO}" 2>&1;
+apt-get -y install software-properties-common unzip >>"${OUTTO}" 2>&1;
 echo "${OK}"
 echo
 
