@@ -55,6 +55,12 @@ __Stack__ - Installs and configures LEMP stack with support for Website-based se
   * Supports IPv6 by default .
   * Optional self-signed SSL cert configuration.
 
+__Backups__ - Installs scripts to help manage and automate server/site backups (_coming soon as a single script_).
+  * Backup your files in key locations (ex: /srv/www /etc /root)
+  * Backup your databases
+  * Package files & databases to one archive
+  * Cleanup remaining individual archives
+
 Quick Start
 ----------------
 _You should read these scripts before running them so you know what they're
