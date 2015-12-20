@@ -183,8 +183,11 @@ read -p "${bold}${blue}Do you want to create a self-signed SSL cert and configur
 echo
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
+  ssl_conf="vstacklet/directive-only/ssl.conf;"
+  ssl_certificate="/etc/ssl/certs/$sitename.crt;"
+  ssl_certificate_key="/etc/ssl/private/$sitename.key;"
   conf1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
-  conf2="include vstacklet/directive-only/ssl.conf;\n    ssl_certificate /etc/ssl/certs/$sitename.crt;\n    ssl_certificate_key /etc/ssl/private/$sitename.key;"
+  conf2="include ${ssl_conf}\n    ssl_certificate ${ssl_certificate}\n    ssl_certificate_key ${ssl_certificate_key}"
   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
   chmod 400 /etc/ssl/private/$sitename.key
   sed -i "s/conf1/$conf1/" /etc/nginx/conf.d/$sitename.conf
