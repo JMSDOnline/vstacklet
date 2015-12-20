@@ -122,8 +122,8 @@ echo
 # package and repo addition (b) _add signed keys_
 echo "${sub_title}Installing signed keys ... ${normal}"
 apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db >>"${OUTTO}" 2>&1;
-curl https://repo.varnish-cache.org/ubuntu/GPG-key.txt >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1
-curl http://nginx.org/keys/nginx_signing.key >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1
+curl https://repo.varnish-cache.org/ubuntu/GPG-key.txt >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1;
+curl http://nginx.org/keys/nginx_signing.key >/dev/null 2>&1 | apt-key add - >/dev/null 2>&1;
 echo "${OK}"
 echo
 
@@ -165,7 +165,7 @@ echo "${sub_title}Installing and Configuring Nginx ... ${normal}"
 apt-get -y install nginx >>"${OUTTO}" 2>&1;
 service nginx stop >>"${OUTTO}" 2>&1;
 mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
-wget https://github.com/JMSDOnline/vstacklet-server-configs/archive/v0.1-alpha.zip>/dev/null 2>&1
+wget https://github.com/JMSDOnline/vstacklet-server-configs/archive/v0.1-alpha.zip>/dev/null 2>&1;
 unzip -qq v0.1-alpha.zip
 mv vstacklet-server-configs-0.1-alpha /etc/nginx >>"${OUTTO}" 2>&1;
 cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
@@ -223,9 +223,9 @@ location ~ [^/]\.php(/|$) {
 
 }" > /etc/nginx/conf.d/$sitename.conf
 
-mkdir -p /srv/www/$sitename/app/static >/dev/null 2>&1
-mkdir -p /srv/www/$sitename/app/templates >/dev/null 2>&1
-mkdir -p /srv/www/$sitename/public >/dev/null 2>&1
+mkdir -p /srv/www/$sitename/app/static >/dev/null 2>&1;
+mkdir -p /srv/www/$sitename/app/templates >/dev/null 2>&1;
+mkdir -p /srv/www/$sitename/public >/dev/null 2>&1;
 # In NginX 1.9.x the use of conf.d seems appropriate
 # ln -s /etc/nginx/sites-available/$sitename /etc/nginx/sites-enabled/$sitename
 echo "${OK}"
