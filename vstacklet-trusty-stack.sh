@@ -131,7 +131,7 @@ echo
 echo "${sub_title}Installing signed keys ... ${normal}"
 apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db >>"${OUTTO}" 2>&1;
 echo "${green}applying varnish key ... ${normal}"
-curl -s https://repo.varnish-cache.org/ubuntu/GPG-key.txt | apt-key add - 
+curl -s https://repo.varnish-cache.org/GPG-key.txt | apt-key add - 
 echo "${green}applying nginx key ... ${normal}"
 curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - 
 echo "${OK}"
@@ -143,7 +143,7 @@ cat >/etc/apt/sources.list.d/mariadb.list<<EOF
 deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu trusty main
 EOF
 cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
-deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.0
+deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.1
 EOF
 cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
 deb http://nginx.org/packages/mainline/ubuntu/ trusty nginx
