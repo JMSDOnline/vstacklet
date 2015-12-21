@@ -1,14 +1,16 @@
 VStacklet
 ==========
 
-## Script status
+--------
+#### Script status
 
 - ![script version 0.6](http://b.repl.ca/v1/script_version-0.6-lightgrey.png) 
 - ![script build fail](http://b.repl.ca/v1/script_build-fail-E87E04.png) 
 
-**Script NOTE** Build fails due to leftover include (locconf4) in example-site.conf. This directive was leftover and I forgot to remove it as extensionless-uri is not a default enhancement after prompts removal.
+> :hand: **Script Status Note** Build fails due to leftover include (locconf4) in example-site.conf. This directive was leftover and I forgot to remove it as extensionless-uri is not a default enhancement after prompts removal.
 
-**FIX** simply comment the locconf4 line in your site.conf located at /etc/nginx/conf.d/sitename.conf -- $sitename being your auto created .conf file name, this will match your server hostname.
+> **FIX** simply comment the locconf4 line in your site.conf located at /etc/nginx/conf.d/sitename.conf -- $sitename being your auto created .conf file name, this will match your server hostname.
+--------
 
 Scripts to quickly install a [LEMP Stack](https://lemp.io) and perform basic configuration of new Ubuntu 14.04, and 15.04 [untested] servers.
 
@@ -92,6 +94,9 @@ chmod +x vstacklet.sh
 ```
 
 ### The TO-DO List
-  1. FTP Server (w/ options prompt)
-  2. phpMyAdmin (w/ options prompt)
-  3. CSF (w/ options prompt)
+  [x] Enable OPCode Caching
+  [x] Sendmail
+  [x] IonCube Loader (w/ option prompt)
+  [] FTP Server (w/ option prompt)
+  [] phpMyAdmin (w/ option prompt)
+  [] CSF (w/ option prompt)
