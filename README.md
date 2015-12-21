@@ -25,8 +25,6 @@ Script Features
   * HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="http://h2.nix-admin.com/" target="_blank">HTTP/2 Checker</a>
   * Everything you need to get that Nginx + Varnish server up and running!
 
-**View the script in action @ <a href="https://youtu.be/0Kwq1dDl71g" target="_blank">VStacklet Installer</a>** (_external to Youtube_)
-
 Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 09:34. This time assumes you are sitting attentively with the script running. There are a limited number of interactions to be made with the script, however, I feel it is important to have some sort of interaction... at the very least so you are familiar with what is being installed etc.
 
 ![preview 1](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p1.png "vstacklet preview 1")
@@ -37,6 +35,7 @@ Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode
 
  Scripts
 --------
+
 __Setup__ - Basic setup for new Ubuntu server.
   * Intended only for new Ubuntu installations.
   * Adds new user with sudo access and disables remote root logins.
@@ -78,6 +77,14 @@ apt-get autoclean
 apt-get autoremove
 ```
 
+### VStacklet FULL - Installs and configures VStacklet LEMP stack (includes backup scripts):
+#### 14.04 only
+```
+curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet.sh
+chmod +x vstacklet.sh
+./vstacklet.sh
+```
+
 ### Setup - Basic setup for new Ubuntu server:
 #### 14.04 only
 ```
@@ -86,13 +93,7 @@ chmod +x vstacklet-trusty-setup.sh
 ./vstacklet-trusty-setup.sh
 ```
 
-### Stack - Installs and configures LEMP stack:
-##### 14.04 only
-```
-curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet-trusty-stack.sh
-chmod +x vstacklet-trusty-stack.sh
-./vstacklet-trusty-stack.sh
-```
 ### The TO-DO List
-  1. FTP Server
-  2. phpMyAdmin
+  1. FTP Server (w/ options prompt)
+  2. phpMyAdmin (w/ options prompt)
+  3. CSF (w/ options prompt)
