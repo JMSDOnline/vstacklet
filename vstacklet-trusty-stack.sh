@@ -306,83 +306,37 @@ echo
 # function _security() {
 echo "${sub_title}Run Final Security & Enhancements Sweep ... ${normal}"
 echo
-echo "${bold}You will now be asked a series of final questions, ${normal}"
-echo "${bold}most of these are a matter of perferrence.${normal}" 
-echo "${bold}With the acception of ${underline}'Remove PHP extension'${reset_underline}${bold}. ${normal}"
-echo "${bold}This option is not needed if using a CMS.${normal}"
+echo "${bold}The following security & enhancements cover basic, ${normal}"
+echo "${bold}security measures to protect against common exploits.${normal}" 
+echo "${bold}Enhancements covered are adding cache busting, cross ${normal}"
+echo "${bold}domain font support, expires tags and protecting system files.${normal}"
 echo
+echo "${bold}You can find the included files at the following directory...${normal}"
+echo "${bold}/etc/nginx/vstacklet/${normal}"
+echo
+echo "${bold}Not all profiles are included, review your example-site.conf${normal}"
+echo "${bold}for additions made by the script.${normal}"
 
 # Round 1 - Location
 echo "${bold}${title}    Round 1 - Location Edits    ${normal}"
-echo 
 
-# Loc - Q1
-read -p "Do you want to enable Built-in filename-based cache busting?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-if [[ $REPLY =~ ^[Nn]$ ]]; then
-  echo "${cyan}Skipping...${normal}"
-  sed -i "s/locconf1/#/" /etc/nginx/conf.d/$sitename.conf
-else
   locconf1="include vstacklet\/location\/cache-busting.conf;"
   sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
-  echo "${OK}"
-fi
-echo
-
-# Loc - Q2
-read -p "Do you want to enable Cross domain webfont access?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-if [[ $REPLY =~ ^[Nn]$ ]]; then
-  echo "${cyan}Skipping...${normal}"
-  sed -i "s/locconf2/#/" /etc/nginx/conf.d/$sitename.conf
-else
   locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
   sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/$sitename.conf
-  echo "${OK}"
-fi
-echo
-
-# Loc - Q3
-read -p "Do you want to enable Expire rules for static content?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-if [[ $REPLY =~ ^[Nn]$ ]]; then
-  echo "${cyan}Skipping...${normal}"
-  sed -i "s/locconf3/#/" /etc/nginx/conf.d/$sitename.conf
-else
   locconf3="include vstacklet\/location\/expires.conf;"
   sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/$sitename.conf
-  echo "${OK}"
-fi
-echo
-
-# Loc - Q4
-read -p "Do you want to Remove uri extensions from static applications?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-if [[ $REPLY =~ ^[Nn]$ ]]; then
-  echo "${cyan}Skipping...${normal}"
-  sed -i "s/locconf4/#/" /etc/nginx/conf.d/$sitename.conf
-else
-  locconf4="include vstacklet\/location\/extensionless-uri.conf;"
-  sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$sitename.conf
-  echo "${OK}"
-fi
-echo
-
-# Loc - Q5
-read -p "Do you want to Prevent clients from accessing hidden files (starting with a dot)?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-if [[ $REPLY =~ ^[Nn]$ ]]; then
-  echo "${cyan}Skipping...${normal}"
-  sed -i "s/locconf5/#/" /etc/nginx/conf.d/$sitename.conf
-else
+# locconf4="include vstacklet\/location\/extensionless-uri.conf;"
+# sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$sitename.conf
   locconf5="include vstacklet\/location\/protect-system-files.conf;"
   sed -i "s/locconf5/$locconf5/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
-fi
-echo
 
+echo 
 # Round 2 - Security
 echo "${bold}${title}    Round 2 - Security Enhancements    ${normal}"
-echo 
 
-# Sec - Q1
 read -p "Do you want to create a self-signed SSL cert and configure HTTPS?  (Default: ${red}${bold}N${normal})  " -n 1 -r
-echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   insert1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
   insert2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/etc\/ssl\/certs\/$sitename.crt;\n    ssl_certificate_key \/etc\/ssl\/private\/$sitename.key;"
@@ -391,48 +345,21 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
   sed -i "s/insert1/$insert1/" /etc/nginx/conf.d/$sitename.conf
   sed -i "s/insert2/$insert2/" /etc/nginx/conf.d/$sitename.conf
   sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
-  echo "${OK}"
 else
   echo "${cyan}Skipping SSL Certificate Creation...${normal}"
-  sed -i "s/insert1/#/" /etc/nginx/conf.d/$sitename.conf
-  sed -i "s/insert2/#/" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/insert1/ /" /etc/nginx/conf.d/$sitename.conf
+  sed -i "s/insert2/ /" /etc/nginx/conf.d/$sitename.conf
   sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
 fi
 
-# Sec - Q2
-read -p "Do you want to Block access from specific user agents?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-if [[ $REPLY =~ ^[Nn]$ ]]; then
-  echo "${cyan}Skipping...${normal}"
-  sed -i "s/secconf1/#/" /etc/nginx/conf.d/$sitename.conf
-else
   secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
   sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
-  echo "${OK}"
-fi
-echo
-
-# Sec - Q3
-read -p "Do you want to Protect against common file injection attacks?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-if [[ $REPLY =~ ^[Nn]$ ]]; then
-  echo "${cyan}Skipping...${normal}"
-  sed -i "s/secconf2/#/" /etc/nginx/conf.d/$sitename.conf
-else
   secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
   sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$sitename.conf
-  echo "${OK}"
-fi
-echo
-
-# Sec - Q4
-read -p "Do you want to Disable PHP Easter Eggs?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
-if [[ $REPLY =~ ^[Nn]$ ]]; then
-  echo "${cyan}Skipping...${normal}"
-  sed -i "s/secconf3/#/" /etc/nginx/conf.d/$sitename.conf
-else
   secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
   sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
-fi
+
 echo
 echo "[ ${green}Security Sweep & Enhancements Complete${normal} ]"
 echo
