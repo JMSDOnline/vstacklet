@@ -353,12 +353,12 @@ fi
 echo
 
 # Loc - Q4
-read -p "Do you want to Remove PHP extension from static php applications?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
+read -p "Do you want to Remove uri extensions from static applications?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
 if [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "${cyan}Skipping...${normal}"
   sed -i "s/locconf4/#/" /etc/nginx/conf.d/$sitename.conf
 else
-  locconf4="include vstacklet\/location\/extensionless-php.conf;"
+  locconf4="include vstacklet\/location\/extensionless-uri.conf;"
   sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$sitename.conf
   echo "${OK}"
 fi
