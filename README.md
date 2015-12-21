@@ -1,6 +1,15 @@
 VStacklet
 ==========
 
+## Script status
+
+- ![script version 0.6](http://b.repl.ca/v1/script_version-0.6-lightgrey.png) 
+- ![script build fail](http://b.repl.ca/v1/script_build-fail-E87E04.png) 
+
+**Script NOTE** Build fails due to leftover include (locconf4) in example-site.conf. This directive was leftover and I forgot to remove it as extensionless-uri is not a default enhancement after prompts removal.
+
+**FIX** simply comment the locconf4 line in your site.conf located at /etc/nginx/conf.d/sitename.conf -- $sitename being your auto created .conf file name, this will match your server hostname.
+
 Scripts to quickly install a [LEMP Stack](https://lemp.io) and perform basic configuration of new Ubuntu 14.04, and 15.04 [untested] servers.
 
 **NOTE:** This is a modification of it's original branch provided by <a href="https://github.com/jbradach/quick-lemp/" target="_blank">quick-lemp</a>. Installation scripts marked as Ubuntu 14.04 ONLY are those of heavy changes provided by myself (JMSolo Designs). These changes include ushering in CSF, Varnish as well as installing and configuring Sendmail and phpMyAdmin **To be added soon** for ease of use. 
@@ -36,13 +45,8 @@ Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode
  Scripts
 --------
 
-__Setup__ - Basic setup for new Ubuntu server.
-  * Intended only for new Ubuntu installations.
-  * Adds new user with sudo access and disables remote root logins.
-  * Changes sshd settings to enhance security.
-  * Uses CSF to apply iptables rules to limit traffic to approved ports as well as email alerts to administrator email. (_not yet included_)
-
 __Stack__ - Installs and configures LEMP stack with support for Website-based server environments.
+  *
   * Adds repositories for the latest stable versions of MariaDB, mainline (1.9.x) versions of Nginx, and Varnish 4.
   * Installs and configures Nginx, Varnish and MariaDB.
   * Installs PHP-FPM for PHP5.
@@ -60,7 +64,8 @@ __Backups__ - Installs scripts to help manage and automate server/site backups (
   * Package files & databases to one archive
   * Cleanup remaining individual archives
 
-Quick Start
+
+Getting Started
 ----------------
 _You should read these scripts before running them so you know what they're
 doing._ Changes may be necessary to meet your needs.
@@ -77,20 +82,13 @@ apt-get autoclean
 apt-get autoremove
 ```
 
-### VStacklet FULL - Installs and configures VStacklet LEMP stack (includes backup scripts):
+### VStacklet FULL - Installs and configures VStacklet LEMP stack:
 #### 14.04 only
+(_ includes backup scripts _)
 ```
 curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet.sh
 chmod +x vstacklet.sh
 ./vstacklet.sh
-```
-
-### Setup - Basic setup for new Ubuntu server:
-#### 14.04 only
-```
-curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet-trusty-setup.sh
-chmod +x vstacklet-trusty-setup.sh
-./vstacklet-trusty-setup.sh
 ```
 
 ### The TO-DO List
