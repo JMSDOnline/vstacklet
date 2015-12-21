@@ -1,0 +1,96 @@
+#!/bin/bash
+################################################################################
+#
+# A utility script to configure your system backups
+#
+################################################################################
+
+PROGNAME=${0##*/}
+PROGDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+VERSION="0.1"
+FILES=()
+
+error_exit() {
+  echo -e "${PROGNAME}: ${1:-"Unknown Error"}" >&2
+  exit 1
+}
+
+graceful_exit() {
+    exit
+}
+
+usage() {
+    echo -e "Usage: $PROGNAME [-h|--help] files-backup.sh"
+}
+
+help_message() {
+  cat <<- _EOF_
+  $PROGNAME ver. $VERSION
+  A utility script to configure your system backups
+
+  The primary use of this script is for adding in 
+  details for user and database information for 
+  the vstacklet backup script. You may additionally
+  declare which directories you would like to include.
+
+  This script will also create the needed directories
+  for storing your backups.
+
+  $(usage)
+
+  Commands:
+    $PROGNAME --create-backup-directories
+    $PROGNAME --configure-files-backup
+    $PROGNAME --configure-database-backup
+    ....
+
+  Options:
+  -h, --help  Display this help message and exit.
+
+_EOF_
+  return
+}
+
+function main {
+    echo "### $1 START"
+    while read line
+    do
+        if [[ $line =~ "#" ]];
+        then
+            # skip comments
+            continue
+        elif [[ $line =~ "^ *$" ]];
+        then
+            # skip blank lines
+            continue
+        elif [[ $line =~ ^(\s*)include\s*(.*)\; ]];
+        then
+            main ${BASH_REMATCH[2]}
+        else
+            echo "$line"
+        fi
+    done < $1
+    echo "### $1 END"
+}
+
+# Parse command-line
+while [[ -n $1 ]]; do
+  case $1 in
+    -h | --help)
+      help_message; graceful_exit ;;
+    -* | --*)
+      usage
+      error_exit "Unknown option $1" ;;
+    *)
+      FILES+=($1);;
+  esac
+  shift
+done
+
+if [ ${#FILES[@]} -eq 0 ];
+then
+      usage;
+      graceful_exit;
+fi
+
+main $FILES
