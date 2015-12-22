@@ -19,14 +19,7 @@ sub_title=${bold}${yellow};
 repo_title=${black}${on_green};
 
 PROGNAME=${0##*/}
-PROGDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 VERSION="0.1"
-FILES=()
-
-error_exit() {
-  echo -e "${PROGNAME}: ${1:-"Unknown Error"}" >&2
-  exit 1
-}
 
 graceful_exit() {
     exit
@@ -75,11 +68,29 @@ function _intro() {
   echo
 }
 
+function _askdirectories() {
+  echo -n "Do you want to backup your specified directories? (Y/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) directories=yes ;;
+    [nN] | [nN][Oo] ) directories=no ;;
+  esac
+}
+
 function _directories() {
   DIR="vstacklet"
     if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
     . "$DIR/files-backup.sh"
     echo "${OK}"
+}
+
+function _askdatabase() {
+  echo -n "Do you want to backup your specified databases? (Y/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) database=yes ;;
+    [nN] | [nN][Oo] ) database=no ;;
+  esac
 }
 
 function _database() {
@@ -112,8 +123,8 @@ OK=$(echo -e "[ ${green}DONE${nomal} ]")
 
 # VSTACKLET STRUCTURE
 _intro
-echo -n "${sub_title}Backing up directories ... ${normal}";_directories
-echo -n "${sub_title}Backing up databases ... ${normal}";_database
+_askdirectories;if [[ ${directories} == "yes" ]]; then _directories; fi
+_askdatabase;if [[ ${database} == "yes" ]]; then _database; fi
 echo -n "${sub_title}Packaging backups to single archive in /backup ... ${normal}";_package
 echo -n "${sub_title}Performing cleanup to remove leftover archives ... ${normal}";_clean
 echo -n "[ ${bold}${green}Backup Complete${normal} ] ${bold}Find your backup in /backup${normal}";_finish
