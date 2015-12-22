@@ -34,11 +34,8 @@ Script Features
 
 Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 09:34. This time assumes you are sitting attentively with the script running. There are a limited number of interactions to be made with the script, however, I feel it is important to have some sort of interaction... at the very least so you are familiar with what is being installed etc.
 
-![preview 1](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p1.png "vstacklet preview 1")
-![preview 2](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p2.png "vstacklet preview 2")
-![preview 3](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p3.png "vstacklet preview 3")
-![preview 4](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p4.png "vstacklet preview 4")
-![preview 5](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p5.png "vstacklet preview 5")
+![preview 1](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-script-preview1.png "vstacklet preview 1")
+![preview 2](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-script-preview2.png "vstacklet preview 2")
 
  Meet the Scripts
 --------
@@ -56,7 +53,9 @@ __Stack__ - Installs and configures LEMP stack with support for Website-based se
   * Supports IPv6 by default .
   * Optional self-signed SSL cert configuration.
 
-__VS-Backup__ - Installs scripts to help manage and automate server/site backups (_coming soon as a single script_).
+__VS-Backup__ - Installs scripts to help manage and automate server/site backups 
+Updated: ~~(_coming soon as a single script_)~~ Added as standalone and included in full kit.
+  *
   * Backup your files in key locations (ex: /srv/www /etc /root)
   * Backup your databases
   * Package files & databases to one archive
@@ -99,9 +98,9 @@ chmod +x vstacklet-backup-standalone.sh
 - [x] Enable OPCode Caching
 - [x] Sendmail
 - [x] IonCube Loader (w/ option prompt)
-- [ ] Add option prompts to beginning of script
+- [x] Improve script structure
 - [ ] FTP Server (w/ option prompt)
 - [ ] phpMyAdmin (w/ option prompt)
 - [ ] CSF (w/ option prompt)
-- [x] VS-Backup standalone kit
+- [x] VS-Backup standalone kit (included in FULL Kit also)
 - [ ] VStacklet-lite 
