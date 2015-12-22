@@ -4,11 +4,7 @@ VStacklet
 #### Script status
 
 - ![script version 0.6](http://b.repl.ca/v1/script_version-0.6-lightgrey.png) 
-- ![script build fail](http://b.repl.ca/v1/script_build-fail-E87E04.png) 
-
-> :hand: **Script Status Note** Build fails due to leftover include (locconf4) in example-site.conf. This directive was leftover and I forgot to remove it as extensionless-uri is not a default enhancement after prompts removal.
-
-> __FIX__ :: simply comment the locconf4 line in your site.conf located at /etc/nginx/conf.d/sitename.conf -- $sitename being your auto created .conf file name, this will match your server hostname.
+- ![script build testing](http://b.repl.ca/v1/script_build-testing-F9BF3B.png) 
 
 --------
 
