@@ -2,10 +2,13 @@
 #start
 #-----------------------------------------------------------------------
 
-#verify directory structure exists prior to running this job
+# verify directory structure exists prior to running this job
+# if you are using the standalone, modify this according to
+# your current and/or future directory structures preferred paths
 backup_files="/srv/www /etc /root";
+
 # Where to backup to.
-dest="/backup/files/";
+dest="/backup/directories/";
 
 # Create archive filename.
 day=$(date +%b-%d-%y);
@@ -20,10 +23,11 @@ archive_file="$hostname-$day.tgz";
 # Backup the files using tar.
   tar -cpzf $dest$archive_file $backup_files;
 
+# This gets pushed to the vs-backup command
 # Print end status message.
-  echo
-  echo "Backup finished"
-  date
+# echo
+# echo "Backup finished"
+# date
 
 # Long listing of files in $dest to check file sizes.
   ls -lh $dest;
