@@ -8,11 +8,6 @@
 #
 server_ip=$(ifconfig | sed -n 's/.*inet addr:\([0-9.]\+\)\s.*/\1/p' | grep -v 127 | head -n 1);
 sitename=$(hostname -s);
-S=$(date +%Y-%m-%d);
-OK=$(echo -e "[ \e[0;32mDONE\e[00m ]");
-E=$(date +%Y-%m-%d);
-DIFF=$(echo "$E" - "$S"|bc);
-FIN=$(echo "$DIFF" / 60|bc);
 
 #Console Colors
 black=$(tput setaf 0);
@@ -120,7 +115,7 @@ function _softcommon() {
 
 # package and repo addition (b) _install softwares and packages_
 function _depends() {
-  apt-get -y install nano unzip dos2unix htop iotop >>"${OUTTO}" 2>&1;
+  apt-get -y install nano unzip dos2unix htop iotop libwww-perl >>"${OUTTO}" 2>&1;
   echo "${OK}"
   echo
 }
@@ -411,7 +406,7 @@ echo '               /|         ||    ||                 '
 echo '               / \        ||     \\_______________ '
 echo '           _______________||______`--------------- '
 echo
-echo
+echo -e "\033[0m    COMPLETED in ${FIN}/min    \033[0m"
 echo
 echo "${black}${on_green}    [vstacklet] Varnish LEMP Stack Installation Completed    ${normal}"
 echo
@@ -422,13 +417,17 @@ date
 echo
 }
 
+clear
+
+S=$(date +%s)
+OK=$(echo -e "[ \e[0;32mDONE\e[00m ]")
 
 # VSTACKLET STRUCTURE
 _intro
 _checkroot
 _logcheck
 echo -n "${sub_title}Installing Comon Software Properties ... ${normal}";_softcommon
-echo -n "${sub_title}Installing: nano, unzip, dos2unix, htop, iotop  ... ${normal}";_depends
+echo -n "${sub_title}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl  ... ${normal}";_depends
 echo -n "${sub_title}Installing signed keys for MariaDB, Nginx, and Varnish ... ${normal}";_keys
 echo -n "${sub_title}Adding trusted repositories ... ${normal}";_repos
 echo -n "${sub_title}Applying Updates ... ${normal}";_updates
@@ -439,8 +438,14 @@ _askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; fi
 echo -n "${sub_title}Adjusting Permissions ... ${normal}";_perms
 echo -n "${sub_title}Installing MariaDB Drop-in Replacement ... ${normal}";_mariadb
 _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; fi
-echo -n "${sub_title}Addressing Location Edits: cache busting, cross domain font support, expires tags, and system file protection ...${normal}";_locenhance
+echo -n "${sub_title}Addressing Location Edits: cache busting, cross domain font support,${normal}";
+echo -n "${sub_title}expires tags, and system file protection ... ${normal}";_locenhance
 _askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
-echo -n "${sub_title}Performing Security Enhancements: protecting against bad bots, file injection, and php easter eggs ...${normal}";_security
+echo -n "${sub_title}Performing Security Enhancements: protecting against bad bots,${normal}"; 
+echo -n "${sub_title}file injection, and php easter eggs ... ${normal}";_security
 echo -n "${sub_title}Completing Installation & Restarting Services ... ${normal}";_services
+
+E=$(date +%s)
+DIFF=$(echo "$E" - "$S"|bc)
+FIN=$(echo "$DIFF" / 60|bc)
 _finished
