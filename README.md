@@ -1,6 +1,10 @@
 VStacklet - A Buff LEMP Stack Kit
 ==========
 
+| [![VStacklet - A Buff LEMP Stack Kit](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-lemp-kit.png)] |
+|---|
+| **VStacklet - A Buff LEMP Stack Kit** |
+
 #### Script status
 
 - ![script version 1.0](http://b.repl.ca/v1/script_version-1.0-446CB3.png) 
