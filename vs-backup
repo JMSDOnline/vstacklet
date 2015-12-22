@@ -5,71 +5,19 @@
 #
 ################################################################################
 
-#Script Console Colors
-black=$(tput setaf 0);
-red=$(tput setaf 1);
-green=$(tput setaf 2);
-on_green=$(tput setab 2);
-bold=$(tput bold);
-standout=$(tput smso);
-normal=$(tput sgr0);
-underline=$(tput smul);
-
-sub_title=${bold}${yellow};
-repo_title=${black}${on_green};
-
-PROGNAME=${0##*/}
-VERSION="0.1"
-
-graceful_exit() {
-    exit
-}
-
-usage() {
-    echo -e "Usage: $PROGNAME [-h|--help]"
-}
-
-help_message() {
-  cat <<- _EOF_
-  $PROGNAME ver. $VERSION
-  A utility script to run your system backups
-
-  The primary use of this script is for running 
-  manual backups on user specified directories 
-  and databases. 
-
-  This script will also package your directories
-  and databases into one archive and perform a 
-  backup cleanup.
-
-  Please review the following scripts and make the 
-  necessary changes to ensure successful backups.
-
-  ${underline}Directory Backup:${normal}
-  /root/vstacklet/files-backup.sh
-
-  ${underline}Database Backup:${normal}
-  /root/vstacklet/database-backup.sh
-
-
-_EOF_
-  return
-}
-
 function _string() { perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15 ; }
 
-# intro function (1)
 function _intro() {
   echo
+  echo "  [ ${repo_title} vstacklet ${normal} ] ${standout}  System Backup Utility ${normal}  "
+  echo "  ${bold}You can review your backup log @ /root/vs-backup.log ${normal}"
   echo
-  echo "  [${repo_title}vstacklet${normal}] ${standout} System Backup Utility ${reset_standout}  "
-  echo
-  echo "  Press ${standout}${green}ENTER${normal} when you're ready to begin ...  " ;read input
+  echo "  Press ${standout}${green}ENTER${normal} when you're ready to begin" ;read input
   echo
 }
 
 function _askdirectories() {
-  echo -n "Do you want to backup your specified directories? (Y/n): "
+  echo -n "${bold}Do you want to backup your specified directories?${normal} (Y/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) directories=yes ;;
@@ -78,14 +26,15 @@ function _askdirectories() {
 }
 
 function _directories() {
+  if [[ ${directories} == "yes" ]]; then
   DIR="vstacklet"
     if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
-    . "$DIR/files-backup.sh"
-    echo "${OK}"
+    . "$DIR/files-backup.sh";
+  fi
 }
 
 function _askdatabase() {
-  echo -n "Do you want to backup your specified databases? (Y/n): "
+  echo -n "${bold}Do you want to backup your specified databases?${normal} (Y/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) database=yes ;;
@@ -94,38 +43,59 @@ function _askdatabase() {
 }
 
 function _database() {
+  if [[ ${database} == "yes" ]]; then
   DIR="vstacklet"
     if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
-    . "$DIR/database-backup.sh"
-    echo "${OK}"
+    . "$DIR/database-backup.sh";
+  fi
 }
 
 function _package() {
   DIR="vstacklet"
     if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
-    . "$DIR/package-backups.sh"
-    echo "${OK}"
+    . "$DIR/package-backups.sh";
 }
 
 function _clean() {
   DIR="vstacklet"
     if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
-    . "$DIR/backup-cleanup.sh"
+    . "$DIR/backup-cleanup.sh";
     echo "${OK}"
 }
 
-function _finished() {echo "${OK}"}
+clear
+
+DIR="vstacklet";
+# for directories
+cat -- "$DIR/files-backup.sh";
+# for database
+cat -- "$DIR/database-backup.sh";
+# for packaging contents
+cat -- "$DIR/package-backups.sh";
 
 clear
 
-OK=$(echo -e "[ ${green}DONE${nomal} ]")
+#Script Console Colors - dazzle me Amadeus, dazzle me!
+black=$(tput setaf 0);
+green=$(tput setaf 2);
+on_green=$(tput setab 2);
+bold=$(tput bold);
+standout=$(tput smso);
+normal=$(tput sgr0);
+sub_title=${bold}${yellow};
+repo_title=${black}${on_green};
+OK=$(echo -e "[ ${green}DONE${normal} ]")
 
 
-# VSTACKLET STRUCTURE
+# VS-BACKUP STRUCTURE
 _intro
 _askdirectories;if [[ ${directories} == "yes" ]]; then _directories; fi
 _askdatabase;if [[ ${database} == "yes" ]]; then _database; fi
-echo -n "${sub_title}Packaging backups to single archive in /backup ... ${normal}";_package
-echo -n "${sub_title}Performing cleanup to remove leftover archives ... ${normal}";_clean
-echo -n "[ ${bold}${green}Backup Complete${normal} ] ${bold}Find your backup in /backup${normal}";_finish
-graceful_exit;
+_package
+echo -n "Performing cleanup to remove leftover archives ... ";_clean
+echo
+echo -n "[ ${bold}${green}Backup Complete${normal} ] ${bold}Find your backup in /backup${normal}";
+echo
+echo
+
+exit
