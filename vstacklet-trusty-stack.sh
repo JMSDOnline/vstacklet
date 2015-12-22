@@ -348,11 +348,12 @@ function _cert() {
     sed -i "s/insert1/$insert1/" /etc/nginx/conf.d/$sitename.conf
     sed -i "s/insert2/$insert2/" /etc/nginx/conf.d/$sitename.conf
     sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
-  else
+    echo
+  elif [[ ${cert} == "no" ]]; then
     sed -i "s/insert1/ /" /etc/nginx/conf.d/$sitename.conf
     sed -i "s/insert2/ /" /etc/nginx/conf.d/$sitename.conf
     sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
-    echo "${OK}"
+    echo "${cyan}Skipping SSL Certificate Creation...${normal}"
     echo 
   fi
 }
