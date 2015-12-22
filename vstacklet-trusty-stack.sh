@@ -178,9 +178,6 @@ service nginx stop >>"${OUTTO}" 2>&1;
 mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
 wget https://github.com/JMSDOnline/vstacklet/raw/master/vstacklet-server-configs.tar.gz >/dev/null 2>&1;
 tar -zxvf vstacklet-server-configs.tar.gz >/dev/null 2>&1;
-cd vstacklet-server-configs
-rm vstacklet-server-configs*
-cd
 mv vstacklet-server-configs /etc/nginx >>"${OUTTO}" 2>&1;
 rm -rf vstacklet-server-configs*
 cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
@@ -234,8 +231,6 @@ echo
 # install ioncube loader function (7)
 # function _ioncube() {
 echo "${sub_title}Preparing IonCube Loader Installation ... ${normal}"
-
-echo
 read -p "Do you want to install IonCube Loader?  (Default: ${green}${bold}Y${normal})  " -n 1 -r
 
 if [[ $REPLY =~ ^[nN]$ ]]; then
@@ -286,7 +281,6 @@ export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>
 echo "${bold}Add an Administrator Email Below for Aliases Inclusion${normal}"
 read -p "Email: " admin_email
 echo "${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
-echo
 echo "${green}finalizing sendmail installation ... ${normal}"
 # install aliases
 echo -e "mailer-daemon: postmaster
@@ -320,8 +314,9 @@ echo
 echo "${bold}Not all profiles are included, review your $sitename.conf${normal}"
 echo "${bold}for additions made by the script & adjust accordingly.${normal}"
 
+echo
 # Round 1 - Location
-echo "${bold}${title}    Round 1 - Location Edits    ${normal}"
+echo "${bold}${green}    Round 1 - Location Edits    ${normal}"
 
   locconf1="include vstacklet\/location\/cache-busting.conf;"
   sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
@@ -338,7 +333,7 @@ echo "${bold}${title}    Round 1 - Location Edits    ${normal}"
 echo 
 
 # Round 2 - Security
-echo "${bold}${title}    Round 2 - Security Enhancements    ${normal}"
+echo "${bold}${green}    Round 2 - Security Enhancements    ${normal}"
 
 read -p "Do you want to create a self-signed SSL cert and configure HTTPS?  (Default: ${red}${bold}N${normal})  " -n 1 -r
 if [[ $REPLY =~ ^[Yy]$ ]]; then
