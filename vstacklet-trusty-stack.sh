@@ -426,7 +426,7 @@ OK=$(echo -e "[ \e[0;32mDONE\e[00m ]")
 _intro
 _checkroot
 _logcheck
-echo -n "${sub_title}Installing Comon Software Properties ... ${normal}";_softcommon
+echo -n "${sub_title}Installing Common Software Properties ... ${normal}";_softcommon
 echo -n "${sub_title}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl  ... ${normal}";_depends
 echo -n "${sub_title}Installing signed keys for MariaDB, Nginx, and Varnish ... ${normal}";_keys
 echo -n "${sub_title}Adding trusted repositories ... ${normal}";_repos
