@@ -23,7 +23,7 @@ repo_title=${black}${on_green};
 PROGNAME=${0##*/}
 VERSION="0.1"
 
-  cat <<- _EOF_
+cat <<EOF
   $PROGNAME ver. $VERSION
   This is a standalone backup utility for vstacklet.
   You do not need VStacklet (full) to use this utility.
@@ -44,10 +44,7 @@ VERSION="0.1"
 
   ${underline}Database Backup:${normal}
   /root/vstacklet/database-backup.sh
-
-
-  _EOF_
-  return
+EOF
 
 # Create vstacklet & backup directory strucutre
 mkdir -p vstacklet /backup/{directories,databases}
