@@ -348,8 +348,13 @@ function _cert() {
     sed -i "s/insert1/$insert1/" /etc/nginx/conf.d/$sitename.conf
     sed -i "s/insert2/$insert2/" /etc/nginx/conf.d/$sitename.conf
     sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
+    echo "${OK}"
     echo
-  elif [[ ${cert} == "no" ]]; then
+  fi
+}
+
+function _nocert() {
+  if [[ ${cert} == "no" ]]; then
     sed -i "s/insert1/ /" /etc/nginx/conf.d/$sitename.conf
     sed -i "s/insert2/ /" /etc/nginx/conf.d/$sitename.conf
     sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
@@ -435,7 +440,7 @@ echo -n "${sub_title}Adjusting Permissions ... ${normal}";_perms
 echo -n "${sub_title}Installing MariaDB Drop-in Replacement ... ${normal}";_mariadb
 _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; fi
 echo -n "${sub_title}Addressing Location Edits: cache busting, cross domain font support, expires tags, and system file protection ...${normal}";_locenhance
-_askcert;if [[ ${cert} == "yes" ]]; then _cert; fi
+_askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
 echo -n "${sub_title}Performing Security Enhancements: protecting against bad bots, file injection, and php easter eggs ...${normal}";_security
 echo -n "${sub_title}Completing Installation & Restarting Services ... ${normal}";_services
 _finished
