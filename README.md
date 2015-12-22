@@ -93,6 +93,7 @@ chmod +x vstacklet.sh
 - [x] Enable OPCode Caching
 - [x] Sendmail
 - [x] IonCube Loader (w/ option prompt)
+- [ ] Add option prompts to beginning of script
 - [ ] FTP Server (w/ option prompt)
 - [ ] phpMyAdmin (w/ option prompt)
 - [ ] CSF (w/ option prompt)
