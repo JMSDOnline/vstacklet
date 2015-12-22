@@ -1,7 +1,7 @@
 VStacklet - A Buff LEMP Stack Kit
 ==========
 
-| [![VStacklet - A Buff LEMP Stack Kit](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-lemp-kit.png)] |
+| ![VStacklet - A Buff LEMP Stack Kit](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-lemp-kit.png "vstacklet") |
 |---|
 | **VStacklet - A Buff LEMP Stack Kit** |
 
