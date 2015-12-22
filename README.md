@@ -1,4 +1,4 @@
-VStacklet
+VStacklet - A Buff LEMP Stack Kit
 ==========
 
 #### Script status
@@ -18,9 +18,9 @@ My focus is to provide a modified version for CMS and typical website server ins
 
 Again, please be advised that I am building/testing this script on Ubuntu 14.04 (Trusty) as it does support Nginx versions higher than 1.8.
 
-Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified for use with mainline_), and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), ~~Python~~, and CSF (Config Server Firewall) **To be added soon**.
+Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified for use with mainline_), and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), and more to be added soon. (see [To-Do List](#the-to-do-list))
 
-Deploys a proper directory strucutre and creates a PHP page for testing.
+Deploys a proper directory strucutre, optimizes Nginx and Varnish, creates a PHP page for testing and more.
 
 Script Features
 --------
@@ -40,7 +40,7 @@ Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode
 ![preview 4](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p4.png "vstacklet preview 4")
 ![preview 5](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-p5.png "vstacklet preview 5")
 
- Scripts
+ Meet the Scripts
 --------
 
 __Stack__ - Installs and configures LEMP stack with support for Website-based server environments.
@@ -56,7 +56,7 @@ __Stack__ - Installs and configures LEMP stack with support for Website-based se
   * Supports IPv6 by default .
   * Optional self-signed SSL cert configuration.
 
-__Backups__ - Installs scripts to help manage and automate server/site backups (_coming soon as a single script_).
+__VS-Backup__ - Installs scripts to help manage and automate server/site backups (_coming soon as a single script_).
   * Backup your files in key locations (ex: /srv/www /etc /root)
   * Backup your databases
   * Package files & databases to one archive
@@ -80,13 +80,19 @@ apt-get autoclean
 apt-get autoremove
 ```
 
-### VStacklet FULL - Installs and configures VStacklet LEMP stack:
-#### 14.04 only
-(_ includes backup scripts _)
+### VStacklet FULL Kit - Installs and configures the VStacklet LEMP kit stack:
+( _includes backup scripts_ )
 ```
 curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet.sh
 chmod +x vstacklet.sh
 ./vstacklet.sh
+```
+
+### VStacklet VS-Backup - Installs needed files for running complete system backups:
+```
+curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet-backup-standalone.sh
+chmod +x vstacklet-backup-standalone.sh
+./vstacklet-backup-standalone.sh
 ```
 
 ### The TO-DO List
@@ -97,3 +103,5 @@ chmod +x vstacklet.sh
 - [ ] FTP Server (w/ option prompt)
 - [ ] phpMyAdmin (w/ option prompt)
 - [ ] CSF (w/ option prompt)
+- [x] VS-Backup standalone kit
+- [ ] VStacklet-lite 

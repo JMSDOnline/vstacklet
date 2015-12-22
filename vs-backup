@@ -1,96 +1,101 @@
 #!/bin/bash
 ################################################################################
 #
-# A utility script to configure your system backups
+# VStacklet System Backup Command
 #
 ################################################################################
 
-PROGNAME=${0##*/}
-PROGDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-VERSION="0.1"
-FILES=()
+function _string() { perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15 ; }
 
-error_exit() {
-  echo -e "${PROGNAME}: ${1:-"Unknown Error"}" >&2
-  exit 1
+function _intro() {
+  echo
+  echo "  [ ${repo_title} vstacklet ${normal} ] ${standout}  System Backup Utility ${normal}  "
+  echo "  ${bold}You can review your backup log @ /root/vs-backup.log ${normal}"
+  echo
+  echo "  Press ${standout}${green}ENTER${normal} when you're ready to begin" ;read input
+  echo
 }
 
-graceful_exit() {
-    exit
-}
-
-usage() {
-    echo -e "Usage: $PROGNAME [-h|--help] files-backup.sh"
-}
-
-help_message() {
-  cat <<- _EOF_
-  $PROGNAME ver. $VERSION
-  A utility script to configure your system backups
-
-  The primary use of this script is for adding in 
-  details for user and database information for 
-  the vstacklet backup script. You may additionally
-  declare which directories you would like to include.
-
-  This script will also create the needed directories
-  for storing your backups.
-
-  $(usage)
-
-  Commands:
-    $PROGNAME --create-backup-directories
-    $PROGNAME --configure-files-backup
-    $PROGNAME --configure-database-backup
-    ....
-
-  Options:
-  -h, --help  Display this help message and exit.
-
-_EOF_
-  return
-}
-
-function main {
-    echo "### $1 START"
-    while read line
-    do
-        if [[ $line =~ "#" ]];
-        then
-            # skip comments
-            continue
-        elif [[ $line =~ "^ *$" ]];
-        then
-            # skip blank lines
-            continue
-        elif [[ $line =~ ^(\s*)include\s*(.*)\; ]];
-        then
-            main ${BASH_REMATCH[2]}
-        else
-            echo "$line"
-        fi
-    done < $1
-    echo "### $1 END"
-}
-
-# Parse command-line
-while [[ -n $1 ]]; do
-  case $1 in
-    -h | --help)
-      help_message; graceful_exit ;;
-    -* | --*)
-      usage
-      error_exit "Unknown option $1" ;;
-    *)
-      FILES+=($1);;
+function _askdirectories() {
+  echo -n "${bold}Do you want to backup your specified directories?${normal} (Y/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) directories=yes ;;
+    [nN] | [nN][Oo] ) directories=no ;;
   esac
-  shift
-done
+}
 
-if [ ${#FILES[@]} -eq 0 ];
-then
-      usage;
-      graceful_exit;
-fi
+function _directories() {
+  if [[ ${directories} == "yes" ]]; then
+  DIR="vstacklet"
+    if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+    . "$DIR/files-backup.sh";
+  fi
+}
 
-main $FILES
+function _askdatabase() {
+  echo -n "${bold}Do you want to backup your specified databases?${normal} (Y/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) database=yes ;;
+    [nN] | [nN][Oo] ) database=no ;;
+  esac
+}
+
+function _database() {
+  if [[ ${database} == "yes" ]]; then
+  DIR="vstacklet"
+    if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+    . "$DIR/database-backup.sh";
+  fi
+}
+
+function _package() {
+  DIR="vstacklet"
+    if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+    . "$DIR/package-backups.sh";
+}
+
+function _clean() {
+  DIR="vstacklet"
+    if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+    . "$DIR/backup-cleanup.sh";
+    echo "${OK}"
+}
+
+clear
+
+DIR="vstacklet";
+# for directories
+cat -- "$DIR/files-backup.sh";
+# for database
+cat -- "$DIR/database-backup.sh";
+# for packaging contents
+cat -- "$DIR/package-backups.sh";
+
+clear
+
+#Script Console Colors - dazzle me Amadeus, dazzle me!
+black=$(tput setaf 0);
+green=$(tput setaf 2);
+on_green=$(tput setab 2);
+bold=$(tput bold);
+standout=$(tput smso);
+normal=$(tput sgr0);
+sub_title=${bold}${yellow};
+repo_title=${black}${on_green};
+OK=$(echo -e "[ ${green}DONE${normal} ]")
+
+
+# VS-BACKUP STRUCTURE
+_intro
+_askdirectories;if [[ ${directories} == "yes" ]]; then _directories; fi
+_askdatabase;if [[ ${database} == "yes" ]]; then _database; fi
+_package
+echo -n "Performing cleanup to remove leftover archives ... ";_clean
+echo
+echo -n "[ ${bold}${green}Backup Complete${normal} ] ${bold}Find your backup in /backup${normal}";
+echo
+echo
+
+exit
