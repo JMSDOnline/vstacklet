@@ -59,7 +59,7 @@ Updated: ~~(_coming soon as a single script_)~~ Added as standalone and included
   * Cleanup remaining individual archives
   * Simply configure and type '__vs-backup__' to backup important directories and databases - cron examples included.
 
-![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-script-preview2.png "VStacklets VS-Backup Utility")
+![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/master/images/vs-backup-utility-preview.png "VStacklets VS-Backup Utility")
 
 Getting Started
 ----------------
