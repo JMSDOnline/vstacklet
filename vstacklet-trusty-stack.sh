@@ -134,20 +134,18 @@ function _repos() {
   cat >/etc/apt/sources.list.d/mariadb.list<<EOF
 deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
 EOF
-
-  if [[ ! "${rel}" =~ ("14.04") ]]; then
+  if [[ ${rel} =~ ("14.04") ]]; then
     cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
-deb https://repo.varnish-cache.org/ubuntu/ $(lsb_release -sc) varnish-4.1
+    deb https://repo.varnish-cache.org/ubuntu/ $(lsb_release -sc) varnish-4.1
 EOF
-  elif  [[ ! "${rel}" =~ ("15.04"|"15.10") ]]; then
+  elif [[ ${rel} =~ ("15.04"|"15.10") ]]; then
     cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
-deb https://repo.varnish-cache.org/ubuntu/ $(lsb_release -sc) varnish-4.0
+    deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.0
 EOF
   fi
-
   cat >/etc/apt/sources.list.d/nginx-mainline-$(lsb_release -sc).list<<EOF
-deb http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
-deb-src http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
+  deb http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
+  deb-src http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
 EOF
   echo "${OK}"
   echo
@@ -266,7 +264,7 @@ function _mariadb() {
 
 # install sendmail function (11)
 function _asksendmail() {
-  echo "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
+  echo -n "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) sendmail=yes ;;
@@ -276,7 +274,7 @@ function _asksendmail() {
 
 function _sendmail() {
   if [[ ${sendmail} == "yes" ]]; then
-    echo "${green}Preparing Sendmail Installation ... ${normal}"
+    echo -n "${green}Installing Sendmail ... ${normal}"
     apt-get -y install sendmail >>"${OUTTO}" 2>&1;
     export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
     # add administrator email
