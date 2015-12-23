@@ -73,19 +73,7 @@ function _intro() {
     echo "${dis}: You do not appear to be running Ubuntu"
     echo 'Exiting...'
     exit 1
-  elif [[ ! "${rel}" =~ ("14.04") ]]; then
-    echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
-    echo 'Exiting...'
-    exit 1
-  elif [[ ! "${rel}" =~ ("14.10") ]]; then
-    echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
-    echo 'Exiting...'
-    exit 1
-  elif [[ ! "${rel}" =~ ("15.04") ]]; then
-    echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
-    echo 'Exiting...'
-    exit 1
-  elif [[ ! "${rel}" =~ ("15.10") ]]; then
+  elif [[ ! "${rel}" =~ ("14.04"|"15.04"|"15.10") ]]; then
     echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
     echo 'Exiting...'
     exit 1
@@ -143,51 +131,16 @@ function _keys() {
 
 # package and repo addition (d) _add respo sources_
 function _repos() {
-  if [[ ! "${rel}" =~ ("14.04") ]]; then
-    cat >/etc/apt/sources.list.d/mariadb.list<<EOF
-deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu trusty main
+  cat >/etc/apt/sources.list.d/mariadb.list<<EOF
+deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
 EOF
-    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
-deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.1
+  cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
+deb https://repo.varnish-cache.org/ubuntu/ $(lsb_release -sc) varnish-4.1
 EOF
-    cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
-deb http://nginx.org/packages/mainline/ubuntu/ trusty nginx
-deb-src http://nginx.org/packages/mainline/ubuntu/ trusty nginx
+  cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
+deb http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
+deb-src http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
 EOF
-  elif [[ ! "${rel}" =~ ("14.10") ]]; then
-    cat >/etc/apt/sources.list.d/mariadb.list<<EOF
-deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu utopic main
-EOF
-    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
-deb https://repo.varnish-cache.org/ubuntu/ utopic varnish-4.1
-EOF
-    cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
-deb http://nginx.org/packages/mainline/ubuntu/ utopic nginx
-deb-src http://nginx.org/packages/mainline/ubuntu/ utopic nginx
-EOF
-  elif [[ ! "${rel}" =~ ("15.04") ]]; then
-    cat >/etc/apt/sources.list.d/mariadb.list<<EOF
-deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu vivid main
-EOF
-    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
-deb https://repo.varnish-cache.org/ubuntu/ vivid varnish-4.1
-EOF
-    cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
-deb http://nginx.org/packages/mainline/ubuntu/ vivid nginx
-deb-src http://nginx.org/packages/mainline/ubuntu/ vivid nginx
-EOF
-  elif [[ ! "${rel}" =~ ("15.10") ]]; then
-    cat >/etc/apt/sources.list.d/mariadb.list<<EOF
-deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu wily main
-EOF
-    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
-deb https://repo.varnish-cache.org/ubuntu/ wily varnish-4.1
-EOF
-    cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
-deb http://nginx.org/packages/mainline/ubuntu/ wily nginx
-deb-src http://nginx.org/packages/mainline/ubuntu/ wily nginx
-EOF
-  fi
   echo "${OK}"
   echo
 }
