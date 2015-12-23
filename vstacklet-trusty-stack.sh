@@ -87,7 +87,7 @@ function _checkroot() {
     echo 'Exiting...'
     exit 1
   fi
-  echo "${green}Congrats! You're running as root. Let's continue${normal} ... "
+  echo "${green}Congrats! You're running as root. Let's continue${normal}"
   echo
 }
 
@@ -97,10 +97,10 @@ function _logcheck() {
     case $input in
       [yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal} ... " ;;
       [nN] | [nN][Oo] ) OUTTO="/dev/null 2>&1";echo "${cyan}NO output will be logged${normal}" ;;
-    *) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal} ... " ;;
+    *) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal}" ;;
     esac
   echo
-  echo "Press ${standout}${green}ENTER${normal} when you're ready to begin ... " ;read input
+  echo "Press ${standout}${green}ENTER${normal} when you're ready to begin" ;read input
   echo
 }
 
