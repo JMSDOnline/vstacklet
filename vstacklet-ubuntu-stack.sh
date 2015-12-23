@@ -73,7 +73,7 @@ function _intro() {
     echo "${dis}: You do not appear to be running Ubuntu"
     echo 'Exiting...'
     exit 1
-  elif [[ ! "${rel}" =~ ("14.04") ]]; then
+  elif [[ ! "${rel}" =~ ("14.04"|"15.04"|"15.10") ]]; then
     echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
     echo 'Exiting...'
     exit 1
@@ -87,7 +87,7 @@ function _checkroot() {
     echo 'Exiting...'
     exit 1
   fi
-  echo "${green}Congrats! You're running as root. Let's continue${normal}"
+  echo "${green}Congrats! You're running as root. Let's continue${normal} ... "
   echo
 }
 
@@ -95,7 +95,7 @@ function _checkroot() {
 function _logcheck() {
   echo -ne "${bold}${yellow}Do you wish to write to a log file?${normal} (Default: ${green}${bold}Y${normal}) "; read input
     case $input in
-      [yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal} ... " ;;
+      [yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal}" ;;
       [nN] | [nN][Oo] ) OUTTO="/dev/null 2>&1";echo "${cyan}NO output will be logged${normal}" ;;
     *) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal}" ;;
     esac
@@ -132,14 +132,22 @@ function _keys() {
 # package and repo addition (d) _add respo sources_
 function _repos() {
   cat >/etc/apt/sources.list.d/mariadb.list<<EOF
-deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu trusty main
+deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
 EOF
+# what is seen below is merely an attempt at future-proofing the script
+# for now we continue to use the trusty branch to install varnish
+#  if [[ ${rel} =~ ("14.04") ]]; then
   cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
-deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.1
+deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.0
 EOF
-  cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
-deb http://nginx.org/packages/mainline/ubuntu/ trusty nginx
-deb-src http://nginx.org/packages/mainline/ubuntu/ trusty nginx
+#  elif [[ ${rel} =~ ("15.04"|"15.10") ]]; then
+#    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
+#    deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.0
+#EOF
+#  fi
+  cat >/etc/apt/sources.list.d/nginx-mainline-$(lsb_release -sc).list<<EOF
+deb http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
+deb-src http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
 EOF
   echo "${OK}"
   echo
@@ -147,6 +155,7 @@ EOF
 
 # package and repo addition (e) _update and upgrade_
 function _updates() {
+  export DEBIAN_FRONTEND=noninteractive &&
   apt-get -y update >>"${OUTTO}" 2>&1;
   apt-get -y upgrade >>"${OUTTO}" 2>&1;
 # apt-get -y autoremove >>"${OUTTO}" 2>&1; ### I'll let you decide
@@ -271,7 +280,7 @@ function _sendmail() {
     apt-get -y install sendmail >>"${OUTTO}" 2>&1;
     export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
     # add administrator email
-    echo -n "${blue}Add an Administrator Email Below for Aliases Inclusion${normal}"
+    echo "${blue}Add an Administrator Email Below for Aliases Inclusion${normal}"
     read -p "Email: " admin_email
     echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
     echo -n "${green}finalizing sendmail installation${normal} ... "
