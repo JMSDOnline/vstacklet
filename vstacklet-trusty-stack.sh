@@ -9,7 +9,7 @@
 server_ip=$(ifconfig | sed -n 's/.*inet addr:\([0-9.]\+\)\s.*/\1/p' | grep -v 127 | head -n 1);
 sitename=$(hostname -s);
 
-#Console Colors
+#Script Console Colors
 black=$(tput setaf 0);
 red=$(tput setaf 1);
 green=$(tput setaf 2);
@@ -87,13 +87,13 @@ function _checkroot() {
     echo 'Exiting...'
     exit 1
   fi
-  echo "${green}Congrats! You're running as root. Let's continue ... ${normal}"
+  echo "${green}Congrats! You're running as root. Let's continue${normal} ... "
   echo
 }
 
 # check if create log function (3)
 function _logcheck() {
-  echo -ne "Do you wish to write to a log file (Default: ${green}${bold}Y${normal}) "; read input
+  echo -ne "${yellow}Do you wish to write to a log file?${normal} (Default: ${green}${bold}Y${normal}) "; read input
     case $input in
       [yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal} ... " ;;
       [nN] | [nN][Oo] ) OUTTO="/dev/null 2>&1";echo "${cyan}NO output will be logged${normal}" ;;
@@ -212,7 +212,7 @@ function _php() {
 
 # install ioncube loader function (8)
 function _askioncube() {
-  echo -n "Do you want to install IonCube Loader? (Y/n): "
+  echo -n "${yellow}Do you want to install IonCube Loader?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) ioncube=yes ;;
@@ -222,7 +222,7 @@ function _askioncube() {
 
 function _ioncube() {
   if [[ ${ioncube} == "yes" ]]; then
-    echo "${bold}${green}Installing IonCube Loader...${normal}"
+    echo "${green}Installing IonCube Loader${normal} ... "
     mkdir tmp 2>&1;
     cd tmp 2>&1;
     wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
@@ -257,7 +257,7 @@ function _mariadb() {
 
 # install sendmail function (11)
 function _asksendmail() {
-  echo -n "Do you want to install Sendmail? (Y/n): "
+  echo -n "${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) sendmail=yes ;;
@@ -267,14 +267,14 @@ function _asksendmail() {
 
 function _sendmail() {
   if [[ ${sendmail} == "yes" ]]; then
-    echo "${sub_title}Preparing Sendmail Installation ... ${normal}"
+    echo "${green}Preparing Sendmail Installation ... ${normal}"
     apt-get -y install sendmail >>"${OUTTO}" 2>&1;
     export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
     # add administrator email
-    echo "${bold}Add an Administrator Email Below for Aliases Inclusion${normal}"
+    echo "${yellow}Add an Administrator Email Below for Aliases Inclusion${normal}"
     read -p "Email: " admin_email
-    echo "${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
-    echo "${green}finalizing sendmail installation ... ${normal}"
+    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
+    echo "${green}finalizing sendmail installation${normal} ... "
     # install aliases
     echo -e "mailer-daemon: postmaster
     postmaster: root
@@ -326,7 +326,7 @@ function _locenhance() {
 # Round 2 - Security
 # create self-signed certificate function (13)
 function _askcert() {
-  echo -n "Do you want to create a self-signed SSL cert and configure HTTPS? (Y/n): "
+  echo -n "${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) cert=yes ;;
@@ -406,44 +406,44 @@ echo '               /|         ||    ||                 '
 echo '               / \        ||     \\_______________ '
 echo '           _______________||______`--------------- '
 echo
-echo -e "\033[0m    COMPLETED in ${FIN}/min    \033[0m"
 echo
 echo "${black}${on_green}    [vstacklet] Varnish LEMP Stack Installation Completed    ${normal}"
 echo
 echo "${bold}Visit ${green}http://${server_ip}/checkinfo.php${normal} ${bold}to verify your install. ${normal}"
 echo "${bold}Remember to remove the checkinfo.php file after verification. ${normal}"
 echo
-date
+echo
+echo "${standout}INSTALLATION COMPLETED in ${FIN}/min ${normal}"
 echo
 }
 
 clear
 
 S=$(date +%s)
-OK=$(echo -e "[ \e[0;32mDONE\e[00m ]")
+OK=$(echo -e "[ ${bold}${green}DONE${normal} ]")
 
 # VSTACKLET STRUCTURE
 _intro
 _checkroot
 _logcheck
-echo -n "${sub_title}Installing Common Software Properties ... ${normal}";_softcommon
-echo -n "${sub_title}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl  ... ${normal}";_depends
-echo -n "${sub_title}Installing signed keys for MariaDB, Nginx, and Varnish ... ${normal}";_keys
-echo -n "${sub_title}Adding trusted repositories ... ${normal}";_repos
-echo -n "${sub_title}Applying Updates ... ${normal}";_updates
-echo -n "${sub_title}Installing and Configuring Nginx ... ${normal}";_nginx
-echo -n "${sub_title}Installing and Configuring Varnish ... ${normal}";_varnish
-echo -n "${sub_title}Installing and Adjusting PHP-FPM w/ OPCode Cache ... ${normal}";_php
+echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon
+echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${normal} ... ";_depends
+echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys
+echo -n "${bold}Adding trusted repositories${normal} ... ";_repos
+echo -n "${bold}Applying Updates${normal} ... ";_updates
+echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx
+echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish
+echo -n "${bold}Installing and Adjusting PHP-FPM w/ OPCode Cache${normal} ... ";_php
 _askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; fi
-echo -n "${sub_title}Adjusting Permissions ... ${normal}";_perms
-echo -n "${sub_title}Installing MariaDB Drop-in Replacement ... ${normal}";_mariadb
+echo -n "${bold}Adjusting Permissions${normal} ... ";_perms
+echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
 _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; fi
-echo -n "${sub_title}Addressing Location Edits: cache busting, cross domain font support,${normal}";
-echo -n "${sub_title}expires tags, and system file protection ... ${normal}";_locenhance
+echo "${bold}Addressing Location Edits: cache busting, cross domain font support,${normal}";
+echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance
 _askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
-echo -n "${sub_title}Performing Security Enhancements: protecting against bad bots,${normal}"; 
-echo -n "${sub_title}file injection, and php easter eggs ... ${normal}";_security
-echo -n "${sub_title}Completing Installation & Restarting Services ... ${normal}";_services
+echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}"; 
+echo -n "${bold}file injection, and php easter eggs${normal} ... ";_security
+echo -n "${bold}Completing Installation & Restarting Services${normal} ... ";_services
 
 E=$(date +%s)
 DIFF=$(echo "$E" - "$S"|bc)
