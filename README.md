@@ -13,17 +13,9 @@ VStacklet - A Buff LEMP Stack Kit
 
 Scripts to quickly install a [LEMP Stack](https://lemp.io) and perform basic configuration of new Ubuntu 14.04, and 15.04 [untested] servers.
 
-**NOTE:** This is a modification of it's original branch provided by <a href="https://github.com/jbradach/quick-lemp/" target="_blank">quick-lemp</a>. Installation scripts marked as Ubuntu 14.04 ONLY are those of heavy changes provided by myself (JMSolo Designs). These changes include ushering in CSF, Varnish as well as installing and configuring Sendmail and phpMyAdmin **To be added soon** for ease of use. 
+Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), and more to be added soon. (see [To-Do List](#the-to-do-list))
 
-Quick-Lemp is geared towards python based application installs and using default Boilerplate templates on Nginx/stable versions of no higher than 1.8. This limits the use of new functions and features in Nginx, nothing wrong with that, but some of us are sticklers for recent version. 
-
-My focus is to provide a modified version for CMS and typical website server installations, Updated/Modified Boilerplate templates to be more 'Nginx mainline' friendly; i.e http/2, as well as the ongoing use of static websites (which the original still handles splendidly!)
-
-Again, please be advised that I am building/testing this script on Ubuntu 14.04 (Trusty) as it does support Nginx versions higher than 1.8.
-
-Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified for use with mainline_), and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), and more to be added soon. (see [To-Do List](#the-to-do-list))
-
-Deploys a proper directory strucutre, optimizes Nginx and Varnish, creates a PHP page for testing and more.
+Deploys a proper directory strucutre, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
 Script Features
 --------
@@ -32,6 +24,8 @@ Script Features
   * Color Coding for emphasis on install processes.
   * Defaults are set to (Y) - just hit enter if you accept.
   * Fast and Lightweight install.
+  * Full Kit functionality - backup scripts included.
+  * Actively maintained w/ updates added when stable.
   * HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="http://h2.nix-admin.com/" target="_blank">HTTP/2 Checker</a>
   * Everything you need to get that Nginx + Varnish server up and running!
 
@@ -43,7 +37,7 @@ Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode
  Meet the Scripts
 --------
 
-__Stack__ - Installs and configures LEMP stack with support for Website-based server environments.
+__VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments.
   *
   * Adds repositories for the latest stable versions of MariaDB, mainline (1.9.x) versions of Nginx, and Varnish 4.
   * Installs and configures Nginx, Varnish and MariaDB.
@@ -51,10 +45,10 @@ __Stack__ - Installs and configures LEMP stack with support for Website-based se
   * Enables OPCode Cache and fine-tuning
   * Installs and Enables IonCube Loader
   * Installs and Enables (PHP) Sendmail
-  * ~~Includes virtualenv and pip.~~ **removed** If you need this, visit the original [quick-lemp](https://github.com/jbradach/quick-lemp/)
   * MariaDB 10.0 can easily switched to 5.5 or substituted for PostgreSQL.
   * Supports IPv6 by default .
   * Optional self-signed SSL cert configuration.
+  * Easy to configure & run backup executable __vs-backup__ for data-protection.
 
 __VS-Backup__ - Installs scripts to help manage and automate server/site backups 
 Updated: ~~(_coming soon as a single script_)~~ Added as standalone and included in full kit.
@@ -63,7 +57,9 @@ Updated: ~~(_coming soon as a single script_)~~ Added as standalone and included
   * Backup your databases
   * Package files & databases to one archive
   * Cleanup remaining individual archives
+  * Simply configure and type '__vs-backup__' to backup important directories and databases - cron examples included.
 
+![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-script-preview2.png "VStacklets VS-Backup Utility")
 
 Getting Started
 ----------------
@@ -107,3 +103,16 @@ chmod +x vstacklet-backup-standalone.sh
 - [ ] CSF (w/ option prompt)
 - [x] VS-Backup standalone kit (included in FULL Kit also)
 - [ ] VStacklet-lite 
+
+
+### Additional Notes and honorable mentions
+
+This is a modification of it's original branch provided by <a href="https://github.com/jbradach/quick-lemp/" target="_blank">quick-lemp</a>. The scripts within VStacklet LEMP Kit come with heavy modifications to  the origianl quick-lemp script... in this regards, these two scripts are entirely separate and not similar to one another. Quick-LEMP is mentioned as it started the VStacklet Kit Project... what was to be a simply pull request to it's original owner, took on a new scope and thus simply became a new project. The changes include ushering in __CSF__, __Varnish__ as well as installing and configuring __Sendmail__ and __phpMyAdmin__ **To be added soon** for ease of use. 
+
+Quick-Lemp is geared towards python based application installs and using default Boilerplate templates on Nginx/stable versions of no higher than 1.8. This limits the use of new functions and features in Nginx, nothing wrong with that, but some of us are sticklers for a recent version. 
+
+My focus was and is to provide a modified version for CMS and typical website server i.e;(WordPress, Joomla!, Drupal, Ghost, Magento ... etc ... ) installations, Updated/Modified/Customized Boilerplate templates to be more 'Nginx mainline' friendly; i.e http/2, as well as the ongoing use of static websites (which the original still handles splendidly!)
+
+Again, please be advised that I am building/testing this script on Ubuntu 14.04 (Trusty) as it supports Nginx versions higher than 1.8.
+
+As per any contributions, be it suggestions, critiques, alterations and on and on are all welcome!
