@@ -143,7 +143,7 @@ EOF
     cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
 deb https://repo.varnish-cache.org/ubuntu/ $(lsb_release -sc) varnish-4.0
 EOF
-  if
+  fi
 
   cat >/etc/apt/sources.list.d/nginx-mainline-$(lsb_release -sc).list<<EOF
 deb http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
