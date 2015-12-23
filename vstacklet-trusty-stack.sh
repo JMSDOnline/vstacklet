@@ -233,7 +233,7 @@ function _ioncube() {
     echo "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" >> /etc/php5/fpm/php.ini
     cd
     rm -rf tmp*
-    echo "${OK}"
+    echo -n "${OK}"
     echo
   fi
 }
@@ -288,7 +288,7 @@ function _sendmail() {
     abuse: root
     root: $admin_email" > /etc/aliases
     newaliases >>"${OUTTO}" 2>&1;
-    echo "${OK}"
+    echo -n "${OK}"
     echo
   fi
 }
