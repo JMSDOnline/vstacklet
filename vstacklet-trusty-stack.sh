@@ -93,7 +93,7 @@ function _checkroot() {
 
 # check if create log function (3)
 function _logcheck() {
-  echo -ne "${yellow}Do you wish to write to a log file?${normal} (Default: ${green}${bold}Y${normal}) "; read input
+  echo -ne "${bold}${yellow}Do you wish to write to a log file?${normal} (Default: ${green}${bold}Y${normal}) "; read input
     case $input in
       [yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal} ... " ;;
       [nN] | [nN][Oo] ) OUTTO="/dev/null 2>&1";echo "${cyan}NO output will be logged${normal}" ;;
@@ -212,7 +212,7 @@ function _php() {
 
 # install ioncube loader function (8)
 function _askioncube() {
-  echo -n "${yellow}Do you want to install IonCube Loader?${normal} (${bold}${green}Y${normal}/n): "
+  echo -n "${bold}${yellow}Do you want to install IonCube Loader?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) ioncube=yes ;;
@@ -257,7 +257,7 @@ function _mariadb() {
 
 # install sendmail function (11)
 function _asksendmail() {
-  echo -n "${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
+  echo -n "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) sendmail=yes ;;
@@ -271,7 +271,7 @@ function _sendmail() {
     apt-get -y install sendmail >>"${OUTTO}" 2>&1;
     export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
     # add administrator email
-    echo "${yellow}Add an Administrator Email Below for Aliases Inclusion${normal}"
+    echo "${blue}Add an Administrator Email Below for Aliases Inclusion${normal}"
     read -p "Email: " admin_email
     echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
     echo "${green}finalizing sendmail installation${normal} ... "
