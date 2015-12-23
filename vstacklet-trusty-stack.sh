@@ -77,6 +77,18 @@ function _intro() {
     echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
     echo 'Exiting...'
     exit 1
+  elif [[ ! "${rel}" =~ ("14.10") ]]; then
+    echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
+    echo 'Exiting...'
+    exit 1
+  elif [[ ! "${rel}" =~ ("15.04") ]]; then
+    echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
+    echo 'Exiting...'
+    exit 1
+  elif [[ ! "${rel}" =~ ("15.10") ]]; then
+    echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
+    echo 'Exiting...'
+    exit 1
   fi
 }
 
@@ -131,16 +143,51 @@ function _keys() {
 
 # package and repo addition (d) _add respo sources_
 function _repos() {
-  cat >/etc/apt/sources.list.d/mariadb.list<<EOF
+  if [[ ! "${rel}" =~ ("14.04") ]]; then
+    cat >/etc/apt/sources.list.d/mariadb.list<<EOF
 deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu trusty main
 EOF
-  cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
+    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
 deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.1
 EOF
-  cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
+    cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
 deb http://nginx.org/packages/mainline/ubuntu/ trusty nginx
 deb-src http://nginx.org/packages/mainline/ubuntu/ trusty nginx
 EOF
+  elif [[ ! "${rel}" =~ ("14.10") ]]; then
+    cat >/etc/apt/sources.list.d/mariadb.list<<EOF
+deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu utopic main
+EOF
+    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
+deb https://repo.varnish-cache.org/ubuntu/ utopic varnish-4.1
+EOF
+    cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
+deb http://nginx.org/packages/mainline/ubuntu/ utopic nginx
+deb-src http://nginx.org/packages/mainline/ubuntu/ utopic nginx
+EOF
+  elif [[ ! "${rel}" =~ ("15.04") ]]; then
+    cat >/etc/apt/sources.list.d/mariadb.list<<EOF
+deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu vivid main
+EOF
+    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
+deb https://repo.varnish-cache.org/ubuntu/ vivid varnish-4.1
+EOF
+    cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
+deb http://nginx.org/packages/mainline/ubuntu/ vivid nginx
+deb-src http://nginx.org/packages/mainline/ubuntu/ vivid nginx
+EOF
+  elif [[ ! "${rel}" =~ ("15.10") ]]; then
+    cat >/etc/apt/sources.list.d/mariadb.list<<EOF
+deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu wily main
+EOF
+    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
+deb https://repo.varnish-cache.org/ubuntu/ wily varnish-4.1
+EOF
+    cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
+deb http://nginx.org/packages/mainline/ubuntu/ wily nginx
+deb-src http://nginx.org/packages/mainline/ubuntu/ wily nginx
+EOF
+  fi
   echo "${OK}"
   echo
 }
@@ -222,7 +269,7 @@ function _askioncube() {
 
 function _ioncube() {
   if [[ ${ioncube} == "yes" ]]; then
-    echo "${green}Installing IonCube Loader${normal} ... "
+    echo -n "${green}Installing IonCube Loader${normal} ... "
     mkdir tmp 2>&1;
     cd tmp 2>&1;
     wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
@@ -288,7 +335,7 @@ function _sendmail() {
     abuse: root
     root: $admin_email" > /etc/aliases
     newaliases >>"${OUTTO}" 2>&1;
-    echo -n "${OK}"
+    echo "${OK}"
     echo
   fi
 }
