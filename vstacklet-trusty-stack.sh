@@ -95,12 +95,12 @@ function _checkroot() {
 function _logcheck() {
   echo -ne "${bold}${yellow}Do you wish to write to a log file?${normal} (Default: ${green}${bold}Y${normal}) "; read input
     case $input in
-      [yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal} ... " ;;
+      [yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal}" ;;
       [nN] | [nN][Oo] ) OUTTO="/dev/null 2>&1";echo "${cyan}NO output will be logged${normal}" ;;
-    *) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal} ... " ;;
+    *) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal}" ;;
     esac
   echo
-  echo "Press ${standout}${green}ENTER${normal} when you're ready to begin ... " ;read input
+  echo "Press ${standout}${green}ENTER${normal} when you're ready to begin" ;read input
   echo
 }
 
@@ -134,10 +134,18 @@ function _repos() {
   cat >/etc/apt/sources.list.d/mariadb.list<<EOF
 deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
 EOF
-  cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
+
+  if [[ ! "${rel}" =~ ("14.04") ]]; then
+    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
 deb https://repo.varnish-cache.org/ubuntu/ $(lsb_release -sc) varnish-4.1
 EOF
-  cat >/etc/apt/sources.list.d/nginx-mainline-trusty.list<<EOF
+  elif  [[ ! "${rel}" =~ ("15.04"|"15.10") ]]; then
+    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
+deb https://repo.varnish-cache.org/ubuntu/ $(lsb_release -sc) varnish-4.0
+EOF
+  if
+
+  cat >/etc/apt/sources.list.d/nginx-mainline-$(lsb_release -sc).list<<EOF
 deb http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
 deb-src http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
 EOF
@@ -147,6 +155,7 @@ EOF
 
 # package and repo addition (e) _update and upgrade_
 function _updates() {
+  export DEBIAN_FRONTEND=noninteractive &&
   apt-get -y update >>"${OUTTO}" 2>&1;
   apt-get -y upgrade >>"${OUTTO}" 2>&1;
 # apt-get -y autoremove >>"${OUTTO}" 2>&1; ### I'll let you decide
@@ -233,7 +242,7 @@ function _ioncube() {
     echo "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" >> /etc/php5/fpm/php.ini
     cd
     rm -rf tmp*
-    echo -n "${OK}"
+    echo "${OK}"
     echo
   fi
 }
@@ -257,7 +266,7 @@ function _mariadb() {
 
 # install sendmail function (11)
 function _asksendmail() {
-  echo -n "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
+  echo "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) sendmail=yes ;;
@@ -274,7 +283,7 @@ function _sendmail() {
     echo "${blue}Add an Administrator Email Below for Aliases Inclusion${normal}"
     read -p "Email: " admin_email
     echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
-    echo "${green}finalizing sendmail installation${normal} ... "
+    echo -n "${green}finalizing sendmail installation${normal} ... "
     # install aliases
     echo -e "mailer-daemon: postmaster
     postmaster: root
