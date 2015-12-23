@@ -138,7 +138,7 @@ EOF
 # for now we continue to use the trusty branch to install varnish
 #  if [[ ${rel} =~ ("14.04") ]]; then
   cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
-deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.1
+deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.0
 EOF
 #  elif [[ ${rel} =~ ("15.04"|"15.10") ]]; then
 #    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
