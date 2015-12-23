@@ -222,7 +222,7 @@ function _askioncube() {
 
 function _ioncube() {
   if [[ ${ioncube} == "yes" ]]; then
-    echo "${green}Installing IonCube Loader${normal} ... "
+    echo -n "${green}Installing IonCube Loader${normal} ... "
     mkdir tmp 2>&1;
     cd tmp 2>&1;
     wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
@@ -233,7 +233,7 @@ function _ioncube() {
     echo "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" >> /etc/php5/fpm/php.ini
     cd
     rm -rf tmp*
-    echo -n "${OK}"
+    echo "${OK}"
     echo
   fi
 }
@@ -267,14 +267,14 @@ function _asksendmail() {
 
 function _sendmail() {
   if [[ ${sendmail} == "yes" ]]; then
-    echo "${green}Preparing Sendmail Installation ... ${normal}"
+    echo -n "${green}Installing Sendmail ... ${normal}"
     apt-get -y install sendmail >>"${OUTTO}" 2>&1;
     export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
     # add administrator email
-    echo "${blue}Add an Administrator Email Below for Aliases Inclusion${normal}"
+    echo -n "${blue}Add an Administrator Email Below for Aliases Inclusion${normal}"
     read -p "Email: " admin_email
     echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
-    echo "${green}finalizing sendmail installation${normal} ... "
+    echo -n "${green}finalizing sendmail installation${normal} ... "
     # install aliases
     echo -e "mailer-daemon: postmaster
     postmaster: root
@@ -288,7 +288,7 @@ function _sendmail() {
     abuse: root
     root: $admin_email" > /etc/aliases
     newaliases >>"${OUTTO}" 2>&1;
-    echo -n "${OK}"
+    echo "${OK}"
     echo
   fi
 }
