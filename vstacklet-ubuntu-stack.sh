@@ -134,15 +134,17 @@ function _repos() {
   cat >/etc/apt/sources.list.d/mariadb.list<<EOF
 deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
 EOF
-  if [[ ${rel} =~ ("14.04") ]]; then
+# what is seen below is merely an attempt at future-proofing the script
+# for now we continue to use the trusty branch to install varnish
+#  if [[ ${rel} =~ ("14.04") ]]; then
     cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
-    deb https://repo.varnish-cache.org/ubuntu/ $(lsb_release -sc) varnish-4.1
+    deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.1
 EOF
-  elif [[ ${rel} =~ ("15.04"|"15.10") ]]; then
-    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
-    deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.0
-EOF
-  fi
+#  elif [[ ${rel} =~ ("15.04"|"15.10") ]]; then
+#    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
+#    deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.0
+#EOF
+#  fi
   cat >/etc/apt/sources.list.d/nginx-mainline-$(lsb_release -sc).list<<EOF
   deb http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
   deb-src http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx
