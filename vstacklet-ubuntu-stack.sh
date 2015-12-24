@@ -267,33 +267,38 @@ function _askphpmyadmin() {
 
 function _phpmyadmin() {
   if [[ ${phpmyadmin} == "yes" ]]; then
+
     # generate random passwords for the MySql root user
-    phpmyadminpass=$(HaqVD7EmFkih);
     mysqlpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
     mysqladmin -u root -h localhost password "${mysqlpass}"
-    echo -n "${bold}Installing phpMyAdmin with user:${normal} ${bold}${green}phpmyadmin${normal}${bold}/passwd:${normal} ${bold}${green}${mysqlpass}${normal} ... "
+    echo -n "${bold}Installing MySQL with user:${normal} ${bold}${green}root${normal}${bold} / passwd:${normal} ${bold}${green}${mysqlpass}${normal} ... "
     export DEBIAN_FRONTEND=noninteractive
     apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
 
     # create a sym-link to live directory.
     ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
 
-    # the username defaults to phpmyadmin.
-    echo "phpMyAdmin Login:" > /root/.my.cnf
-    echo "username=phpmyadmin" >> /root/.my.cnf
-    echo "password=${phpmyadminpass}" >> /root/.my.cnf
-    echo "" >> /root/.my.cnf
-
-    # add the login credentials to /root/phpmyadmin
-    echo "phpMyAdmin Username -    phpmyadmin" > /root/phpmyadmin
-    echo "phpMyAdmin Password -    ${phpmyadminpass}" >> /root/phpmyadmin
-    echo "MySql Password      -    ${mysqlpass}" >> /root/phpmyadmin
-
-    # sed -e "s/$dbpass=/#$dbpass=/" /etc/phpmyadmin/config-db.php
-    # echo "$dbpass='${mysqlpass}';" >> /etc/phpmyadmin/config-db.php
-    # sed -i "s/dbc_dbpass=/# dbc_dbpass=/" /etc/dbconfig-common/phpmyadmin.conf
-
     echo "${OK}"
+    # get phpmyadmin directory
+    DIR="/etc/phpmyadmin";
+    # show phpmyadmin creds
+    echo 'phpMyAdmin Login:' > ~/.my.cnf
+    sed -n 13p ${DIR}/config-db.php >> .my.cnf;
+    sed -n 14p ${DIR}/config-db.php >> .my.cnf;
+    echo '' >> ~/.my.cnf
+    echo '' >> ~/.my.cnf
+    # show mysql creds
+    echo 'MySQL DB Login:' >> ~/.my.cnf
+    echo '$dbuser=root' >> ~/.my.cnf
+    echo '$dbpass=${mysqlpass}' >> ~/.my.cnf
+    echo '' >> ~/.my.cnf
+    # closing statement
+    echo
+    echo "${bold}Below are your phpMyAdmin and MySQL details.${normal}"
+    echo "${bold}Details are logged in the${normal} ${bold}${green}/root/.my.cnf${normal} ${bold}file.${normal}"
+    echo
+    # show contents of .my.cnf file
+    tail ~/.my.cnf
     echo
   fi
 }
@@ -476,10 +481,10 @@ echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} 
 echo -n "${bold}Adding trusted repositories${normal} ... ";_repos
 echo -n "${bold}Applying Updates${normal} ... ";_updates
 echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx
+echo -n "${bold}Adjusting Permissions${normal} ... ";_perms
 echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish
 echo -n "${bold}Installing and Adjusting PHP-FPM w/ OPCode Cache${normal} ... ";_php
 _askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; fi
-echo -n "${bold}Adjusting Permissions${normal} ... ";_perms
 echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
 _askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; fi
 _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; fi
