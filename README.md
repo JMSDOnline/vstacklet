@@ -11,9 +11,9 @@ VStacklet - A Buff LEMP Stack Kit
 
 --------
 
-Scripts to quickly install a [LEMP Stack](https://lemp.io) and perform basic configuration of new Ubuntu 14.04, 15.04 and 15.10 servers.
+Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04 and 15.10 servers.
 
-Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), and more to be added soon. (see [To-Do List](#the-to-do-list))
+Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), and more to be added soon. (see [To-Do List](#the-to-do-list))
 
 Deploys a proper directory strucutre, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
@@ -23,6 +23,8 @@ Script Features
   * Script writes output to /root/vstacklet.log for additional observations.
   * Color Coding for emphasis on install processes.
   * Defaults are set to (Y) - just hit enter if you accept.
+  * Varnish Cache on port 80 with Nginx SSL terminiation.
+  * No Apache - Full throttle!
   * Fast and Lightweight install.
   * Full Kit functionality - backup scripts included.
   * Actively maintained w/ updates added when stable.
