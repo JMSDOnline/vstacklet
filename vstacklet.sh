@@ -37,7 +37,6 @@ function _askubuntu() {
     [yY] | [yY][Ee][Ss] | "" ) ubuntu=yes ;;
     [nN] | [nN][Oo] ) ubuntu=no ;;
   esac
-  sleep5
 }
 
 function _ubuntu15x() {
