@@ -260,7 +260,6 @@ function _phpmyadmin() {
   if [[ ${phpmyadmin} == "yes" ]]; then
     export DEBIAN_FRONTEND=noninteractive
     apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
-
     # generate random passwords for the MySql root user and the .htaccess file
     # phpmyadminpass="dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev";
     # mysqlpass="dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev";
@@ -273,6 +272,8 @@ function _phpmyadmin() {
     echo "phpMyAdmin Password -    ${phpmyadminpass}" > /root/phpmyadmin
     echo "MySql Password      -    ${mysqlpass}" >> /root/phpmyadmin
     sed -e "s/$dbpass='';/$dbpass='${mysqlpass}';" /etc/phpmyadmin/config-db.php
+    echo "${OK}"
+    echo
   fi
 }
 
