@@ -163,6 +163,15 @@ function _nginx() {
   echo
 }
 
+# adjust permissions function (9)
+function _perms() {
+  chgrp -R www-data /srv/www/*
+  chmod -R g+rw /srv/www/*
+  sh -c 'find /srv/www/* -type d -print0 | sudo xargs -0 chmod g+s'
+  echo "${OK}"
+  echo
+}
+
 # install varnish function (6)
 function _varnish() {
   apt-get -y install varnish >>"${OUTTO}" 2>&1;
@@ -230,13 +239,13 @@ function _ioncube() {
 }
 
 # adjust permissions function (9)
-function _perms() {
-  chgrp -R www-data /srv/www/*
-  chmod -R g+rw /srv/www/*
-  sh -c 'find /srv/www/* -type d -print0 | sudo xargs -0 chmod g+s'
-  echo "${OK}"
-  echo
-}
+#function _perms() {
+#  chgrp -R www-data /srv/www/*
+#  chmod -R g+rw /srv/www/*
+#  sh -c 'find /srv/www/* -type d -print0 | sudo xargs -0 chmod g+s'
+#  echo "${OK}"
+#  echo
+#}
 
 # install mariadb function (10)
 function _mariadb() {
@@ -258,20 +267,32 @@ function _askphpmyadmin() {
 
 function _phpmyadmin() {
   if [[ ${phpmyadmin} == "yes" ]]; then
-    export DEBIAN_FRONTEND=noninteractive
-    apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
-    # generate random passwords for the MySql root user and the .htaccess file
-    # phpmyadminpass="dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev";
-    # mysqlpass="dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev";
-    phpmyadminpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
+    # generate random passwords for the MySql root user
+    phpmyadminpass=$(HaqVD7EmFkih);
     mysqlpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
     mysqladmin -u root -h localhost password "${mysqlpass}"
-    echo "phpMyAdmin Login:\nusername="phpmyadmin"\npassword="${mysqlpass}"\n" > /root/.my.cnf
+    echo -n "${bold}Installing phpMyAdmin with user:${normal} ${bold}${green}phpmyadmin${normal}${bold}/passwd:${normal} ${bold}${green}${mysqlpass}${normal} ... "
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
+
+    # create a sym-link to live directory.
+    ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
+
     # the username defaults to phpmyadmin.
-    # echo $phpmyadminpass | htpasswd -c -i /etc/phpmyadmin/.htpasswd phpmyadmin
-    echo "phpMyAdmin Password -    ${phpmyadminpass}" > /root/phpmyadmin
+    echo "phpMyAdmin Login:" > /root/.my.cnf
+    echo "username=phpmyadmin" >> /root/.my.cnf
+    echo "password=${phpmyadminpass}" >> /root/.my.cnf
+    echo "" >> /root/.my.cnf
+
+    # add the login credentials to /root/phpmyadmin
+    echo "phpMyAdmin Username -    phpmyadmin" > /root/phpmyadmin
+    echo "phpMyAdmin Password -    ${phpmyadminpass}" >> /root/phpmyadmin
     echo "MySql Password      -    ${mysqlpass}" >> /root/phpmyadmin
-    sed -e "s/$dbpass='';/$dbpass='${mysqlpass}';" /etc/phpmyadmin/config-db.php
+
+    # sed -e "s/$dbpass=/#$dbpass=/" /etc/phpmyadmin/config-db.php
+    # echo "$dbpass='${mysqlpass}';" >> /etc/phpmyadmin/config-db.php
+    # sed -i "s/dbc_dbpass=/# dbc_dbpass=/" /etc/dbconfig-common/phpmyadmin.conf
+
     echo "${OK}"
     echo
   fi
