@@ -267,37 +267,38 @@ function _askphpmyadmin() {
 
 function _phpmyadmin() {
   if [[ ${phpmyadmin} == "yes" ]]; then
-
     # generate random passwords for the MySql root user
     mysqlpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
     mysqladmin -u root -h localhost password "${mysqlpass}"
     echo -n "${bold}Installing MySQL with user:${normal} ${bold}${green}root${normal}${bold} / passwd:${normal} ${bold}${green}${mysqlpass}${normal} ... "
     export DEBIAN_FRONTEND=noninteractive
     apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
-
     # create a sym-link to live directory.
     ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
-
+    # add phpmyadmin directive to nginx site configuration at /etc/nginx/conf.d/$sitename.conf.
+    locconf6="include vstacklet\/location\/pma.conf;"
+    sed -i "s/locconf6/$locconf6/" /etc/nginx/conf.d/$sitename.conf
     echo "${OK}"
     # get phpmyadmin directory
     DIR="/etc/phpmyadmin";
     # show phpmyadmin creds
-    echo '[phpMyAdmin Login]' > ~/.v.cnf
-    sed -n 13p ${DIR}/config-db.php >> .v.cnf;
-    sed -n 14p ${DIR}/config-db.php >> .v.cnf;
-    sed -i 's/dbuser/pmadbuser/' ~/.v.cnf
-    sed -i 's/dbpass/pmadbpass/' ~/.v.cnf
-    echo '' >> ~/.v.cnf
-    echo '' >> ~/.v.cnf
+    echo '[phpMyAdmin Login]' > ~/v-db.conf;
+    sed -n 13p ${DIR}/config-db.php >> ~/v-db.conf;
+    sed -n 14p ${DIR}/config-db.php >> ~/v-db.conf;
+    sed -i 's/dbuser/pmadbuser/' ~/v-db.conf;
+    sed -i 's/dbpass/pmadbpass/'~/v-db.conf;
+    echo '' >> ~/v-db.conf;
+    echo '' >> ~/v-db.conf;
     # show mysql creds
-    echo '[MySQL Login]' >> ~/.v.cnf
-    echo "$sqldbuser='root'" >> ~/.v.cnf
-    echo "$sqldbpass='${mysqlpass}'" >> ~/.v.cnf
-    echo '' >> ~/.v.cnf
+    echo '[MySQL Login]' >> ~/v-db.conf;
+    echo '$sqldbuser=root' >> ~/v-db.conf;
+    echo '$sqldbpass="${mysqlpass}"' >> ~/v-db.conf;
+    echo '' >> ~/v-db.conf;
     # closing statement
     echo
     echo "${bold}Below are your phpMyAdmin and MySQL details.${normal}"
     echo "${bold}Details are logged in the${normal} ${bold}${green}/root/.v.cnf${normal} ${bold}file.${normal}"
+    echo "Best practice is to copy this file locally then rm v-db.conf"
     echo
     # show contents of .v.cnf file
     tail ~/.v.cnf
