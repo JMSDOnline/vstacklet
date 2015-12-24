@@ -262,15 +262,17 @@ function _phpmyadmin() {
     apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
 
     # generate random passwords for the MySql root user and the .htaccess file
-    phpmyadminpass='dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev';
-    mysqlpass='dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev';
-    mysqladmin -u root -h localhost password "$mysqlpass"
-    echo "username="phpmyadmin"\npassword="$mysqlpass"\n" > /root/.my.cnf
+    # phpmyadminpass="dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev";
+    # mysqlpass="dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev";
+    phpmyadminpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
+    mysqlpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
+    mysqladmin -u root -h localhost password "${mysqlpass}"
+    echo "phpMyAdmin Login:\nusername="phpmyadmin"\npassword="${mysqlpass}"\n" > /root/.my.cnf
     # the username defaults to phpmyadmin.
     # echo $phpmyadminpass | htpasswd -c -i /etc/phpmyadmin/.htpasswd phpmyadmin
-    echo "phpMyAdmin Password -    "$phpmyadminpass"" > /root/phpmyadmin
-    echo "MySql Password      -    "$mysqlpass"" >> /root/phpmyadmin
-    sed -e "s/$dbpass='';/$dbpass='$(mysqlpass)';" /etc/phpmyadmin/config-db.php
+    echo "phpMyAdmin Password -    ${phpmyadminpass}" > /root/phpmyadmin
+    echo "MySql Password      -    ${mysqlpass}" >> /root/phpmyadmin
+    sed -e "s/$dbpass='';/$dbpass='${mysqlpass}';" /etc/phpmyadmin/config-db.php
   fi
 }
 
