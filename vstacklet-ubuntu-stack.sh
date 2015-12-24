@@ -273,13 +273,21 @@ function _phpmyadmin() {
     mysqladmin -u root -h localhost password "${mysqlpass}"
     echo -n "${bold}Installing MySQL with user:${normal} ${bold}${green}root${normal}${bold} / passwd:${normal} ${bold}${green}${mysqlpass}${normal} ... "
     apt-get -q -y install debconf-utils >>"${OUTTO}" 2>&1;
-    #export DEBIAN_FRONTEND=noninteractive
-    debconf-set-selections <<< "phpmyadmin phpmyadmin/debconfig-install boolean true"
-    debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none"
-    debconf-set-selections <<< "phpmyadmin phpmyadmin/db/app-user string phpmyadmin"
-    debconf-set-selections <<< "phpmyadmin phpmyadmin/setup-password password ${pmapass}"
-    debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}"
-    debconf-set-selections <<< 'phpmyadmin phpmyadmin/database-type select mysql'
+    export DEBIAN_FRONTEND=noninteractive
+
+    echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/mysql/admin-pass password ${mysqlpass}" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/mysql/app-pass password ${mysqlpass}" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
+
+    #debconf-set-selections <<< "phpmyadmin phpmyadmin/debconfig-install boolean true"
+    #debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none"
+    #debconf-set-selections <<< "phpmyadmin phpmyadmin/db/app-user string phpmyadmin "
+    #debconf-set-selections <<< "phpmyadmin phpmyadmin/setup-password password ${pmapass}"
+    #debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}"
+    #debconf-set-selections <<< 'phpmyadmin phpmyadmin/database-type select mysql'
+
     apt-get -q -y install phpmyadmin >>"${OUTTO}" 2>&1;
     # create a sym-link to live directory.
     ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
