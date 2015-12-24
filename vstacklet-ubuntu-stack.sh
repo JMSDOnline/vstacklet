@@ -20,18 +20,9 @@ cyan=$(tput setaf 6);
 white=$(tput setaf 7);
 on_red=$(tput setab 1);
 on_green=$(tput setab 2);
-on_yellow=$(tput setab 3);
-on_blue=$(tput setab 4);
-on_magenta=$(tput setab 5);
-on_cyan=$(tput setab 6);
-on_white=$(tput setab 7);
 
-bold=$(tput bold);    # Select bold mode
-dim=$(tput dim);     # Select dim (half-bright) mode
-underline=$(tput smul);    # Enable underline mode
-reset_underline=$(tput rmul);    # Disable underline mode
-standout=$(tput smso);    # Enter standout (bold) mode
-reset_standout=$(tput rmso);    # Exit standout mode
+bold=$(tput bold);
+standout=$(tput smso);
 
 normal=$(tput sgr0);
 
@@ -138,7 +129,7 @@ EOF
 # for now we continue to use the trusty branch to install varnish
 #  if [[ ${rel} =~ ("14.04") ]]; then
   cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
-deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.0
+deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.1
 EOF
 #  elif [[ ${rel} =~ ("15.04"|"15.10") ]]; then
 #    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
@@ -195,6 +186,12 @@ function _varnish() {
   apt-get -y install varnish >>"${OUTTO}" 2>&1;
   sed -i "s/127.0.0.1/$server_ip/" /etc/varnish/default.vcl
   sed -i "s/6081/80/" /etc/default/varnish
+  cp /lib/systemd/system/varnishlog.service /etc/systemd/system/varnishlog.service
+  if [[ ${rel} =~ ("15.04"|"15.10") ]]; then
+    cp /lib/systemd/system/varnish.service /etc/systemd/system/varnish.service
+    sed -i "s/6081/80/" /lib/systemd/system/varnish.service
+    systemctl daemon-reload
+  fi
   echo "${OK}"
   echo
 }
@@ -280,8 +277,9 @@ function _sendmail() {
     apt-get -y install sendmail >>"${OUTTO}" 2>&1;
     export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
     # add administrator email
-    echo "${blue}Add an Administrator Email Below for Aliases Inclusion${normal}"
-    read -p "Email: " admin_email
+    echo -n "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
+    read -p "${bold}Email: ${normal}" admin_email
+    echo
     echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
     echo -n "${green}finalizing sendmail installation${normal} ... "
     # install aliases
