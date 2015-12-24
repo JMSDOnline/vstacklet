@@ -259,15 +259,15 @@ function _askphpmyadmin() {
 function _phpmyadmin() {
   if [[ ${phpmyadmin} == "yes" ]]; then
     export DEBIAN_FRONTEND=noninteractive
-    apt-get -y install phpmyadmin
+    apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
 
     # generate random passwords for the MySql root user and the .htaccess file
-    phpmyadminpass=$('dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev');
-    mysqlpass=$('dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev');
-    mysqladmin -u root -h localhost password "$MYSQLPASS"
-    echo "[client]\npassword="$mysqlpass"\n" > /root/.my.cnf
-    # the .htaccess username defaults to phpmyadmin.
-    echo $phpmyadminpass | htpasswd -c -i /etc/phpmyadmin/.htpasswd phpmyadmin
+    phpmyadminpass='dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev';
+    mysqlpass='dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev';
+    mysqladmin -u root -h localhost password "$mysqlpass"
+    echo "username="phpmyadmin"\npassword="$mysqlpass"\n" > /root/.my.cnf
+    # the username defaults to phpmyadmin.
+    # echo $phpmyadminpass | htpasswd -c -i /etc/phpmyadmin/.htpasswd phpmyadmin
     echo "phpMyAdmin Password -    "$phpmyadminpass"" > /root/phpmyadmin
     echo "MySql Password      -    "$mysqlpass"" >> /root/phpmyadmin
     sed -e "s/$dbpass='';/$dbpass='$(mysqlpass)';" /etc/phpmyadmin/config-db.php
@@ -346,7 +346,7 @@ function _locenhance() {
 # Round 2 - Security
 # create self-signed certificate function (14)
 function _askcert() {
-  echo -n "${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
+  echo -n "${bold}${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) cert=yes ;;
