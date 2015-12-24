@@ -186,9 +186,10 @@ function _varnish() {
   apt-get -y install varnish >>"${OUTTO}" 2>&1;
   sed -i "s/127.0.0.1/$server_ip/" /etc/varnish/default.vcl
   sed -i "s/6081/80/" /etc/default/varnish
-  cp /lib/systemd/system/varnishlog.service /etc/systemd/system/varnishlog.service
   if [[ ${rel} =~ ("15.04"|"15.10") ]]; then
-    cp /lib/systemd/system/varnish.service /etc/systemd/system/varnish.service
+    cp /lib/systemd/system/varnishlog.service /etc/systemd/system/
+    cp /lib/systemd/system/varnish.service /etc/systemd/system/
+    sed -i "s/6081/80/" /etc/systemd/system/varnish.service
     sed -i "s/6081/80/" /lib/systemd/system/varnish.service
     systemctl daemon-reload
   fi
