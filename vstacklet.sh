@@ -28,6 +28,8 @@ curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/vs-backup
 chmod +x vs-backup
 mv vs-backup /usr/local/bin
 
+function _string() { perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15 ; }
+
 function _askubuntu() {
   echo -n "${bold}${yellow}Do you want to install VStacklet for Ubuntu 15.x ?${normal} (${bold}${green}Y${normal}/n): "
   read responce
