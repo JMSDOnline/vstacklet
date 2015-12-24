@@ -257,11 +257,11 @@ function _asksendmail() {
 
 function _sendmail() {
   if [[ ${sendmail} == "yes" ]]; then
-    echo -n "${green}Installing Sendmail ... ${normal}"
+    echo "${green}Installing Sendmail ... ${normal}"
     apt-get -y install sendmail >>"${OUTTO}" 2>&1;
     export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
     # add administrator email
-    echo -n "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
+    echo "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
     read -p "${bold}Email: ${normal}" admin_email
     echo
     echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
