@@ -106,7 +106,7 @@ function _softcommon() {
 
 # package and repo addition (b) _install softwares and packages_
 function _depends() {
-  apt-get -y install nano unzip dos2unix htop iotop libwww-perl >>"${OUTTO}" 2>&1;
+  apt-get -y install nano unzip dos2unix htop iotop bc libwww-perl >>"${OUTTO}" 2>&1;
   echo "${OK}"
   echo
 }
@@ -186,9 +186,12 @@ function _varnish() {
   apt-get -y install varnish >>"${OUTTO}" 2>&1;
   sed -i "s/127.0.0.1/$server_ip/" /etc/varnish/default.vcl
   sed -i "s/6081/80/" /etc/default/varnish
-  cp /lib/systemd/system/varnishlog.service /etc/systemd/system/varnishlog.service
+  # then there is varnish with systemd in ubuntu 15.x
+  # let us shake that headache now
   if [[ ${rel} =~ ("15.04"|"15.10") ]]; then
-    cp /lib/systemd/system/varnish.service /etc/systemd/system/varnish.service
+    cp /lib/systemd/system/varnishlog.service /etc/systemd/system/
+    cp /lib/systemd/system/varnish.service /etc/systemd/system/
+    sed -i "s/6081/80/" /etc/systemd/system/varnish.service
     sed -i "s/6081/80/" /lib/systemd/system/varnish.service
     systemctl daemon-reload
   fi
