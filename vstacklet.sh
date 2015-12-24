@@ -7,6 +7,10 @@
 # URL:      https://jmsolodesigns.com
 #
 
+#Script Console Colors
+black=$(tput setaf 0);red=$(tput setaf 1);green=$(tput setaf 2);yellow=$(tput setaf 3);blue=$(tput setaf 4);magenta=$(tput setaf 5);cyan=$(tput setaf 6);white=$(tput setaf 7);on_red=$(tput setab 1);on_green=$(tput setab 2);on_yellow=$(tput setab 3);on_blue=$(tput setab 4);on_magenta=$(tput setab 5);on_cyan=$(tput setab 6);on_white=$(tput setab 7);bold=$(tput bold);dim=$(tput dim);underline=$(tput smul);reset_underline=$(tput rmul);standout=$(tput smso);reset_standout=$(tput rmso);normal=$(tput sgr0);alert=${white}${on_red};title=${standout};sub_title=${bold}${yellow};repo_title=${black}${on_green};
+
+
 # Create vstacklet & backup directory strucutre
 mkdir -p vstacklet /backup/{directories,databases}
 cd vstacklet
@@ -40,7 +44,7 @@ function _askubuntu() {
 }
 
 function _ubuntu15x() {
-  if [[ ${ioncube} == "yes" ]]; then
+  if [[ ${ubuntu} == "yes" ]]; then
     DIR="vstacklet"
     if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
       . "$DIR/vstacklet-ubuntu-stack.sh"
@@ -48,11 +52,11 @@ function _ubuntu15x() {
 }
 
 function _ubuntutrusty() {
-  if [[ ${ioncube} == "yes" ]]; then
+  if [[ ${ubuntu} == "yes" ]]; then
     DIR="vstacklet"
     if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
       . "$DIR/vstacklet-trusty-stack.sh"
   fi
 }
 
-_askubuntu;if [[ ${ubuntu} == "yes" ]]; then echo -n "${bold}Installing VStacklet Kit for 15.04 and 15.10 support${normal} ... ";_ubuntu15x ; elif [[ ${ubuntu} == "no" ]]; then  echo -n "${bold}Installing VStacklet Kit for 14.04 support${normal} ... ";_ubuntutrusty;  fi
+_askubuntu;if [[ ${ubuntu} == "yes" ]]; then echo -n "${bold}Installing VStacklet Kit for 15.04 and 15.10 support${normal} ... ";_ubuntu15x; elif [[ ${ubuntu} == "no" ]]; then  echo -n "${bold}Installing VStacklet Kit for 14.04 support${normal} ... ";_ubuntutrusty;  fi
