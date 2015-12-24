@@ -282,23 +282,25 @@ function _phpmyadmin() {
     # get phpmyadmin directory
     DIR="/etc/phpmyadmin";
     # show phpmyadmin creds
-    echo 'phpMyAdmin Login:' > ~/.my.cnf
-    sed -n 13p ${DIR}/config-db.php >> .my.cnf;
-    sed -n 14p ${DIR}/config-db.php >> .my.cnf;
-    echo '' >> ~/.my.cnf
-    echo '' >> ~/.my.cnf
+    echo '[phpMyAdmin Login]' > ~/.v.cnf
+    sed -n 13p ${DIR}/config-db.php >> .v.cnf;
+    sed -n 14p ${DIR}/config-db.php >> .v.cnf;
+    sed -i 's/dbuser/pmadbuser/' ~/.v.cnf
+    sed -i 's/dbpass/pmadbpass/' ~/.v.cnf
+    echo '' >> ~/.v.cnf
+    echo '' >> ~/.v.cnf
     # show mysql creds
-    echo 'MySQL DB Login:' >> ~/.my.cnf
-    echo '$dbuser=root' >> ~/.my.cnf
-    echo '$dbpass=${mysqlpass}' >> ~/.my.cnf
-    echo '' >> ~/.my.cnf
+    echo '[MySQL Login]' >> ~/.v.cnf
+    echo "$sqldbuser='root'" >> ~/.v.cnf
+    echo "$sqldbpass='${mysqlpass}'" >> ~/.v.cnf
+    echo '' >> ~/.v.cnf
     # closing statement
     echo
     echo "${bold}Below are your phpMyAdmin and MySQL details.${normal}"
-    echo "${bold}Details are logged in the${normal} ${bold}${green}/root/.my.cnf${normal} ${bold}file.${normal}"
+    echo "${bold}Details are logged in the${normal} ${bold}${green}/root/.v.cnf${normal} ${bold}file.${normal}"
     echo
-    # show contents of .my.cnf file
-    tail ~/.my.cnf
+    # show contents of .v.cnf file
+    tail ~/.v.cnf
     echo
   fi
 }
