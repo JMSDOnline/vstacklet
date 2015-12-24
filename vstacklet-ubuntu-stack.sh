@@ -186,6 +186,8 @@ function _varnish() {
   apt-get -y install varnish >>"${OUTTO}" 2>&1;
   sed -i "s/127.0.0.1/$server_ip/" /etc/varnish/default.vcl
   sed -i "s/6081/80/" /etc/default/varnish
+  # then there is varnish with systemd in ubuntu 15.x
+  # let us shake that headache now
   if [[ ${rel} =~ ("15.04"|"15.10") ]]; then
     cp /lib/systemd/system/varnishlog.service /etc/systemd/system/
     cp /lib/systemd/system/varnish.service /etc/systemd/system/
