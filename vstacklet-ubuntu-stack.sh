@@ -272,13 +272,15 @@ function _phpmyadmin() {
     mysqlpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
     mysqladmin -u root -h localhost password "${mysqlpass}"
     echo -n "${bold}Installing MySQL with user:${normal} ${bold}${green}root${normal}${bold} / passwd:${normal} ${bold}${green}${mysqlpass}${normal} ... "
-    export DEBIAN_FRONTEND=noninteractive
+    apt-get -q -y install debconf-utils >>"${OUTTO}" 2>&1;
+    # export DEBIAN_FRONTEND=noninteractive
     debconf-set-selections <<< "phpmyadmin phpmyadmin/internal/skip-preseed boolean true"
     debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect"
     debconf-set-selections <<< "phpmyadmin phpmyadmin/dbconfig-install boolean true"
+    debconf-set-selections <<< "phpmyadmin phpmyadmin/db/app-user string phpmyadmin"
     debconf-set-selections <<< "phpmyadmin phpmyadmin/setup-password ${pmapass}"
-    debconf-set-selections <<< "phpmyadmin phpmyadmin/password-confirm ${pmapass}"
-    apt-get -q -y install debconf-utils phpmyadmin >>"${OUTTO}" 2>&1;
+    debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm ${pmapass}"
+    apt-get -q -y install phpmyadmin >>"${OUTTO}" 2>&1;
     # create a sym-link to live directory.
     ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
     # add phpmyadmin directive to nginx site configuration at /etc/nginx/conf.d/$sitename.conf.
@@ -288,29 +290,29 @@ function _phpmyadmin() {
     # get phpmyadmin directory
     DIR="/etc/phpmyadmin";
     # show phpmyadmin creds
-    echo '[phpMyAdmin Login]' > ~/v-db.conf;
-    echo " - pmadbuser='phpmyadmin'" >> ~/v-db.conf;
-    echo " - pmadbpass='${pmapass}'" >> ~/v-db.conf;
-    #sed -n 13p ${DIR}/config-db.php >> ~/v-db.conf;
-    #sed -n 14p ${DIR}/config-db.php >> ~/v-db.conf;
-    #sed -i 's/dbuser/pmadbuser/' ~/v-db.conf;
-    #sed -i 's/dbpass/pmadbpass/' ~/v-db.conf;
-    #sed -i 's/$/ - /' ~/v-db.conf;
-    echo '' >> ~/v-db.conf;
-    echo '' >> ~/v-db.conf;
+    echo '[phpMyAdmin Login]' > ~/.my.cnf;
+    echo " - pmadbuser='phpmyadmin'" >> ~/.my.cnf;
+    echo " - pmadbpass='${pmapass}'" >> ~/.my.cnf;
+    #sed -n 13p ${DIR}/config-db.php >> ~/.my.cnf;
+    #sed -n 14p ${DIR}/config-db.php >> ~/.my.cnf;
+    #sed -i 's/dbuser/pmadbuser/' ~/.my.cnf;
+    #sed -i 's/dbpass/pmadbpass/' ~/.my.cnf;
+    #sed -i 's/$/ - /' ~/.my.cnf;
+    echo '' >> ~/.my.cnf;
+    echo '' >> ~/.my.cnf;
     # show mysql creds
-    echo '[MySQL Login]' >> ~/v-db.conf;
-    echo " - sqldbuser='root'" >> ~/v-db.conf;
-    echo " - sqldbpass='${mysqlpass}'" >> ~/v-db.conf;
-    echo '' >> ~/v-db.conf;
+    echo '[MySQL Login]' >> ~/.my.cnf;
+    echo " - sqldbuser='root'" >> ~/.my.cnf;
+    echo " - sqldbpass='${mysqlpass}'" >> ~/.my.cnf;
+    echo '' >> ~/.my.cnf;
     # closing statement
     echo
     echo "${bold}Below are your phpMyAdmin and MySQL details.${normal}"
-    echo "${bold}Details are logged in the${normal} ${bold}${green}/root/v-db.conf${normal} ${bold}file.${normal}"
-    echo "Best practice is to copy this file locally then rm v-db.conf"
+    echo "${bold}Details are logged in the${normal} ${bold}${green}/root/.my.cnf${normal} ${bold}file.${normal}"
+    echo "Best practice is to copy this file locally then rm .my.cnf"
     echo
-    # show contents of v-db.conf file
-    tail ~/v-db.conf
+    # show contents of .my.cnf file
+    tail ~/.my.cnf
     echo
   fi
 }
