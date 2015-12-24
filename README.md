@@ -7,11 +7,11 @@ VStacklet - A Buff LEMP Stack Kit
 
 #### Script status
 
-  ![script version 1.0](http://b.repl.ca/v1/script_version-1.0-446CB3.png)  ![script build passed](http://b.repl.ca/v1/script_build-passed-1E824C.png) 
+  ![script version 2.0](http://b.repl.ca/v1/script_version-2.0-446CB3.png)  ![script build passed](http://b.repl.ca/v1/script_build-passed-1E824C.png) 
 
 --------
 
-Scripts to quickly install a [LEMP Stack](https://lemp.io) and perform basic configuration of new Ubuntu 14.04, and 15.04 [untested] servers.
+Scripts to quickly install a [LEMP Stack](https://lemp.io) and perform basic configuration of new Ubuntu 14.04, 15.04 and 15.10 servers.
 
 Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), and more to be added soon. (see [To-Do List](#the-to-do-list))
 
@@ -103,6 +103,7 @@ chmod +x vstacklet-backup-standalone.sh
 - [ ] CSF (w/ option prompt)
 - [x] VS-Backup standalone kit (included in FULL Kit also)
 - [ ] VStacklet-lite 
+- [x] Full support for Ubuntu 14.04, 15.04 and 15.10 
 
 
 ### Additional Notes and honorable mentions

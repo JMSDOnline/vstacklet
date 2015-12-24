@@ -10,26 +10,7 @@ server_ip=$(ifconfig | sed -n 's/.*inet addr:\([0-9.]\+\)\s.*/\1/p' | grep -v 12
 sitename=$(hostname -s);
 
 #Script Console Colors
-black=$(tput setaf 0);
-red=$(tput setaf 1);
-green=$(tput setaf 2);
-yellow=$(tput setaf 3);
-blue=$(tput setaf 4);
-magenta=$(tput setaf 5);
-cyan=$(tput setaf 6);
-white=$(tput setaf 7);
-on_red=$(tput setab 1);
-on_green=$(tput setab 2);
-
-bold=$(tput bold);
-standout=$(tput smso);
-
-normal=$(tput sgr0);
-
-alert=${white}${on_red};
-title=${standout};
-sub_title=${bold}${yellow};
-repo_title=${black}${on_green};
+black=$(tput setaf 0);red=$(tput setaf 1);green=$(tput setaf 2);yellow=$(tput setaf 3);blue=$(tput setaf 4);magenta=$(tput setaf 5);cyan=$(tput setaf 6);white=$(tput setaf 7);on_red=$(tput setab 1);on_green=$(tput setab 2);on_yellow=$(tput setab 3);on_blue=$(tput setab 4);on_magenta=$(tput setab 5);on_cyan=$(tput setab 6);on_white=$(tput setab 7);bold=$(tput bold);dim=$(tput dim);underline=$(tput smul);reset_underline=$(tput rmul);standout=$(tput smso);reset_standout=$(tput rmso);normal=$(tput sgr0);alert=${white}${on_red};title=${standout};sub_title=${bold}${yellow};repo_title=${black}${on_green};
 
 # Color Prompt
 sed -i.bak -e 's/^#force_color/force_color/' \
@@ -43,8 +24,8 @@ function _string() { perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15
 function _intro() {
   echo
   echo
-  echo "  [${repo_title}vstacklet${normal}] ${standout} Varnish LEMP Stack Installation ${reset_standout}  "
-  echo "${alert}      Configured and tested for Ubuntu 14.04.      ${normal}"
+  echo "  [${repo_title}vstacklet${normal}] ${title} Varnish LEMP Stack Installation ${normal}  "
+  echo "${alert} Configured and tested for Ubuntu 14.04, 15.04 & 15.10 ${normal}"
   echo
   echo "${bold}Installs and configures LEMP stack with Varnish support for PHP Applications.${normal}"
   echo
@@ -276,11 +257,11 @@ function _asksendmail() {
 
 function _sendmail() {
   if [[ ${sendmail} == "yes" ]]; then
-    echo -n "${green}Installing Sendmail ... ${normal}"
+    echo "${green}Installing Sendmail ... ${normal}"
     apt-get -y install sendmail >>"${OUTTO}" 2>&1;
     export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
     # add administrator email
-    echo -n "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
+    echo "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
     read -p "${bold}Email: ${normal}" admin_email
     echo
     echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
