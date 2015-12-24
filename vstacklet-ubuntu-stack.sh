@@ -6,6 +6,7 @@
 # Author:   Jason Matthews
 # URL:      https://jmsolodesigns.com
 #
+# find server IP and server hostname for nginx configuration
 server_ip=$(ifconfig | sed -n 's/.*inet addr:\([0-9.]\+\)\s.*/\1/p' | grep -v 127 | head -n 1);
 sitename=$(hostname -s);
 
@@ -245,7 +246,35 @@ function _mariadb() {
   echo
 }
 
-# install sendmail function (11)
+# install phpmyadmin function (11)
+function _askphpmyadmin() {
+  echo -n "${bold}${yellow}Do you want to install phpMyAdmin?${normal} (${bold}${green}Y${normal}/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) phpmyadmin=yes ;;
+    [nN] | [nN][Oo] ) phpmyadmin=no ;;
+  esac
+}
+
+function _phpmyadmin() {
+  if [[ ${phpmyadmin} == "yes" ]]; then
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get -y install phpmyadmin
+
+    # generate random passwords for the MySql root user and the .htaccess file
+    phpmyadminpass=$('dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev');
+    mysqlpass=$('dd if=/dev/urandom bs=1 count=12 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev');
+    mysqladmin -u root -h localhost password "$MYSQLPASS"
+    echo "[client]\npassword="$mysqlpass"\n" > /root/.my.cnf
+    # the .htaccess username defaults to phpmyadmin.
+    echo $phpmyadminpass | htpasswd -c -i /etc/phpmyadmin/.htpasswd phpmyadmin
+    echo "phpMyAdmin Password -    "$phpmyadminpass"" > /root/phpmyadmin
+    echo "MySql Password      -    "$mysqlpass"" >> /root/phpmyadmin
+    sed -e "s/$dbpass='';/$dbpass='$(mysqlpass)';" /etc/phpmyadmin/config-db.php
+  fi
+}
+
+# install sendmail function (12)
 function _asksendmail() {
   echo -n "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -298,7 +327,7 @@ function _sendmail() {
 #################################################################
 
 # Round 1 - Location
-# enhance configuration function (12)
+# enhance configuration function (13)
 function _locenhance() {
   locconf1="include vstacklet\/location\/cache-busting.conf;"
   sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
@@ -315,7 +344,7 @@ function _locenhance() {
 }
 
 # Round 2 - Security
-# create self-signed certificate function (13)
+# create self-signed certificate function (14)
 function _askcert() {
   echo -n "${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -349,7 +378,7 @@ function _nocert() {
   fi
 }
 
-# optimize security configuration function (12)
+# optimize security configuration function (15)
 function _security() {
   secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
   sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
@@ -361,7 +390,7 @@ function _security() {
   echo
 }
 
-# finalize and restart services function (13)
+# finalize and restart services function (16)
 function _services() {
   service nginx restart >>"${OUTTO}" 2>&1;
   service varnish restart >>"${OUTTO}" 2>&1;
@@ -371,7 +400,7 @@ function _services() {
   echo
 }
 
-# function to show finished data (14)
+# function to show finished data (17)
 function _finished() {
 echo
 echo
@@ -428,6 +457,7 @@ echo -n "${bold}Installing and Adjusting PHP-FPM w/ OPCode Cache${normal} ... ";
 _askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; fi
 echo -n "${bold}Adjusting Permissions${normal} ... ";_perms
 echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
+_askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; fi
 _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; fi
 echo "${bold}Addressing Location Edits: cache busting, cross domain font support,${normal}";
 echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance
