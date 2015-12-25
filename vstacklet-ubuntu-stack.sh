@@ -421,15 +421,15 @@ function _cloudflare() {
     2405:b500::/32
     2606:4700::/32
     2803:f800::/32" >> /etc/csf/csf.allow
-    echo "${OK}"
+    echo -n "${OK}"
     echo
   fi
 }
 
 function _nocloudflare() {
   if [[ ${cloudflare} == "no" ]]; then
-    echo "${cyan}Skipping CloudFlare IP whitelisting...${normal}"
-    echo
+    #echo "${cyan}Skipping CloudFlare IP whitelisting...${normal}"
+    #echo
   fi
 }
 
@@ -628,11 +628,12 @@ echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
 _askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpmyadmin} == "no" ]]; then _nophpmyadmin;  fi
 _askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
 if [[ ${csf} == "yes" ]]; then 
-_askcloudflare;if [[ ${cloudflare} == "yes" ]]; then _cloudflare; elif [[ ${cloudflare} == "no" ]]; then _nocloudflare;  fi
-_sendmail
+  _askcloudflare;if [[ ${cloudflare} == "yes" ]]; then _cloudflare; elif [[ ${cloudflare} == "no" ]]; then _nocloudflare;  fi
+  _sendmail
 fi
 if [[ ${csf} == "no" ]]; then 
-_asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
+  _nocloudflare
+  _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
 fi
 echo "${bold}Addressing Location Edits: cache busting, cross domain font support,${normal}";
 echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance
