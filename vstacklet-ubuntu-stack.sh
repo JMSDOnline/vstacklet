@@ -335,7 +335,7 @@ function _askcsf() {
 
 function _csf() {
   if [[ ${csf} == "yes" ]]; then
-    echo "${green}Installing and Adjusting CSF ... ${normal}"
+    echo -n "${green}Installing and Adjusting CSF ... ${normal}"
     wget http://www.configserver.com/free/csf.tgz >/dev/null 2>&1;
     tar -xzf csf.tgz >/dev/null 2>&1;
     ufw disable >>"${OUTTO}" 2>&1;
@@ -378,7 +378,7 @@ function _csf() {
     echo
 
 # install sendmail  required by csf -yes- function (12-r)
-    echo "${green}Installing Sendmail ... ${normal}"
+    echo -n "${green}Installing Sendmail ... ${normal}"
     apt-get -y install sendmail >>"${OUTTO}" 2>&1;
     export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
     # add administrator email
@@ -499,7 +499,6 @@ function _sendmail() {
     echo
   fi
 }
-fi
 
 function _nosendmail() {
   if [[ ${sendmail} == "no" ]]; then
@@ -507,6 +506,7 @@ function _nosendmail() {
     echo 
   fi
 }
+fi
 
 #################################################################
 # The following security & enhancements cover basic security
