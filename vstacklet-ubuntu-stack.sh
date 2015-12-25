@@ -335,7 +335,7 @@ function _askcsf() {
 
 function _csf() {
   if [[ ${csf} == "yes" ]]; then
-    echo -n "${green}Installing and Adjusting CSF ... ${normal}"
+    echo -n "${green}Installing and Adjusting CSF${normal} ... "
     wget http://www.configserver.com/free/csf.tgz >/dev/null 2>&1;
     tar -xzf csf.tgz >/dev/null 2>&1;
     ufw disable >>"${OUTTO}" 2>&1;
@@ -374,31 +374,31 @@ function _csf() {
                -e 's/SMTP_ALLOWUSER = "cpanel"/SMTP_ALLOWUSER = "root"/' \
                -e 's/PT_USERMEM = "200"/PT_USERMEM = "500"/' \
                -e 's/PT_USERTIME = "1800"/PT_USERTIME = "3600"/' \
-               -e 's/LF_ALERT_TO = ""/LF_ALERT_TO = ""${admin_email}""/' /etc/csf/csf.conf;
+               -e 's/LF_ALERT_TO = ""/LF_ALERT_TO = "${admin_email}"/' /etc/csf/csf.conf;
     echo "${OK}"
     echo
-
-    echo -n "${green}Installing Sendmail ... ${normal}"
+    # install sendmail as it's binary is required by CSF
+    echo "${green}Installing Sendmail${normal} ... "
     apt-get -y install sendmail >>"${OUTTO}" 2>&1;
     export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
     # add administrator email
-    echo "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
+    echo "${magenta}${bold}Add an Administrator Email Below for Aliases Inclusion${normal}"
     read -p "${bold}Email: ${normal}" admin_email
     echo
     echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
     echo -n "${green}finalizing sendmail installation${normal} ... "
     # install aliases
     echo -e "mailer-daemon: postmaster
-    postmaster: root
-    nobody: root
-    hostmaster: root
-    usenet: root
-    news: root
-    webmaster: root
-    www: root
-    ftp: root
-    abuse: root
-    root: $admin_email" > /etc/aliases
+postmaster: root
+nobody: root
+hostmaster: root
+usenet: root
+news: root
+webmaster: root
+www: root
+ftp: root
+abuse: root
+root: $admin_email" > /etc/aliases
     newaliases >>"${OUTTO}" 2>&1;
     echo "${OK}"
     echo
@@ -407,7 +407,7 @@ function _csf() {
 
 function _nocsf() {
   if [[ ${csf} == "no" ]]; then
-    echo "${cyan}Skipping SSL Certificate Creation ... ${normal}"
+    echo "${cyan}Skipping Config Server Firewall Installation${normal} ... "
     echo 
   fi
 }
@@ -424,29 +424,29 @@ function _askcloudflare() {
 
 function _cloudflare() {
   if [[ ${cloudflare} == "yes" ]]; then
-    echo -n "${green}Whitelisting Cloudflare IPs-v4 and -v6 ... ${normal}"
+    echo -n "${green}Whitelisting Cloudflare IPs-v4 and -v6${normal} ... "
     echo -e "# CLOUDFLARE
-    # ips-v4
-    103.21.244.0/22
-    103.22.200.0/22
-    103.31.4.0/22
-    104.16.0.0/12
-    108.162.192.0/18
-    141.101.64.0/18
-    162.158.0.0/15
-    172.64.0.0/13
-    173.245.48.0/20
-    188.114.96.0/20
-    190.93.240.0/20
-    197.234.240.0/22
-    198.41.128.0/17
-    199.27.128.0/21
-    # ips-v6
-    2400:cb00::/32
-    2405:8100::/32
-    2405:b500::/32
-    2606:4700::/32
-    2803:f800::/32" >> /etc/csf/csf.allow
+# ips-v4
+103.21.244.0/22
+103.22.200.0/22
+103.31.4.0/22
+104.16.0.0/12
+108.162.192.0/18
+141.101.64.0/18
+162.158.0.0/15
+172.64.0.0/13
+173.245.48.0/20
+188.114.96.0/20
+190.93.240.0/20
+197.234.240.0/22
+198.41.128.0/17
+199.27.128.0/21
+# ips-v6
+2400:cb00::/32
+2405:8100::/32
+2405:b500::/32
+2606:4700::/32
+2803:f800::/32" >> /etc/csf/csf.allow
     echo "${OK}"
     echo
   fi
@@ -475,16 +475,16 @@ function _sendmail() {
     echo -n "${green}finalizing sendmail installation${normal} ... "
     # install aliases
     echo -e "mailer-daemon: postmaster
-    postmaster: root
-    nobody: root
-    hostmaster: root
-    usenet: root
-    news: root
-    webmaster: root
-    www: root
-    ftp: root
-    abuse: root
-    root: $admin_email" > /etc/aliases
+postmaster: root
+nobody: root
+hostmaster: root
+usenet: root
+news: root
+webmaster: root
+www: root
+ftp: root
+abuse: root
+root: $admin_email" > /etc/aliases
     newaliases >>"${OUTTO}" 2>&1;
     echo "${OK}"
     echo

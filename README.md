@@ -7,13 +7,13 @@ VStacklet - A Buff LEMP Stack Kit
 
 #### Script status
 
-  ![script version 2.5](http://b.repl.ca/v1/script_version-2.5-446CB3.png)  ![script build passed](http://b.repl.ca/v1/script_build-passed-1E824C.png) 
+  ![script version 2.8](http://b.repl.ca/v1/script_version-2.8-446CB3.png)  ![script build passed](http://b.repl.ca/v1/script_build-passed-1E824C.png) 
 
 --------
 
 Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04 and 15.10 servers.
 
-Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), and more to be added soon. (see [To-Do List](#the-to-do-list))
+Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
 
 Deploys a proper directory strucutre, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
@@ -50,8 +50,9 @@ __VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for W
   * Installs and Enables IonCube Loader
   * Installs and Auto-Configures phpMyAdmin - MySQL & phpMyAdmin credentials are stored in /root/.my.cnf
   * MariaDB 10.0 can easily switched to 5.5 or substituted for PostgreSQL.
+  * Installs and Adjusts CSF (Config Server Firewall) - prepares ports used for VStacklet as well as informing your entered email for security alerts.
   * Installs and Enables (PHP) Sendmail
-  * Supports IPv6 by default .
+  * Supports IPv6 by default.
   * Optional self-signed SSL cert configuration.
   * Easy to configure & run backup executable __vs-backup__ for data-protection.
 
@@ -112,7 +113,7 @@ chmod +x vstacklet-backup-standalone.sh
 - [x] Improve script structure
 - [ ] FTP Server (w/ option prompt)
 - [x] phpMyAdmin (w/ option prompt)
-- [ ] CSF (w/ option prompt)
+- [x] CSF (w/ option prompt)
 - [x] VS-Backup standalone kit (included in FULL Kit also)
 - [ ] VStacklet-lite 
 - [x] Full support for Ubuntu 14.04, 15.04 and 15.10 
