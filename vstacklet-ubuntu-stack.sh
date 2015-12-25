@@ -376,33 +376,6 @@ function _csf() {
                -e 's/LF_ALERT_TO = ""/LF_ALERT_TO = ""${admin_email}""/' /etc/csf/csf.conf;
     echo "${OK}"
     echo
-
-# install sendmail  required by csf -yes- function (12-r)
-    echo -n "${green}Installing Sendmail ... ${normal}"
-    apt-get -y install sendmail >>"${OUTTO}" 2>&1;
-    export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
-    # add administrator email
-    echo "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
-    read -p "${bold}Email: ${normal}" admin_email
-    echo
-    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
-    echo -n "${green}finalizing sendmail installation${normal} ... "
-    # install aliases
-    echo -e "mailer-daemon: postmaster
-    postmaster: root
-    nobody: root
-    hostmaster: root
-    usenet: root
-    news: root
-    webmaster: root
-    www: root
-    ftp: root
-    abuse: root
-    root: $admin_email" > /etc/aliases
-    newaliases >>"${OUTTO}" 2>&1;
-    echo "${OK}"
-    echo
-  fi
 }
 
 function _nocsf() {
@@ -412,7 +385,6 @@ function _nocsf() {
   fi
 }
 
-if [[ ${csf} == "yes" ]]; then
 # if you're using cloudlfare as a protection and/or cdn - this next bit is important
 function _askcloudflare() {
   echo -n "${bold}${yellow}Would you like to whitelist CloudFlare IPs?${normal} (${bold}${green}Y${normal}/n): "
@@ -458,9 +430,7 @@ function _nocloudflare() {
     echo
   fi
 }
-fi
 
-if [[ ${csf} == "no" ]]; then
 # install sendmail function (13)
 function _asksendmail() {
   echo -n "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
@@ -506,7 +476,6 @@ function _nosendmail() {
     echo 
   fi
 }
-fi
 
 #################################################################
 # The following security & enhancements cover basic security
