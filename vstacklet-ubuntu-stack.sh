@@ -376,6 +376,7 @@ function _csf() {
                -e 's/LF_ALERT_TO = ""/LF_ALERT_TO = ""${admin_email}""/' /etc/csf/csf.conf;
     echo "${OK}"
     echo
+  fi
 }
 
 function _nocsf() {
