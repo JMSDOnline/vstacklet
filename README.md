@@ -7,7 +7,7 @@ VStacklet - A Buff LEMP Stack Kit
 
 #### Script status
 
-  ![script version 2.0](http://b.repl.ca/v1/script_version-2.0-446CB3.png)  ![script build passed](http://b.repl.ca/v1/script_build-passed-1E824C.png) 
+  ![script version 2.5](http://b.repl.ca/v1/script_version-2.0-446CB3.png)  ![script build passed](http://b.repl.ca/v1/script_build-passed-1E824C.png) 
 
 --------
 
@@ -17,13 +17,16 @@ Components include a recent mainline version of Nginx (1.9.9) using configuratio
 
 Deploys a proper directory strucutre, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
+#### HEADS UP!
+Choose the option to install using ubuntu 15.x when the vstacklet.sh script asks. At the present moment it has the option for phpmyadmin and it a bit more refined. This will be changed after the Holidays and both versions will be inline. 15.x WILL work on ubuntu 14.04 (at least it should)
+
 Script Features
 --------
   * Quiet installer - no more long scrolling text vomit, just see what's important; when it's presented.
   * Script writes output to /root/vstacklet.log for additional observations.
   * Color Coding for emphasis on install processes.
   * Defaults are set to (Y) - just hit enter if you accept.
-  * Varnish Cache on port 80 with Nginx SSL terminiation.
+  * Varnish Cache on port 80 with Nginx port 8080 SSL terminiation on 443.
   * No Apache - Full throttle!
   * Fast and Lightweight install.
   * Full Kit functionality - backup scripts included.
@@ -31,7 +34,7 @@ Script Features
   * HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="http://h2.nix-admin.com/" target="_blank">HTTP/2 Checker</a>
   * Everything you need to get that Nginx + Varnish server up and running!
 
-Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 09:34. This time assumes you are sitting attentively with the script running. There are a limited number of interactions to be made with the script, however, I feel it is important to have some sort of interaction... at the very least so you are familiar with what is being installed etc.
+Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 10:12 installing everything. No Sendmail or Cert script installs at 04:22. This time assumes you are sitting attentively with the script running. There are a limited number of interactions to be made with the script and most of the softwares installed I have automated and logged, however, I feel it is important to have some sort of interaction... at the very least so you are familiar with what is being installed along with the options to tell it to go to hell.
 
 ![preview 1](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-script-preview1.png "vstacklet preview 1")
 ![preview 2](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-script-preview2.png "vstacklet preview 2")
@@ -46,8 +49,9 @@ __VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for W
   * Installs PHP-FPM for PHP5.
   * Enables OPCode Cache and fine-tuning
   * Installs and Enables IonCube Loader
-  * Installs and Enables (PHP) Sendmail
+  * Installs and Auto-Configures phpMyAdmin - MySQL & phpMyAdmin credentials are stored in /root/.my.cnf
   * MariaDB 10.0 can easily switched to 5.5 or substituted for PostgreSQL.
+  * Installs and Enables (PHP) Sendmail
   * Supports IPv6 by default .
   * Optional self-signed SSL cert configuration.
   * Easy to configure & run backup executable __vs-backup__ for data-protection.
@@ -82,6 +86,13 @@ apt-get autoremove
 
 ### VStacklet FULL Kit - Installs and configures the VStacklet LEMP kit stack:
 ( _includes backup scripts_ )
+
+**NOTE:** Want to go 15.x? You may need to run first the following  -
+
+```
+apt-get install -y curl
+```
+... then run our main installer ...
 ```
 curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet.sh
 chmod +x vstacklet.sh
@@ -101,7 +112,7 @@ chmod +x vstacklet-backup-standalone.sh
 - [x] IonCube Loader (w/ option prompt)
 - [x] Improve script structure
 - [ ] FTP Server (w/ option prompt)
-- [ ] phpMyAdmin (w/ option prompt)
+- [x] phpMyAdmin (w/ option prompt)
 - [ ] CSF (w/ option prompt)
 - [x] VS-Backup standalone kit (included in FULL Kit also)
 - [ ] VStacklet-lite 
