@@ -270,16 +270,33 @@ function _phpmyadmin() {
     # generate random passwords for the MySql root user
     pmapass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
     mysqlpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
-    mysqladmin -u root -h localhost password "${mysqlpass}"
+    ## mysqladmin -u root -h localhost password "${mysqlpass}"
     echo -n "${bold}Installing MySQL with user:${normal} ${bold}${green}root${normal}${bold} / passwd:${normal} ${bold}${green}${mysqlpass}${normal} ... "
     apt-get -q -y install debconf-utils >>"${OUTTO}" 2>&1;
     export DEBIAN_FRONTEND=noninteractive
 
-    echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
-    echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
-    echo "phpmyadmin phpmyadmin/mysql/admin-pass password ${mysqlpass}" | debconf-set-selections
-    echo "phpmyadmin phpmyadmin/mysql/app-pass password ${mysqlpass}" | debconf-set-selections
-    echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
+    echo 'phpmyadmin phpmyadmin/dbconfig-install boolean false' | debconf-set-selections
+    echo 'phpmyadmin phpmyadmin/reconfigure-webserver multiselect none' | debconf-set-selections
+
+    echo 'phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}' | debconf-set-selections
+    echo 'phpmyadmin phpmyadmin/mysql/admin-pass password ${mysqlpass}' | debconf-set-selections
+    echo 'phpmyadmin phpmyadmin/password-confirm password ${pmapass}' | debconf-set-selections
+    echo 'phpmyadmin phpmyadmin/setup-password password ${pmapass}' | debconf-set-selections
+    echo 'phpmyadmin phpmyadmin/database-type select mysql' | debconf-set-selections
+    echo 'phpmyadmin phpmyadmin/mysql/app-pass password ${mysqlpass}' | debconf-set-selections
+  
+    echo 'dbconfig-common dbconfig-common/mysql/app-pass password ${mysqlpass}' | debconf-set-selections
+    echo 'dbconfig-common dbconfig-common/mysql/app-pass ${mysqlpass}' | debconf-set-selections
+    echo 'dbconfig-common dbconfig-common/password-confirm password ${pmapass}' | debconf-set-selections
+    echo 'dbconfig-common dbconfig-common/app-password-confirm password ${pmapass}' | debconf-set-selections
+    echo 'dbconfig-common dbconfig-common/app-password-confirm password ${pmapass}' | debconf-set-selections
+    echo 'dbconfig-common dbconfig-common/password-confirm password ${pmapass}' | debconf-set-selections
+
+    ## echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
+    ## echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
+    ## echo "phpmyadmin phpmyadmin/mysql/admin-pass password ${mysqlpass}" | debconf-set-selections
+    ## echo "phpmyadmin phpmyadmin/mysql/app-pass password ${mysqlpass}" | debconf-set-selections
+    ## echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
 
     #debconf-set-selections <<< "phpmyadmin phpmyadmin/debconfig-install boolean true"
     #debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none"
