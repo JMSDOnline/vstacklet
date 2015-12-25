@@ -7,7 +7,7 @@ VStacklet - A Buff LEMP Stack Kit
 
 #### Script status
 
-  ![script version 2.5](http://b.repl.ca/v1/script_version-2.0-446CB3.png)  ![script build passed](http://b.repl.ca/v1/script_build-passed-1E824C.png) 
+  ![script version 2.5](http://b.repl.ca/v1/script_version-2.5-446CB3.png)  ![script build passed](http://b.repl.ca/v1/script_build-passed-1E824C.png) 
 
 --------
 
