@@ -446,7 +446,109 @@ function _nocert() {
   fi
 }
 
-# finalize and restart services function (16)
+# install and adjust config server firewall function (16)
+function _askcsf() {
+  echo -n "${bold}${yellow}Do you want to install CSF (Config Server Firewall)?${normal} (${bold}${green}Y${normal}/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) csf=yes ;;
+    [nN] | [nN][Oo] ) csf=no ;;
+  esac
+}
+
+function _csf() {
+  if [[ ${csf} == "yes" ]]; then
+    wget http://www.configserver.com/free/csf.tgz >/dev/null 2>&1;
+    tar -xzf csf.tgz >/dev/null 2>&1;
+    ufw disable >>"${OUTTO}" 2>&1;
+    cd csf
+    sh install.sh >>"${OUTTO}" 2>&1;
+    perl /usr/local/csf/bin/csftest.pl >>"${OUTTO}" 2>&1;
+    # modify csf blocklists - essentially like CloudFlare, but on your machine
+    sed -i.bak -e "s/#SPAMDROP|86400|0|/SPAMDROP|86400|100|/" \
+               -e "s/#SPAMEDROP|86400|0|/SPAMEDROP|86400|100|/" \
+               -e "s/#DSHIELD|86400|0|/DSHIELD|86400|100|/" \
+               -e "s/#TOR|86400|0|/TOR|86400|100|/" \
+               -e "s/#ALTTOR|86400|0|/ALTTOR|86400|100|/" \
+               -e "s/#BOGON|86400|0|/BOGON|86400|100|/" \
+               -e "s/#HONEYPOT|86400|0|/HONEYPOT|86400|100|/" \
+               -e "s/#CIARMY|86400|0|/CIARMY|86400|100|/" \
+               -e "s/#BFB|86400|0|/BFB|86400|100|/" \
+               -e "s/#OPENBL|86400|0|/OPENBL|86400|100|/" \
+               -e "s/#AUTOSHUN|86400|0|/AUTOSHUN|86400|100|/" \
+               -e "s/#MAXMIND|86400|0|/MAXMIND|86400|100|/" \
+               -e "s/#BDE|3600|0|/BDE|3600|100|/" \
+               -e "s/#BDEALL|86400|0|/BDEALL|86400|100|/" /etc/csf/csf.blocklists;
+    # modify csf process ignore - ignore nginx, varnish & mysql
+    echo "[ VStacklet Additions - These are necessary to avoid noisy emails ]" >> /etc/csf/csf.pignore;
+    echo "exe:/usr/sbin/mysqld" >> /etc/csf/csf.pignore;
+    echo "exe:/usr/sbin/ngninx" >> /etc/csf/csf.pignore;
+    echo "exe:/usr/sbin/varnishd" >> /etc/csf/csf.pignore;
+    # modify csf conf - make suitable changes for non-cpanel environment
+    sed -i.bak -e 's/TESTING = "1"/TESTING = "0"/' \
+               -e 's/RESTRICT_SYSLOG = "0"/RESTRICT_SYSLOG = "3"/' \
+               -e 's/TCP_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,2077,2078,2082,2083,2086,2087,2095,2096"/TCP_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,8080"/' \
+               -e 's/TCP_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,2086,2087,2089,2703"/TCP_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,8080"/' \
+               -e 's/TCP6_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,2077,2078,2082,2083,2086,2087,2095,2096"/TCP6_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,8080"/' \
+               -e 's/TCP6_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,2086,2087,2089,2703"/TCP6_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,8080"/' \
+               -e 's/DENY_TEMP_IP_LIMIT = "100"/DENY_TEMP_IP_LIMIT = "1000"/' \
+               -e 's/SMTP_ALLOWUSER = "cpanel"/SMTP_ALLOWUSER = "root"/' \
+               -e 's/PT_USERMEM = "200"/PT_USERMEM = "500"/' \
+               -e 's/PT_USERTIME = "1800"/PT_USERTIME = "3600"/' \
+               -e 's/LF_ALERT_TO = ""/LF_ALERT_TO = ""${admin_email}""/' /etc/csf/csf.conf;
+
+    # if you're using cloudlfare as a protection and/or cdn - this next bit is important
+    function askcloudflare {
+      echo -n "${bold}${yellow}Would you like to whitelist CloudFlare IPs?${normal} (${bold}${green}Y${normal}/n): "
+      read responce
+      case $responce in
+        [yY] | [yY][Ee][Ss] | "" ) cloudflare=yes ;;
+        [nN] | [nN][Oo] ) cloudflare=no ;;
+      esac
+    }
+
+    function cloudflare {
+      if [[ ${cloudflare} == "yes" ]]; then
+        echo -e "# CLOUDFLARE
+        # ips-v4
+        103.21.244.0/22
+        103.22.200.0/22
+        103.31.4.0/22
+        104.16.0.0/12
+        108.162.192.0/18
+        141.101.64.0/18
+        162.158.0.0/15
+        172.64.0.0/13
+        173.245.48.0/20
+        188.114.96.0/20
+        190.93.240.0/20
+        197.234.240.0/22
+        198.41.128.0/17
+        199.27.128.0/21
+        # ips-v6
+        2400:cb00::/32
+        2405:8100::/32
+        2405:b500::/32
+        2606:4700::/32
+        2803:f800::/32" >> /etc/csf/csf.allow
+      elif [[ ${cloudflare} == "no" ]]; then
+        echo "${cyan}Skipping CloudFlare Whitelisting...${normal}"
+        echo
+      fi
+    }
+    echo "${OK}"
+    echo
+  fi
+}
+
+function _nocsf() {
+  if [[ ${csf} == "no" ]]; then
+    echo "${cyan}Skipping SSL Certificate Creation...${normal}"
+    echo 
+  fi
+}
+
+# finalize and restart services function (17)
 function _services() {
   service nginx restart >>"${OUTTO}" 2>&1;
   service varnish restart >>"${OUTTO}" 2>&1;
@@ -456,7 +558,7 @@ function _services() {
   echo
 }
 
-# function to show finished data (17)
+# function to show finished data (18)
 function _finished() {
 echo
 echo
@@ -520,6 +622,7 @@ echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenha
 echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}";
 echo -n "${bold}file injection, and php easter eggs${normal} ... ";_security
 _askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
+_askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
 echo -n "${bold}Completing Installation & Restarting Services${normal} ... ";_services
 
 E=$(date +%s)
