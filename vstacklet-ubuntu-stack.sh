@@ -238,14 +238,12 @@ function _ioncube() {
   fi
 }
 
-# adjust permissions function (9)
-#function _perms() {
-#  chgrp -R www-data /srv/www/*
-#  chmod -R g+rw /srv/www/*
-#  sh -c 'find /srv/www/* -type d -print0 | sudo xargs -0 chmod g+s'
-#  echo "${OK}"
-#  echo
-#}
+function _noioncube() {
+  if [[ ${ioncube} == "no" ]]; then
+    echo "${cyan}Skipping IonCube Installation...${normal}"
+    echo 
+  fi
+}
 
 # install mariadb function (10)
 function _mariadb() {
@@ -270,41 +268,17 @@ function _phpmyadmin() {
     # generate random passwords for the MySql root user
     pmapass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
     mysqlpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
-    ## mysqladmin -u root -h localhost password "${mysqlpass}"
+    mysqladmin -u root -h localhost password "${mysqlpass}"
     echo -n "${bold}Installing MySQL with user:${normal} ${bold}${green}root${normal}${bold} / passwd:${normal} ${bold}${green}${mysqlpass}${normal} ... "
-    apt-get -q -y install debconf-utils >>"${OUTTO}" 2>&1;
+    apt-get -y install debconf-utils >>"${OUTTO}" 2>&1;
     export DEBIAN_FRONTEND=noninteractive
-
+    # silently configure given options and install
     echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
     echo "phpmyadmin phpmyadmin/mysql/admin-pass password ${mysqlpass}" | debconf-set-selections
     echo "phpmyadmin phpmyadmin/mysql/app-pass password ${pmapass}" | debconf-set-selections
     echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
     echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
-    #echo 'phpmyadmin phpmyadmin/password-confirm password ${pmapass}' | debconf-set-selections
-    #echo 'phpmyadmin phpmyadmin/setup-password password ${pmapass}' | debconf-set-selections
-    #echo 'phpmyadmin phpmyadmin/database-type select mysql' | debconf-set-selections
-  
-    #echo 'dbconfig-common dbconfig-common/mysql/app-pass password ${mysqlpass}' | debconf-set-selections
-    #echo 'dbconfig-common dbconfig-common/mysql/app-pass ${mysqlpass}' | debconf-set-selections
-    #echo 'dbconfig-common dbconfig-common/password-confirm password ${pmapass}' | debconf-set-selections
-    #echo 'dbconfig-common dbconfig-common/app-password-confirm password ${pmapass}' | debconf-set-selections
-    #echo 'dbconfig-common dbconfig-common/app-password-confirm password ${pmapass}' | debconf-set-selections
-    #echo 'dbconfig-common dbconfig-common/password-confirm password ${pmapass}' | debconf-set-selections
-
-    ## echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
-    ## echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
-    ## echo "phpmyadmin phpmyadmin/mysql/admin-pass password ${mysqlpass}" | debconf-set-selections
-    ## echo "phpmyadmin phpmyadmin/mysql/app-pass password ${mysqlpass}" | debconf-set-selections
-    ## echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
-
-    #debconf-set-selections <<< "phpmyadmin phpmyadmin/debconfig-install boolean true"
-    #debconf-set-selections <<< "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none"
-    #debconf-set-selections <<< "phpmyadmin phpmyadmin/db/app-user string phpmyadmin "
-    #debconf-set-selections <<< "phpmyadmin phpmyadmin/setup-password password ${pmapass}"
-    #debconf-set-selections <<< "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}"
-    #debconf-set-selections <<< 'phpmyadmin phpmyadmin/database-type select mysql'
-
-    apt-get -q -y install phpmyadmin >>"${OUTTO}" 2>&1;
+    apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
     # create a sym-link to live directory.
     ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
     # add phpmyadmin directive to nginx site configuration at /etc/nginx/conf.d/$sitename.conf.
@@ -317,11 +291,6 @@ function _phpmyadmin() {
     echo '[phpMyAdmin Login]' > ~/.my.cnf;
     echo " - pmadbuser='phpmyadmin'" >> ~/.my.cnf;
     echo " - pmadbpass='${pmapass}'" >> ~/.my.cnf;
-    #sed -n 13p ${DIR}/config-db.php >> ~/.my.cnf;
-    #sed -n 14p ${DIR}/config-db.php >> ~/.my.cnf;
-    #sed -i 's/dbuser/pmadbuser/' ~/.my.cnf;
-    #sed -i 's/dbpass/pmadbpass/' ~/.my.cnf;
-    #sed -i 's/$/ - /' ~/.my.cnf;
     echo '' >> ~/.my.cnf;
     echo '' >> ~/.my.cnf;
     # show mysql creds
@@ -338,6 +307,13 @@ function _phpmyadmin() {
     # show contents of .my.cnf file
     tail ~/.my.cnf
     echo
+  fi
+}
+
+function _nophpmyadmin() {
+  if [[ ${phpmyadmin} == "no" ]]; then
+    echo "${cyan}Skipping phpMyAdmin Installation...${normal}"
+    echo 
   fi
 }
 
@@ -380,6 +356,13 @@ function _sendmail() {
   fi
 }
 
+function _nosendmail() {
+  if [[ ${sendmail} == "no" ]]; then
+    echo "${cyan}Skipping Sendmail Installation...${normal}"
+    echo 
+  fi
+}
+
 #################################################################
 # The following security & enhancements cover basic security
 # measures to protect against common exploits.
@@ -410,8 +393,20 @@ function _locenhance() {
   echo 
 }
 
+# optimize security configuration function (14)
+function _security() {
+  secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
+  sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
+  secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
+  sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$sitename.conf
+  secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
+  sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+  echo
+}
+
 # Round 2 - Security
-# create self-signed certificate function (14)
+# create self-signed certificate function (15)
 function _askcert() {
   echo -n "${bold}${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -443,18 +438,6 @@ function _nocert() {
     echo "${cyan}Skipping SSL Certificate Creation...${normal}"
     echo 
   fi
-}
-
-# optimize security configuration function (15)
-function _security() {
-  secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
-  sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
-  secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
-  sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$sitename.conf
-  secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
-  sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$sitename.conf
-  echo "${OK}"
-  echo
 }
 
 # finalize and restart services function (16)
@@ -522,14 +505,14 @@ echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx
 echo -n "${bold}Adjusting Permissions${normal} ... ";_perms
 echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish
 echo -n "${bold}Installing and Adjusting PHP-FPM w/ OPCode Cache${normal} ... ";_php
-_askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; fi
+_askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; elif [[ ${ioncube} == "no" ]]; then _noioncube;  fi
 echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
-_askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; fi
-_asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; fi
+_askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpmyadmin} == "no" ]]; then _nophpmyadmin;  fi
+_asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
 echo "${bold}Addressing Location Edits: cache busting, cross domain font support,${normal}";
 echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance
-_askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
 echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}"; 
+_askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
 echo -n "${bold}file injection, and php easter eggs${normal} ... ";_security
 echo -n "${bold}Completing Installation & Restarting Services${normal} ... ";_services
 
