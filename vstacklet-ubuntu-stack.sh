@@ -323,7 +323,138 @@ function _nophpmyadmin() {
   fi
 }
 
-# install sendmail function (12)
+# install and adjust config server firewall function (12)
+function _askcsf() {
+  echo -n "${bold}${yellow}Do you want to install CSF (Config Server Firewall)?${normal} (${bold}${green}Y${normal}/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) csf=yes ;;
+    [nN] | [nN][Oo] ) csf=no ;;
+  esac
+}
+
+function _csf() {
+  if [[ ${csf} == "yes" ]]; then
+    echo -n "${green}Installing and Adjusting CSF${normal} ... "
+    wget http://www.configserver.com/free/csf.tgz >/dev/null 2>&1;
+    tar -xzf csf.tgz >/dev/null 2>&1;
+    ufw disable >>"${OUTTO}" 2>&1;
+    cd csf
+    sh install.sh >>"${OUTTO}" 2>&1;
+    perl /usr/local/csf/bin/csftest.pl >>"${OUTTO}" 2>&1;
+    # modify csf blocklists - essentially like CloudFlare, but on your machine
+    sed -i.bak -e "s/#SPAMDROP|86400|0|/SPAMDROP|86400|100|/" \
+               -e "s/#SPAMEDROP|86400|0|/SPAMEDROP|86400|100|/" \
+               -e "s/#DSHIELD|86400|0|/DSHIELD|86400|100|/" \
+               -e "s/#TOR|86400|0|/TOR|86400|100|/" \
+               -e "s/#ALTTOR|86400|0|/ALTTOR|86400|100|/" \
+               -e "s/#BOGON|86400|0|/BOGON|86400|100|/" \
+               -e "s/#HONEYPOT|86400|0|/HONEYPOT|86400|100|/" \
+               -e "s/#CIARMY|86400|0|/CIARMY|86400|100|/" \
+               -e "s/#BFB|86400|0|/BFB|86400|100|/" \
+               -e "s/#OPENBL|86400|0|/OPENBL|86400|100|/" \
+               -e "s/#AUTOSHUN|86400|0|/AUTOSHUN|86400|100|/" \
+               -e "s/#MAXMIND|86400|0|/MAXMIND|86400|100|/" \
+               -e "s/#BDE|3600|0|/BDE|3600|100|/" \
+               -e "s/#BDEALL|86400|0|/BDEALL|86400|100|/" /etc/csf/csf.blocklists;
+    # modify csf process ignore - ignore nginx, varnish & mysql
+    echo >> /etc/csf/csf.pignore;
+    echo "[ VStacklet Additions - These are necessary to avoid noisy emails ]" >> /etc/csf/csf.pignore;
+    echo "exe:/usr/sbin/mysqld" >> /etc/csf/csf.pignore;
+    echo "exe:/usr/sbin/ngninx" >> /etc/csf/csf.pignore;
+    echo "exe:/usr/sbin/varnishd" >> /etc/csf/csf.pignore;
+    # modify csf conf - make suitable changes for non-cpanel environment
+    sed -i.bak -e 's/TESTING = "1"/TESTING = "0"/' \
+               -e 's/RESTRICT_SYSLOG = "0"/RESTRICT_SYSLOG = "3"/' \
+               -e 's/TCP_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,2077,2078,2082,2083,2086,2087,2095,2096"/TCP_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,8080"/' \
+               -e 's/TCP_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,2086,2087,2089,2703"/TCP_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,8080"/' \
+               -e 's/TCP6_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,2077,2078,2082,2083,2086,2087,2095,2096"/TCP6_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,8080"/' \
+               -e 's/TCP6_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,2086,2087,2089,2703"/TCP6_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,8080"/' \
+               -e 's/DENY_TEMP_IP_LIMIT = "100"/DENY_TEMP_IP_LIMIT = "1000"/' \
+               -e 's/SMTP_ALLOWUSER = "cpanel"/SMTP_ALLOWUSER = "root"/' \
+               -e 's/PT_USERMEM = "200"/PT_USERMEM = "500"/' \
+               -e 's/PT_USERTIME = "1800"/PT_USERTIME = "3600"/' /etc/csf/csf.conf;
+    echo "${OK}"
+    echo
+    # install sendmail as it's binary is required by CSF
+    echo "${green}Installing Sendmail${normal} ... "
+    apt-get -y install sendmail >>"${OUTTO}" 2>&1;
+    export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
+    # add administrator email
+    echo "${magenta}${bold}Add an Administrator Email Below for Aliases Inclusion${normal}"
+    read -p "${bold}Email: ${normal}" admin_email
+    echo
+    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
+    echo -n "${green}finalizing sendmail installation${normal} ... "
+    # install aliases
+    echo -e "mailer-daemon: postmaster
+postmaster: root
+nobody: root
+hostmaster: root
+usenet: root
+news: root
+webmaster: root
+www: root
+ftp: root
+abuse: root
+root: $admin_email" > /etc/aliases
+    newaliases >>"${OUTTO}" 2>&1;
+    sed -i "s/LF_ALERT_TO = ""/LF_ALERT_TO = "$admin_email"/" /etc/csf/csf.conf;
+    echo "${OK}"
+    echo
+  fi
+}
+
+function _nocsf() {
+  if [[ ${csf} == "no" ]]; then
+    echo "${cyan}Skipping Config Server Firewall Installation${normal} ... "
+    echo 
+  fi
+}
+
+# if you're using cloudlfare as a protection and/or cdn - this next bit is important
+function _askcloudflare() {
+  echo -n "${bold}${yellow}Would you like to whitelist CloudFlare IPs?${normal} (${bold}${green}Y${normal}/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) cloudflare=yes ;;
+    [nN] | [nN][Oo] ) cloudflare=no ;;
+  esac
+}
+
+function _cloudflare() {
+  if [[ ${cloudflare} == "yes" ]]; then
+    echo -n "${green}Whitelisting Cloudflare IPs-v4 and -v6${normal} ... "
+    echo -e "# BEGIN CLOUDFLARE WHITELIST
+# ips-v4
+103.21.244.0/22
+103.22.200.0/22
+103.31.4.0/22
+104.16.0.0/12
+108.162.192.0/18
+141.101.64.0/18
+162.158.0.0/15
+172.64.0.0/13
+173.245.48.0/20
+188.114.96.0/20
+190.93.240.0/20
+197.234.240.0/22
+198.41.128.0/17
+199.27.128.0/21
+# ips-v6
+2400:cb00::/32
+2405:8100::/32
+2405:b500::/32
+2606:4700::/32
+2803:f800::/32
+# END CLOUDFLARE WHITELIST
+" >> /etc/csf/csf.allow
+    echo "${OK}"
+    echo
+  fi
+}
+
+# install sendmail function (13)
 function _asksendmail() {
   echo -n "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -346,16 +477,16 @@ function _sendmail() {
     echo -n "${green}finalizing sendmail installation${normal} ... "
     # install aliases
     echo -e "mailer-daemon: postmaster
-    postmaster: root
-    nobody: root
-    hostmaster: root
-    usenet: root
-    news: root
-    webmaster: root
-    www: root
-    ftp: root
-    abuse: root
-    root: $admin_email" > /etc/aliases
+postmaster: root
+nobody: root
+hostmaster: root
+usenet: root
+news: root
+webmaster: root
+www: root
+ftp: root
+abuse: root
+root: $admin_email" > /etc/aliases
     newaliases >>"${OUTTO}" 2>&1;
     echo "${OK}"
     echo
@@ -383,7 +514,7 @@ function _nosendmail() {
 #################################################################
 
 # Round 1 - Location
-# enhance configuration function (13)
+# enhance configuration function (14)
 function _locenhance() {
   locconf1="include vstacklet\/location\/cache-busting.conf;"
   sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
@@ -400,7 +531,7 @@ function _locenhance() {
 }
 
 # Round 2 - Security
-# optimize security configuration function (14)
+# optimize security configuration function (15)
 function _security() {
   secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
   sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
@@ -412,7 +543,7 @@ function _security() {
   echo
 }
 
-# create self-signed certificate function (15)
+# create self-signed certificate function (16)
 function _askcert() {
   echo -n "${bold}${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -446,17 +577,19 @@ function _nocert() {
   fi
 }
 
-# finalize and restart services function (16)
+# finalize and restart services function (17)
 function _services() {
   service nginx restart >>"${OUTTO}" 2>&1;
   service varnish restart >>"${OUTTO}" 2>&1;
   service php5-fpm restart >>"${OUTTO}" 2>&1;
   service sendmail restart >>"${OUTTO}" 2>&1;
+  service lfd restart >>"${OUTTO}" 2>&1;
+  csf -r >>"${OUTTO}" 2>&1;
   echo "${OK}"
   echo
 }
 
-# function to show finished data (17)
+# function to show finished data (18)
 function _finished() {
 echo
 echo
@@ -514,7 +647,13 @@ echo -n "${bold}Installing and Adjusting PHP-FPM w/ OPCode Cache${normal} ... ";
 _askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; elif [[ ${ioncube} == "no" ]]; then _noioncube;  fi
 echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
 _askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpmyadmin} == "no" ]]; then _nophpmyadmin;  fi
-_asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
+_askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
+if [[ ${csf} == "yes" ]]; then 
+  _askcloudflare;if [[ ${cloudflare} == "yes" ]]; then _cloudflare;  fi
+fi
+if [[ ${csf} == "no" ]]; then 
+  _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
+fi
 echo "${bold}Addressing Location Edits: cache busting, cross domain font support,${normal}";
 echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance
 echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}";
