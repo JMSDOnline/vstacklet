@@ -358,6 +358,7 @@ function _csf() {
                -e "s/#BDE|3600|0|/BDE|3600|100|/" \
                -e "s/#BDEALL|86400|0|/BDEALL|86400|100|/" /etc/csf/csf.blocklists;
     # modify csf process ignore - ignore nginx, varnish & mysql
+    echo >> /etc/csf/csf.pignore;
     echo "[ VStacklet Additions - These are necessary to avoid noisy emails ]" >> /etc/csf/csf.pignore;
     echo "exe:/usr/sbin/mysqld" >> /etc/csf/csf.pignore;
     echo "exe:/usr/sbin/ngninx" >> /etc/csf/csf.pignore;
