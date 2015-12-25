@@ -377,12 +377,37 @@ function _csf() {
                -e 's/LF_ALERT_TO = ""/LF_ALERT_TO = ""${admin_email}""/' /etc/csf/csf.conf;
     echo "${OK}"
     echo
+
+    echo -n "${green}Installing Sendmail ... ${normal}"
+    apt-get -y install sendmail >>"${OUTTO}" 2>&1;
+    export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
+    # add administrator email
+    echo "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
+    read -p "${bold}Email: ${normal}" admin_email
+    echo
+    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
+    echo -n "${green}finalizing sendmail installation${normal} ... "
+    # install aliases
+    echo -e "mailer-daemon: postmaster
+    postmaster: root
+    nobody: root
+    hostmaster: root
+    usenet: root
+    news: root
+    webmaster: root
+    www: root
+    ftp: root
+    abuse: root
+    root: $admin_email" > /etc/aliases
+    newaliases >>"${OUTTO}" 2>&1;
+    echo "${OK}"
+    echo
   fi
 }
 
 function _nocsf() {
   if [[ ${csf} == "no" ]]; then
-    echo "${cyan}Skipping SSL Certificate Creation...${normal}"
+    echo "${cyan}Skipping SSL Certificate Creation ... ${normal}"
     echo 
   fi
 }
@@ -399,6 +424,7 @@ function _askcloudflare() {
 
 function _cloudflare() {
   if [[ ${cloudflare} == "yes" ]]; then
+    echo -n "${green}Whitelisting Cloudflare IPs-v4 and -v6 ... ${normal}"
     echo -e "# CLOUDFLARE
     # ips-v4
     103.21.244.0/22
@@ -421,7 +447,7 @@ function _cloudflare() {
     2405:b500::/32
     2606:4700::/32
     2803:f800::/32" >> /etc/csf/csf.allow
-    echo -n "${OK}"
+    echo "${OK}"
     echo
   fi
 }
@@ -622,7 +648,6 @@ _askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpm
 _askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
 if [[ ${csf} == "yes" ]]; then 
   _askcloudflare;if [[ ${cloudflare} == "yes" ]]; then _cloudflare;  fi
-  _sendmail
 fi
 if [[ ${csf} == "no" ]]; then 
   _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
