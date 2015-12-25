@@ -373,8 +373,7 @@ function _csf() {
                -e 's/DENY_TEMP_IP_LIMIT = "100"/DENY_TEMP_IP_LIMIT = "1000"/' \
                -e 's/SMTP_ALLOWUSER = "cpanel"/SMTP_ALLOWUSER = "root"/' \
                -e 's/PT_USERMEM = "200"/PT_USERMEM = "500"/' \
-               -e 's/PT_USERTIME = "1800"/PT_USERTIME = "3600"/' \
-               -e 's/LF_ALERT_TO = ""/LF_ALERT_TO = "${admin_email}"/' /etc/csf/csf.conf;
+               -e 's/PT_USERTIME = "1800"/PT_USERTIME = "3600"/' /etc/csf/csf.conf;
     echo "${OK}"
     echo
     # install sendmail as it's binary is required by CSF
@@ -400,6 +399,7 @@ ftp: root
 abuse: root
 root: $admin_email" > /etc/aliases
     newaliases >>"${OUTTO}" 2>&1;
+    sed -i 's/LF_ALERT_TO = ""/LF_ALERT_TO = "${admin_email}"/' /etc/csf/csf.conf;
     echo "${OK}"
     echo
   fi
