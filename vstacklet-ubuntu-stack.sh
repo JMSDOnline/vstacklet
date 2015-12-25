@@ -6,6 +6,7 @@
 # Author:   Jason Matthews
 # URL:      https://jmsolodesigns.com
 #
+# find server IP and server hostname for nginx configuration
 server_ip=$(ifconfig | sed -n 's/.*inet addr:\([0-9.]\+\)\s.*/\1/p' | grep -v 127 | head -n 1);
 sitename=$(hostname -s);
 
@@ -162,6 +163,15 @@ function _nginx() {
   echo
 }
 
+# adjust permissions function (9)
+function _perms() {
+  chgrp -R www-data /srv/www/*
+  chmod -R g+rw /srv/www/*
+  sh -c 'find /srv/www/* -type d -print0 | sudo xargs -0 chmod g+s'
+  echo "${OK}"
+  echo
+}
+
 # install varnish function (6)
 function _varnish() {
   apt-get -y install varnish >>"${OUTTO}" 2>&1;
@@ -228,13 +238,11 @@ function _ioncube() {
   fi
 }
 
-# adjust permissions function (9)
-function _perms() {
-  chgrp -R www-data /srv/www/*
-  chmod -R g+rw /srv/www/*
-  sh -c 'find /srv/www/* -type d -print0 | sudo xargs -0 chmod g+s'
-  echo "${OK}"
-  echo
+function _noioncube() {
+  if [[ ${ioncube} == "no" ]]; then
+    echo "${cyan}Skipping IonCube Installation...${normal}"
+    echo 
+  fi
 }
 
 # install mariadb function (10)
@@ -245,7 +253,71 @@ function _mariadb() {
   echo
 }
 
-# install sendmail function (11)
+# install phpmyadmin function (11)
+function _askphpmyadmin() {
+  echo -n "${bold}${yellow}Do you want to install phpMyAdmin?${normal} (${bold}${green}Y${normal}/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) phpmyadmin=yes ;;
+    [nN] | [nN][Oo] ) phpmyadmin=no ;;
+  esac
+}
+
+function _phpmyadmin() {
+  if [[ ${phpmyadmin} == "yes" ]]; then
+    # generate random passwords for the MySql root user
+    pmapass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
+    mysqlpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
+    mysqladmin -u root -h localhost password "${mysqlpass}"
+    echo -n "${bold}Installing MySQL with user:${normal} ${bold}${green}root${normal}${bold} / passwd:${normal} ${bold}${green}${mysqlpass}${normal} ... "
+    apt-get -y install debconf-utils >>"${OUTTO}" 2>&1;
+    export DEBIAN_FRONTEND=noninteractive
+    # silently configure given options and install
+    echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/mysql/admin-pass password ${mysqlpass}" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/mysql/app-pass password ${pmapass}" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
+    apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
+    # create a sym-link to live directory.
+    ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
+    # add phpmyadmin directive to nginx site configuration at /etc/nginx/conf.d/$sitename.conf.
+    locconf6="include vstacklet\/location\/pma.conf;"
+    sed -i "s/locconf6/$locconf6/" /etc/nginx/conf.d/$sitename.conf
+    echo "${OK}"
+    # get phpmyadmin directory
+    DIR="/etc/phpmyadmin";
+    # show phpmyadmin creds
+    echo '[phpMyAdmin Login]' > ~/.my.cnf;
+    echo " - pmadbuser='phpmyadmin'" >> ~/.my.cnf;
+    echo " - pmadbpass='${pmapass}'" >> ~/.my.cnf;
+    echo '' >> ~/.my.cnf;
+    echo '' >> ~/.my.cnf;
+    # show mysql creds
+    echo '[MySQL Login]' >> ~/.my.cnf;
+    echo " - sqldbuser='root'" >> ~/.my.cnf;
+    echo " - sqldbpass='${mysqlpass}'" >> ~/.my.cnf;
+    echo '' >> ~/.my.cnf;
+    # closing statement
+    echo
+    echo "${bold}Below are your phpMyAdmin and MySQL details.${normal}"
+    echo "${bold}Details are logged in the${normal} ${bold}${green}/root/.my.cnf${normal} ${bold}file.${normal}"
+    echo "Best practice is to copy this file locally then rm .my.cnf"
+    echo
+    # show contents of .my.cnf file
+    tail ~/.my.cnf
+    echo
+  fi
+}
+
+function _nophpmyadmin() {
+  if [[ ${phpmyadmin} == "no" ]]; then
+    echo "${cyan}Skipping phpMyAdmin Installation...${normal}"
+    echo 
+  fi
+}
+
+# install sendmail function (12)
 function _asksendmail() {
   echo -n "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -284,6 +356,13 @@ function _sendmail() {
   fi
 }
 
+function _nosendmail() {
+  if [[ ${sendmail} == "no" ]]; then
+    echo "${cyan}Skipping Sendmail Installation...${normal}"
+    echo 
+  fi
+}
+
 #################################################################
 # The following security & enhancements cover basic security
 # measures to protect against common exploits.
@@ -298,7 +377,7 @@ function _sendmail() {
 #################################################################
 
 # Round 1 - Location
-# enhance configuration function (12)
+# enhance configuration function (13)
 function _locenhance() {
   locconf1="include vstacklet\/location\/cache-busting.conf;"
   sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
@@ -315,9 +394,21 @@ function _locenhance() {
 }
 
 # Round 2 - Security
-# create self-signed certificate function (13)
+# optimize security configuration function (14)
+function _security() {
+  secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
+  sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
+  secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
+  sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$sitename.conf
+  secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
+  sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+  echo
+}
+
+# create self-signed certificate function (15)
 function _askcert() {
-  echo -n "${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
+  echo -n "${bold}${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) cert=yes ;;
@@ -349,19 +440,7 @@ function _nocert() {
   fi
 }
 
-# optimize security configuration function (12)
-function _security() {
-  secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
-  sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
-  secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
-  sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$sitename.conf
-  secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
-  sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$sitename.conf
-  echo "${OK}"
-  echo
-}
-
-# finalize and restart services function (13)
+# finalize and restart services function (16)
 function _services() {
   service nginx restart >>"${OUTTO}" 2>&1;
   service varnish restart >>"${OUTTO}" 2>&1;
@@ -371,7 +450,7 @@ function _services() {
   echo
 }
 
-# function to show finished data (14)
+# function to show finished data (17)
 function _finished() {
 echo
 echo
@@ -423,17 +502,18 @@ echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} 
 echo -n "${bold}Adding trusted repositories${normal} ... ";_repos
 echo -n "${bold}Applying Updates${normal} ... ";_updates
 echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx
+echo -n "${bold}Adjusting Permissions${normal} ... ";_perms
 echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish
 echo -n "${bold}Installing and Adjusting PHP-FPM w/ OPCode Cache${normal} ... ";_php
-_askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; fi
-echo -n "${bold}Adjusting Permissions${normal} ... ";_perms
+_askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; elif [[ ${ioncube} == "no" ]]; then _noioncube;  fi
 echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
-_asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; fi
+_askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpmyadmin} == "no" ]]; then _nophpmyadmin;  fi
+_asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
 echo "${bold}Addressing Location Edits: cache busting, cross domain font support,${normal}";
 echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance
-_askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
-echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}"; 
+echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}";
 echo -n "${bold}file injection, and php easter eggs${normal} ... ";_security
+_askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
 echo -n "${bold}Completing Installation & Restarting Services${normal} ... ";_services
 
 E=$(date +%s)
