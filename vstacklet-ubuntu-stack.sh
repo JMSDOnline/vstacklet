@@ -399,7 +399,7 @@ ftp: root
 abuse: root
 root: $admin_email" > /etc/aliases
     newaliases >>"${OUTTO}" 2>&1;
-    sed -i 's/LF_ALERT_TO = ""/LF_ALERT_TO = "${admin_email}"/' /etc/csf/csf.conf;
+    sed -i "s/LF_ALERT_TO = ""/LF_ALERT_TO = "$admin_email"/" /etc/csf/csf.conf;
     echo "${OK}"
     echo
   fi
@@ -425,7 +425,7 @@ function _askcloudflare() {
 function _cloudflare() {
   if [[ ${cloudflare} == "yes" ]]; then
     echo -n "${green}Whitelisting Cloudflare IPs-v4 and -v6${normal} ... "
-    echo -e "# CLOUDFLARE
+    echo -e "# BEGIN CLOUDFLARE WHITELIST
 # ips-v4
 103.21.244.0/22
 103.22.200.0/22
@@ -446,7 +446,9 @@ function _cloudflare() {
 2405:8100::/32
 2405:b500::/32
 2606:4700::/32
-2803:f800::/32" >> /etc/csf/csf.allow
+2803:f800::/32
+# END CLOUDFLARE WHITELIST
+" >> /etc/csf/csf.allow
     echo "${OK}"
     echo
   fi
