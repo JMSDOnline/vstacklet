@@ -412,6 +412,7 @@ function _nocsf() {
   fi
 }
 
+if [[ ${csf} == "yes" ]]; then
 # if you're using cloudlfare as a protection and/or cdn - this next bit is important
 function _askcloudflare() {
   echo -n "${bold}${yellow}Would you like to whitelist CloudFlare IPs?${normal} (${bold}${green}Y${normal}/n): "
@@ -457,6 +458,7 @@ function _nocloudflare() {
     echo
   fi
 }
+fi
 
 if [[ ${csf} == "no" ]]; then
 # install sendmail function (13)
@@ -653,14 +655,14 @@ echo -n "${bold}Installing and Adjusting PHP-FPM w/ OPCode Cache${normal} ... ";
 _askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; elif [[ ${ioncube} == "no" ]]; then _noioncube;  fi
 echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
 _askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpmyadmin} == "no" ]]; then _nophpmyadmin;  fi
+_askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
+_askcloudflare;if [[ ${cloudflare} == "yes" ]]; then _cloudflare; elif [[ ${cloudflare} == "no" ]]; then _nocloudflare;  fi
 _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
 echo "${bold}Addressing Location Edits: cache busting, cross domain font support,${normal}";
 echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance
 echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}";
 echo -n "${bold}file injection, and php easter eggs${normal} ... ";_security
 _askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
-_askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
-_askcloudflare;if [[ ${cloudflare} == "yes" ]]; then _cloudflare; elif [[ ${cloudflare} == "no" ]]; then _nocloudflare;  fi
 echo -n "${bold}Completing Installation & Restarting Services${normal} ... ";_services
 
 E=$(date +%s)
