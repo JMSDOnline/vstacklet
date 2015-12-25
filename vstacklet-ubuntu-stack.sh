@@ -656,8 +656,13 @@ _askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; elif [[ ${ioncube} == "
 echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
 _askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpmyadmin} == "no" ]]; then _nophpmyadmin;  fi
 _askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
+if [[ ${csf} == "yes" ]]; then 
 _askcloudflare;if [[ ${cloudflare} == "yes" ]]; then _cloudflare; elif [[ ${cloudflare} == "no" ]]; then _nocloudflare;  fi
+_sendmail
+fi
+if [[ ${csf} == "no" ]]; then 
 _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
+fi
 echo "${bold}Addressing Location Edits: cache busting, cross domain font support,${normal}";
 echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance
 echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}";
