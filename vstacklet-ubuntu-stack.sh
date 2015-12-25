@@ -393,6 +393,7 @@ function _locenhance() {
   echo 
 }
 
+# Round 2 - Security
 # optimize security configuration function (14)
 function _security() {
   secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
@@ -405,7 +406,6 @@ function _security() {
   echo
 }
 
-# Round 2 - Security
 # create self-signed certificate function (15)
 function _askcert() {
   echo -n "${bold}${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
@@ -511,9 +511,9 @@ _askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpm
 _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
 echo "${bold}Addressing Location Edits: cache busting, cross domain font support,${normal}";
 echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance
-echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}"; 
-_askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
+echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}";
 echo -n "${bold}file injection, and php easter eggs${normal} ... ";_security
+_askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
 echo -n "${bold}Completing Installation & Restarting Services${normal} ... ";_services
 
 E=$(date +%s)
