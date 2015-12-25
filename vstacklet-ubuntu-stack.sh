@@ -323,130 +323,7 @@ function _nophpmyadmin() {
   fi
 }
 
-# install sendmail function (12)
-function _asksendmail() {
-  echo -n "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
-  read responce
-  case $responce in
-    [yY] | [yY][Ee][Ss] | "" ) sendmail=yes ;;
-    [nN] | [nN][Oo] ) sendmail=no ;;
-  esac
-}
-
-function _sendmail() {
-  if [[ ${sendmail} == "yes" ]]; then
-    echo "${green}Installing Sendmail ... ${normal}"
-    apt-get -y install sendmail >>"${OUTTO}" 2>&1;
-    export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
-    # add administrator email
-    echo "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
-    read -p "${bold}Email: ${normal}" admin_email
-    echo
-    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
-    echo -n "${green}finalizing sendmail installation${normal} ... "
-    # install aliases
-    echo -e "mailer-daemon: postmaster
-    postmaster: root
-    nobody: root
-    hostmaster: root
-    usenet: root
-    news: root
-    webmaster: root
-    www: root
-    ftp: root
-    abuse: root
-    root: $admin_email" > /etc/aliases
-    newaliases >>"${OUTTO}" 2>&1;
-    echo "${OK}"
-    echo
-  fi
-}
-
-function _nosendmail() {
-  if [[ ${sendmail} == "no" ]]; then
-    echo "${cyan}Skipping Sendmail Installation...${normal}"
-    echo 
-  fi
-}
-
-#################################################################
-# The following security & enhancements cover basic security
-# measures to protect against common exploits.
-# Enhancements covered are adding cache busting, cross domain
-# font support, expires tags and protecting system files.
-# 
-# You can find the included files at the following directory...
-# /etc/nginx/vstacklet/
-# 
-# Not all profiles are included, review your $sitename.conf
-# for additions made by the script & adjust accordingly.
-#################################################################
-
-# Round 1 - Location
-# enhance configuration function (13)
-function _locenhance() {
-  locconf1="include vstacklet\/location\/cache-busting.conf;"
-  sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
-  locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
-  sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/$sitename.conf
-  locconf3="include vstacklet\/location\/expires.conf;"
-  sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/$sitename.conf
-# locconf4="include vstacklet\/location\/extensionless-uri.conf;"
-# sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$sitename.conf
-  locconf5="include vstacklet\/location\/protect-system-files.conf;"
-  sed -i "s/locconf5/$locconf5/" /etc/nginx/conf.d/$sitename.conf
-  echo "${OK}"
-  echo 
-}
-
-# Round 2 - Security
-# optimize security configuration function (14)
-function _security() {
-  secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
-  sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
-  secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
-  sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$sitename.conf
-  secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
-  sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$sitename.conf
-  echo "${OK}"
-  echo
-}
-
-# create self-signed certificate function (15)
-function _askcert() {
-  echo -n "${bold}${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
-  read responce
-  case $responce in
-    [yY] | [yY][Ee][Ss] | "" ) cert=yes ;;
-    [nN] | [nN][Oo] ) cert=no ;;
-  esac
-}
-
-function _cert() {
-  if [[ ${cert} == "yes" ]]; then
-    insert1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
-    insert2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/etc\/ssl\/certs\/$sitename.crt;\n    ssl_certificate_key \/etc\/ssl\/private\/$sitename.key;"
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
-    chmod 400 /etc/ssl/private/$sitename.key
-    sed -i "s/insert1/$insert1/" /etc/nginx/conf.d/$sitename.conf
-    sed -i "s/insert2/$insert2/" /etc/nginx/conf.d/$sitename.conf
-    sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
-    echo "${OK}"
-    echo
-  fi
-}
-
-function _nocert() {
-  if [[ ${cert} == "no" ]]; then
-    sed -i "s/insert1/ /" /etc/nginx/conf.d/$sitename.conf
-    sed -i "s/insert2/ /" /etc/nginx/conf.d/$sitename.conf
-    sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
-    echo "${cyan}Skipping SSL Certificate Creation...${normal}"
-    echo 
-  fi
-}
-
-# install and adjust config server firewall function (16)
+# install and adjust config server firewall function (12)
 function _askcsf() {
   echo -n "${bold}${yellow}Do you want to install CSF (Config Server Firewall)?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -458,6 +335,7 @@ function _askcsf() {
 
 function _csf() {
   if [[ ${csf} == "yes" ]]; then
+    echo "${green}Installing and Adjusting CSF ... ${normal}"
     wget http://www.configserver.com/free/csf.tgz >/dev/null 2>&1;
     tar -xzf csf.tgz >/dev/null 2>&1;
     ufw disable >>"${OUTTO}" 2>&1;
@@ -496,46 +374,32 @@ function _csf() {
                -e 's/PT_USERMEM = "200"/PT_USERMEM = "500"/' \
                -e 's/PT_USERTIME = "1800"/PT_USERTIME = "3600"/' \
                -e 's/LF_ALERT_TO = ""/LF_ALERT_TO = ""${admin_email}""/' /etc/csf/csf.conf;
+    echo "${OK}"
+    echo
 
-    # if you're using cloudlfare as a protection and/or cdn - this next bit is important
-    function askcloudflare {
-      echo -n "${bold}${yellow}Would you like to whitelist CloudFlare IPs?${normal} (${bold}${green}Y${normal}/n): "
-      read responce
-      case $responce in
-        [yY] | [yY][Ee][Ss] | "" ) cloudflare=yes ;;
-        [nN] | [nN][Oo] ) cloudflare=no ;;
-      esac
-    }
-
-    function cloudflare {
-      if [[ ${cloudflare} == "yes" ]]; then
-        echo -e "# CLOUDFLARE
-        # ips-v4
-        103.21.244.0/22
-        103.22.200.0/22
-        103.31.4.0/22
-        104.16.0.0/12
-        108.162.192.0/18
-        141.101.64.0/18
-        162.158.0.0/15
-        172.64.0.0/13
-        173.245.48.0/20
-        188.114.96.0/20
-        190.93.240.0/20
-        197.234.240.0/22
-        198.41.128.0/17
-        199.27.128.0/21
-        # ips-v6
-        2400:cb00::/32
-        2405:8100::/32
-        2405:b500::/32
-        2606:4700::/32
-        2803:f800::/32" >> /etc/csf/csf.allow
-      elif [[ ${cloudflare} == "no" ]]; then
-        echo "${cyan}Skipping CloudFlare Whitelisting...${normal}"
-        echo
-      fi
-    }
+# install sendmail  required by csf -yes- function (12-r)
+    echo "${green}Installing Sendmail ... ${normal}"
+    apt-get -y install sendmail >>"${OUTTO}" 2>&1;
+    export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
+    # add administrator email
+    echo "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
+    read -p "${bold}Email: ${normal}" admin_email
+    echo
+    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
+    echo -n "${green}finalizing sendmail installation${normal} ... "
+    # install aliases
+    echo -e "mailer-daemon: postmaster
+    postmaster: root
+    nobody: root
+    hostmaster: root
+    usenet: root
+    news: root
+    webmaster: root
+    www: root
+    ftp: root
+    abuse: root
+    root: $admin_email" > /etc/aliases
+    newaliases >>"${OUTTO}" 2>&1;
     echo "${OK}"
     echo
   fi
@@ -548,12 +412,185 @@ function _nocsf() {
   fi
 }
 
+# if you're using cloudlfare as a protection and/or cdn - this next bit is important
+function _askcloudflare() {
+  echo -n "${bold}${yellow}Would you like to whitelist CloudFlare IPs?${normal} (${bold}${green}Y${normal}/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) cloudflare=yes ;;
+    [nN] | [nN][Oo] ) cloudflare=no ;;
+  esac
+}
+
+function _cloudflare() {
+  if [[ ${cloudflare} == "yes" ]]; then
+    echo -e "# CLOUDFLARE
+    # ips-v4
+    103.21.244.0/22
+    103.22.200.0/22
+    103.31.4.0/22
+    104.16.0.0/12
+    108.162.192.0/18
+    141.101.64.0/18
+    162.158.0.0/15
+    172.64.0.0/13
+    173.245.48.0/20
+    188.114.96.0/20
+    190.93.240.0/20
+    197.234.240.0/22
+    198.41.128.0/17
+    199.27.128.0/21
+    # ips-v6
+    2400:cb00::/32
+    2405:8100::/32
+    2405:b500::/32
+    2606:4700::/32
+    2803:f800::/32" >> /etc/csf/csf.allow
+    echo "${OK}"
+    echo
+  fi
+}
+
+function _nocloudflare() {
+  if [[ ${cloudflare} == "no" ]]; then
+    echo "${cyan}Skipping CloudFlare IP whitelisting...${normal}"
+    echo
+  fi
+}
+
+if [[ ${csf} == "no" ]]; then
+# install sendmail function (13)
+function _asksendmail() {
+  echo -n "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) sendmail=yes ;;
+    [nN] | [nN][Oo] ) sendmail=no ;;
+  esac
+}
+
+function _sendmail() {
+  if [[ ${sendmail} == "yes" ]]; then
+    echo "${green}Installing Sendmail ... ${normal}"
+    apt-get -y install sendmail >>"${OUTTO}" 2>&1;
+    export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1;
+    # add administrator email
+    echo "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
+    read -p "${bold}Email: ${normal}" admin_email
+    echo
+    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
+    echo -n "${green}finalizing sendmail installation${normal} ... "
+    # install aliases
+    echo -e "mailer-daemon: postmaster
+    postmaster: root
+    nobody: root
+    hostmaster: root
+    usenet: root
+    news: root
+    webmaster: root
+    www: root
+    ftp: root
+    abuse: root
+    root: $admin_email" > /etc/aliases
+    newaliases >>"${OUTTO}" 2>&1;
+    echo "${OK}"
+    echo
+  fi
+}
+fi
+
+function _nosendmail() {
+  if [[ ${sendmail} == "no" ]]; then
+    echo "${cyan}Skipping Sendmail Installation...${normal}"
+    echo 
+  fi
+}
+
+#################################################################
+# The following security & enhancements cover basic security
+# measures to protect against common exploits.
+# Enhancements covered are adding cache busting, cross domain
+# font support, expires tags and protecting system files.
+# 
+# You can find the included files at the following directory...
+# /etc/nginx/vstacklet/
+# 
+# Not all profiles are included, review your $sitename.conf
+# for additions made by the script & adjust accordingly.
+#################################################################
+
+# Round 1 - Location
+# enhance configuration function (14)
+function _locenhance() {
+  locconf1="include vstacklet\/location\/cache-busting.conf;"
+  sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
+  locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
+  sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/$sitename.conf
+  locconf3="include vstacklet\/location\/expires.conf;"
+  sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/$sitename.conf
+# locconf4="include vstacklet\/location\/extensionless-uri.conf;"
+# sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$sitename.conf
+  locconf5="include vstacklet\/location\/protect-system-files.conf;"
+  sed -i "s/locconf5/$locconf5/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+  echo 
+}
+
+# Round 2 - Security
+# optimize security configuration function (15)
+function _security() {
+  secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
+  sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
+  secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
+  sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$sitename.conf
+  secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
+  sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$sitename.conf
+  echo "${OK}"
+  echo
+}
+
+# create self-signed certificate function (16)
+function _askcert() {
+  echo -n "${bold}${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) cert=yes ;;
+    [nN] | [nN][Oo] ) cert=no ;;
+  esac
+}
+
+function _cert() {
+  if [[ ${cert} == "yes" ]]; then
+    insert1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
+    insert2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/etc\/ssl\/certs\/$sitename.crt;\n    ssl_certificate_key \/etc\/ssl\/private\/$sitename.key;"
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
+    chmod 400 /etc/ssl/private/$sitename.key
+    sed -i "s/insert1/$insert1/" /etc/nginx/conf.d/$sitename.conf
+    sed -i "s/insert2/$insert2/" /etc/nginx/conf.d/$sitename.conf
+    sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
+    echo "${OK}"
+    echo
+  fi
+}
+
+function _nocert() {
+  if [[ ${cert} == "no" ]]; then
+    sed -i "s/insert1/ /" /etc/nginx/conf.d/$sitename.conf
+    sed -i "s/insert2/ /" /etc/nginx/conf.d/$sitename.conf
+    sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
+    echo "${cyan}Skipping SSL Certificate Creation...${normal}"
+    echo 
+  fi
+}
+
 # finalize and restart services function (17)
 function _services() {
   service nginx restart >>"${OUTTO}" 2>&1;
   service varnish restart >>"${OUTTO}" 2>&1;
   service php5-fpm restart >>"${OUTTO}" 2>&1;
   service sendmail restart >>"${OUTTO}" 2>&1;
+  service lfd restart >>"${OUTTO}" 2>&1;
+  csf -r >>"${OUTTO}" 2>&1;
   echo "${OK}"
   echo
 }
@@ -623,6 +660,7 @@ echo "${bold}Performing Security Enhancements: protecting against bad bots,${nor
 echo -n "${bold}file injection, and php easter eggs${normal} ... ";_security
 _askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
 _askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
+_askcloudflare;if [[ ${cloudflare} == "yes" ]]; then _cloudflare; elif [[ ${cloudflare} == "no" ]]; then _nocloudflare;  fi
 echo -n "${bold}Completing Installation & Restarting Services${normal} ... ";_services
 
 E=$(date +%s)
