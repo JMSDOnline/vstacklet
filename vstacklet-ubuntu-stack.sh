@@ -82,6 +82,7 @@ function _hostname() {
   echo -ne "${bold}${yellow}Please enter a hostname for this server${normal} (Hit ${green}enter${normal} to make no changes): "; read input
     if [[ -z $input ]]; then
       echo "No hostname supplied, using ${hostname1}"
+      echo
     else
       hostname ${hostname}
       echo "${hostname}">/etc/hostname
@@ -98,6 +99,7 @@ function _sitename() {
   read -p "${bold}${yellow}Please enter a name for your website root directory${normal} : " sitename
     if [[ -z $sitename ]]; then
       read -p "${bold}${cyan}You must enter a name for your root directory${normal} : " sitename
+      echo
     else
       echo "Using /srv/www/${green}${bold}${sitename}${normal}/public/"
       echo
