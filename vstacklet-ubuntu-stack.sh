@@ -204,6 +204,8 @@ function _php() {
     -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php5/fpm/php.ini
   # ensure opcache module is activated
   php5enmod opcache
+  # ensure mcrypt module is activated
+  php5enmod mcrypt
   # write checkinfo for php verification
   echo '<?php phpinfo(); ?>' > /srv/www/$sitename/public/checkinfo.php
   echo "${OK}"
@@ -287,14 +289,16 @@ function _phpmyadmin() {
     apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
     # create a sym-link to live directory.
     ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
+    # Void this for now to maintin port 8080 access
     # add phpmyadmin directive to nginx site configuration at /etc/nginx/conf.d/$sitename.conf.
-    locconf6="include vstacklet\/location\/pma.conf;"
-    sed -i "s/locconf6/$locconf6/" /etc/nginx/conf.d/$sitename.conf
+    # locconf6="include vstacklet\/location\/pma.conf;"
+    # sed -i "s/locconf6/$locconf6/" /etc/nginx/conf.d/$sitename.conf
     echo "${OK}"
     # get phpmyadmin directory
     DIR="/etc/phpmyadmin";
     # show phpmyadmin creds
     echo '[phpMyAdmin Login]' > ~/.my.cnf;
+    echo "Access phpMyAdmin at: http://$server_ip:8080/phpmyadmin/" >> ~/.my.cnf;
     echo " - pmadbuser='phpmyadmin'" >> ~/.my.cnf;
     echo " - pmadbpass='${pmapass}'" >> ~/.my.cnf;
     echo '' >> ~/.my.cnf;

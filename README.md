@@ -17,8 +17,6 @@ Components include a recent mainline version of Nginx (1.9.9) using configuratio
 
 Deploys a proper directory strucutre, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
-#### HEADS UP!
-Choose the option to install using ubuntu 15.x when the vstacklet.sh script asks. At the present moment it has the option for phpmyadmin and it a bit more refined. This will be changed after the Holidays and both versions will be inline. 15.x WILL work on ubuntu 14.04 (at least it should)
 
 Script Features
 --------
