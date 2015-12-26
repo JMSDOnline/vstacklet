@@ -289,18 +289,20 @@ function _phpmyadmin() {
     apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
     # create a sym-link to live directory.
     ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
-    # Void this for now to maintin port 8080 access
+    # Void this for now to maintain port 8080 access and avoid 404 error.
     # add phpmyadmin directive to nginx site configuration at /etc/nginx/conf.d/$sitename.conf.
     # locconf6="include vstacklet\/location\/pma.conf;"
-    # sed -i "s/locconf6/$locconf6/" /etc/nginx/conf.d/$sitename.conf
+    sed -i "s/locconf6/#locconf6/" /etc/nginx/conf.d/$sitename.conf
     echo "${OK}"
     # get phpmyadmin directory
     DIR="/etc/phpmyadmin";
     # show phpmyadmin creds
     echo '[phpMyAdmin Login]' > ~/.my.cnf;
-    echo "Access phpMyAdmin at: http://$server_ip:8080/phpmyadmin/" >> ~/.my.cnf;
     echo " - pmadbuser='phpmyadmin'" >> ~/.my.cnf;
     echo " - pmadbpass='${pmapass}'" >> ~/.my.cnf;
+    echo '' >> ~/.my.cnf;
+    echo "   Access phpMyAdmin at: " >> ~/.my.cnf;
+    echo "   http://$server_ip:8080/phpmyadmin/" >> ~/.my.cnf;
     echo '' >> ~/.my.cnf;
     echo '' >> ~/.my.cnf;
     # show mysql creds
