@@ -34,7 +34,10 @@ mv vs-backup /usr/local/bin
 function _string() { perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15 ; }
 
 function _askvstacklet() {
-  echo "${bold} Welcome to the VStacklet LEMP stack install kit!${normal}"
+  echo
+  echo
+  echo "${title} Welcome to the VStacklet LEMP stack install kit! ${normal}"
+  echo
   echo "${bold} Enjoy the simplicity one script can provide to deliver ${normal}"
   echo "${bold} you the essentials of a finely tuned server environment.${normal}"
   echo "${bold} Nginx, Varnish, CSF, MariaDB w/ phpMyAdmin to name a few.${normal}"
@@ -47,6 +50,8 @@ function _askvstacklet() {
     [nN] | [nN][Oo] ) vstacklet=no ;;
   esac
 }
+
+clear
 
 function _vstacklet() {
   if [[ ${vstacklet} == "yes" ]]; then
