@@ -16,7 +16,6 @@ mkdir -p vstacklet /backup/{directories,databases}
 cd vstacklet
 
 # Download the needed scripts for VStacklet
-curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/vstacklet-trusty-stack.sh >/dev/null 2>&1;
 curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/vstacklet-ubuntu-stack.sh >/dev/null 2>&1;
 curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/files-backup.sh >/dev/null 2>&1;
 curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/database-backup.sh >/dev/null 2>&1;
@@ -34,29 +33,34 @@ mv vs-backup /usr/local/bin
 
 function _string() { perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15 ; }
 
-function _askubuntu() {
-  echo -n "${bold}${yellow}Do you want to install VStacklet for Ubuntu 15.x ?${normal} (${bold}${green}Y${normal}/n): "
+function _askvstacklet() {
+  echo "${bold} Welcome to the VStacklet LEMP stack install kit!${normal}"
+  echo "${bold} Enjoy the simplicity one script can provide to deliver ${normal}"
+  echo "${bold} you the essentials of a finely tuned server environment.${normal}"
+  echo "${bold} Nginx, Varnish, CSF, MariaDB w/ phpMyAdmin to name a few.${normal}"
+  echo "${bold} Actively maintained and quality controlled.${normal}"
+  echo
+  echo -n "${bold}${yellow}Are you ready to install VStacklet for Ubuntu 14.04 & 15.x ?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
-    [yY] | [yY][Ee][Ss] | "" ) ubuntu=yes ;;
-    [nN] | [nN][Oo] ) ubuntu=no ;;
+    [yY] | [yY][Ee][Ss] | "" ) vstacklet=yes ;;
+    [nN] | [nN][Oo] ) vstacklet=no ;;
   esac
 }
 
-function _ubuntu15x() {
-  if [[ ${ubuntu} == "yes" ]]; then
+function _vstacklet() {
+  if [[ ${vstacklet} == "yes" ]]; then
     DIR="vstacklet"
     if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
       . "$DIR/vstacklet-ubuntu-stack.sh"
   fi
 }
 
-function _ubuntutrusty() {
-  if [[ ${ubuntu} == "yes" ]]; then
-    DIR="vstacklet"
-    if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
-      . "$DIR/vstacklet-trusty-stack.sh"
+function _novstacklet() {
+  if [[ ${vstacklet} == "no" ]]; then
+    echo "${bold}${cyan}Cancelling install. If you would like to run this installer in the future${normal}"
+    echo "${bold}${cyan}type${normal} ${green}${bold}./vstacklet.sh${normal} - ${bold}${cyan}followed by tapping Enter on your keyboard."
   fi
 }
 
-_askubuntu;if [[ ${ubuntu} == "yes" ]]; then echo -n "${bold}Installing VStacklet Kit for 15.04 and 15.10 support${normal} ... ";_ubuntu15x; elif [[ ${ubuntu} == "no" ]]; then  echo -n "${bold}Installing VStacklet Kit for 14.04 support${normal} ... ";_ubuntutrusty;  fi
+_askvstacklet;if [[ ${vstacklet} == "yes" ]]; then echo -n "${bold}Installing VStacklet Kit for 14.04, 15.04 and 15.10 support${normal} ... ";_vstacklet; elif [[ ${vstacklet} == "no" ]]; then _novstacklet;  fi
