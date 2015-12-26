@@ -95,13 +95,13 @@ function _hostname() {
 
 # setting main directory function (4a)
 function _sitename() {
-  echo -ne "${bold}${yellow}Please enter a name for your website root directory${normal} : "; read input
-    case $input in
-      "" ) ;echo "${bold}You must enter a name for /srv/www/${cyan}${bold}-sitename-${normal}/public/ to continue${normal}"; read input ;;
-    *) ;echo "Using /srv/www/${green}${bold}${hostname}${normal}/public/" ;;
-    esac
-        echo
-fi
+  read -p "${bold}${yellow}Please enter a name for your website root directory${normal} : " sitename
+    if [[ -z $sitename ]]; then
+      read -p "${bold}${cyan}You must enter a name for your root directory${normal} : " sitename
+    else
+      echo "Using /srv/www/${green}${bold}${sitename}${normal}/public/"
+      echo
+    fi
 }
 
 # system packages and repos function (5)
@@ -668,6 +668,7 @@ _intro
 _checkroot
 _logcheck
 _hostname
+_sitename
 echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon
 echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${normal} ... ";_depends
 echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys
