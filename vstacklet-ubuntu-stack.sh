@@ -77,7 +77,34 @@ function _logcheck() {
   echo
 }
 
-# system packages and repos function (4)
+# setting system hostname function (4)
+function _hostname() {
+  echo -ne "${bold}${yellow}Please enter a hostname for this server${normal} (Hit ${green}enter${normal} to make no changes): "; read input
+    if [[ -z $input ]]; then
+      echo "No hostname supplied, no changes made."
+    else
+      hostname ${hostname}
+      echo "${hostname}">/etc/hostname
+      echo "#!/bin/sh -e"> /etc/rc.local
+      echo "hostname ${hostname}">> /etc/rc.local
+      echo "exit 0">> /etc/rc.local
+      echo "Hostname set to ${green}${bold}${hostname}${normal}"
+      echo
+    fi
+}
+
+# setting main directory function (4a)
+function _sitename() {
+  echo -ne "${bold}${yellow}Please enter a name for your website root directory${normal} : "; read input
+    case $input in
+      "" ) ;echo "${bold}You must enter a name for /srv/www/${cyan}${bold}-sitename-${normal}/public/ to continue${normal}"; read input ;;
+    *) ;echo "Using /srv/www/${green}${bold}${hostname}${normal}/public/" ;;
+    esac
+        echo
+fi
+}
+
+# system packages and repos function (5)
 # Update packages and add MariaDB, Varnish 4, and Nginx 1.9.9 (mainline) repositories
 function _softcommon() {
   # package and repo addition (a) _install common properties_
@@ -136,7 +163,7 @@ function _updates() {
   echo
 }
 
-# install nginx function (5)
+# install nginx function (6)
 function _nginx() {
   apt-get -y install nginx >>"${OUTTO}" 2>&1;
   update-rc.d nginx defaults >>"${OUTTO}" 2>&1;
@@ -163,7 +190,7 @@ function _nginx() {
   echo
 }
 
-# adjust permissions function (9)
+# adjust permissions function (7)
 function _perms() {
   chgrp -R www-data /srv/www/*
   chmod -R g+rw /srv/www/*
@@ -172,7 +199,7 @@ function _perms() {
   echo
 }
 
-# install varnish function (6)
+# install varnish function (8)
 function _varnish() {
   apt-get -y install varnish >>"${OUTTO}" 2>&1;
   sed -i "s/127.0.0.1/$server_ip/" /etc/varnish/default.vcl
@@ -190,7 +217,7 @@ function _varnish() {
   echo
 }
 
-# install php function (7)
+# install php function (9)
 function _php() {
   apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
   sed -i.bak -e "s/post_max_size = 8M/post_max_size = 32M/" \
@@ -212,7 +239,7 @@ function _php() {
   echo
 }
 
-# install ioncube loader function (8)
+# install ioncube loader function (10)
 function _askioncube() {
   echo -n "${bold}${yellow}Do you want to install IonCube Loader?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -253,7 +280,7 @@ function _noioncube() {
   fi
 }
 
-# install mariadb function (10)
+# install mariadb function (11)
 function _mariadb() {
   export DEBIAN_FRONTEND=noninteractive
   apt-get -q -y install mariadb-server >>"${OUTTO}" 2>&1;
@@ -261,7 +288,7 @@ function _mariadb() {
   echo
 }
 
-# install phpmyadmin function (11)
+# install phpmyadmin function (12)
 function _askphpmyadmin() {
   echo -n "${bold}${yellow}Do you want to install phpMyAdmin?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -329,7 +356,7 @@ function _nophpmyadmin() {
   fi
 }
 
-# install and adjust config server firewall function (12)
+# install and adjust config server firewall function (13)
 function _askcsf() {
   echo -n "${bold}${yellow}Do you want to install CSF (Config Server Firewall)?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -405,7 +432,6 @@ ftp: root
 abuse: root
 root: $admin_email" > /etc/aliases
     newaliases >>"${OUTTO}" 2>&1;
-    sed -i "s/LF_ALERT_TO = ""/LF_ALERT_TO = "$admin_email"/" /etc/csf/csf.conf;
     echo "${OK}"
     echo
   fi
@@ -460,7 +486,7 @@ function _cloudflare() {
   fi
 }
 
-# install sendmail function (13)
+# install sendmail function (14)
 function _asksendmail() {
   echo -n "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -520,7 +546,7 @@ function _nosendmail() {
 #################################################################
 
 # Round 1 - Location
-# enhance configuration function (14)
+# enhance configuration function (15)
 function _locenhance() {
   locconf1="include vstacklet\/location\/cache-busting.conf;"
   sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
@@ -537,7 +563,7 @@ function _locenhance() {
 }
 
 # Round 2 - Security
-# optimize security configuration function (15)
+# optimize security configuration function (16)
 function _security() {
   secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
   sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
@@ -549,7 +575,7 @@ function _security() {
   echo
 }
 
-# create self-signed certificate function (16)
+# create self-signed certificate function (17)
 function _askcert() {
   echo -n "${bold}${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -583,7 +609,7 @@ function _nocert() {
   fi
 }
 
-# finalize and restart services function (17)
+# finalize and restart services function (18)
 function _services() {
   service nginx restart >>"${OUTTO}" 2>&1;
   service varnish restart >>"${OUTTO}" 2>&1;
@@ -595,7 +621,7 @@ function _services() {
   echo
 }
 
-# function to show finished data (18)
+# function to show finished data (19)
 function _finished() {
 echo
 echo
@@ -641,6 +667,7 @@ OK=$(echo -e "[ ${bold}${green}DONE${normal} ]")
 _intro
 _checkroot
 _logcheck
+_hostname
 echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon
 echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${normal} ... ";_depends
 echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys
