@@ -71,7 +71,7 @@ function _vstacklet() {
 function _novstacklet() {
   if [[ ${vstacklet} == "no" ]]; then
     echo "${bold}${cyan}Cancelling install. If you would like to run this installer in the future${normal}"
-    echo "${bold}${cyan}type${normal} ${green}${bold}./vstacklet.sh${normal} - ${bold}${cyan}followed by tapping Enter on your keyboard."
+    echo "${bold}${cyan}type${normal} ${green}${bold}./vstacklet.sh${normal} - ${bold}${cyan}followed by tapping Enter on your keyboard.${normal}"
   fi
 }
 

@@ -40,11 +40,11 @@ function _intro() {
   echo
   dis="$(lsb_release -is)"
   rel="$(lsb_release -rs)"
-  if [[ "${dis}" != ("Ubuntu"|"Debian") ]]; then
+  if [[ "${dis}" != "Ubuntu" ]]; then
     echo "${dis}: You do not appear to be running Ubuntu"
     echo 'Exiting...'
     exit 1
-  elif [[ ! "${rel}" =~ ("14.04"|"15.04"|"15.10"|"7.9") ]]; then
+  elif [[ ! "${rel}" =~ ("14.04"|"15.04"|"15.10") ]]; then
     echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
     echo 'Exiting...'
     exit 1
@@ -665,7 +665,7 @@ function _services() {
   service nginx restart >>"${OUTTO}" 2>&1;
   service varnish restart >>"${OUTTO}" 2>&1;
   service php5-fpm restart >>"${OUTTO}" 2>&1;
-  if [[ $csf | $sendmail -eq yes ]];then 
+  if [[ $sendmail -eq yes ]];then 
     service sendmail restart >>"${OUTTO}" 2>&1;
   fi
   if [[ $csf -eq yes ]];then 
