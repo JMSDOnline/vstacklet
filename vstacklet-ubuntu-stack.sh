@@ -183,7 +183,7 @@ function _nginx() {
     -e "s/logs\/access.log/\/var\/log\/nginx\/access.log/" /etc/nginx/nginx.conf
   sed -i.bak -e "s/logs\/static.log/\/var\/log\/nginx\/static.log/" /etc/nginx/vstacklet/location/expires.conf
   # rename default.conf template
-  if (( ${sitename} == "yes" )); then
+  if [[ $sitename -eq yes ]];then 
     cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$sitename.conf
     # build applications directory
     mkdir -p /srv/www/$sitename/logs >/dev/null 2>&1;
