@@ -81,8 +81,7 @@ function _logcheck() {
 function _hostname() {
   echo -ne "${bold}${yellow}Please enter a hostname for this server${normal} (Hit ${green}enter${normal} to make no changes): "; read input
     if [[ -z $input ]]; then
-      echo "No hostname supplied, using ${hostname1}"
-      echo
+      echo "No hostname supplied, using ${hostname1}."
     else
       hostname ${hostname}
       echo "${hostname}">/etc/hostname
@@ -94,14 +93,14 @@ function _hostname() {
     fi
 }
 
-# setting main directory function (4a)
+# setting main directory function (4)
 function _sitename() {
-  read -p "${bold}${yellow}Please enter a name for your website root directory${normal} : " sitename
+  read -p "${bold}${yellow}Please enter a name for your website root directory.${normal} (Hit ${green}enter${normal} to use ${hostname}): " sitename
     if [[ -z $sitename ]]; then
-      read -p "${bold}${cyan}You must enter a name for your root directory${normal} : " sitename
+      echo "Using /srv/www/${green}${bold}${hostname}${normal}/public/"
       echo
     else
-      echo "Using /srv/www/${green}${bold}${sitename}${normal}/public/"
+      echo "Root directory set to /srv/www/${green}${bold}${sitename}${normal}/public/"
       echo
     fi
 }
