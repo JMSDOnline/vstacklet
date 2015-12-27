@@ -138,9 +138,14 @@ function _updates() {
 
 # setting main web root directory function (5)
 function _asksitename() {
-  echo "${bold}You may now optionally name your main web root directory.${normal}"
-  echo "${bold}If you choose to not name your main websites root directory,${normal}"
-  echo "${bold}then your servers hostname will be used as a default.${normal}"
+#################################################################
+# You may now optionally name your main web root directory.
+# If you choose to not name your main websites root directory,
+# then your servers hostname will be used as a default.
+#################################################################
+  echo "$You may now optionally name your main web root directory."
+  echo "$If you choose to not name your main websites root directory,"
+  echo "$then your servers hostname will be used as a default."
   echo
   echo -n "${bold}${yellow}Would you like to name your main web root directory?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -152,7 +157,7 @@ function _asksitename() {
 
 function _sitename() {
   if [[ ${sitename} == "yes" ]]; then
-    read -p "${bold}${yellow}Please enter a name for your main websites root directory ${normal} : " sitename
+    read -p "${bold}Name for your main websites root directory ${normal} : " sitename
     echo
     echo "Your website directory has been set to /srv/www/${green}${bold}${sitename}${normal}/public/"
     echo
@@ -185,20 +190,16 @@ function _nginx() {
   # rename default.conf template
   if [[ $sitename -eq yes ]];then 
     cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$sitename.conf
-    # build applications directory
+    # build applications web root directory if sitename is provided
     mkdir -p /srv/www/$sitename/logs >/dev/null 2>&1;
     mkdir -p /srv/www/$sitename/ssl >/dev/null 2>&1;
     mkdir -p /srv/www/$sitename/public >/dev/null 2>&1;
-    # In NginX 1.9.x the use of conf.d seems appropriate
-    # ln -s /etc/nginx/sites-available/$sitename /etc/nginx/sites-enabled/$sitename
   else
     cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$hostname1.conf
-    # build applications directory
+    # build applications web root directory if no sitename is provided
     mkdir -p /srv/www/$hostname1/logs >/dev/null 2>&1;
     mkdir -p /srv/www/$hostname1/ssl >/dev/null 2>&1;
     mkdir -p /srv/www/$hostname1/public >/dev/null 2>&1;
-    # In NginX 1.9.x the use of conf.d seems appropriate
-    # ln -s /etc/nginx/sites-available/$hostname1 /etc/nginx/sites-enabled/$hostname1
   fi
   echo "${OK}"
   echo
@@ -335,17 +336,9 @@ function _phpmyadmin() {
     if [[ $sitename -eq yes ]];then 
       # create a sym-link to live directory.
       ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
-      # Void this for now to maintain port 8080 access and avoid 404 error. This will be cleansed in v3
-      # add phpmyadmin directive to nginx site configuration at /etc/nginx/conf.d/$sitename.conf.
-      # locconf6="include vstacklet\/location\/pma.conf;"
-      sed -i "s/locconf6/#locconf6/" /etc/nginx/conf.d/$sitename.conf
     else
       # create a sym-link to live directory.
       ln -s /usr/share/phpmyadmin /srv/www/$hostname1/public
-      # Void this for now to maintain port 8080 access and avoid 404 error. This will be cleansed in v3
-      # add phpmyadmin directive to nginx site configuration at /etc/nginx/conf.d/$hostname1.conf.
-      # locconf6="include vstacklet\/location\/pma.conf;"
-      sed -i "s/locconf6/#locconf6/" /etc/nginx/conf.d/$hostname1.conf
     fi
     echo "${OK}"
     # get phpmyadmin directory
@@ -582,10 +575,8 @@ function _locenhance() {
     sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/$sitename.conf
     locconf3="include vstacklet\/location\/expires.conf;"
     sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/$sitename.conf
-  # locconf4="include vstacklet\/location\/extensionless-uri.conf;"
-  # sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$sitename.conf
-    locconf5="include vstacklet\/location\/protect-system-files.conf;"
-    sed -i "s/locconf5/$locconf5/" /etc/nginx/conf.d/$sitename.conf
+    locconf4="include vstacklet\/location\/protect-system-files.conf;"
+    sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$sitename.conf
   else
     locconf1="include vstacklet\/location\/cache-busting.conf;"
     sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$hostname1.conf
@@ -593,10 +584,8 @@ function _locenhance() {
     sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/$hostname1.conf
     locconf3="include vstacklet\/location\/expires.conf;"
     sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/$hostname1.conf
-  # locconf4="include vstacklet\/location\/extensionless-uri.conf;"
-  # sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$hostname1.conf
-    locconf5="include vstacklet\/location\/protect-system-files.conf;"
-    sed -i "s/locconf5/$locconf5/" /etc/nginx/conf.d/$hostname1.conf
+    locconf4="include vstacklet\/location\/protect-system-files.conf;"
+    sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$hostname1.conf
   fi
   echo "${OK}"
   echo 
@@ -636,21 +625,24 @@ function _askcert() {
 
 function _cert() {
   if [[ ${cert} == "yes" ]]; then
-    insert1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
     if [[ $sitename -eq yes ]];then 
-      insert2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/srv\/www\/$sitename\/ssl\/$sitename.crt;\n    ssl_certificate_key \/srv\/www\/$sitename\/ssl\/$sitename.key;"
       openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
       chmod 400 /etc/ssl/private/$sitename.key
-      sed -i "s/insert1/$insert1/" /etc/nginx/conf.d/$sitename.conf
-      sed -i "s/insert2/$insert2/" /etc/nginx/conf.d/$sitename.conf
-      sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
+      sed -i -e "s/# listen [::]:443 ssl http2;/listen [::]:443 ssl http2;/" \
+             -e "s/# listen *:443 ssl http2;/listen *:443 ssl http2;/" \
+             -e "s/# include vstacklet\/directive-only\/ssl.conf;/include vstacklet\/directive-only\/ssl.conf;/" \
+             -e "s/# ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/" \
+             -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" \
+             -e "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
     else
-      insert2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/srv\/www\/$hostname1\/ssl\/$hostname1.crt;\n    ssl_certificate_key \/srv\/www\/$hostname1\/ssl\/$hostname1.key;"
       openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /srv/www/$hostname1/ssl/$hostname1.key -out /srv/www/$hostname1/ssl/$hostname1.crt
       chmod 400 /etc/ssl/private/$hostname1.key
-      sed -i "s/insert1/$insert1/" /etc/nginx/conf.d/$hostname1.conf
-      sed -i "s/insert2/$insert2/" /etc/nginx/conf.d/$hostname1.conf
-      sed -i "s/sitename/$hostname1/" /etc/nginx/conf.d/$hostname1.conf
+      sed -i -e "s/# listen [::]:443 ssl http2;/listen [::]:443 ssl http2;/" \
+             -e "s/# listen *:443 ssl http2;/listen *:443 ssl http2;/" \
+             -e "s/# include vstacklet\/directive-only\/ssl.conf;/include vstacklet\/directive-only\/ssl.conf;/" \
+             -e "s/# ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/" \
+             -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" \
+             -e "s/sitename/$hostname1/" /etc/nginx/conf.d/$hostname1.conf
     fi
     echo "${OK}"
     echo
@@ -659,15 +651,6 @@ function _cert() {
 
 function _nocert() {
   if [[ ${cert} == "no" ]]; then
-    if [[ $sitename -eq yes ]];then 
-      sed -i "s/insert1/ /" /etc/nginx/conf.d/$sitename.conf
-      sed -i "s/insert2/ /" /etc/nginx/conf.d/$sitename.conf
-      sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
-    else
-      sed -i "s/insert1/ /" /etc/nginx/conf.d/$hostname1.conf
-      sed -i "s/insert2/ /" /etc/nginx/conf.d/$hostname1.conf
-      sed -i "s/sitename/$hostname1/" /etc/nginx/conf.d/$hostname1.conf
-    fi
     echo "${cyan}Skipping SSL Certificate Creation...${normal}"
     echo 
   fi
