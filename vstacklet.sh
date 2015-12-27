@@ -7,6 +7,11 @@
 # URL:      https://jmsolodesigns.com
 #
 
+PROGNAME="VStacklet"
+PROGDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+VERSION="2.8"
+FILES=()
+
 #Script Console Colors
 black=$(tput setaf 0);red=$(tput setaf 1);green=$(tput setaf 2);yellow=$(tput setaf 3);blue=$(tput setaf 4);magenta=$(tput setaf 5);cyan=$(tput setaf 6);white=$(tput setaf 7);on_red=$(tput setab 1);on_green=$(tput setab 2);on_yellow=$(tput setab 3);on_blue=$(tput setab 4);on_magenta=$(tput setab 5);on_cyan=$(tput setab 6);on_white=$(tput setab 7);bold=$(tput bold);dim=$(tput dim);underline=$(tput smul);reset_underline=$(tput rmul);standout=$(tput smso);reset_standout=$(tput rmso);normal=$(tput sgr0);alert=${white}${on_red};title=${standout};sub_title=${bold}${yellow};repo_title=${black}${on_green};
 
@@ -37,11 +42,13 @@ function _askvstacklet() {
   echo
   echo
   echo "${title} Welcome to the VStacklet LEMP stack install kit! ${normal}"
+  echo " version: ${VERSION}"
   echo
   echo "${bold} Enjoy the simplicity one script can provide to deliver ${normal}"
   echo "${bold} you the essentials of a finely tuned server environment.${normal}"
   echo "${bold} Nginx, Varnish, CSF, MariaDB w/ phpMyAdmin to name a few.${normal}"
   echo "${bold} Actively maintained and quality controlled.${normal}"
+  echo
   echo
   echo -n "${bold}${yellow}Are you ready to install VStacklet for Ubuntu 14.04 & 15.x ?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -64,7 +71,7 @@ function _vstacklet() {
 function _novstacklet() {
   if [[ ${vstacklet} == "no" ]]; then
     echo "${bold}${cyan}Cancelling install. If you would like to run this installer in the future${normal}"
-    echo "${bold}${cyan}type${normal} ${green}${bold}./vstacklet.sh${normal} - ${bold}${cyan}followed by tapping Enter on your keyboard."
+    echo "${bold}${cyan}type${normal} ${green}${bold}./vstacklet.sh${normal} - ${bold}${cyan}followed by tapping Enter on your keyboard.${normal}"
   fi
 }
 

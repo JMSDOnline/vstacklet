@@ -665,9 +665,13 @@ function _services() {
   service nginx restart >>"${OUTTO}" 2>&1;
   service varnish restart >>"${OUTTO}" 2>&1;
   service php5-fpm restart >>"${OUTTO}" 2>&1;
-  service sendmail restart >>"${OUTTO}" 2>&1;
-  service lfd restart >>"${OUTTO}" 2>&1;
-  csf -r >>"${OUTTO}" 2>&1;
+  if [[ $sendmail -eq yes ]];then 
+    service sendmail restart >>"${OUTTO}" 2>&1;
+  fi
+  if [[ $csf -eq yes ]];then 
+    service lfd restart >>"${OUTTO}" 2>&1;
+    csf -r >>"${OUTTO}" 2>&1;
+  fi
   echo "${OK}"
   echo
 }
