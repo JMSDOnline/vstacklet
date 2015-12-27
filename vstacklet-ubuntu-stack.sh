@@ -77,15 +77,7 @@ function _logcheck() {
   echo
 }
 
-# setting main directory function (4)
-function _sitename() {
-  read -p "${bold}${yellow}Please enter a name for your main websites root directory ${normal} : " sitename
-    echo
-    echo "Root directory set to /srv/www/${green}${bold}${sitename}${normal}/public/"
-    echo
-}
-
-# system packages and repos function (5)
+# system packages and repos function (4)
 # Update packages and add MariaDB, Varnish 4, and Nginx 1.9.9 (mainline) repositories
 function _softcommon() {
   # package and repo addition (a) _install common properties_
@@ -144,6 +136,43 @@ function _updates() {
   echo
 }
 
+# setting main web root directory function (5)
+function _asksitename() {
+#################################################################
+# You may now optionally name your main web root directory.
+# If you choose to not name your main websites root directory,
+# then your servers hostname will be used as a default.
+#################################################################
+  echo "  You may now optionally name your main web root directory."
+  echo "  If you choose to not name your main websites root directory,"
+  echo "  then your servers hostname will be used as a default."
+  echo "  Default: /srv/www/${green}${hostname1}${normal}/public/"
+  echo
+  echo -n "${bold}${yellow}Would you like to name your main web root directory?${normal} (${bold}${green}Y${normal}/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) sitename=yes ;;
+    [nN] | [nN][Oo] ) sitename=no ;;
+  esac
+}
+
+function _sitename() {
+  if [[ ${sitename} == "yes" ]]; then
+    read -p "${bold}Name for your main websites root directory ${normal} : " sitename
+    echo
+    echo "Your website directory has been set to /srv/www/${green}${bold}${sitename}${normal}/public/"
+    echo
+  fi
+}
+
+function _nositename() {
+  if [[ ${sitename} == "no" ]]; then
+    echo
+    echo "Your website directory has been set to /srv/www/${green}${bold}${hostname1}${normal}/public/"
+    echo
+  fi
+}
+
 # install nginx function (6)
 function _nginx() {
   apt-get -y install nginx >>"${OUTTO}" 2>&1;
@@ -160,13 +189,19 @@ function _nginx() {
     -e "s/logs\/access.log/\/var\/log\/nginx\/access.log/" /etc/nginx/nginx.conf
   sed -i.bak -e "s/logs\/static.log/\/var\/log\/nginx\/static.log/" /etc/nginx/vstacklet/location/expires.conf
   # rename default.conf template
-  cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$sitename.conf
-  # build applications directory
-  mkdir -p /srv/www/$sitename/app/static >/dev/null 2>&1;
-  mkdir -p /srv/www/$sitename/app/templates >/dev/null 2>&1;
-  mkdir -p /srv/www/$sitename/public >/dev/null 2>&1;
-  # In NginX 1.9.x the use of conf.d seems appropriate
-  # ln -s /etc/nginx/sites-available/$sitename /etc/nginx/sites-enabled/$sitename
+  if [[ $sitename -eq yes ]];then 
+    cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$sitename.conf
+    # build applications web root directory if sitename is provided
+    mkdir -p /srv/www/$sitename/logs >/dev/null 2>&1;
+    mkdir -p /srv/www/$sitename/ssl >/dev/null 2>&1;
+    mkdir -p /srv/www/$sitename/public >/dev/null 2>&1;
+  else
+    cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$hostname1.conf
+    # build applications web root directory if no sitename is provided
+    mkdir -p /srv/www/$hostname1/logs >/dev/null 2>&1;
+    mkdir -p /srv/www/$hostname1/ssl >/dev/null 2>&1;
+    mkdir -p /srv/www/$hostname1/public >/dev/null 2>&1;
+  fi
   echo "${OK}"
   echo
 }
@@ -215,7 +250,11 @@ function _php() {
   # ensure mcrypt module is activated
   php5enmod mcrypt
   # write checkinfo for php verification
-  echo '<?php phpinfo(); ?>' > /srv/www/$sitename/public/checkinfo.php
+  if [[ $sitename -eq yes ]];then 
+    echo '<?php phpinfo(); ?>' > /srv/www/$sitename/public/checkinfo.php
+  else
+    echo '<?php phpinfo(); ?>' > /srv/www/$hostname1/public/checkinfo.php
+  fi
   echo "${OK}"
   echo
 }
@@ -295,12 +334,13 @@ function _phpmyadmin() {
     echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
     echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
     apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
-    # create a sym-link to live directory.
-    ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
-    # Void this for now to maintain port 8080 access and avoid 404 error.
-    # add phpmyadmin directive to nginx site configuration at /etc/nginx/conf.d/$sitename.conf.
-    # locconf6="include vstacklet\/location\/pma.conf;"
-    sed -i "s/locconf6/#locconf6/" /etc/nginx/conf.d/$sitename.conf
+    if [[ $sitename -eq yes ]];then 
+      # create a sym-link to live directory.
+      ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
+    else
+      # create a sym-link to live directory.
+      ln -s /usr/share/phpmyadmin /srv/www/$hostname1/public
+    fi
     echo "${OK}"
     # get phpmyadmin directory
     DIR="/etc/phpmyadmin";
@@ -322,10 +362,10 @@ function _phpmyadmin() {
     echo
     echo "${bold}Below are your phpMyAdmin and MySQL details.${normal}"
     echo "${bold}Details are logged in the${normal} ${bold}${green}/root/.my.cnf${normal} ${bold}file.${normal}"
-    echo "Best practice is to copy this file locally then rm .my.cnf"
+    echo "Best practice is to copy this file locally then rm ~/.my.cnf"
     echo
     # show contents of .my.cnf file
-    tail ~/.my.cnf
+    cat ~/.my.cnf
     echo
   fi
 }
@@ -398,7 +438,7 @@ function _csf() {
     echo "${magenta}${bold}Add an Administrator Email Below for Aliases Inclusion${normal}"
     read -p "${bold}Email: ${normal}" admin_email
     echo
-    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
+    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding address for root mail${normal}"
     echo -n "${green}finalizing sendmail installation${normal} ... "
     # install aliases
     echo -e "mailer-daemon: postmaster
@@ -486,7 +526,7 @@ function _sendmail() {
     echo "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
     read -p "${bold}Email: ${normal}" admin_email
     echo
-    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
+    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding address for root mail${normal}"
     echo -n "${green}finalizing sendmail installation${normal} ... "
     # install aliases
     echo -e "mailer-daemon: postmaster
@@ -529,16 +569,25 @@ function _nosendmail() {
 # Round 1 - Location
 # enhance configuration function (15)
 function _locenhance() {
-  locconf1="include vstacklet\/location\/cache-busting.conf;"
-  sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
-  locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
-  sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/$sitename.conf
-  locconf3="include vstacklet\/location\/expires.conf;"
-  sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/$sitename.conf
-# locconf4="include vstacklet\/location\/extensionless-uri.conf;"
-# sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$sitename.conf
-  locconf5="include vstacklet\/location\/protect-system-files.conf;"
-  sed -i "s/locconf5/$locconf5/" /etc/nginx/conf.d/$sitename.conf
+  if [[ $sitename -eq yes ]];then 
+    locconf1="include vstacklet\/location\/cache-busting.conf;"
+    sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
+    locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
+    sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/$sitename.conf
+    locconf3="include vstacklet\/location\/expires.conf;"
+    sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/$sitename.conf
+    locconf4="include vstacklet\/location\/protect-system-files.conf;"
+    sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$sitename.conf
+  else
+    locconf1="include vstacklet\/location\/cache-busting.conf;"
+    sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$hostname1.conf
+    locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
+    sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/$hostname1.conf
+    locconf3="include vstacklet\/location\/expires.conf;"
+    sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/$hostname1.conf
+    locconf4="include vstacklet\/location\/protect-system-files.conf;"
+    sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$hostname1.conf
+  fi
   echo "${OK}"
   echo 
 }
@@ -546,12 +595,21 @@ function _locenhance() {
 # Round 2 - Security
 # optimize security configuration function (16)
 function _security() {
-  secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
-  sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
-  secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
-  sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$sitename.conf
-  secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
-  sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$sitename.conf
+  if [[ $sitename -eq yes ]];then 
+    secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
+    sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
+    secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
+    sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$sitename.conf
+    secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
+    sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$sitename.conf
+  else
+    secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
+    sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$hostname1.conf
+    secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
+    sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$hostname1.conf
+    secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
+    sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$hostname1.conf
+  fi
   echo "${OK}"
   echo
 }
@@ -568,13 +626,25 @@ function _askcert() {
 
 function _cert() {
   if [[ ${cert} == "yes" ]]; then
-    insert1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
-    insert2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/etc\/ssl\/certs\/$sitename.crt;\n    ssl_certificate_key \/etc\/ssl\/private\/$sitename.key;"
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
-    chmod 400 /etc/ssl/private/$sitename.key
-    sed -i "s/insert1/$insert1/" /etc/nginx/conf.d/$sitename.conf
-    sed -i "s/insert2/$insert2/" /etc/nginx/conf.d/$sitename.conf
-    sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
+    if [[ $sitename -eq yes ]];then 
+      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
+      chmod 400 /etc/ssl/private/$sitename.key
+      sed -i -e "s/# listen [::]:443 ssl http2;/listen [::]:443 ssl http2;/" \
+             -e "s/# listen *:443 ssl http2;/listen *:443 ssl http2;/" \
+             -e "s/# include vstacklet\/directive-only\/ssl.conf;/include vstacklet\/directive-only\/ssl.conf;/" \
+             -e "s/# ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/" \
+             -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" \
+             -e "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
+    else
+      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /srv/www/$hostname1/ssl/$hostname1.key -out /srv/www/$hostname1/ssl/$hostname1.crt
+      chmod 400 /etc/ssl/private/$hostname1.key
+      sed -i -e "s/# listen [::]:443 ssl http2;/listen [::]:443 ssl http2;/" \
+             -e "s/# listen *:443 ssl http2;/listen *:443 ssl http2;/" \
+             -e "s/# include vstacklet\/directive-only\/ssl.conf;/include vstacklet\/directive-only\/ssl.conf;/" \
+             -e "s/# ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/" \
+             -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" \
+             -e "s/sitename/$hostname1/" /etc/nginx/conf.d/$hostname1.conf
+    fi
     echo "${OK}"
     echo
   fi
@@ -582,9 +652,6 @@ function _cert() {
 
 function _nocert() {
   if [[ ${cert} == "no" ]]; then
-    sed -i "s/insert1/ /" /etc/nginx/conf.d/$sitename.conf
-    sed -i "s/insert2/ /" /etc/nginx/conf.d/$sitename.conf
-    sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
     echo "${cyan}Skipping SSL Certificate Creation...${normal}"
     echo 
   fi
@@ -648,12 +715,12 @@ OK=$(echo -e "[ ${bold}${green}DONE${normal} ]")
 _intro
 _checkroot
 _logcheck
-_sitename
 echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon
 echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${normal} ... ";_depends
 echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys
 echo -n "${bold}Adding trusted repositories${normal} ... ";_repos
 echo -n "${bold}Applying Updates${normal} ... ";_updates
+_asksitename;if [[ ${sitename} == "yes" ]]; then _sitename; elif [[ ${sitename} == "no" ]]; then _nositename;  fi
 echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx
 echo -n "${bold}Adjusting Permissions${normal} ... ";_perms
 echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish
