@@ -191,7 +191,7 @@ function _nginx() {
     mkdir -p /srv/www/$sitename/public >/dev/null 2>&1;
     # In NginX 1.9.x the use of conf.d seems appropriate
     # ln -s /etc/nginx/sites-available/$sitename /etc/nginx/sites-enabled/$sitename
-  else
+  elif [[ ${sitename} == "no" ]]; then
     cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$hostname1.conf
     # build applications directory
     mkdir -p /srv/www/$hostname1/logs >/dev/null 2>&1;
@@ -250,7 +250,7 @@ function _php() {
   # write checkinfo for php verification
   if [[ ${sitename} == "yes" ]]; then
     echo '<?php phpinfo(); ?>' > /srv/www/$sitename/public/checkinfo.php
-  else
+  elif [[ ${sitename} == "no" ]]; then
     echo '<?php phpinfo(); ?>' > /srv/www/$hostname1/public/checkinfo.php
   fi
   echo "${OK}"
@@ -332,12 +332,21 @@ function _phpmyadmin() {
     echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
     echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
     apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
-    # create a sym-link to live directory.
-    ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
-    # Void this for now to maintain port 8080 access and avoid 404 error. This will be cleansed in v3
-    # add phpmyadmin directive to nginx site configuration at /etc/nginx/conf.d/$sitename.conf.
-    # locconf6="include vstacklet\/location\/pma.conf;"
-    sed -i "s/locconf6/#locconf6/" /etc/nginx/conf.d/$sitename.conf
+    if [[ ${sitename} == "yes" ]]; then
+      # create a sym-link to live directory.
+      ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
+      # Void this for now to maintain port 8080 access and avoid 404 error. This will be cleansed in v3
+      # add phpmyadmin directive to nginx site configuration at /etc/nginx/conf.d/$sitename.conf.
+      # locconf6="include vstacklet\/location\/pma.conf;"
+      sed -i "s/locconf6/#locconf6/" /etc/nginx/conf.d/$sitename.conf
+    elif [[ ${sitename} == "no" ]]; then
+      # create a sym-link to live directory.
+      ln -s /usr/share/phpmyadmin /srv/www/$hostname1/public
+      # Void this for now to maintain port 8080 access and avoid 404 error. This will be cleansed in v3
+      # add phpmyadmin directive to nginx site configuration at /etc/nginx/conf.d/$hostname1.conf.
+      # locconf6="include vstacklet\/location\/pma.conf;"
+      sed -i "s/locconf6/#locconf6/" /etc/nginx/conf.d/$hostname1.conf
+    fi
     echo "${OK}"
     # get phpmyadmin directory
     DIR="/etc/phpmyadmin";
@@ -577,7 +586,7 @@ function _locenhance() {
   # sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$sitename.conf
     locconf5="include vstacklet\/location\/protect-system-files.conf;"
     sed -i "s/locconf5/$locconf5/" /etc/nginx/conf.d/$sitename.conf
-  else
+  elif [[ ${sitename} == "no" ]]; then
     locconf1="include vstacklet\/location\/cache-busting.conf;"
     sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$hostname1.conf
     locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
@@ -603,7 +612,7 @@ function _security() {
     sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$sitename.conf
     secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
     sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$sitename.conf
-  else
+  elif [[ ${sitename} == "no" ]]; then
     secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
     sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$hostname1.conf
     secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
@@ -635,7 +644,7 @@ function _cert() {
       sed -i "s/insert1/$insert1/" /etc/nginx/conf.d/$sitename.conf
       sed -i "s/insert2/$insert2/" /etc/nginx/conf.d/$sitename.conf
       sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
-    else
+    elif [[ ${sitename} == "no" ]]; then
       insert2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/srv\/www\/$hostname1\/ssl\/$hostname1.crt;\n    ssl_certificate_key \/srv\/www\/$hostname1\/ssl\/$hostname1.key;"
       openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /srv/www/$hostname1/ssl/$hostname1.key -out /srv/www/$hostname1/ssl/$hostname1.crt
       chmod 400 /etc/ssl/private/$hostname1.key
@@ -654,7 +663,7 @@ function _nocert() {
       sed -i "s/insert1/ /" /etc/nginx/conf.d/$sitename.conf
       sed -i "s/insert2/ /" /etc/nginx/conf.d/$sitename.conf
       sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
-    else
+    elif [[ ${sitename} == "no" ]]; then
       sed -i "s/insert1/ /" /etc/nginx/conf.d/$hostname1.conf
       sed -i "s/insert2/ /" /etc/nginx/conf.d/$hostname1.conf
       sed -i "s/sitename/$hostname1/" /etc/nginx/conf.d/$hostname1.conf
