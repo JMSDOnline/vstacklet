@@ -28,8 +28,6 @@ function _intro() {
   echo "  [${repo_title}vstacklet${normal}] ${title} Varnish LEMP Stack Installation ${normal}  "
   echo "${alert} Configured and tested for Ubuntu 14.04, 15.04 & 15.10 ${normal}"
   echo
-  echo "${bold}Installs and configures LEMP stack with Varnish support for PHP Applications.${normal}"
-  echo
   echo
 
   echo "${green}Checking distribution ...${normal}"
