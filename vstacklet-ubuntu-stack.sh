@@ -248,7 +248,7 @@ function _php() {
   # ensure mcrypt module is activated
   php5enmod mcrypt
   # write checkinfo for php verification
-  if [[ ${sitename} == "yes" ]]; then
+  if [[ $sitename -eq yes ]];then 
     echo '<?php phpinfo(); ?>' > /srv/www/$sitename/public/checkinfo.php
   else
     echo '<?php phpinfo(); ?>' > /srv/www/$hostname1/public/checkinfo.php
@@ -332,7 +332,7 @@ function _phpmyadmin() {
     echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
     echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
     apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
-    if [[ ${sitename} == "yes" ]]; then
+    if [[ $sitename -eq yes ]];then 
       # create a sym-link to live directory.
       ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
       # Void this for now to maintain port 8080 access and avoid 404 error. This will be cleansed in v3
@@ -444,7 +444,7 @@ function _csf() {
     echo "${magenta}${bold}Add an Administrator Email Below for Aliases Inclusion${normal}"
     read -p "${bold}Email: ${normal}" admin_email
     echo
-    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding email for root mail${normal}"
+    echo "${bold}The email ${green}${bold}$admin_email${normal} ${bold}is now the forwarding address for root mail${normal}"
     echo -n "${green}finalizing sendmail installation${normal} ... "
     # install aliases
     echo -e "mailer-daemon: postmaster
@@ -575,7 +575,7 @@ function _nosendmail() {
 # Round 1 - Location
 # enhance configuration function (15)
 function _locenhance() {
-  if [[ ${sitename} == "yes" ]]; then
+  if [[ $sitename -eq yes ]];then 
     locconf1="include vstacklet\/location\/cache-busting.conf;"
     sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
     locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
@@ -605,7 +605,7 @@ function _locenhance() {
 # Round 2 - Security
 # optimize security configuration function (16)
 function _security() {
-  if [[ ${sitename} == "yes" ]]; then
+  if [[ $sitename -eq yes ]];then 
     secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
     sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
     secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
@@ -637,7 +637,7 @@ function _askcert() {
 function _cert() {
   if [[ ${cert} == "yes" ]]; then
     insert1="listen [::]:443 ssl http2;\n    listen *:443 ssl http2;"
-    if [[ ${sitename} == "yes" ]]; then
+    if [[ $sitename -eq yes ]];then 
       insert2="include vstacklet\/directive-only\/ssl.conf;\n    ssl_certificate \/srv\/www\/$sitename\/ssl\/$sitename.crt;\n    ssl_certificate_key \/srv\/www\/$sitename\/ssl\/$sitename.key;"
       openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
       chmod 400 /etc/ssl/private/$sitename.key
@@ -659,7 +659,7 @@ function _cert() {
 
 function _nocert() {
   if [[ ${cert} == "no" ]]; then
-    if [[ ${sitename} == "yes" ]]; then
+    if [[ $sitename -eq yes ]];then 
       sed -i "s/insert1/ /" /etc/nginx/conf.d/$sitename.conf
       sed -i "s/insert2/ /" /etc/nginx/conf.d/$sitename.conf
       sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
