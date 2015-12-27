@@ -146,7 +146,7 @@ function _asksitename() {
   echo "  You may now optionally name your main web root directory."
   echo "  If you choose to not name your main websites root directory,"
   echo "  then your servers hostname will be used as a default."
-  echo "  Default: /srv/www/${green}${bold}${hostname1}${normal}/public/"
+  echo "  Default: /srv/www/${green}${hostname1}${normal}/public/"
   echo
   echo -n "${bold}${yellow}Would you like to name your main web root directory?${normal} (${bold}${green}Y${normal}/n): "
   read responce
