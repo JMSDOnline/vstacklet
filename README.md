@@ -7,7 +7,11 @@ VStacklet - A Buff LEMP Stack Kit
 
 #### Script status
 
-  ![script version 2.8](http://b.repl.ca/v1/script_version-2.8-446CB3.png)  ![script build passed](http://b.repl.ca/v1/script_build-passed-1E824C.png) 
+[![Version 2.8-production](https://img.shields.io/badge/version-2.8-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
+[![Ubuntu 15.10 Passing](https://img.shields.io/badge/Ubuntu%2015.10-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Ubuntu 15.04 Passing](https://img.shields.io/badge/Ubuntu%2015.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Ubuntu 14.04 Passing](https://img.shields.io/badge/Ubuntu%2014.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 
 --------
 
