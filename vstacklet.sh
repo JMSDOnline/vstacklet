@@ -6,10 +6,21 @@
 # Author:   Jason Matthews
 # URL:      https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack
 #
+<<<<<<< HEAD
 #################################################################################
 server_ip=$(ifconfig | sed -n 's/.*inet addr:\([0-9.]\+\)\s.*/\1/p' | grep -v 127 | head -n 1);
 hostname1=$(hostname -s);
 #################################################################################
+=======
+
+<<<<<<< HEAD
+=======
+PROGNAME="VStacklet"
+PROGDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+VERSION="2.8"
+FILES=()
+
+>>>>>>> development
 #Script Console Colors
 black=$(tput setaf 0); red=$(tput setaf 1); green=$(tput setaf 2); yellow=$(tput setaf 3);
 blue=$(tput setaf 4); magenta=$(tput setaf 5); cyan=$(tput setaf 6); white=$(tput setaf 7);
@@ -29,12 +40,17 @@ fi
 #################################################################################
 
 
+>>>>>>> master
 # Create vstacklet & backup directory strucutre
 mkdir -p vstacklet /backup/{directories,databases}
 cd vstacklet
 
 # Download the needed scripts for VStacklet
+<<<<<<< HEAD
+curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/vstacklet-trusty-stack.sh >/dev/null 2>&1;
+=======
 curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/vstacklet-ubuntu-stack.sh >/dev/null 2>&1;
+>>>>>>> master
 curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/files-backup.sh >/dev/null 2>&1;
 curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/database-backup.sh >/dev/null 2>&1;
 curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/package-backups.sh >/dev/null 2>&1;
@@ -49,6 +65,11 @@ curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/vs-backup
 chmod +x vs-backup
 mv vs-backup /usr/local/bin
 
+<<<<<<< HEAD
+DIR="vstacklet"
+if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+. "$DIR/vstacklet-trusty-stack.sh"
+=======
 function _string() { perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15 ; }
 
 function _askvstacklet() {
@@ -89,3 +110,7 @@ function _novstacklet() {
 }
 
 _askvstacklet;if [[ ${vstacklet} == "yes" ]]; then echo -n "${bold}Installing VStacklet Kit for 14.04, 15.04 and 15.10 support${normal} ... ";_vstacklet; elif [[ ${vstacklet} == "no" ]]; then _novstacklet;  fi
+<<<<<<< HEAD
+=======
+>>>>>>> master
+>>>>>>> development
