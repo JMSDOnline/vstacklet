@@ -1,13 +1,30 @@
-VStacklet
+VStacklet - A Buff LEMP Stack Kit
 ==========
 
-Scripts to quickly install a [LEMP Stack](https://lemp.io) and perform basic configuration of new Ubuntu 14.04, and 15.04 [untested] servers.
+| ![VStacklet - A Buff LEMP Stack Kit](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-lemp-kit.png "vstacklet") |
+|---|
+| **VStacklet - A Buff LEMP Stack Kit** |
 
+<<<<<<< HEAD
 Please be advised that I am building/testing this script on Ubuntu 14.04 (Trusty) as it does support Nginx versions higher than 1.8.
+=======
+#### Script status
 
-Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified for use with mainline_), and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), ~~Python~~, and CSF (Config Server Firewall) **To be added soon**.
+[![Version 2.8-production](https://img.shields.io/badge/version-2.8-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
+[![Ubuntu 15.10 Passing](https://img.shields.io/badge/Ubuntu%2015.10-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Ubuntu 15.04 Passing](https://img.shields.io/badge/Ubuntu%2015.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Ubuntu 14.04 Passing](https://img.shields.io/badge/Ubuntu%2014.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 
-Deploys a proper directory strucutre and creates a PHP page for testing.
+--------
+
+Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04 and 15.10 servers.
+
+Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
+>>>>>>> master
+
+Deploys a proper directory strucutre, optimizes Nginx and Varnish, creates a PHP page for testing and more!
+
 
 Script Features
 --------
@@ -15,7 +32,10 @@ Script Features
   * Script writes output to /root/vstacklet.log for additional observations.
   * Color Coding for emphasis on install processes.
   * Defaults are set to (Y) - just hit enter if you accept.
+  * Varnish Cache on port 80 with Nginx port 8080 SSL terminiation on 443.
+  * No Apache - Full throttle!
   * Fast and Lightweight install.
+<<<<<<< HEAD
   * HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ [HTTP/2 Checker](http://h2.nix-admin.com/)
   * Everything you need to get that Nginx + Varnish server up and running!
 
@@ -26,9 +46,20 @@ Total script install time on a $5 [Digital Ocean Droplet](https://www.digitaloce
 ![preview 3](https://jmsolodesigns.com/bucket/vstacklet/blob/master/images/vstacklet-p3.png "vstacklet preview 3")
 ![preview 4](https://jmsolodesigns.com/bucket/vstacklet/blob/master/images/vstacklet-p4.png "vstacklet preview 4")
 ![preview 5](https://jmsolodesigns.com/bucket/vstacklet/blob/master/images/vstacklet-p5.png "vstacklet preview 5")
+=======
+  * Full Kit functionality - backup scripts included.
+  * Actively maintained w/ updates added when stable.
+  * HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="http://h2.nix-admin.com/" target="_blank">HTTP/2 Checker</a>
+  * Everything you need to get that Nginx + Varnish server up and running!
 
- Scripts
+Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 10:12 installing everything. No Sendmail or Cert script installs at 04:22. This time assumes you are sitting attentively with the script running. There are a limited number of interactions to be made with the script and most of the softwares installed I have automated and logged, however, I feel it is important to have some sort of interaction... at the very least so you are familiar with what is being installed along with the options to tell it to go to hell.
+
+![preview 1](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-script-preview1.png "vstacklet preview 1")
+>>>>>>> master
+
+ Meet the Scripts
 --------
+<<<<<<< HEAD
 __Setup__ - Basic setup for new Ubuntu server.
 
   * Intended only for new Ubuntu installations.
@@ -38,24 +69,45 @@ __Setup__ - Basic setup for new Ubuntu server.
 
 __Stack__ - Installs and configures LEMP stack with support for Website-based server environments.
 
+=======
+
+__VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments.
+  *
+>>>>>>> master
   * Adds repositories for the latest stable versions of MariaDB, mainline (1.9.x) versions of Nginx, and Varnish 4.
   * Installs and configures Nginx, Varnish and MariaDB.
   * Installs PHP-FPM for PHP5.
   * Enables OPCode Cache and fine-tuning
   * Installs and Enables IonCube Loader
+<<<<<<< HEAD
   * Installs and Enables (PHP) Sendmail
+=======
+  * Installs and Auto-Configures phpMyAdmin - MySQL & phpMyAdmin credentials are stored in /root/.my.cnf
+>>>>>>> master
   * MariaDB 10.0 can easily switched to 5.5 or substituted for PostgreSQL.
-  * Supports IPv6 by default .
+  * Installs and Adjusts CSF (Config Server Firewall) - prepares ports used for VStacklet as well as informing your entered email for security alerts.
+  * Installs and Enables (PHP) Sendmail
+  * Supports IPv6 by default.
   * Optional self-signed SSL cert configuration.
+  * Easy to configure & run backup executable __vs-backup__ for data-protection.
 
+<<<<<<< HEAD
 __Backups__ - Installs scripts to help manage and automate server/site backups (_coming soon as a single script_).
 
+=======
+__VS-Backup__ - Installs scripts to help manage and automate server/site backups 
+Updated: ~~(_coming soon as a single script_)~~ Added as standalone and included in full kit.
+  *
+>>>>>>> master
   * Backup your files in key locations (ex: /srv/www /etc /root)
   * Backup your databases
   * Package files & databases to one archive
   * Cleanup remaining individual archives
+  * Simply configure and type '__vs-backup__' to backup important directories and databases - cron examples included.
 
-Quick Start
+![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/master/images/vs-backup-utility-preview.png "VStacklets VS-Backup Utility")
+
+Getting Started
 ----------------
 _You should read these scripts before running them so you know what they're
 doing._ Changes may be necessary to meet your needs.
@@ -72,22 +124,55 @@ apt-get autoclean
 apt-get autoremove
 ```
 
-### Setup - Basic setup for new Ubuntu server:
-#### 14.04 only
+### VStacklet FULL Kit - Installs and configures the VStacklet LEMP kit stack:
+( _includes backup scripts_ )
+
+**NOTE:** Want to go 15.x? You may need to run first the following  -
+
 ```
-curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet-trusty-setup.sh
-chmod +x vstacklet-trusty-setup.sh
-./vstacklet-trusty-setup.sh
+apt-get install -y curl
+```
+... then run our main installer ...
+```
+curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet.sh
+chmod +x vstacklet.sh
+./vstacklet.sh
 ```
 
-### Stack - Installs and configures LEMP stack:
-##### 14.04 only
+### VStacklet VS-Backup - Installs needed files for running complete system backups:
 ```
-curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet-trusty-stack.sh
-chmod +x vstacklet-trusty-stack.sh
-./vstacklet-trusty-stack.sh
+curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet-backup-standalone.sh
+chmod +x vstacklet-backup-standalone.sh
+./vstacklet-backup-standalone.sh
 ```
+
 ### The TO-DO List
+<<<<<<< HEAD
   1. FTP Server
   2. phpMyAdmin
   3. Config Server Firewall
+=======
+- [x] Enable OPCode Caching
+- [x] Sendmail
+- [x] IonCube Loader (w/ option prompt)
+- [x] Improve script structure
+- [ ] FTP Server (w/ option prompt)
+- [x] phpMyAdmin (w/ option prompt)
+- [x] CSF (w/ option prompt)
+- [x] VS-Backup standalone kit (included in FULL Kit also)
+- [ ] VStacklet-lite 
+- [x] Full support for Ubuntu 14.04, 15.04 and 15.10 
+
+
+### Additional Notes and honorable mentions
+
+This is a modification of it's original branch provided by <a href="https://github.com/jbradach/quick-lemp/" target="_blank">quick-lemp</a>. The scripts within VStacklet LEMP Kit come with heavy modifications to  the origianl quick-lemp script... in this regards, these two scripts are entirely separate and not similar to one another. Quick-LEMP is mentioned as it started the VStacklet Kit Project... what was to be a simply pull request to it's original owner, took on a new scope and thus simply became a new project. The changes include ushering in __CSF__, __Varnish__ as well as installing and configuring __Sendmail__ and __phpMyAdmin__ for ease of use. 
+
+Quick-Lemp is geared towards python based application installs and using default Boilerplate templates on Nginx/stable versions of no higher than 1.8. This limits the use of new functions and features in Nginx, nothing wrong with that, but some of us are sticklers for a recent version. 
+
+My focus was and is to provide a modified version for CMS and typical website server i.e;(WordPress, Joomla!, Drupal, Ghost, Magento ... etc ... ) installations, Updated/Modified/Customized Boilerplate templates to be more 'Nginx mainline' friendly; i.e http/2, as well as the ongoing use of static websites (which the original still handles splendidly!)
+
+Again, please be advised that I am building/testing this script on Ubuntu 14.04 (Trusty) as it supports Nginx versions higher than 1.8.
+
+As per any contributions, be it suggestions, critiques, alterations and on and on are all welcome!
+>>>>>>> master

@@ -2,31 +2,42 @@
 #start
 #-----------------------------------------------------------------------
 
+green=$(tput setaf 2);
+magenta=$(tput setaf 5);
+normal=$(tput sgr0);
+OK=$(echo -e "[ ${green}DONE${normal} ]")
+OUTTO="/root/vs-backup.log"
+
 #verify directory structure exists prior to running this job
-backup_files="/backup";
+PACBfiles="/backup";
 # Where to backup to.
-dest="/backup/";
+PACDest="/";
 
 # Create archive filename.
-day=$(date +%b-%d-%y);
-hostname=$(hostname -s);
+PACDay=$(date +%b-%d-%y);
+PACHostname=$(hostname -s);
 additional_code="packaged"
-archive_file="$hostname-$day-$additional_code.tgz";
+PACAfile="$PACHostname-$PACDay-$additional_code.tgz";
 
 # Print start status message.
-  echo "Backing up $backup_files to $dest$archive_file"
-  date
-  echo
+  echo -n "Packaging the contents of ${magenta}$PACBfiles${normal} to ${magenta}/backup$PACDest$PACAfile${normal} ... ";
+  date >>"${OUTTO}" 2>&1;
+  echo >>"${OUTTO}" 2>&1;
 
 # Backup the files using tar.
-  tar -cpzf $dest$archive_file $backup_files;
+  tar -cpzf $PACDest$PACAfile $PACBfiles >>"${OUTTO}" 2>&1 &&
+  cd $PACDest
+  mv $PACHostname-$PACDay-$additional_code.tgz /backup &&
+  cd /root/vstacklet
+    echo -n "${OK}"
+    echo
 
 # Print end status message.
-  echo
-  echo "Backup finished"
-  date
+  echo >>"${OUTTO}" 2>&1;
+  echo "Backup finished" >>"${OUTTO}" 2>&1;
+  date >>"${OUTTO}" 2>&1;
 
 # Long listing of files in $dest to check file sizes.
-  ls -lh $dest;
+  ls -lh $PACBfiles >>"${OUTTO}" 2>&1;
 #-----------------------------------------------------------------------
 #end

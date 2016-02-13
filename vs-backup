@@ -1,6 +1,7 @@
 #!/bin/bash
 ################################################################################
 #
+<<<<<<< HEAD
 # A utility script to configure your system backups
 #
 ################################################################################
@@ -94,3 +95,103 @@ then
 fi
 
 main $FILES
+=======
+# VStacklet System Backup Command
+#
+################################################################################
+
+function _string() { perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15 ; }
+
+function _intro() {
+  echo
+  echo "  [ ${repo_title} vstacklet ${normal} ] ${standout}  System Backup Utility ${normal}  "
+  echo "  ${bold}You can review your backup log @ /root/vs-backup.log ${normal}"
+  echo
+  echo "  Press ${standout}${green}ENTER${normal} when you're ready to begin" ;read input
+  echo
+}
+
+function _askdirectories() {
+  echo -n "${bold}Do you want to backup your specified directories?${normal} (Y/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) directories=yes ;;
+    [nN] | [nN][Oo] ) directories=no ;;
+  esac
+}
+
+function _directories() {
+  if [[ ${directories} == "yes" ]]; then
+  DIR="vstacklet"
+    if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+    . "$DIR/files-backup.sh";
+  fi
+}
+
+function _askdatabase() {
+  echo -n "${bold}Do you want to backup your specified databases?${normal} (Y/n): "
+  read responce
+  case $responce in
+    [yY] | [yY][Ee][Ss] | "" ) database=yes ;;
+    [nN] | [nN][Oo] ) database=no ;;
+  esac
+}
+
+function _database() {
+  if [[ ${database} == "yes" ]]; then
+  DIR="vstacklet"
+    if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+    . "$DIR/database-backup.sh";
+  fi
+}
+
+function _package() {
+  DIR="vstacklet"
+    if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+    . "$DIR/package-backups.sh";
+}
+
+function _clean() {
+  DIR="vstacklet"
+    if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
+    . "$DIR/backup-cleanup.sh";
+    echo "${OK}"
+}
+
+clear
+
+DIR="vstacklet";
+# for directories
+cat -- "$DIR/files-backup.sh";
+# for database
+cat -- "$DIR/database-backup.sh";
+# for packaging contents
+cat -- "$DIR/package-backups.sh";
+
+clear
+
+#Script Console Colors - dazzle me Amadeus, dazzle me!
+black=$(tput setaf 0);
+green=$(tput setaf 2);
+on_green=$(tput setab 2);
+bold=$(tput bold);
+standout=$(tput smso);
+normal=$(tput sgr0);
+sub_title=${bold}${yellow};
+repo_title=${black}${on_green};
+OK=$(echo -e "[ ${green}DONE${normal} ]")
+
+
+# VS-BACKUP STRUCTURE
+_intro
+_askdirectories;if [[ ${directories} == "yes" ]]; then _directories; fi
+_askdatabase;if [[ ${database} == "yes" ]]; then _database; fi
+_package
+echo -n "Performing cleanup to remove leftover archives ... ";_clean
+echo
+echo -n "[ ${bold}${green}Backup Complete${normal} ] ${bold}Find your backup in /backup${normal}";
+echo
+echo
+
+exit
+>>>>>>> master
