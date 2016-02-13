@@ -14,7 +14,7 @@ VStacklet - A Buff LEMP Stack Kit
 [![Ubuntu 14.04 Passing](https://img.shields.io/badge/Ubuntu%2014.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 
 --------
-
+ 
 Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04 and 15.10 servers.
 
 Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
@@ -58,7 +58,7 @@ __VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for W
   * Optional self-signed SSL cert configuration.
   * Easy to configure & run backup executable __vs-backup__ for data-protection.
 
-__VS-Backup__ - Installs scripts to help manage and automate server/site backups 
+__VS-Backup__ - Installs scripts to help manage and automate server/site backups
 Updated: ~~(_coming soon as a single script_)~~ Added as standalone and included in full kit.
   *
   * Backup your files in key locations (ex: /srv/www /etc /root)
@@ -80,7 +80,7 @@ If components are already installed, the core packages can be removed with:
 ```
 apt-get purge apache mysql apache2-mpm-prefork apache2-utils apache2.2-bin apache2.2-common \
 libapache2-mod-php5 libapr1 libaprutil1 libdbd-mysql-perl libdbi-perl libnet-daemon-perl \
-libplrpc-perl libpq5 mysql-client-5.5 mysql-common mysql-server mysql-server-5.5 php5-common \ 
+libplrpc-perl libpq5 mysql-client-5.5 mysql-common mysql-server mysql-server-5.5 php5-common \
 php5-mysql
 apt-get autoclean
 apt-get autoremove
@@ -117,15 +117,15 @@ chmod +x vstacklet-backup-standalone.sh
 - [x] phpMyAdmin (w/ option prompt)
 - [x] CSF (w/ option prompt)
 - [x] VS-Backup standalone kit (included in FULL Kit also)
-- [ ] VStacklet-lite 
-- [x] Full support for Ubuntu 14.04, 15.04 and 15.10 
+- [ ] VStacklet-lite
+- [x] Full support for Ubuntu 14.04, 15.04 and 15.10
 
 
 ### Additional Notes and honorable mentions
 
-This is a modification of it's original branch provided by <a href="https://github.com/jbradach/quick-lemp/" target="_blank">quick-lemp</a>. The scripts within VStacklet LEMP Kit come with heavy modifications to  the origianl quick-lemp script... in this regards, these two scripts are entirely separate and not similar to one another. Quick-LEMP is mentioned as it started the VStacklet Kit Project... what was to be a simply pull request to it's original owner, took on a new scope and thus simply became a new project. The changes include ushering in __CSF__, __Varnish__ as well as installing and configuring __Sendmail__ and __phpMyAdmin__ for ease of use. 
+This is a modification of it's original branch provided by <a href="https://github.com/jbradach/quick-lemp/" target="_blank">quick-lemp</a>. The scripts within VStacklet LEMP Kit come with heavy modifications to  the origianl quick-lemp script... in this regards, these two scripts are entirely separate and not similar to one another. Quick-LEMP is mentioned as it started the VStacklet Kit Project... what was to be a simply pull request to it's original owner, took on a new scope and thus simply became a new project. The changes include ushering in __CSF__, __Varnish__ as well as installing and configuring __Sendmail__ and __phpMyAdmin__ for ease of use.
 
-Quick-Lemp is geared towards python based application installs and using default Boilerplate templates on Nginx/stable versions of no higher than 1.8. This limits the use of new functions and features in Nginx, nothing wrong with that, but some of us are sticklers for a recent version. 
+Quick-Lemp is geared towards python based application installs and using default Boilerplate templates on Nginx/stable versions of no higher than 1.8. This limits the use of new functions and features in Nginx, nothing wrong with that, but some of us are sticklers for a recent version.
 
 My focus was and is to provide a modified version for CMS and typical website server i.e;(WordPress, Joomla!, Drupal, Ghost, Magento ... etc ... ) installations, Updated/Modified/Customized Boilerplate templates to be more 'Nginx mainline' friendly; i.e http/2, as well as the ongoing use of static websites (which the original still handles splendidly!)
 

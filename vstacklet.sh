@@ -4,16 +4,29 @@
 #
 # GitHub:   https://github.com/JMSDOnline/vstacklet
 # Author:   Jason Matthews
-# URL:      https://jmsolodesigns.com
+# URL:      https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack
 #
-
-PROGNAME="VStacklet"
-PROGDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-VERSION="2.8"
-FILES=()
-
+#################################################################################
+server_ip=$(ifconfig | sed -n 's/.*inet addr:\([0-9.]\+\)\s.*/\1/p' | grep -v 127 | head -n 1);
+hostname1=$(hostname -s);
+#################################################################################
 #Script Console Colors
-black=$(tput setaf 0);red=$(tput setaf 1);green=$(tput setaf 2);yellow=$(tput setaf 3);blue=$(tput setaf 4);magenta=$(tput setaf 5);cyan=$(tput setaf 6);white=$(tput setaf 7);on_red=$(tput setab 1);on_green=$(tput setab 2);on_yellow=$(tput setab 3);on_blue=$(tput setab 4);on_magenta=$(tput setab 5);on_cyan=$(tput setab 6);on_white=$(tput setab 7);bold=$(tput bold);dim=$(tput dim);underline=$(tput smul);reset_underline=$(tput rmul);standout=$(tput smso);reset_standout=$(tput rmso);normal=$(tput sgr0);alert=${white}${on_red};title=${standout};sub_title=${bold}${yellow};repo_title=${black}${on_green};
+black=$(tput setaf 0); red=$(tput setaf 1); green=$(tput setaf 2); yellow=$(tput setaf 3);
+blue=$(tput setaf 4); magenta=$(tput setaf 5); cyan=$(tput setaf 6); white=$(tput setaf 7);
+on_red=$(tput setab 1); on_green=$(tput setab 2); on_yellow=$(tput setab 3); on_blue=$(tput setab 4);
+on_magenta=$(tput setab 5); on_cyan=$(tput setab 6); on_white=$(tput setab 7); bold=$(tput bold);
+dim=$(tput dim); underline=$(tput smul); reset_underline=$(tput rmul); standout=$(tput smso);
+reset_standout=$(tput rmso); normal=$(tput sgr0); alert=${white}${on_red}; title=${standout};
+sub_title=${bold}${yellow}; repo_title=${black}${on_green};
+#################################################################################
+if [[ -f /usr/bin/lsb_release ]]; then
+    DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)
+elif [ -f "/etc/redhat-release" ]; then
+    DISTRO=$(egrep -o 'Fedora|CentOS|Red.Hat' /etc/redhat-release)
+elif [ -f "/etc/debian_version" ]; then
+    DISTRO=='Debian'
+fi
+#################################################################################
 
 
 # Create vstacklet & backup directory strucutre
