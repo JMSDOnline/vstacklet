@@ -5,10 +5,7 @@ VStacklet - A Buff LEMP Stack Kit
 |---|
 | **VStacklet - A Buff LEMP Stack Kit** |
 
-<<<<<<< HEAD
-Please be advised that I am building/testing this script on Ubuntu 14.04 (Trusty) as it does support Nginx versions higher than 1.8.
-=======
-#### Script status
+#### Script status 
 
 [![Version 2.8-production](https://img.shields.io/badge/version-2.8-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
@@ -17,11 +14,10 @@ Please be advised that I am building/testing this script on Ubuntu 14.04 (Trusty
 [![Ubuntu 14.04 Passing](https://img.shields.io/badge/Ubuntu%2014.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 
 --------
- 
+
 Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04 and 15.10 servers.
 
 Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
->>>>>>> master
 
 Deploys a proper directory strucutre, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
@@ -35,18 +31,6 @@ Script Features
   * Varnish Cache on port 80 with Nginx port 8080 SSL terminiation on 443.
   * No Apache - Full throttle!
   * Fast and Lightweight install.
-<<<<<<< HEAD
-  * HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ [HTTP/2 Checker](http://h2.nix-admin.com/)
-  * Everything you need to get that Nginx + Varnish server up and running!
-
-Total script install time on a $5 [Digital Ocean Droplet](https://www.digitalocean.com/?refcode=917d3ff0e1c8) sits at 09:34. This time assumes you are sitting attentively with the script running. There are a limited number of interactions to be made with the script, however, I feel it is important to have some sort of interaction... at the very least so you are familiar with what is being installed etc.
-
-![preview 1](https://jmsolodesigns.com/bucket/vstacklet/blob/master/images/vstacklet-p1.png "vstacklet preview 1")
-![preview 2](https://jmsolodesigns.com/bucket/vstacklet/blob/master/images/vstacklet-p2.png "vstacklet preview 2")
-![preview 3](https://jmsolodesigns.com/bucket/vstacklet/blob/master/images/vstacklet-p3.png "vstacklet preview 3")
-![preview 4](https://jmsolodesigns.com/bucket/vstacklet/blob/master/images/vstacklet-p4.png "vstacklet preview 4")
-![preview 5](https://jmsolodesigns.com/bucket/vstacklet/blob/master/images/vstacklet-p5.png "vstacklet preview 5")
-=======
   * Full Kit functionality - backup scripts included.
   * Actively maintained w/ updates added when stable.
   * HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="http://h2.nix-admin.com/" target="_blank">HTTP/2 Checker</a>
@@ -55,35 +39,18 @@ Total script install time on a $5 [Digital Ocean Droplet](https://www.digitaloce
 Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 10:12 installing everything. No Sendmail or Cert script installs at 04:22. This time assumes you are sitting attentively with the script running. There are a limited number of interactions to be made with the script and most of the softwares installed I have automated and logged, however, I feel it is important to have some sort of interaction... at the very least so you are familiar with what is being installed along with the options to tell it to go to hell.
 
 ![preview 1](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-script-preview1.png "vstacklet preview 1")
->>>>>>> master
 
  Meet the Scripts
 --------
-<<<<<<< HEAD
-__Setup__ - Basic setup for new Ubuntu server.
-
-  * Intended only for new Ubuntu installations.
-  * Adds new user with sudo access and disables remote root logins.
-  * Changes sshd settings to enhance security.
-  * Uses CSF to apply iptables rules to limit traffic to approved ports as well as email alerts to administrator email. (_not yet included_)
-
-__Stack__ - Installs and configures LEMP stack with support for Website-based server environments.
-
-=======
 
 __VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments.
   *
->>>>>>> master
   * Adds repositories for the latest stable versions of MariaDB, mainline (1.9.x) versions of Nginx, and Varnish 4.
   * Installs and configures Nginx, Varnish and MariaDB.
   * Installs PHP-FPM for PHP5.
   * Enables OPCode Cache and fine-tuning
   * Installs and Enables IonCube Loader
-<<<<<<< HEAD
-  * Installs and Enables (PHP) Sendmail
-=======
   * Installs and Auto-Configures phpMyAdmin - MySQL & phpMyAdmin credentials are stored in /root/.my.cnf
->>>>>>> master
   * MariaDB 10.0 can easily switched to 5.5 or substituted for PostgreSQL.
   * Installs and Adjusts CSF (Config Server Firewall) - prepares ports used for VStacklet as well as informing your entered email for security alerts.
   * Installs and Enables (PHP) Sendmail
@@ -91,18 +58,9 @@ __VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for W
   * Optional self-signed SSL cert configuration.
   * Easy to configure & run backup executable __vs-backup__ for data-protection.
 
-<<<<<<< HEAD
 __VS-Backup__ - Installs scripts to help manage and automate server/site backups
-=======
-<<<<<<< HEAD
-__Backups__ - Installs scripts to help manage and automate server/site backups (_coming soon as a single script_).
-
-=======
-__VS-Backup__ - Installs scripts to help manage and automate server/site backups 
->>>>>>> development
 Updated: ~~(_coming soon as a single script_)~~ Added as standalone and included in full kit.
   *
->>>>>>> master
   * Backup your files in key locations (ex: /srv/www /etc /root)
   * Backup your databases
   * Package files & databases to one archive
@@ -151,11 +109,6 @@ chmod +x vstacklet-backup-standalone.sh
 ```
 
 ### The TO-DO List
-<<<<<<< HEAD
-  1. FTP Server
-  2. phpMyAdmin
-  3. Config Server Firewall
-=======
 - [x] Enable OPCode Caching
 - [x] Sendmail
 - [x] IonCube Loader (w/ option prompt)
@@ -179,7 +132,3 @@ My focus was and is to provide a modified version for CMS and typical website se
 Again, please be advised that I am building/testing this script on Ubuntu 14.04 (Trusty) as it supports Nginx versions higher than 1.8.
 
 As per any contributions, be it suggestions, critiques, alterations and on and on are all welcome!
-<<<<<<< HEAD
-=======
->>>>>>> master
->>>>>>> development
