@@ -4,22 +4,160 @@
 #
 # GitHub:   https://github.com/JMSDOnline/vstacklet
 # Author:   Jason Matthews
-# URL:      https://jmsolodesigns.com
+# URL:      https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack
 #
 # find server IP and server hostname for nginx configuration
+#################################################################################
 server_ip=$(ifconfig | sed -n 's/.*inet addr:\([0-9.]\+\)\s.*/\1/p' | grep -v 127 | head -n 1);
 hostname1=$(hostname -s);
-
+#################################################################################
 #Script Console Colors
-black=$(tput setaf 0);red=$(tput setaf 1);green=$(tput setaf 2);yellow=$(tput setaf 3);blue=$(tput setaf 4);magenta=$(tput setaf 5);cyan=$(tput setaf 6);white=$(tput setaf 7);on_red=$(tput setab 1);on_green=$(tput setab 2);on_yellow=$(tput setab 3);on_blue=$(tput setab 4);on_magenta=$(tput setab 5);on_cyan=$(tput setab 6);on_white=$(tput setab 7);bold=$(tput bold);dim=$(tput dim);underline=$(tput smul);reset_underline=$(tput rmul);standout=$(tput smso);reset_standout=$(tput rmso);normal=$(tput sgr0);alert=${white}${on_red};title=${standout};sub_title=${bold}${yellow};repo_title=${black}${on_green};
-
-# Color Prompt
-sed -i.bak -e 's/^#force_color/force_color/' \
- -e 's/1;34m/1;35m/g' \
- -e "\$aLS_COLORS=\$LS_COLORS:'di=0;35:' ; export LS_COLORS" /etc/skel/.bashrc
-
-
+black=$(tput setaf 0); red=$(tput setaf 1); green=$(tput setaf 2); yellow=$(tput setaf 3);
+blue=$(tput setaf 4); magenta=$(tput setaf 5); cyan=$(tput setaf 6); white=$(tput setaf 7);
+on_red=$(tput setab 1); on_green=$(tput setab 2); on_yellow=$(tput setab 3); on_blue=$(tput setab 4);
+on_magenta=$(tput setab 5); on_cyan=$(tput setab 6); on_white=$(tput setab 7); bold=$(tput bold);
+dim=$(tput dim); underline=$(tput smul); reset_underline=$(tput rmul); standout=$(tput smso);
+reset_standout=$(tput rmso); normal=$(tput sgr0); alert=${white}${on_red}; title=${standout};
+sub_title=${bold}${yellow}; repo_title=${black}${on_green};
+#################################################################################
+if [[ -f /usr/bin/lsb_release ]]; then
+    DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)
+elif [ -f "/etc/redhat-release" ]; then
+    DISTRO=$(egrep -o 'Fedora|CentOS|Red.Hat' /etc/redhat-release)
+elif [ -f "/etc/debian_version" ]; then
+    DISTRO=='Debian'
+fi
+#################################################################################
 function _string() { perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15 ; }
+
+function _bashrc() {
+cat >/root/.bashrc<<'EOF'
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+BASHRCVERSION="23.2"
+EDITOR=nano; export EDITOR=nano
+USER=`whoami`
+TMPDIR=$HOME/.tmp/
+HOSTNAME=`hostname -s`
+IDUSER=`id -u`
+PROMPT_COMMAND='echo -ne "\033]0;${USER}(${IDUSER})@${HOSTNAME}: ${PWD}\007"'
+export LS_COLORS='rs=0:di=01;33:ln=00;36:mh=00:pi=40;33:so=00;35:do=00;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=01;05;37;41:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.log=02;34:*.torrent=02;37:*.conf=02;34:*.sh=00;32:*.tar=00;31:*.tgz=00;31:*.arj=00;31:*.taz=00;31:*.lzh=00;31:*.lzma=00;31:*.tlz=00;31:*.txz=00;31:*.zip=00;31:*.z=00;31:*.Z=00;31:*.dz=00;31:*.gz=00;31:*.lz=00;31:*.xz=00;31:*.bz2=00;31:*.tbz=00;31:*.tbz2=00;31:*.bz=00;31:*.tz=00;31:*.tcl=00;31:*.deb=00;31:*.rpm=00;31:*.jar=00;31:*.rar=00;31:*.ace=00;31:*.zoo=00;31:*.cpio=00;31:*.7z=00;31:*.rz=00;31:*.jpg=00;35:*.jpeg=00;35:*.gif=00;35:*.bmp=00;35:*.pbm=00;35:*.pgm=00;35:*.ppm=00;35:*.tga=00;35:*.xbm=00;35:*.xpm=00;35:*.tif=00;35:*.tiff=00;35:*.png=00;35:*.svg=00;35:*.svgz=00;35:*.mng=00;35:*.pcx=00;35:*.mov=00;35:*.mpg=00;35:*.mpeg=00;35:*.m2v=00;35:*.mkv=00;35:*.ogm=00;35:*.mp4=00;35:*.m4v=00;35:*.mp4v=00;35:*.vob=00;35:*.qt=00;35:*.nuv=00;35:*.wmv=00;35:*.asf=00;35:*.rm=00;35:*.rmvb=00;35:*.flc=00;35:*.avi=00;35:*.fli=00;35:*.flv=00;35:*.gl=00;35:*.dl=00;35:*.xcf=00;35:*.xwd=00;35:*.yuv=00;35:*.cgm=00;35:*.emf=00;35:*.axv=00;35:*.anx=00;35:*.ogv=00;35:*.ogx=00;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.axa=00;36:*.oga=00;36:*.spx=00;36:*.xspf=00;36:'
+export TERM=xterm;TERM=xterm
+export PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/home/vstacklet/.bin/
+TPUT=`which tput`
+BC=`which bc`
+if [ ! -e $TPUT ]; then echo "tput is missing, please install it (yum install tput/apt-get install tput)";fi
+if [ ! -e $BC ]; then echo "bc is missing, please install it (yum install bc/apt-get install bc)";fi
+DFSCRIPT="${HOME}/.du.sh"
+if [ ! -e $DFSCRIPT ]; then
+cat >"$DFSCRIPT"<<'DS'
+#!/bin/bash
+ALERT=${BWhite}${On_Red};RED='\e[0;31m';YELLOW='\e[1;33m'
+GREEN='\e[0;32m';RESET="\e[00m";BWhite='\e[1;37m';On_Red='\e[41m'
+NCPU=$(grep -c 'processor' /proc/cpuinfo)
+SLOAD=$(( 100*${NCPU} ));MLOAD=$(( 200*${NCPU} ));XLOAD=$(( 400*${NCPU} ))
+function load() { SYSLOAD=$(cut -d " " -f1 /proc/loadavg | tr -d '.'); echo -n $((10#$SYSLOAD)); }
+SYSLOAD=$(load)
+if [ ${SYSLOAD} -gt ${XLOAD} ]; then echo -en ${ALERT}
+elif [ ${SYSLOAD} -gt ${MLOAD} ]; then echo -en ${RED}
+elif [ ${SYSLOAD} -gt ${SLOAD} ]; then echo -en ${YELLOW}
+else echo -en ${GREEN} ;fi
+let TotalBytes=0
+for Bytes in $(ls -l | grep "^-" | awk '{ print $5 }')
+do
+   let TotalBytes=$TotalBytes+$Bytes
+done
+if [ $TotalBytes -lt 1024 ]; then
+     TotalSize=$(echo -e "scale=1 \n$TotalBytes \nquit" | bc)
+     suffix="b"
+else if [ $TotalBytes -lt 1048576 ]; then
+     TotalSize=$(echo -e "scale=1 \n$TotalBytes/1024 \nquit" | bc)
+     suffix="kb"
+  else if [ $TotalBytes -lt 1073741824 ]; then
+     TotalSize=$(echo -e "scale=1 \n$TotalBytes/1048576 \nquit" | bc)
+     suffix="Mb"
+else
+     TotalSize=$(echo -e "scale=1 \n$TotalBytes/1073741824 \nquit" | bc)
+     suffix="Gb"
+fi
+fi
+fi
+echo $TotalSize$suffix
+DS
+chmod u+x $DFSCRIPT
+fi
+
+alias ls='ls --color=auto'
+alias dir='ls --color=auto'
+alias vdir='ls --color=auto'
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+function normal {
+if [ `id -u` == 0 ] ; then
+  DG="$(tput bold ; tput setaf 7)";LG="$(tput bold;tput setaf 7)";NC="$(tput sgr0)"
+  export PS1='[\[$LG\]\u\[$NC\]@\[$LG\]\h\[$NC\]]:(\[$LG\]\[$BN\]$($DFSCRIPT)\[$NC\])\w\$ '
+else
+  DG="$(tput bold;tput setaf 0)"
+  LG="$(tput setaf 7)"
+  NC="$(tput sgr0)"
+  export PS1='[\[$LG\]\u\[$NC\]@\[$LG\]\h\[$NC\]]:(\[$LG\]\[$BN\]$($DFSCRIPT)\[$NC\])\w\$ '
+fi
+}
+
+case $TERM in
+  rxvt*|screen*|cygwin)
+    export PS1='\u\@\h\w'
+  ;;
+  xterm*|linux*|*vt100*|cons25)
+    normal
+  ;;
+  *)
+    normal
+        ;;
+esac
+
+function rarit() { rar a -m5 -v1m $1 $1; }
+function paste() { $* | curl -F 'sprunge=<-' http://sprunge.us ; }
+function disktest() { dd if=/dev/zero of=test bs=64k count=16k conv=fdatasync;rm -rf test ; }
+function newpass() { perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15 ; }
+function fixhome() { chmod -R u=rwX,g=rX,o= "$HOME" ;}
+
+transfer() {
+  if [ $# -eq 0 ]; then
+    echo "No arguments specified. Usage: transfer /tmp/test.md OR: cat /tmp/test.md | transfer test.md"
+    return 1
+  fi
+tmpfile=$(mktemp -t transferXXX )
+if tty -s
+  then
+    basefile=$(basename "$1" | sed -e 's/[^a-zA-Z0-9._-]/-/g'); curl --progress-bar --upload-file "$1" "https://transfer.sh/$basefile" >> $tmpfile
+  else
+    curl --progress-bar --upload-file "-" "https://transfer.sh/$1" >> $tmpfile
+fi
+cat $tmpfile
+rm -f $tmpfile
+}
+
+function swap() {
+local TMPFILE=tmp.$$
+    [ $# -ne 2 ] && echo "swap: 2 arguments needed" && return 1
+    [ ! -e $1 ] && echo "swap: $1 does not exist" && return 1
+    [ ! -e $2 ] && echo "swap: $2 does not exist" && return 1
+    mv "$1" $TMPFILE; mv "$2" "$1"; mv $TMPFILE "$2"
+}
+
+if [ -e /etc/bash_completion ] ; then source /etc/bash_completion; fi
+if [ -e ~/.custom ]; then source ~/.custom; fi
+EOF
+}
 
 # intro function (1)
 function _intro() {
@@ -187,18 +325,18 @@ function _nginx() {
     -e "s/logs\/access.log/\/var\/log\/nginx\/access.log/" /etc/nginx/nginx.conf
   sed -i.bak -e "s/logs\/static.log/\/var\/log\/nginx\/static.log/" /etc/nginx/vstacklet/location/expires.conf
   # rename default.conf template
-  if [[ $sitename -eq yes ]];then 
-    cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$sitename.conf
+  if [[ $sitename -eq yes ]];then
+    cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/${sitename}.conf
     # build applications web root directory if sitename is provided
-    mkdir -p /srv/www/$sitename/logs >/dev/null 2>&1;
-    mkdir -p /srv/www/$sitename/ssl >/dev/null 2>&1;
-    mkdir -p /srv/www/$sitename/public >/dev/null 2>&1;
+    mkdir -p /srv/www/${sitename}/logs >/dev/null 2>&1;
+    mkdir -p /srv/www/${sitename}/ssl >/dev/null 2>&1;
+    mkdir -p /srv/www/${sitename}/public >/dev/null 2>&1;
   else
-    cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/$hostname1.conf
+    cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/${hostname1}.conf
     # build applications web root directory if no sitename is provided
-    mkdir -p /srv/www/$hostname1/logs >/dev/null 2>&1;
-    mkdir -p /srv/www/$hostname1/ssl >/dev/null 2>&1;
-    mkdir -p /srv/www/$hostname1/public >/dev/null 2>&1;
+    mkdir -p /srv/www/${hostname1}/logs >/dev/null 2>&1;
+    mkdir -p /srv/www/${hostname1}/ssl >/dev/null 2>&1;
+    mkdir -p /srv/www/${hostname1}/public >/dev/null 2>&1;
   fi
   echo "${OK}"
   echo
@@ -248,10 +386,10 @@ function _php() {
   # ensure mcrypt module is activated
   php5enmod mcrypt
   # write checkinfo for php verification
-  if [[ $sitename -eq yes ]];then 
-    echo '<?php phpinfo(); ?>' > /srv/www/$sitename/public/checkinfo.php
+  if [[ $sitename -eq yes ]];then
+    echo '<?php phpinfo(); ?>' > /srv/www/${sitename}/public/checkinfo.php
   else
-    echo '<?php phpinfo(); ?>' > /srv/www/$hostname1/public/checkinfo.php
+    echo '<?php phpinfo(); ?>' > /srv/www/${hostname1}/public/checkinfo.php
   fi
   echo "${OK}"
   echo
@@ -294,7 +432,7 @@ function _ioncube() {
 function _noioncube() {
   if [[ ${ioncube} == "no" ]]; then
     echo "${cyan}Skipping IonCube Installation...${normal}"
-    echo 
+    echo
   fi
 }
 
@@ -332,12 +470,12 @@ function _phpmyadmin() {
     echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
     echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
     apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
-    if [[ $sitename -eq yes ]];then 
+    if [[ $sitename -eq yes ]];then
       # create a sym-link to live directory.
-      ln -s /usr/share/phpmyadmin /srv/www/$sitename/public
+      ln -s /usr/share/phpmyadmin /srv/www/${sitename}/public
     else
       # create a sym-link to live directory.
-      ln -s /usr/share/phpmyadmin /srv/www/$hostname1/public
+      ln -s /usr/share/phpmyadmin /srv/www/${hostname1}/public
     fi
     echo "${OK}"
     # get phpmyadmin directory
@@ -371,7 +509,7 @@ function _phpmyadmin() {
 function _nophpmyadmin() {
   if [[ ${phpmyadmin} == "no" ]]; then
     echo "${cyan}Skipping phpMyAdmin Installation...${normal}"
-    echo 
+    echo
   fi
 }
 
@@ -459,7 +597,7 @@ root: $admin_email" > /etc/aliases
 function _nocsf() {
   if [[ ${csf} == "no" ]]; then
     echo "${cyan}Skipping Config Server Firewall Installation${normal} ... "
-    echo 
+    echo
   fi
 }
 
@@ -547,7 +685,7 @@ root: $admin_email" > /etc/aliases
 function _nosendmail() {
   if [[ ${sendmail} == "no" ]]; then
     echo "${cyan}Skipping Sendmail Installation...${normal}"
-    echo 
+    echo
   fi
 }
 
@@ -556,10 +694,10 @@ function _nosendmail() {
 # measures to protect against common exploits.
 # Enhancements covered are adding cache busting, cross domain
 # font support, expires tags and protecting system files.
-# 
+#
 # You can find the included files at the following directory...
 # /etc/nginx/vstacklet/
-# 
+#
 # Not all profiles are included, review your $sitename.conf
 # for additions made by the script & adjust accordingly.
 #################################################################
@@ -567,46 +705,46 @@ function _nosendmail() {
 # Round 1 - Location
 # enhance configuration function (15)
 function _locenhance() {
-  if [[ $sitename -eq yes ]];then 
+  if [[ $sitename -eq yes ]];then
     locconf1="include vstacklet\/location\/cache-busting.conf;"
-    sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$sitename.conf
+    sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/${sitename}.conf
     locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
-    sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/$sitename.conf
+    sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/${sitename}.conf
     locconf3="include vstacklet\/location\/expires.conf;"
-    sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/$sitename.conf
+    sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/${sitename}.conf
     locconf4="include vstacklet\/location\/protect-system-files.conf;"
-    sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$sitename.conf
+    sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/${sitename}.conf
   else
     locconf1="include vstacklet\/location\/cache-busting.conf;"
-    sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/$hostname1.conf
+    sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/${hostname1}.conf
     locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
-    sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/$hostname1.conf
+    sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/${hostname1}.conf
     locconf3="include vstacklet\/location\/expires.conf;"
-    sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/$hostname1.conf
+    sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/${hostname1}.conf
     locconf4="include vstacklet\/location\/protect-system-files.conf;"
-    sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/$hostname1.conf
+    sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/${hostname1}.conf
   fi
   echo "${OK}"
-  echo 
+  echo
 }
 
 # Round 2 - Security
 # optimize security configuration function (16)
 function _security() {
-  if [[ $sitename -eq yes ]];then 
+  if [[ $sitename -eq yes ]];then
     secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
-    sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$sitename.conf
+    sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/${sitename}.conf
     secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
-    sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$sitename.conf
+    sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/${sitename}.conf
     secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
-    sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$sitename.conf
+    sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/${sitename}.conf
   else
     secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
-    sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/$hostname1.conf
+    sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/${hostname1}.conf
     secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
-    sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/$hostname1.conf
+    sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/${hostname1}.conf
     secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
-    sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/$hostname1.conf
+    sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/${hostname1}.conf
   fi
   echo "${OK}"
   echo
@@ -624,24 +762,24 @@ function _askcert() {
 
 function _cert() {
   if [[ ${cert} == "yes" ]]; then
-    if [[ $sitename -eq yes ]];then 
-      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/$sitename.key -out /etc/ssl/certs/$sitename.crt
+    if [[ $sitename -eq yes ]];then
+      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/${sitename}.key -out /etc/ssl/certs/${sitename}.crt
       chmod 400 /etc/ssl/private/$sitename.key
       sed -i -e "s/# listen [::]:443 ssl http2;/listen [::]:443 ssl http2;/" \
              -e "s/# listen *:443 ssl http2;/listen *:443 ssl http2;/" \
              -e "s/# include vstacklet\/directive-only\/ssl.conf;/include vstacklet\/directive-only\/ssl.conf;/" \
              -e "s/# ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/" \
-             -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" /etc/nginx/conf.d/$sitename.conf
-      sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
+             -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" /etc/nginx/conf.d/${sitename}.conf
+      sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/${sitename}.conf
     else
-      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /srv/www/$hostname1/ssl/$hostname1.key -out /srv/www/$hostname1/ssl/$hostname1.crt
-      chmod 400 /etc/ssl/private/$hostname1.key
+      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /srv/www/${hostname1}/ssl/${hostname1}.key -out /srv/www/${hostname1}/ssl/${hostname1}.crt
+      chmod 400 /etc/ssl/private/${hostname1}.key
       sed -i -e "s/# listen [::]:443 ssl http2;/listen [::]:443 ssl http2;/" \
              -e "s/# listen *:443 ssl http2;/listen *:443 ssl http2;/" \
              -e "s/# include vstacklet\/directive-only\/ssl.conf;/include vstacklet\/directive-only\/ssl.conf;/" \
              -e "s/# ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/" \
-             -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" /etc/nginx/conf.d/$hostname1.conf
-      sed -i "s/sitename/$hostname1/" /etc/nginx/conf.d/$hostname1.conf
+             -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" /etc/nginx/conf.d/${hostname1}.conf
+      sed -i "s/sitename/${hostname1}/" /etc/nginx/conf.d/${hostname1}.conf
     fi
     echo "${OK}"
     echo
@@ -650,13 +788,13 @@ function _cert() {
 
 function _nocert() {
   if [[ ${cert} == "no" ]]; then
-    if [[ $sitename -eq yes ]];then 
-      sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/$sitename.conf
+    if [[ $sitename -eq yes ]];then
+      sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/${sitename}.conf
     else
-      sed -i "s/sitename/$hostname1/" /etc/nginx/conf.d/$hostname1.conf
+      sed -i "s/sitename/$hostname1/" /etc/nginx/conf.d/${hostname1}.conf
     fi
     echo "${cyan}Skipping SSL Certificate Creation...${normal}"
-    echo 
+    echo
   fi
 }
 
@@ -665,10 +803,10 @@ function _services() {
   service nginx restart >>"${OUTTO}" 2>&1;
   service varnish restart >>"${OUTTO}" 2>&1;
   service php5-fpm restart >>"${OUTTO}" 2>&1;
-  if [[ $sendmail -eq yes ]];then 
+  if [[ $sendmail -eq yes ]];then
     service sendmail restart >>"${OUTTO}" 2>&1;
   fi
-  if [[ $csf -eq yes ]];then 
+  if [[ $csf -eq yes ]];then
     service lfd restart >>"${OUTTO}" 2>&1;
     csf -r >>"${OUTTO}" 2>&1;
   fi
@@ -719,6 +857,7 @@ S=$(date +%s)
 OK=$(echo -e "[ ${bold}${green}DONE${normal} ]")
 
 # VSTACKLET STRUCTURE
+_bashrc
 _intro
 _checkroot
 _logcheck
@@ -736,10 +875,10 @@ _askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; elif [[ ${ioncube} == "
 echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
 _askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpmyadmin} == "no" ]]; then _nophpmyadmin;  fi
 _askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
-if [[ ${csf} == "yes" ]]; then 
+if [[ ${csf} == "yes" ]]; then
   _askcloudflare;if [[ ${cloudflare} == "yes" ]]; then _cloudflare;  fi
 fi
-if [[ ${csf} == "no" ]]; then 
+if [[ ${csf} == "no" ]]; then
   _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
 fi
 echo "${bold}Addressing Location Edits: cache busting, cross domain font support,${normal}";
