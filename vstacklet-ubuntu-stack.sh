@@ -217,7 +217,7 @@ function _logcheck() {
 # Update packages and add MariaDB, Varnish 4, and Nginx 1.9.9 (mainline) repositories
 function _softcommon() {
   # package and repo addition (a) _install common properties_
-  apt-get -y install software-properties-common python-software-properties >>"${OUTTO}" 2>&1;
+  apt-get -y install software-properties-common python-software-properties apt-transport-https >>"${OUTTO}" 2>&1;
   echo "${OK}"
   echo
 }
