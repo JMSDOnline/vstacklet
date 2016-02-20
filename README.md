@@ -5,7 +5,7 @@ VStacklet - A Buff LEMP Stack Kit
 |---|
 | **VStacklet - A Buff LEMP Stack Kit** |
 
-#### Script status 
+#### Script status
 
 [![Version 2.8-production](https://img.shields.io/badge/version-2.8-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
@@ -78,7 +78,7 @@ __Setup__ should be run as __root__ on a fresh __Ubuntu__ installation. __Stack_
 
 If components are already installed, the core packages can be removed with:
 ```
-apt-get purge apache mysql apache2-mpm-prefork apache2-utils apache2.2-bin apache2.2-common \
+apt-get purge apache2 mysql apache2-mpm-prefork apache2-utils apache2.2-bin apache2.2-common \
 libapache2-mod-php5 libapr1 libaprutil1 libdbd-mysql-perl libdbi-perl libnet-daemon-perl \
 libplrpc-perl libpq5 mysql-client-5.5 mysql-common mysql-server mysql-server-5.5 php5-common \
 php5-mysql
