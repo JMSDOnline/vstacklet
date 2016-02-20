@@ -417,8 +417,8 @@ function _nginx() {
   cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
   mkdir -p /etc/nginx-cache
   chown -R www-data /etc/nginx-cache
-  chgrp -R www-data /etc/nginx-cache/*
-  chmod -R g+rw /etc/nginx-cache/*
+  chgrp -R www-data /etc/nginx-cache
+  chmod -R g+rw /etc/nginx-cache
   sh -c 'find /etc/nginx-cache/* -type d -print0 | sudo xargs -0 chmod g+s'
   #sed -i.bak -e "s/www www/www-data www-data/" \
   #  -e "s/logs\/error.log/\/var\/log\/nginx\/error.log/" \
@@ -456,7 +456,7 @@ function _varnish() {
   apt-get -y install varnish >>"${OUTTO}" 2>&1;
   cd /etc/varnish
   mv default.vcl default.vcl.ORIG
-  curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/varnish/default.vcl
+  curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/varnish/default.vcl >/dev/null 2>&1;
   cd
   #sed -i "s/127.0.0.1/$server_ip/" /etc/varnish/default.vcl
   #sed -i "s/6081/80/" /etc/default/varnish
