@@ -966,7 +966,7 @@ _intro
 _checkroot
 _logcheck
 _updates;
-_locale;
+#_locale;
 echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon
 echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${normal} ... ";_depends
 echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys
