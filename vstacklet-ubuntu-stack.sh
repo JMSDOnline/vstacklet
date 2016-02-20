@@ -213,7 +213,102 @@ function _logcheck() {
   echo
 }
 
-# system packages and repos function (4)
+# package and repo addition (4) _update and upgrade_
+function _updates() {
+  if lsb_release >>"${OUTTO}" 2>&1; then ver=$(lsb_release -c|awk '{print $2}')
+  else
+    apt-get -y -q install lsb-release >>"${OUTTO}" 2>&1
+    if [[ -e /usr/bin/lsb_release ]]; then ver=$(lsb_release -c|awk '{print $2}')
+    else echo "failed to install lsb-release from apt-get, please install manually and re-run script"; exit
+    fi
+  fi
+
+if [[ $DISTRO == Debian ]]; then
+cat >/etc/apt/sources.list<<EOF
+#------------------------------------------------------------------------------#
+#                            OFFICIAL DEBIAN REPOS                             #
+#------------------------------------------------------------------------------#
+
+
+###### Debian Main Repos
+deb http://ftp.nl.debian.org/debian testing main contrib non-free
+deb-src http://ftp.nl.debian.org/debian testing main contrib non-free
+
+###### Debian Update Repos
+deb http://ftp.debian.org/debian/ ${ver}-updates main contrib non-free
+deb-src http://ftp.debian.org/debian/ ${ver}-updates main contrib non-free
+deb http://security.debian.org/ ${ver}/updates main contrib non-free
+deb-src http://security.debian.org/ ${ver}/updates main contrib non-free
+
+#Debian Backports Repos
+#http://backports.debian.org/debian-backports squeeze-backports main
+EOF
+
+else
+cat >/etc/apt/sources.list<<EOF
+#------------------------------------------------------------------------------#
+#                            OFFICIAL UBUNTU REPOS                             #
+#------------------------------------------------------------------------------#
+
+
+###### Ubuntu Main Repos
+deb http://nl.archive.ubuntu.com/ubuntu/ ${ver} main restricted universe multiverse
+deb-src http://nl.archive.ubuntu.com/ubuntu/ ${ver} main restricted universe multiverse
+
+###### Ubuntu Update Repos
+deb http://nl.archive.ubuntu.com/ubuntu/ ${ver}-security main restricted universe multiverse
+deb http://nl.archive.ubuntu.com/ubuntu/ ${ver}-updates main restricted universe multiverse
+deb http://nl.archive.ubuntu.com/ubuntu/ ${ver}-backports main restricted universe multiverse
+deb-src http://nl.archive.ubuntu.com/ubuntu/ ${ver}-security main restricted universe multiverse
+deb-src http://nl.archive.ubuntu.com/ubuntu/ ${ver}-updates main restricted universe multiverse
+deb-src http://nl.archive.ubuntu.com/ubuntu/ ${ver}-backports main restricted universe multiverse
+
+###### Ubuntu Partner Repo
+deb http://archive.canonical.com/ubuntu ${ver} partner
+deb-src http://archive.canonical.com/ubuntu ${ver} partner
+EOF
+fi
+
+  echo -n "Updating system ... "
+
+  if [[ $DISTRO == Debian ]]; then
+    export DEBIAN_FRONTEND=noninteractive
+    yes '' | apt-get update >>"${OUTTO}" 2>&1
+    apt-get -y purge samba samba-common >>"${OUTTO}" 2>&1
+    yes '' | apt-get upgrade >>"${OUTTO}" 2>&1
+  else
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get -y --force-yes update >>"${OUTTO}" 2>&1
+    apt-get -y purge samba samba-common >>"${OUTTO}" 2>&1
+    apt-get -y --force-yes upgrade >>"${OUTTO}" 2>&1
+  fi
+    #if [[ -e /etc/ssh/sshd_config ]]; then
+    #  echo "Port 2222" /etc/ssh/sshd_config
+    #  sed -i 's/Port 22/Port 2222/g' /etc/ssh/sshd_config
+    #  service ssh restart >>"${OUTTO}" 2>&1
+    #fi
+  echo "${OK}"
+  clear
+}
+
+# setting locale function (5)
+function _locale() {
+echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+echo "LANG=en_US.UTF-8" > /etc/default/locale
+echo "LANGUAGE=en_US.UTF-8">>/etc/default/locale
+echo "LC_ALL=en_US.UTF-8" >>/etc/default/locale
+  if [[ -e /usr/sbin/locale-gen ]]; then locale-gen >>"${OUTTO}" 2>&1
+  else
+    apt-get update >>"${OUTTO}" 2>&1
+    apt-get install locales locale-gen -y --force-yes >>"${OUTTO}" 2>&1
+    locale-gen >>"${OUTTO}" 2>&1
+    export LANG="en_US.UTF-8"
+    export LC_ALL="en_US.UTF-8"
+    export LANGUAGE="en_US.UTF-8"
+  fi
+}
+
+# system packages and repos function (6)
 # Update packages and add MariaDB, Varnish 4, and Nginx 1.9.9 (mainline) repositories
 function _softcommon() {
   # package and repo addition (a) _install common properties_
@@ -272,7 +367,7 @@ function _updates() {
   echo
 }
 
-# setting main web root directory function (5)
+# setting main web root directory function (7)
 function _asksitename() {
 #################################################################
 # You may now optionally name your main web root directory.
@@ -309,21 +404,26 @@ function _nositename() {
   fi
 }
 
-# install nginx function (6)
+# install nginx function (8)
 function _nginx() {
   apt-get -y install nginx >>"${OUTTO}" 2>&1;
   update-rc.d nginx defaults >>"${OUTTO}" 2>&1;
   service nginx stop >>"${OUTTO}" 2>&1;
   mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
-  wget https://github.com/JMSDOnline/vstacklet/raw/master/vstacklet-server-configs.tar.gz >/dev/null 2>&1;
-  tar -zxvf vstacklet-server-configs.tar.gz >/dev/null 2>&1;
+  wget https://github.com/JMSDOnline/vstacklet/raw/master/vstacklet-server-configs.zip >/dev/null 2>&1;
+  unzip vstacklet-server-configs.zip >/dev/null 2>&1;
   mv vstacklet-server-configs /etc/nginx >>"${OUTTO}" 2>&1;
   rm -rf vstacklet-server-configs*
   cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
-  sed -i.bak -e "s/www www/www-data www-data/" \
-    -e "s/logs\/error.log/\/var\/log\/nginx\/error.log/" \
-    -e "s/logs\/access.log/\/var\/log\/nginx\/access.log/" /etc/nginx/nginx.conf
-  sed -i.bak -e "s/logs\/static.log/\/var\/log\/nginx\/static.log/" /etc/nginx/vstacklet/location/expires.conf
+  mkdir -p /etc/nginx-cache
+  chown -R www-data /etc/nginx-cache
+  chgrp -R www-data /etc/nginx-cache/*
+  chmod -R g+rw /etc/nginx-cache/*
+  sh -c 'find /etc/nginx-cache/* -type d -print0 | sudo xargs -0 chmod g+s'
+  #sed -i.bak -e "s/www www/www-data www-data/" \
+  #  -e "s/logs\/error.log/\/var\/log\/nginx\/error.log/" \
+  #  -e "s/logs\/access.log/\/var\/log\/nginx\/access.log/" /etc/nginx/nginx.conf
+  #sed -i.bak -e "s/logs\/static.log/\/var\/log\/nginx\/static.log/" /etc/nginx/vstacklet/location/expires.conf
   # rename default.conf template
   if [[ $sitename -eq yes ]];then
     cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/${sitename}.conf
@@ -342,7 +442,7 @@ function _nginx() {
   echo
 }
 
-# adjust permissions function (7)
+# adjust permissions function (9)
 function _perms() {
   chgrp -R www-data /srv/www/*
   chmod -R g+rw /srv/www/*
@@ -351,29 +451,33 @@ function _perms() {
   echo
 }
 
-# install varnish function (8)
+# install varnish function (10)
 function _varnish() {
   apt-get -y install varnish >>"${OUTTO}" 2>&1;
-  sed -i "s/127.0.0.1/$server_ip/" /etc/varnish/default.vcl
-  sed -i "s/6081/80/" /etc/default/varnish
+  cd /etc/varnish
+  mv default.vcl default.vcl.ORIG
+  curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/varnish/default.vcl
+  cd
+  #sed -i "s/127.0.0.1/$server_ip/" /etc/varnish/default.vcl
+  #sed -i "s/6081/80/" /etc/default/varnish
   # then there is varnish with systemd in ubuntu 15.x
   # let us shake that headache now
   if [[ ${rel} =~ ("15.04"|"15.10") ]]; then
     cp /lib/systemd/system/varnishlog.service /etc/systemd/system/
     cp /lib/systemd/system/varnish.service /etc/systemd/system/
-    sed -i "s/6081/80/" /etc/systemd/system/varnish.service
-    sed -i "s/6081/80/" /lib/systemd/system/varnish.service
+    #sed -i "s/6081/80/" /etc/systemd/system/varnish.service
+    #sed -i "s/6081/80/" /lib/systemd/system/varnish.service
     systemctl daemon-reload
   fi
   echo "${OK}"
   echo
 }
 
-# install php function (9)
+# install php function (11)
 function _php() {
   apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
-  sed -i.bak -e "s/post_max_size = 8M/post_max_size = 32M/" \
-    -e "s/upload_max_filesize = 2M/upload_max_filesize = 64M/" \
+  sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
+    -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
     -e "s/expose_php = On/expose_php = Off/" \
     -e "s/128M/512M/" \
     -e "s/cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
@@ -395,7 +499,7 @@ function _php() {
   echo
 }
 
-# install ioncube loader function (10)
+# install ioncube loader function (12)
 function _askioncube() {
   echo -n "${bold}${yellow}Do you want to install IonCube Loader?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -436,7 +540,7 @@ function _noioncube() {
   fi
 }
 
-# install mariadb function (11)
+# install mariadb function (13)
 function _mariadb() {
   export DEBIAN_FRONTEND=noninteractive
   apt-get -q -y install mariadb-server >>"${OUTTO}" 2>&1;
@@ -444,7 +548,7 @@ function _mariadb() {
   echo
 }
 
-# install phpmyadmin function (12)
+# install phpmyadmin function (14)
 function _askphpmyadmin() {
   echo -n "${bold}${yellow}Do you want to install phpMyAdmin?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -513,7 +617,7 @@ function _nophpmyadmin() {
   fi
 }
 
-# install and adjust config server firewall function (13)
+# install and adjust config server firewall function (15)
 function _askcsf() {
   echo -n "${bold}${yellow}Do you want to install CSF (Config Server Firewall)?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -551,8 +655,10 @@ function _csf() {
     echo >> /etc/csf/csf.pignore;
     echo "[ VStacklet Additions - These are necessary to avoid noisy emails ]" >> /etc/csf/csf.pignore;
     echo "exe:/usr/sbin/mysqld" >> /etc/csf/csf.pignore;
-    echo "exe:/usr/sbin/ngninx" >> /etc/csf/csf.pignore;
+    echo "exe:/usr/sbin/nginx" >> /etc/csf/csf.pignore;
     echo "exe:/usr/sbin/varnishd" >> /etc/csf/csf.pignore;
+    echo "exe:/usr/sbin/rsyslogd" >> /etc/csf/csf.pignore;
+    echo "exe:/lib/systemd/systemd-timesyncd" >> /etc/csf/csf.pignore;
     # modify csf conf - make suitable changes for non-cpanel environment
     sed -i.bak -e 's/TESTING = "1"/TESTING = "0"/' \
                -e 's/RESTRICT_SYSLOG = "0"/RESTRICT_SYSLOG = "3"/' \
@@ -621,6 +727,7 @@ function _cloudflare() {
 103.31.4.0/22
 104.16.0.0/12
 108.162.192.0/18
+131.0.72.0/22
 141.101.64.0/18
 162.158.0.0/15
 172.64.0.0/13
@@ -643,7 +750,7 @@ function _cloudflare() {
   fi
 }
 
-# install sendmail function (14)
+# install sendmail function (16)
 function _asksendmail() {
   echo -n "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -703,54 +810,54 @@ function _nosendmail() {
 #################################################################
 
 # Round 1 - Location
-# enhance configuration function (15)
+# enhance configuration function (17)
 function _locenhance() {
   if [[ $sitename -eq yes ]];then
     locconf1="include vstacklet\/location\/cache-busting.conf;"
-    sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/${sitename}.conf
+    sed -i "s/locconf1/${locconf1}/" /etc/nginx/conf.d/${sitename}.conf
     locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
-    sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/${sitename}.conf
+    sed -i "s/locconf2/${locconf2}/" /etc/nginx/conf.d/${sitename}.conf
     locconf3="include vstacklet\/location\/expires.conf;"
-    sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/${sitename}.conf
+    sed -i "s/locconf3/${locconf3}/" /etc/nginx/conf.d/${sitename}.conf
     locconf4="include vstacklet\/location\/protect-system-files.conf;"
-    sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/${sitename}.conf
+    sed -i "s/locconf4/${locconf4}/" /etc/nginx/conf.d/${sitename}.conf
   else
     locconf1="include vstacklet\/location\/cache-busting.conf;"
-    sed -i "s/locconf1/$locconf1/" /etc/nginx/conf.d/${hostname1}.conf
+    sed -i "s/locconf1/${locconf1}/" /etc/nginx/conf.d/${hostname1}.conf
     locconf2="include vstacklet\/location\/cross-domain-fonts.conf;"
-    sed -i "s/locconf2/$locconf2/" /etc/nginx/conf.d/${hostname1}.conf
+    sed -i "s/locconf2/${locconf2}/" /etc/nginx/conf.d/${hostname1}.conf
     locconf3="include vstacklet\/location\/expires.conf;"
-    sed -i "s/locconf3/$locconf3/" /etc/nginx/conf.d/${hostname1}.conf
+    sed -i "s/locconf3/${locconf3}/" /etc/nginx/conf.d/${hostname1}.conf
     locconf4="include vstacklet\/location\/protect-system-files.conf;"
-    sed -i "s/locconf4/$locconf4/" /etc/nginx/conf.d/${hostname1}.conf
+    sed -i "s/locconf4/${locconf4}/" /etc/nginx/conf.d/${hostname1}.conf
   fi
   echo "${OK}"
   echo
 }
 
 # Round 2 - Security
-# optimize security configuration function (16)
+# optimize security configuration function (18)
 function _security() {
   if [[ $sitename -eq yes ]];then
     secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
-    sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/${sitename}.conf
+    sed -i "s/secconf1/${secconf1}/" /etc/nginx/conf.d/${sitename}.conf
     secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
-    sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/${sitename}.conf
+    sed -i "s/secconf2/${secconf2}/" /etc/nginx/conf.d/${sitename}.conf
     secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
-    sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/${sitename}.conf
+    sed -i "s/secconf3/${secconf3}/" /etc/nginx/conf.d/${sitename}.conf
   else
     secconf1="include vstacklet\/directive-only\/sec-bad-bots.conf;"
-    sed -i "s/secconf1/$secconf1/" /etc/nginx/conf.d/${hostname1}.conf
+    sed -i "s/secconf1/${secconf1}/" /etc/nginx/conf.d/${hostname1}.conf
     secconf2="include vstacklet\/directive-only\/sec-file-injection.conf;"
-    sed -i "s/secconf2/$secconf2/" /etc/nginx/conf.d/${hostname1}.conf
+    sed -i "s/secconf2/${secconf2}/" /etc/nginx/conf.d/${hostname1}.conf
     secconf3="include vstacklet\/directive-only\/sec-php-easter-eggs.conf;"
-    sed -i "s/secconf3/$secconf3/" /etc/nginx/conf.d/${hostname1}.conf
+    sed -i "s/secconf3/${secconf3}/" /etc/nginx/conf.d/${hostname1}.conf
   fi
   echo "${OK}"
   echo
 }
 
-# create self-signed certificate function (17)
+# create self-signed certificate function (19)
 function _askcert() {
   echo -n "${bold}${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
   read responce
@@ -764,13 +871,13 @@ function _cert() {
   if [[ ${cert} == "yes" ]]; then
     if [[ $sitename -eq yes ]];then
       openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/${sitename}.key -out /etc/ssl/certs/${sitename}.crt
-      chmod 400 /etc/ssl/private/$sitename.key
+      chmod 400 /etc/ssl/private/${sitename}.key
       sed -i -e "s/# listen [::]:443 ssl http2;/listen [::]:443 ssl http2;/" \
              -e "s/# listen *:443 ssl http2;/listen *:443 ssl http2;/" \
              -e "s/# include vstacklet\/directive-only\/ssl.conf;/include vstacklet\/directive-only\/ssl.conf;/" \
              -e "s/# ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/" \
              -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" /etc/nginx/conf.d/${sitename}.conf
-      sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/${sitename}.conf
+      sed -i "s/sitename/${sitename}/" /etc/nginx/conf.d/${sitename}.conf
     else
       openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /srv/www/${hostname1}/ssl/${hostname1}.key -out /srv/www/${hostname1}/ssl/${hostname1}.crt
       chmod 400 /etc/ssl/private/${hostname1}.key
@@ -798,7 +905,7 @@ function _nocert() {
   fi
 }
 
-# finalize and restart services function (18)
+# finalize and restart services function (20)
 function _services() {
   service nginx restart >>"${OUTTO}" 2>&1;
   service varnish restart >>"${OUTTO}" 2>&1;
@@ -814,7 +921,7 @@ function _services() {
   echo
 }
 
-# function to show finished data (19)
+# function to show finished data (21)
 function _finished() {
 echo
 echo
@@ -861,6 +968,8 @@ _bashrc
 _intro
 _checkroot
 _logcheck
+_updates;
+_locale;
 echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon
 echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${normal} ... ";_depends
 echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys
