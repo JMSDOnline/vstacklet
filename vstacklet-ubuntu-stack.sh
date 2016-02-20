@@ -420,10 +420,6 @@ function _nginx() {
   chgrp -R www-data /etc/nginx-cache
   chmod -R g+rw /etc/nginx-cache
   sh -c 'find /etc/nginx-cache -type d -print0 | sudo xargs -0 chmod g+s'
-  #sed -i.bak -e "s/www www/www-data www-data/" \
-  #  -e "s/logs\/error.log/\/var\/log\/nginx\/error.log/" \
-  #  -e "s/logs\/access.log/\/var\/log\/nginx\/access.log/" /etc/nginx/nginx.conf
-  #sed -i.bak -e "s/logs\/static.log/\/var\/log\/nginx\/static.log/" /etc/nginx/vstacklet/location/expires.conf
   # rename default.conf template
   if [[ $sitename -eq yes ]];then
     cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/${sitename}.conf
@@ -458,15 +454,15 @@ function _varnish() {
   mv default.vcl default.vcl.ORIG
   curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/varnish/default.vcl >/dev/null 2>&1;
   cd
-  #sed -i "s/127.0.0.1/$server_ip/" /etc/varnish/default.vcl
-  #sed -i "s/6081/80/" /etc/default/varnish
+  sed -i "s/127.0.0.1/${server_ip}/" /etc/varnish/default.vcl
+  sed -i "s/6081/80/" /etc/default/varnish
   # then there is varnish with systemd in ubuntu 15.x
   # let us shake that headache now
   if [[ ${rel} =~ ("15.04"|"15.10") ]]; then
     cp /lib/systemd/system/varnishlog.service /etc/systemd/system/
     cp /lib/systemd/system/varnish.service /etc/systemd/system/
-    #sed -i "s/6081/80/" /etc/systemd/system/varnish.service
-    #sed -i "s/6081/80/" /lib/systemd/system/varnish.service
+    sed -i "s/6081/80/" /etc/systemd/system/varnish.service
+    sed -i "s/6081/80/" /lib/systemd/system/varnish.service
     systemctl daemon-reload
   fi
   echo "${OK}"
@@ -669,7 +665,7 @@ function _csf() {
                -e 's/DENY_TEMP_IP_LIMIT = "100"/DENY_TEMP_IP_LIMIT = "1000"/' \
                -e 's/SMTP_ALLOWUSER = "cpanel"/SMTP_ALLOWUSER = "root"/' \
                -e 's/PT_USERMEM = "200"/PT_USERMEM = "500"/' \
-               -e 's/PT_USERTIME = "1800"/PT_USERTIME = "3600"/' /etc/csf/csf.conf;
+               -e 's/PT_USERTIME = "1800"/PT_USERTIME = "7200"/' /etc/csf/csf.conf;
     echo "${OK}"
     echo
     # install sendmail as it's binary is required by CSF
@@ -896,9 +892,9 @@ function _cert() {
 function _nocert() {
   if [[ ${cert} == "no" ]]; then
     if [[ $sitename -eq yes ]];then
-      sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/${sitename}.conf
+      sed -i "s/sitename/${sitename}/" /etc/nginx/conf.d/${sitename}.conf
     else
-      sed -i "s/sitename/$hostname1/" /etc/nginx/conf.d/${hostname1}.conf
+      sed -i "s/sitename/${hostname1}/" /etc/nginx/conf.d/${hostname1}.conf
     fi
     echo "${cyan}Skipping SSL Certificate Creation...${normal}"
     echo
