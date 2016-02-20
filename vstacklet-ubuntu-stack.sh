@@ -419,7 +419,7 @@ function _nginx() {
   chown -R www-data /etc/nginx-cache
   chgrp -R www-data /etc/nginx-cache
   chmod -R g+rw /etc/nginx-cache
-  sh -c 'find /etc/nginx-cache/* -type d -print0 | sudo xargs -0 chmod g+s'
+  sh -c 'find /etc/nginx-cache -type d -print0 | sudo xargs -0 chmod g+s'
   #sed -i.bak -e "s/www www/www-data www-data/" \
   #  -e "s/logs\/error.log/\/var\/log\/nginx\/error.log/" \
   #  -e "s/logs\/access.log/\/var\/log\/nginx\/access.log/" /etc/nginx/nginx.conf
