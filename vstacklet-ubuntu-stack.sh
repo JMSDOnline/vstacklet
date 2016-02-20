@@ -907,6 +907,7 @@ function _nocert() {
 
 # finalize and restart services function (20)
 function _services() {
+  service apache2 stop >>"${OUTTO}" 2>&1;
   service nginx restart >>"${OUTTO}" 2>&1;
   service varnish restart >>"${OUTTO}" 2>&1;
   service php5-fpm restart >>"${OUTTO}" 2>&1;
