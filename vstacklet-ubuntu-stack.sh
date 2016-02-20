@@ -411,7 +411,7 @@ function _nginx() {
   service nginx stop >>"${OUTTO}" 2>&1;
   mv /etc/nginx /etc/nginx-previous >>"${OUTTO}" 2>&1;
   wget https://github.com/JMSDOnline/vstacklet/raw/master/vstacklet-server-configs.zip >/dev/null 2>&1;
-  unzip vstacklet-server-configs.zip >/dev/null 2>&1;
+  unzip vstacklet-server-configs.zip -d ~/vstacklet-server-configs >/dev/null 2>&1;
   mv vstacklet-server-configs /etc/nginx >>"${OUTTO}" 2>&1;
   rm -rf vstacklet-server-configs*
   cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
