@@ -626,6 +626,7 @@ function _askcsf() {
 function _csf() {
   if [[ ${csf} == "yes" ]]; then
     echo -n "${green}Installing and Adjusting CSF${normal} ... "
+    apt-get -y install e2fsprogs >>"${OUTTO}" 2>&1;
     wget http://www.configserver.com/free/csf.tgz >/dev/null 2>&1;
     tar -xzf csf.tgz >/dev/null 2>&1;
     ufw disable >>"${OUTTO}" 2>&1;
