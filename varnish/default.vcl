@@ -5,7 +5,7 @@ import directors;
 
 backend server1 { # Define one backend
   .host = "127.0.0.1";    # IP or Hostname of backend
-  .port = "80";           # Port Apache or whatever is listening
+  .port = "8080";           # Port Apache or whatever is listening
   .max_connections = 300; # That's it
 
 #  .probe = {
