@@ -319,7 +319,7 @@ function _softcommon() {
 
 # package and repo addition (b) _install softwares and packages_
 function _depends() {
-  apt-get -y install nano unzip dos2unix htop iotop bc libwww-perl >>"${OUTTO}" 2>&1;
+  apt-get -y install nano unzip dos2unix htop iotop bc libwww-perl dnsutils sudo >>"${OUTTO}" 2>&1;
   echo "${OK}"
   echo
 }
@@ -656,6 +656,7 @@ function _csf() {
     echo "exe:/usr/sbin/varnishd" >> /etc/csf/csf.pignore;
     echo "exe:/usr/sbin/rsyslogd" >> /etc/csf/csf.pignore;
     echo "exe:/lib/systemd/systemd-timesyncd" >> /etc/csf/csf.pignore;
+    echo "exe:/lib/systemd/systemd-resolved" >> /etc/csf/csf.pignore;
     # modify csf conf - make suitable changes for non-cpanel environment
     sed -i.bak -e 's/TESTING = "1"/TESTING = "0"/' \
                -e 's/RESTRICT_SYSLOG = "0"/RESTRICT_SYSLOG = "3"/' \
