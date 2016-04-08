@@ -476,7 +476,7 @@ function _php() {
     -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
     -e "s/expose_php = On/expose_php = Off/" \
     -e "s/128M/512M/" \
-    -e "s/cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
+    -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
     -e "s/;opcache.enable=0/opcache.enable=1/" \
     -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
     -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
