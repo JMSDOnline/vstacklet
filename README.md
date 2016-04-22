@@ -7,19 +7,22 @@ VStacklet - A Buff LEMP Stack Kit
 
 #### Script status
 
-[![Version 2.8-production](https://img.shields.io/badge/version-2.8-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Version 3.0.0-production](https://img.shields.io/badge/version-3.0.0-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
+[![Ubuntu 16.04 Passing](https://img.shields.io/badge/Ubuntu%2015.10-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![Ubuntu 15.10 Passing](https://img.shields.io/badge/Ubuntu%2015.10-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![Ubuntu 15.04 Passing](https://img.shields.io/badge/Ubuntu%2015.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![Ubuntu 14.04 Passing](https://img.shields.io/badge/Ubuntu%2014.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 
 --------
 
-Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04 and 15.10 servers.
+Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04, 15.10 and 16.04 servers.
 
 Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
 
-Deploys a proper directory strucutre, optimizes Nginx and Varnish, creates a PHP page for testing and more!
+Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
+
+> Please note: that if you are going to use php 7 that phpmyadmin as well as ioncube are currently not supported. Additionally, in future versions, php 7 and php 5 installers will be contained in separate scripts. Lets Encrypt will be the standard SSL installer in the coming versions.
 
 
 Script Features
@@ -98,6 +101,13 @@ apt-get install -y curl
 ```
 curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet.sh
 chmod +x vstacklet.sh
+./vstacklet.sh
+```
+
+### For Development & Testing - use this
+```
+curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/dev-vstacklet.sh
+chmod +x dev-vstacklet.sh
 ./vstacklet.sh
 ```
 
