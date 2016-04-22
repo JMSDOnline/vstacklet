@@ -63,7 +63,7 @@ function _askvstacklet() {
   echo "${bold} Actively maintained and quality controlled.${normal}"
   echo
   echo
-  echo -n "${bold}${yellow}Are you ready to install VStacklet for Ubuntu 14.04 & 15.x ?${normal} (${bold}${green}Y${normal}/n): "
+  echo -n "${bold}${yellow}Are you ready to install VStacklet for Ubuntu 14.04 - 16.04?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) vstacklet=yes ;;
@@ -88,4 +88,4 @@ function _novstacklet() {
   fi
 }
 
-_askvstacklet;if [[ ${vstacklet} == "yes" ]]; then echo -n "${bold}Installing VStacklet Kit for 14.04, 15.04 and 15.10 support${normal} ... ";_vstacklet; elif [[ ${vstacklet} == "no" ]]; then _novstacklet;  fi
+_askvstacklet;if [[ ${vstacklet} == "yes" ]]; then echo -n "${bold}Installing VStacklet Kit for 14.04, 15.04, 15.10 and 16.04 support${normal} ... ";_vstacklet; elif [[ ${vstacklet} == "no" ]]; then _novstacklet;  fi

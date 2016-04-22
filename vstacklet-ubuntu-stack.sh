@@ -164,7 +164,7 @@ function _intro() {
   echo
   echo
   echo "  [${repo_title}vstacklet${normal}] ${title} Varnish LEMP Stack Installation ${normal}  "
-  echo "${alert} Configured and tested for Ubuntu 14.04, 15.04 & 15.10 ${normal}"
+  echo "${alert} Configured and tested for Ubuntu 14.04, 15.04, 15.10 & 16.04 ${normal}"
   echo
   echo
 
@@ -182,7 +182,7 @@ function _intro() {
     echo "${dis}: You do not appear to be running Ubuntu"
     echo 'Exiting...'
     exit 1
-  elif [[ ! "${rel}" =~ ("14.04"|"15.04"|"15.10") ]]; then
+elif [[ ! "${rel}" =~ ("14.04"|"15.04"|"15.10"|"16.04") ]]; then
     echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
     echo 'Exiting...'
     exit 1
@@ -319,7 +319,7 @@ function _softcommon() {
 
 # package and repo addition (b) _install softwares and packages_
 function _depends() {
-  apt-get -y install nano unzip dos2unix htop iotop bc libwww-perl >>"${OUTTO}" 2>&1;
+  apt-get -y install nano unzip git dos2unix htop iotop bc libwww-perl dnsutils language-pack-en-base sudo >>"${OUTTO}" 2>&1;
   echo "${OK}"
   echo
 }
@@ -335,6 +335,10 @@ function _keys() {
 
 # package and repo addition (d) _add respo sources_
 function _repos() {
+  # now working with php 7 - so let's add it
+  export DEBIAN_FRONTEND=noninteractive &&
+  add-apt-repository ppa:ondrej/php -y >>"${OUTTO}" 2>&1;
+
   cat >/etc/apt/sources.list.d/mariadb.list<<EOF
 deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
 EOF
@@ -344,7 +348,7 @@ EOF
   cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
 deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.1
 EOF
-#  elif [[ ${rel} =~ ("15.04"|"15.10") ]]; then
+#  elif [[ ${rel} =~ ("15.04"|"15.10"|"16.04") ]]; then
 #    cat >/etc/apt/sources.list.d/varnish-cache.list<<EOF
 #    deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.0
 #EOF
@@ -362,7 +366,7 @@ function _updates() {
   export DEBIAN_FRONTEND=noninteractive &&
   apt-get -y update >>"${OUTTO}" 2>&1;
   apt-get -y upgrade >>"${OUTTO}" 2>&1;
-# apt-get -y autoremove >>"${OUTTO}" 2>&1; ### I'll let you decide
+  apt-get -y autoremove >>"${OUTTO}" 2>&1;
   echo "${OK}"
   echo
 }
@@ -415,24 +419,40 @@ function _nginx() {
   mv vstacklet-server-configs /etc/nginx >>"${OUTTO}" 2>&1;
   rm -rf vstacklet-server-configs*
   cp /etc/nginx-previous/uwsgi_params /etc/nginx-previous/fastcgi_params /etc/nginx >>"${OUTTO}" 2>&1;
-  mkdir -p /etc/nginx-cache
-  chown -R www-data /etc/nginx-cache
-  chgrp -R www-data /etc/nginx-cache
-  chmod -R g+rw /etc/nginx-cache
-  sh -c 'find /etc/nginx-cache -type d -print0 | sudo xargs -0 chmod g+s'
+  mkdir -p /etc/nginx/cache
+  chown -R www-data /etc/nginx/cache
+  chgrp -R www-data /etc/nginx/cache
+  chmod -R g+rw /etc/nginx/cache
+  sh -c 'find /etc/nginx/cache -type d -print0 | sudo xargs -0 chmod g+s'
   # rename default.conf template
   if [[ $sitename -eq yes ]];then
-    cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/${sitename}.conf
-    # build applications web root directory if sitename is provided
-    mkdir -p /srv/www/${sitename}/logs >/dev/null 2>&1;
-    mkdir -p /srv/www/${sitename}/ssl >/dev/null 2>&1;
-    mkdir -p /srv/www/${sitename}/public >/dev/null 2>&1;
+      if [[ $PHPVERSION=7.0 ]];then
+          cp /etc/nginx/conf.d/default.php7.conf.save /etc/nginx/conf.d/${sitename}.conf
+          # build applications web root directory if sitename is provided
+          mkdir -p /srv/www/${sitename}/logs >/dev/null 2>&1;
+          mkdir -p /srv/www/${sitename}/ssl >/dev/null 2>&1;
+          mkdir -p /srv/www/${sitename}/public >/dev/null 2>&1;
+      else
+          cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/${sitename}.conf
+          # build applications web root directory if sitename is provided
+          mkdir -p /srv/www/${sitename}/logs >/dev/null 2>&1;
+          mkdir -p /srv/www/${sitename}/ssl >/dev/null 2>&1;
+          mkdir -p /srv/www/${sitename}/public >/dev/null 2>&1;
+      fi
   else
-    cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/${hostname1}.conf
-    # build applications web root directory if no sitename is provided
-    mkdir -p /srv/www/${hostname1}/logs >/dev/null 2>&1;
-    mkdir -p /srv/www/${hostname1}/ssl >/dev/null 2>&1;
-    mkdir -p /srv/www/${hostname1}/public >/dev/null 2>&1;
+      if [[ $PHPVERSION=7.0 ]];then
+          cp /etc/nginx/conf.d/default.php7.conf.save /etc/nginx/conf.d/${hostname1}.conf
+          # build applications web root directory if no sitename is provided
+          mkdir -p /srv/www/${hostname1}/logs >/dev/null 2>&1;
+          mkdir -p /srv/www/${hostname1}/ssl >/dev/null 2>&1;
+          mkdir -p /srv/www/${hostname1}/public >/dev/null 2>&1;
+      else
+          cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/${hostname1}.conf
+          # build applications web root directory if no sitename is provided
+          mkdir -p /srv/www/${hostname1}/logs >/dev/null 2>&1;
+          mkdir -p /srv/www/${hostname1}/ssl >/dev/null 2>&1;
+          mkdir -p /srv/www/${hostname1}/public >/dev/null 2>&1;
+      fi
   fi
   echo "${OK}"
   echo
@@ -458,7 +478,7 @@ function _varnish() {
   sed -i "s/6081/80/" /etc/default/varnish
   # then there is varnish with systemd in ubuntu 15.x
   # let us shake that headache now
-  if [[ ${rel} =~ ("15.04"|"15.10") ]]; then
+  if [[ ${rel} =~ ("15.04"|"15.10"|"16.04") ]]; then
     cp /lib/systemd/system/varnishlog.service /etc/systemd/system/
     cp /lib/systemd/system/varnish.service /etc/systemd/system/
     sed -i "s/6081/80/" /etc/systemd/system/varnish.service
@@ -469,72 +489,134 @@ function _varnish() {
   echo
 }
 
+# ask php version function (12)
+function _askphpversion() {
+  echo -e "1) php${green}7.0${normal}"
+  echo -e "2) php${green}5${normal}"
+  echo -ne "${yellow}What version of php do you want?${normal} (Default php${green}5${normal}): "; read version
+  case $version in
+    1 | "") PHPVERSION=7.0  ;;
+    2) PHPVERSION=5  ;;
+    *) PHPVERSION=5 ;;
+  esac
+  #echo "Using php$PHPVERSION"
+  echo
+}
+
 # install php function (11)
 function _php() {
-  apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
-  sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
-    -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
-    -e "s/expose_php = On/expose_php = Off/" \
-    -e "s/128M/512M/" \
-    -e "s/cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
-    -e "s/;opcache.enable=0/opcache.enable=1/" \
-    -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
-    -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
-    -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php5/fpm/php.ini
-  # ensure opcache module is activated
-  php5enmod opcache
-  # ensure mcrypt module is activated
-  php5enmod mcrypt
-  # write checkinfo for php verification
-  if [[ $sitename -eq yes ]];then
-    echo '<?php phpinfo(); ?>' > /srv/www/${sitename}/public/checkinfo.php
+  echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-fpm w/ OPCode Cache ... "
+  if [[ $PHPVERSION=7.0 ]];then
+      apt-get -y install php7.0 php7.0-fpm php7.0-mbstring php7.0-zip php7.0-mysql php7.0-curl php7.0-gd php7.0-json php7.0-mcrypt php7.0-opcache php7.0-xml >>"${OUTTO}" 2>&1;
+      sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
+        -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
+        -e "s/expose_php = On/expose_php = Off/" \
+        -e "s/128M/512M/" \
+        -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
+        -e "s/;opcache.enable=0/opcache.enable=1/" \
+        -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
+        -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
+        -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php/7.0/fpm/php.ini
   else
-    echo '<?php phpinfo(); ?>' > /srv/www/${hostname1}/public/checkinfo.php
+      apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
+      sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
+        -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
+        -e "s/expose_php = On/expose_php = Off/" \
+        -e "s/128M/512M/" \
+        -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
+        -e "s/;opcache.enable=0/opcache.enable=1/" \
+        -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
+        -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
+        -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php5/fpm/php.ini
+      # ensure opcache module is activated
+      php5enmod opcache
+      # ensure mcrypt module is activated
+      php5enmod mcrypt
   fi
+      # write checkinfo for php verification
+      if [[ $sitename -eq yes ]];then
+          echo '<?php phpinfo(); ?>' > /srv/www/${sitename}/public/checkinfo.php
+      else
+          echo '<?php phpinfo(); ?>' > /srv/www/${hostname1}/public/checkinfo.php
+      fi
   echo "${OK}"
   echo
 }
 
-# install ioncube loader function (12)
-function _askioncube() {
-  echo -n "${bold}${yellow}Do you want to install IonCube Loader?${normal} (${bold}${green}Y${normal}/n): "
-  read responce
-  case $responce in
-    [yY] | [yY][Ee][Ss] | "" ) ioncube=yes ;;
-    [nN] | [nN][Oo] ) ioncube=no ;;
-  esac
-}
+if [[ $PHPVERSION=7.0 ]];then
+    # install memcached for php7 function (12)
+    function _askmemcached() {
+        echo -n "${bold}${yellow}Do you want to install Memcached for PHP 7?${normal} (${bold}${green}Y${normal}/n): "
+        read responce
+        case $responce in
+            [yY] | [yY][Ee][Ss] | "" ) memcached=yes ;;
+            [nN] | [nN][Oo] ) memcached=no ;;
+        esac
+    }
 
-function _ioncube() {
-  if [[ ${ioncube} == "yes" ]]; then
-    echo -n "${green}Installing IonCube Loader${normal} ... "
-    mkdir tmp 2>&1;
-    cd tmp 2>&1;
-    wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
-    tar xvfz ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
-    cd ioncube >/dev/null 2>&1;
-    if [[ ${rel} =~ ("15.04"|"15.10") ]]; then
-      cp ioncube_loader_lin_5.6.so /usr/lib/php5/20131226/ >/dev/null 2>&1;
-      echo -e "zend_extension = /usr/lib/php5/20131226/ioncube_loader_lin_5.6.so" > /etc/php5/fpm/conf.d/20-ioncube.ini
-      echo "zend_extension = /usr/lib/php5/20131226/ioncube_loader_lin_5.6.so" >> /etc/php5/fpm/php.ini
-    elif [[ ${rel} =~ ("14.04") ]]; then
-      cp ioncube_loader_lin_5.5.so /usr/lib/php5/20121212/ >/dev/null 2>&1;
-      echo -e "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" > /etc/php5/fpm/conf.d/20-ioncube.ini
-      echo "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" >> /etc/php5/fpm/php.ini
-    fi
-    cd
-    rm -rf tmp*
+    function _memcached() {
+        if [[ ${memcached} == "yes" ]]; then
+            echo -n "Installing Memcached for PHP 7 ... "
+            apt-get install -y php7.0-dev git pkg-config build-essential libmemcached-dev >/dev/null 2>&1;
+            apt-get install -y php-memcached >/dev/null 2>&1;
+            sudo ln -s /etc/php/mods-available/memcached.ini /etc/php/7.0/fpm/conf.d/20-memcached.ini
+            sudo ln -s /etc/php/mods-available/memcached.ini /etc/php/7.0/cli/conf.d/20-memcached.ini
+        fi
+
     echo "${OK}"
     echo
-  fi
-}
+    }
 
-function _noioncube() {
-  if [[ ${ioncube} == "no" ]]; then
-    echo "${cyan}Skipping IonCube Installation...${normal}"
-    echo
-  fi
-}
+    function _nomemcached() {
+        if [[ ${memcached} == "no" ]]; then
+            echo "${cyan}Skipping Memcached Installation...${normal}"
+            echo
+        fi
+    }
+fi
+
+if [[ $PHPVERSION=5 ]];then
+    # install ioncube loader function (12)
+    function _askioncube() {
+        echo -n "${bold}${yellow}Do you want to install IonCube Loader?${normal} (${bold}${green}Y${normal}/n): "
+        read responce
+        case $responce in
+            [yY] | [yY][Ee][Ss] | "" ) ioncube=yes ;;
+            [nN] | [nN][Oo] ) ioncube=no ;;
+        esac
+    }
+
+    function _ioncube() {
+        if [[ ${ioncube} == "yes" ]]; then
+            echo -n "${green}Installing IonCube Loader${normal} ... "
+            mkdir tmp 2>&1;
+            cd tmp 2>&1;
+            wget http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
+            tar xvfz ioncube_loaders_lin_x86-64.tar.gz >/dev/null 2>&1;
+            cd ioncube >/dev/null 2>&1;
+            if [[ ${rel} =~ ("15.04"|"15.10"|"16.04") ]]; then
+                cp ioncube_loader_lin_5.6.so /usr/lib/php5/20131226/ >/dev/null 2>&1;
+                echo -e "zend_extension = /usr/lib/php5/20131226/ioncube_loader_lin_5.6.so" > /etc/php5/fpm/conf.d/20-ioncube.ini
+                echo "zend_extension = /usr/lib/php5/20131226/ioncube_loader_lin_5.6.so" >> /etc/php5/fpm/php.ini
+            elif [[ ${rel} =~ ("14.04") ]]; then
+                cp ioncube_loader_lin_5.5.so /usr/lib/php5/20121212/ >/dev/null 2>&1;
+                echo -e "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" > /etc/php5/fpm/conf.d/20-ioncube.ini
+                echo "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" >> /etc/php5/fpm/php.ini
+            fi
+            cd
+            rm -rf tmp*
+            echo "${OK}"
+            echo
+        fi
+    }
+
+    function _noioncube() {
+        if [[ ${ioncube} == "no" ]]; then
+            echo "${cyan}Skipping IonCube Installation...${normal}"
+            echo
+        fi
+    }
+fi
 
 # install mariadb function (13)
 function _mariadb() {
@@ -544,74 +626,82 @@ function _mariadb() {
   echo
 }
 
-# install phpmyadmin function (14)
-function _askphpmyadmin() {
-  echo -n "${bold}${yellow}Do you want to install phpMyAdmin?${normal} (${bold}${green}Y${normal}/n): "
-  read responce
-  case $responce in
-    [yY] | [yY][Ee][Ss] | "" ) phpmyadmin=yes ;;
-    [nN] | [nN][Oo] ) phpmyadmin=no ;;
-  esac
-}
+if [[ $PHPVERSION=5 ]];then
+    # install phpmyadmin function (14)
+    function _askphpmyadmin() {
+        echo -n "${bold}${yellow}Do you want to install phpMyAdmin?${normal} (${bold}${green}Y${normal}/n): "
+        read responce
+        case $responce in
+            [yY] | [yY][Ee][Ss] | "" ) phpmyadmin=yes ;;
+            [nN] | [nN][Oo] ) phpmyadmin=no ;;
+        esac
+    }
 
-function _phpmyadmin() {
-  if [[ ${phpmyadmin} == "yes" ]]; then
-    # generate random passwords for the MySql root user
-    pmapass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
-    mysqlpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
-    mysqladmin -u root -h localhost password "${mysqlpass}"
-    echo -n "${bold}Installing MySQL with user:${normal} ${bold}${green}root${normal}${bold} / passwd:${normal} ${bold}${green}${mysqlpass}${normal} ... "
-    apt-get -y install debconf-utils >>"${OUTTO}" 2>&1;
-    export DEBIAN_FRONTEND=noninteractive
-    # silently configure given options and install
-    echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
-    echo "phpmyadmin phpmyadmin/mysql/admin-pass password ${mysqlpass}" | debconf-set-selections
-    echo "phpmyadmin phpmyadmin/mysql/app-pass password ${pmapass}" | debconf-set-selections
-    echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
-    echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
-    apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
-    if [[ $sitename -eq yes ]];then
-      # create a sym-link to live directory.
-      ln -s /usr/share/phpmyadmin /srv/www/${sitename}/public
-    else
-      # create a sym-link to live directory.
-      ln -s /usr/share/phpmyadmin /srv/www/${hostname1}/public
-    fi
-    echo "${OK}"
-    # get phpmyadmin directory
-    DIR="/etc/phpmyadmin";
-    # show phpmyadmin creds
-    echo '[phpMyAdmin Login]' > ~/.my.cnf;
-    echo " - pmadbuser='phpmyadmin'" >> ~/.my.cnf;
-    echo " - pmadbpass='${pmapass}'" >> ~/.my.cnf;
-    echo '' >> ~/.my.cnf;
-    echo "   Access phpMyAdmin at: " >> ~/.my.cnf;
-    echo "   http://$server_ip:8080/phpmyadmin/" >> ~/.my.cnf;
-    echo '' >> ~/.my.cnf;
-    echo '' >> ~/.my.cnf;
-    # show mysql creds
-    echo '[MySQL Login]' >> ~/.my.cnf;
-    echo " - sqldbuser='root'" >> ~/.my.cnf;
-    echo " - sqldbpass='${mysqlpass}'" >> ~/.my.cnf;
-    echo '' >> ~/.my.cnf;
-    # closing statement
-    echo
-    echo "${bold}Below are your phpMyAdmin and MySQL details.${normal}"
-    echo "${bold}Details are logged in the${normal} ${bold}${green}/root/.my.cnf${normal} ${bold}file.${normal}"
-    echo "Best practice is to copy this file locally then rm ~/.my.cnf"
-    echo
-    # show contents of .my.cnf file
-    cat ~/.my.cnf
-    echo
-  fi
-}
+    function _phpmyadmin() {
+        if [[ ${phpmyadmin} == "yes" ]]; then
+            # generate random passwords for the MySql root user
+            pmapass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
+            mysqlpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15);
+            mysqladmin -u root -h localhost password "${mysqlpass}"
+            echo -n "${bold}Installing MySQL with user:${normal} ${bold}${green}root${normal}${bold} / passwd:${normal} ${bold}${green}${mysqlpass}${normal} ... "
+            apt-get -y install debconf-utils >>"${OUTTO}" 2>&1;
+            export DEBIAN_FRONTEND=noninteractive
+            # silently configure given options and install
+            echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
+            echo "phpmyadmin phpmyadmin/mysql/admin-pass password ${mysqlpass}" | debconf-set-selections
+            echo "phpmyadmin phpmyadmin/mysql/app-pass password ${pmapass}" | debconf-set-selections
+            echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
+            echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
+            apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1;
+            if [[ $sitename -eq yes ]];then
+                # create a sym-link to live directory.
+                ln -s /usr/share/phpmyadmin /srv/www/${sitename}/public
+            else
+                # create a sym-link to live directory.
+                ln -s /usr/share/phpmyadmin /srv/www/${hostname1}/public
+            fi
+            echo "${OK}"
+            # get phpmyadmin directory
+            DIR="/etc/phpmyadmin";
+            # show phpmyadmin creds
+            echo '[phpMyAdmin Login]' > ~/.my.cnf;
+            echo " - pmadbuser='phpmyadmin'" >> ~/.my.cnf;
+            echo " - pmadbpass='${pmapass}'" >> ~/.my.cnf;
+            echo '' >> ~/.my.cnf;
+            echo "   Access phpMyAdmin at: " >> ~/.my.cnf;
+            echo "   http://$server_ip:8080/phpmyadmin/" >> ~/.my.cnf;
+            echo '' >> ~/.my.cnf;
+            echo '' >> ~/.my.cnf;
+            # show mysql creds
+            echo '[MySQL Login]' >> ~/.my.cnf;
+            echo " - sqldbuser='root'" >> ~/.my.cnf;
+            echo " - sqldbpass='${mysqlpass}'" >> ~/.my.cnf;
+            echo '' >> ~/.my.cnf;
+            # closing statement
+            echo
+            echo "${bold}Below are your phpMyAdmin and MySQL details.${normal}"
+            echo "${bold}Details are logged in the${normal} ${bold}${green}/root/.my.cnf${normal} ${bold}file.${normal}"
+            echo "Best practice is to copy this file locally then rm ~/.my.cnf"
+            echo
+            # show contents of .my.cnf file
+            cat ~/.my.cnf
+            echo
+        fi
+    }
 
-function _nophpmyadmin() {
-  if [[ ${phpmyadmin} == "no" ]]; then
-    echo "${cyan}Skipping phpMyAdmin Installation...${normal}"
-    echo
-  fi
-}
+    function _nophpmyadmin() {
+        if [[ ${phpmyadmin} == "no" ]]; then
+            echo "${cyan}Skipping phpMyAdmin Installation...${normal}"
+            echo
+        fi
+    }
+
+else
+
+    function _nophpmyadmin7() {
+        echo -ne
+    }
+fi
 
 # install and adjust config server firewall function (15)
 function _askcsf() {
@@ -626,7 +716,7 @@ function _askcsf() {
 function _csf() {
   if [[ ${csf} == "yes" ]]; then
     echo -n "${green}Installing and Adjusting CSF${normal} ... "
-    apt-get -y install e2fsprogs >>"${OUTTO}" 2>&1;
+    apt-get -y install e2fsprogs >/dev/null 2>&1;
     wget http://www.configserver.com/free/csf.tgz >/dev/null 2>&1;
     tar -xzf csf.tgz >/dev/null 2>&1;
     ufw disable >>"${OUTTO}" 2>&1;
@@ -656,13 +746,14 @@ function _csf() {
     echo "exe:/usr/sbin/varnishd" >> /etc/csf/csf.pignore;
     echo "exe:/usr/sbin/rsyslogd" >> /etc/csf/csf.pignore;
     echo "exe:/lib/systemd/systemd-timesyncd" >> /etc/csf/csf.pignore;
+    echo "exe:/lib/systemd/systemd-resolved" >> /etc/csf/csf.pignore;
     # modify csf conf - make suitable changes for non-cpanel environment
     sed -i.bak -e 's/TESTING = "1"/TESTING = "0"/' \
                -e 's/RESTRICT_SYSLOG = "0"/RESTRICT_SYSLOG = "3"/' \
                -e 's/TCP_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,2077,2078,2082,2083,2086,2087,2095,2096"/TCP_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,8080"/' \
-               -e 's/TCP_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,2086,2087,2089,2703"/TCP_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,8080"/' \
+               -e 's/TCP_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,2086,2087,2089,2703"/TCP_OUT = "20,21,22,25,37,43,53,80,110,113,443,465,587,873,993,995,8080"/' \
                -e 's/TCP6_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,2077,2078,2082,2083,2086,2087,2095,2096"/TCP6_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,8080"/' \
-               -e 's/TCP6_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,2086,2087,2089,2703"/TCP6_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,8080"/' \
+               -e 's/TCP6_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,2086,2087,2089,2703"/TCP6_OUT = "20,21,22,25,37,43,53,80,110,113,443,465,587,873,993,995,8080"/' \
                -e 's/DENY_TEMP_IP_LIMIT = "100"/DENY_TEMP_IP_LIMIT = "1000"/' \
                -e 's/SMTP_ALLOWUSER = "cpanel"/SMTP_ALLOWUSER = "root"/' \
                -e 's/PT_USERMEM = "200"/PT_USERMEM = "500"/' \
@@ -818,6 +909,8 @@ function _locenhance() {
     sed -i "s/locconf3/${locconf3}/" /etc/nginx/conf.d/${sitename}.conf
     locconf4="include vstacklet\/location\/protect-system-files.conf;"
     sed -i "s/locconf4/${locconf4}/" /etc/nginx/conf.d/${sitename}.conf
+    locconf5="include vstacklet\/location\/letsencrypt.conf;"
+    sed -i "s/locconf5/${locconf5}/" /etc/nginx/conf.d/${sitename}.conf
   else
     locconf1="include vstacklet\/location\/cache-busting.conf;"
     sed -i "s/locconf1/${locconf1}/" /etc/nginx/conf.d/${hostname1}.conf
@@ -827,6 +920,8 @@ function _locenhance() {
     sed -i "s/locconf3/${locconf3}/" /etc/nginx/conf.d/${hostname1}.conf
     locconf4="include vstacklet\/location\/protect-system-files.conf;"
     sed -i "s/locconf4/${locconf4}/" /etc/nginx/conf.d/${hostname1}.conf
+    locconf5="include vstacklet\/location\/letsencrypt.conf;"
+    sed -i "s/locconf5/${locconf5}/" /etc/nginx/conf.d/${hostname1}.conf
   fi
   echo "${OK}"
   echo
@@ -856,7 +951,7 @@ function _security() {
 
 # create self-signed certificate function (19)
 function _askcert() {
-  echo -n "${bold}${yellow}Do you want to create a self-signed SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
+  echo -n "${bold}${yellow}Do you want to generate an SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) cert=yes ;;
@@ -867,6 +962,10 @@ function _askcert() {
 function _cert() {
   if [[ ${cert} == "yes" ]]; then
     if [[ $sitename -eq yes ]];then
+
+        # Using Lets Encrypt for SSL deployment is currently being developed on VStacklet
+        #git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt
+
       openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/${sitename}.key -out /etc/ssl/certs/${sitename}.crt
       chmod 400 /etc/ssl/private/${sitename}.key
       sed -i -e "s/# listen [::]:443 ssl http2;/listen [::]:443 ssl http2;/" \
@@ -904,16 +1003,17 @@ function _nocert() {
 
 # finalize and restart services function (20)
 function _services() {
-  service apache2 stop >>"${OUTTO}" 2>&1;
-  service nginx restart >>"${OUTTO}" 2>&1;
-  service varnish restart >>"${OUTTO}" 2>&1;
-  service php5-fpm restart >>"${OUTTO}" 2>&1;
-  if [[ $sendmail -eq yes ]];then
-    service sendmail restart >>"${OUTTO}" 2>&1;
+    service apache2 stop >>"${OUTTO}" 2>&1;
+    for i in ssh nginx varnish php$PHPVERSION-fpm; do
+      service $i restart >>"${OUTTO}" 2>&1
+      systemctl enable $i >>"${OUTTO}" 2>&1
+    done
+    if [[ $sendmail -eq yes ]];then
+        service sendmail restart >>"${OUTTO}" 2>&1;
   fi
   if [[ $csf -eq yes ]];then
-    service lfd restart >>"${OUTTO}" 2>&1;
-    csf -r >>"${OUTTO}" 2>&1;
+      service lfd restart >>"${OUTTO}" 2>&1;
+      csf -r >>"${OUTTO}" 2>&1;
   fi
   echo "${OK}"
   echo
@@ -962,25 +1062,34 @@ S=$(date +%s)
 OK=$(echo -e "[ ${bold}${green}DONE${normal} ]")
 
 # VSTACKLET STRUCTURE
-_bashrc
-_intro
-_checkroot
-_logcheck
+_bashrc;
+_intro;
+_checkroot;
+_logcheck;
 _updates;
 #_locale;
-echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon
-echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${normal} ... ";_depends
-echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys
-echo -n "${bold}Adding trusted repositories${normal} ... ";_repos
-echo -n "${bold}Applying Updates${normal} ... ";_updates
+echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon;
+echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${normal} ... ";_depends;
+echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys;
+echo -n "${bold}Adding trusted repositories${normal} ... ";_repos;
+echo -n "${bold}Applying Updates${normal} ... ";_updates;
 _asksitename;if [[ ${sitename} == "yes" ]]; then _sitename; elif [[ ${sitename} == "no" ]]; then _nositename;  fi
-echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx
-echo -n "${bold}Adjusting Permissions${normal} ... ";_perms
-echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish
-echo -n "${bold}Installing and Adjusting PHP-FPM w/ OPCode Cache${normal} ... ";_php
-_askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; elif [[ ${ioncube} == "no" ]]; then _noioncube;  fi
-echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
-_askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpmyadmin} == "no" ]]; then _nophpmyadmin;  fi
+echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx;
+echo -n "${bold}Adjusting Permissions${normal} ... ";_perms;
+echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish;
+_askphpversion;_php;
+if [[ $PHPVERSION=7.0 ]]; then
+    _askmemcached;if [[ ${memcached} == "yes" ]]; then _memcached; elif [[ ${memcached} == "no" ]]; then _nomemcached;  fi
+fi
+if [[ $PHPVERSION=5 ]]; then
+    _askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; elif [[ ${ioncube} == "no" ]]; then _noioncube;  fi
+fi
+echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb;
+if [[ $PHPVERSION=5 ]]; then
+    _askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpmyadmin} == "no" ]]; then _nophpmyadmin;  fi
+elif [[ $PHPVERSION=7.0 ]]; then
+    _nophpmyadmin7;
+fi
 _askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
 if [[ ${csf} == "yes" ]]; then
   _askcloudflare;if [[ ${cloudflare} == "yes" ]]; then _cloudflare;  fi
@@ -989,11 +1098,11 @@ if [[ ${csf} == "no" ]]; then
   _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
 fi
 echo "${bold}Addressing Location Edits: cache busting, cross domain font support,${normal}";
-echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance
+echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance;
 echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}";
-echo -n "${bold}file injection, and php easter eggs${normal} ... ";_security
+echo -n "${bold}file injection, and php easter eggs${normal} ... ";_security;
 _askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
-echo -n "${bold}Completing Installation & Restarting Services${normal} ... ";_services
+echo -n "${bold}Completing Installation & Restarting Services${normal} ... ";_services;
 
 E=$(date +%s)
 DIFF=$(echo "$E" - "$S"|bc)
