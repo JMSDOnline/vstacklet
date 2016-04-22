@@ -313,8 +313,6 @@ echo "LC_ALL=en_US.UTF-8" >>/etc/default/locale
 function _softcommon() {
   # package and repo addition (a) _install common properties_
   apt-get -y install software-properties-common python-software-properties apt-transport-https >>"${OUTTO}" 2>&1;
-  # now working with php 7 - so let's add it
-  add-apt-repository ppa:ondrej/php > /dev/null 2>&1;
   echo "${OK}"
   echo
 }
@@ -337,6 +335,10 @@ function _keys() {
 
 # package and repo addition (d) _add respo sources_
 function _repos() {
+  # now working with php 7 - so let's add it
+  export DEBIAN_FRONTEND=noninteractive &&
+  add-apt-repository ppa:ondrej/php >>"${OUTTO}" 2>&1;
+
   cat >/etc/apt/sources.list.d/mariadb.list<<EOF
 deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
 EOF
@@ -364,7 +366,7 @@ function _updates() {
   export DEBIAN_FRONTEND=noninteractive &&
   apt-get -y update >>"${OUTTO}" 2>&1;
   apt-get -y upgrade >>"${OUTTO}" 2>&1;
-# apt-get -y autoremove >>"${OUTTO}" 2>&1; ### I'll let you decide
+  apt-get -y autoremove >>"${OUTTO}" 2>&1;
   echo "${OK}"
   echo
 }
@@ -491,7 +493,7 @@ function _varnish() {
 function _askphpversion() {
   echo -e "1) php${green}7.0${normal}"
   echo -e "2) php${green}5${normal}"
-  echo -ne "${yellow}What version of php do you want?${normal} (Default ${green}5${normal}): "; read version
+  echo -ne "${yellow}What version of php do you want?${normal} (Default php${green}5${normal}): "; read version
   case $version in
     1 | "") PHPVERSION=7.0  ;;
     2) PHPVERSION=5  ;;
@@ -502,7 +504,7 @@ function _askphpversion() {
 
 # install php function (11)
 function _php() {
-  echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-FPM w/ OPCode Cache ... "
+  echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-fpm w/ OPCode Cache ... "
   if [[ $PHPVERSION=7.0 ]];then
       apt-get -y install php7.0 php7.0-fpm php7.0-mbstring php7.0-zip php7.0-mysql php7.0-curl php7.0-gd php7.0-json php7.0-mcrypt php7.0-opcache php7.0-xml >>"${OUTTO}" 2>&1;
       sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
