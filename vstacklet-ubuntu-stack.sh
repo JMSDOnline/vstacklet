@@ -337,7 +337,7 @@ function _keys() {
 function _repos() {
   # now working with php 7 - so let's add it
   export DEBIAN_FRONTEND=noninteractive &&
-  add-apt-repository ppa:ondrej/php >>"${OUTTO}" 2>&1;
+  add-apt-repository ppa:ondrej/php -y >>"${OUTTO}" 2>&1;
 
   cat >/etc/apt/sources.list.d/mariadb.list<<EOF
 deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
