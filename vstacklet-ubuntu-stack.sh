@@ -695,6 +695,12 @@ if [[ $PHPVERSION=5 ]];then
             echo
         fi
     }
+
+else
+
+    function _nophpmyadmin7() {
+        echo -ne
+    }
 fi
 
 # install and adjust config server firewall function (15)
@@ -1056,32 +1062,34 @@ S=$(date +%s)
 OK=$(echo -e "[ ${bold}${green}DONE${normal} ]")
 
 # VSTACKLET STRUCTURE
-_bashrc
-_intro
-_checkroot
-_logcheck
+_bashrc;
+_intro;
+_checkroot;
+_logcheck;
 _updates;
 #_locale;
-echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon
-echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${normal} ... ";_depends
-echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys
-echo -n "${bold}Adding trusted repositories${normal} ... ";_repos
-echo -n "${bold}Applying Updates${normal} ... ";_updates
+echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon;
+echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${normal} ... ";_depends;
+echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys;
+echo -n "${bold}Adding trusted repositories${normal} ... ";_repos;
+echo -n "${bold}Applying Updates${normal} ... ";_updates;
 _asksitename;if [[ ${sitename} == "yes" ]]; then _sitename; elif [[ ${sitename} == "no" ]]; then _nositename;  fi
-echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx
-echo -n "${bold}Adjusting Permissions${normal} ... ";_perms
-echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish
+echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx;
+echo -n "${bold}Adjusting Permissions${normal} ... ";_perms;
+echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish;
 _askphpversion;_php;
-#if [[ $PHPVERSION=7.0 ]];then
+if [[ $PHPVERSION=7.0 ]]; then
     _askmemcached;if [[ ${memcached} == "yes" ]]; then _memcached; elif [[ ${memcached} == "no" ]]; then _nomemcached;  fi
-#fi
-#if [[ $PHPVERSION=5 ]];then
+fi
+if [[ $PHPVERSION=5 ]]; then
     _askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; elif [[ ${ioncube} == "no" ]]; then _noioncube;  fi
-#fi
-echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
-#if [[ $PHPVERSION=5 ]];then
+fi
+echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb;
+if [[ $PHPVERSION=5 ]]; then
     _askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpmyadmin} == "no" ]]; then _nophpmyadmin;  fi
-#fi
+elif [[ $PHPVERSION=7.0 ]]; then
+    _nophpmyadmin7;
+fi
 _askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
 if [[ ${csf} == "yes" ]]; then
   _askcloudflare;if [[ ${cloudflare} == "yes" ]]; then _cloudflare;  fi
@@ -1090,11 +1098,11 @@ if [[ ${csf} == "no" ]]; then
   _asksendmail;if [[ ${sendmail} == "yes" ]]; then _sendmail; elif [[ ${sendmail} == "no" ]]; then _nosendmail;  fi
 fi
 echo "${bold}Addressing Location Edits: cache busting, cross domain font support,${normal}";
-echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance
+echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance;
 echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}";
-echo -n "${bold}file injection, and php easter eggs${normal} ... ";_security
+echo -n "${bold}file injection, and php easter eggs${normal} ... ";_security;
 _askcert;if [[ ${cert} == "yes" ]]; then _cert; elif [[ ${cert} == "no" ]]; then _nocert;  fi
-echo -n "${bold}Completing Installation & Restarting Services${normal} ... ";_services
+echo -n "${bold}Completing Installation & Restarting Services${normal} ... ";_services;
 
 E=$(date +%s)
 DIFF=$(echo "$E" - "$S"|bc)
