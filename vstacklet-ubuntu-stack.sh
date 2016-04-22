@@ -499,7 +499,8 @@ function _askphpversion() {
     2) PHPVERSION=5  ;;
     *) PHPVERSION=5 ;;
   esac
-  echo "Using php$PHPVERSION"
+  #echo "Using php$PHPVERSION"
+  echo
 }
 
 # install php function (11)
@@ -515,7 +516,7 @@ function _php() {
         -e "s/;opcache.enable=0/opcache.enable=1/" \
         -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
         -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
-        -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php/php7.0/fpm/php.ini
+        -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php/7.0/fpm/php.ini
   else
       apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
       sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
@@ -555,12 +556,15 @@ if [[ $PHPVERSION=7.0 ]];then
 
     function _memcached() {
         if [[ ${memcached} == "yes" ]]; then
-            echo -n "${green}Installing Memcached for PHP 7${normal} ... "
+            echo -n "Installing Memcached for PHP 7 ... "
             apt-get install -y php7.0-dev git pkg-config build-essential libmemcached-dev >/dev/null 2>&1;
             apt-get install -y php-memcached >/dev/null 2>&1;
             sudo ln -s /etc/php/mods-available/memcached.ini /etc/php/7.0/fpm/conf.d/20-memcached.ini
             sudo ln -s /etc/php/mods-available/memcached.ini /etc/php/7.0/cli/conf.d/20-memcached.ini
         fi
+
+    echo "${OK}"
+    echo
     }
 
     function _nomemcached() {
@@ -1068,16 +1072,16 @@ echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx
 echo -n "${bold}Adjusting Permissions${normal} ... ";_perms
 echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish
 _askphpversion;_php;
-if [[ $PHPVERSION=7.0 ]];then
+#if [[ $PHPVERSION=7.0 ]];then
     _askmemcached;if [[ ${memcached} == "yes" ]]; then _memcached; elif [[ ${memcached} == "no" ]]; then _nomemcached;  fi
-fi
-if [[ $PHPVERSION=5 ]];then
+#fi
+#if [[ $PHPVERSION=5 ]];then
     _askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; elif [[ ${ioncube} == "no" ]]; then _noioncube;  fi
-fi
+#fi
 echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
-if [[ $PHPVERSION=5 ]];then
+#if [[ $PHPVERSION=5 ]];then
     _askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpmyadmin} == "no" ]]; then _nophpmyadmin;  fi
-fi
+#fi
 _askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
 if [[ ${csf} == "yes" ]]; then
   _askcloudflare;if [[ ${cloudflare} == "yes" ]]; then _cloudflare;  fi
