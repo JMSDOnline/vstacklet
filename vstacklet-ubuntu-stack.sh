@@ -424,7 +424,7 @@ function _nginx() {
   sh -c 'find /etc/nginx/cache -type d -print0 | sudo xargs -0 chmod g+s'
   # rename default.conf template
   if [[ $sitename -eq yes ]];then
-      if [[ $PHPVERSION -eq 7.0 ]];then
+      if [[ $PHPVERSION=7.0 ]];then
           cp /etc/nginx/conf.d/default.php7.conf.save /etc/nginx/conf.d/${sitename}.conf
           # build applications web root directory if sitename is provided
           mkdir -p /srv/www/${sitename}/logs >/dev/null 2>&1;
@@ -438,7 +438,7 @@ function _nginx() {
           mkdir -p /srv/www/${sitename}/public >/dev/null 2>&1;
       fi
   else
-      if [[ $PHPVERSION -eq 7.0 ]];then
+      if [[ $PHPVERSION=7.0 ]];then
           cp /etc/nginx/conf.d/default.php7.conf.save /etc/nginx/conf.d/${hostname1}.conf
           # build applications web root directory if no sitename is provided
           mkdir -p /srv/www/${hostname1}/logs >/dev/null 2>&1;
@@ -503,7 +503,7 @@ function _askphpversion() {
 # install php function (11)
 function _php() {
   echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-FPM w/ OPCode Cache ... "
-  if [[ PHPVERSION -eq 7.0 ]];then
+  if [[ $PHPVERSION=7.0 ]];then
       apt-get -y install php7.0 php7.0-fpm php7.0-mbstring php7.0-zip php7.0-mysql php7.0-curl php7.0-gd php7.0-json php7.0-mcrypt php7.0-opcache php7.0-xml >>"${OUTTO}" 2>&1;
       sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
         -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
@@ -540,7 +540,7 @@ function _php() {
   echo
 }
 
-if [[ PHPVERSION -eq 7.0 ]];then
+if [[ $PHPVERSION=7.0 ]];then
     # install memcached for php7 function (12)
     function _askmemcached() {
         echo -n "${bold}${yellow}Do you want to install Memcached for PHP 7?${normal} (${bold}${green}Y${normal}/n): "
@@ -569,7 +569,7 @@ if [[ PHPVERSION -eq 7.0 ]];then
     }
 fi
 
-if [[ PHPVERSION -eq 5 ]];then
+if [[ $PHPVERSION=5 ]];then
     # install ioncube loader function (12)
     function _askioncube() {
         echo -n "${bold}${yellow}Do you want to install IonCube Loader?${normal} (${bold}${green}Y${normal}/n): "
@@ -620,7 +620,7 @@ function _mariadb() {
   echo
 }
 
-if [[ PHPVERSION -eq 5 ]];then
+if [[ $PHPVERSION=5 ]];then
     # install phpmyadmin function (14)
     function _askphpmyadmin() {
         echo -n "${bold}${yellow}Do you want to install phpMyAdmin?${normal} (${bold}${green}Y${normal}/n): "
@@ -992,7 +992,7 @@ function _nocert() {
 # finalize and restart services function (20)
 function _services() {
     service apache2 stop >>"${OUTTO}" 2>&1;
-    for i in ssh nginx varnish if [[ PHPVERSION -eq 5 ]];then php5-fpm else php7.0-fpm fi; do
+    for i in ssh nginx varnish php$PHPVERSION-fpm; do
       service $i restart >>"${OUTTO}" 2>&1
       systemctl enable $i >>"${OUTTO}" 2>&1
     done
@@ -1066,14 +1066,14 @@ echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx
 echo -n "${bold}Adjusting Permissions${normal} ... ";_perms
 echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish
 _askphpversion;_php;
-if [[ PHPVERSION -eq 7.0 ]];then
+if [[ $PHPVERSION=7.0 ]];then
     _askmemcached;if [[ ${memcached} == "yes" ]]; then _memcached; elif [[ ${memcached} == "no" ]]; then _nomemcached;  fi
 fi
-if [[ PHPVERSION -eq 5 ]];then
+if [[ $PHPVERSION=5 ]];then
     _askioncube;if [[ ${ioncube} == "yes" ]]; then _ioncube; elif [[ ${ioncube} == "no" ]]; then _noioncube;  fi
 fi
 echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb
-if [[ PHPVERSION -eq 5 ]];then
+if [[ $PHPVERSION=5 ]];then
     _askphpmyadmin;if [[ ${phpmyadmin} == "yes" ]]; then _phpmyadmin; elif [[ ${phpmyadmin} == "no" ]]; then _nophpmyadmin;  fi
 fi
 _askcsf;if [[ ${csf} == "yes" ]]; then _csf; elif [[ ${csf} == "no" ]]; then _nocsf;  fi
