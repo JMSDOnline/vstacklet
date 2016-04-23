@@ -1103,7 +1103,7 @@ _askmariadb;
 if [[ ${mariadb} == "yes" ]]; then
     echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb;
 elif [[ ${mariadb} == "no" ]]; then
-    _nomaridb;
+    _nomariadb;
 fi
 if [[ "$PHPVERSION" == "5" ]]; then
     _askphpmyadmin;
