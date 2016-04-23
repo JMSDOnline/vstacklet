@@ -7,7 +7,7 @@ VStacklet - A Buff LEMP Stack Kit
 
 #### Script status
 
-[![Version 3.0.0-production](https://img.shields.io/badge/version-3.0.0-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Version 3.0.1-production](https://img.shields.io/badge/version-3.0.1-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 [![Ubuntu 16.04 Passing](https://img.shields.io/badge/Ubuntu%2016.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![Ubuntu 15.10 Passing](https://img.shields.io/badge/Ubuntu%2015.10-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
@@ -128,7 +128,7 @@ chmod +x vstacklet-backup-standalone.sh
 - [x] CSF (w/ option prompt)
 - [x] VS-Backup standalone kit (included in FULL Kit also)
 - [ ] VStacklet-lite
-- [x] Full support for Ubuntu 14.04, 15.04 and 15.10
+- [x] Full support for Ubuntu 14.04, 15.04, 15.10 and 16.04
 
 
 ### Additional Notes and honorable mentions
