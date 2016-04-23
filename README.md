@@ -108,7 +108,7 @@ chmod +x vstacklet.sh
 ```
 curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/dev-vstacklet.sh
 chmod +x dev-vstacklet.sh
-./vstacklet.sh
+./dev-vstacklet.sh
 ```
 
 ### VStacklet VS-Backup - Installs needed files for running complete system backups:

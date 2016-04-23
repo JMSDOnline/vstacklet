@@ -426,7 +426,7 @@ function _nginx() {
   sh -c 'find /etc/nginx/cache -type d -print0 | sudo xargs -0 chmod g+s'
   # rename default.conf template
   if [[ $sitename -eq yes ]];then
-      if [[ "$PHPVERSION" == "7.0" ]];then
+      if [[ $PHPVERSION=7.0 ]];then
           cp /etc/nginx/conf.d/default.php7.conf.save /etc/nginx/conf.d/${sitename}.conf
           # build applications web root directory if sitename is provided
           mkdir -p /srv/www/${sitename}/logs >/dev/null 2>&1;
@@ -440,7 +440,7 @@ function _nginx() {
           mkdir -p /srv/www/${sitename}/public >/dev/null 2>&1;
       fi
   else
-      if [[ "$PHPVERSION" == "7.0" ]];then
+      if [[ $PHPVERSION=7.0 ]];then
           cp /etc/nginx/conf.d/default.php7.conf.save /etc/nginx/conf.d/${hostname1}.conf
           # build applications web root directory if no sitename is provided
           mkdir -p /srv/www/${hostname1}/logs >/dev/null 2>&1;
@@ -1081,7 +1081,7 @@ if [[ "$PHPVERSION" == "5" ]]; then
             _phpmyadmin;
         elif [[ ${phpmyadmin} == "no" ]]; then
             _nophpmyadmin;
-        fi 
+        fi
 fi
 _askcsf;
     if [[ ${csf} == "yes" ]]; then
