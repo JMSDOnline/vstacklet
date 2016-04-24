@@ -493,11 +493,11 @@ function _varnish() {
 function _askphpversion() {
   echo -e "1) php${green}7.0${normal}"
   echo -e "2) php${green}5${normal}"
-  echo -ne "${yellow}What version of php do you want?${normal} (Default php${green}5${normal}): "; read version
+  echo -ne "${yellow}What version of php do you want?${normal} (Default php${green}7.0${normal}): "; read version
   case $version in
     1 | "") PHPVERSION=7.0  ;;
     2) PHPVERSION=5  ;;
-    *) PHPVERSION=5 ;;
+    *) PHPVERSION=7.0 ;;
   esac
   #echo "Using php$PHPVERSION"
   echo
@@ -506,7 +506,7 @@ function _askphpversion() {
 # install php function (11)
 function _php() {
   echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-fpm w/ OPCode Cache ... "
-  if [[ "$PHPVERSION" == "7.0" ]];then
+  if [[ $PHPVERSION=7.0 ]];then
       apt-get -y install php7.0 php7.0-fpm php7.0-mbstring php7.0-zip php7.0-mysql php7.0-curl php7.0-gd php7.0-json php7.0-mcrypt php7.0-opcache php7.0-xml >>"${OUTTO}" 2>&1;
       sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
         -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
@@ -1079,7 +1079,12 @@ echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${nor
 echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys;
 echo -n "${bold}Adding trusted repositories${normal} ... ";_repos;
 echo -n "${bold}Applying Updates${normal} ... ";_updates;
-_asksitename;if [[ ${sitename} == "yes" ]]; then _sitename; elif [[ ${sitename} == "no" ]]; then _nositename;  fi
+_asksitename;
+if [[ ${sitename} == "yes" ]]; then
+    _sitename;
+elif [[ ${sitename} == "no" ]]; then
+    _nositename;
+fi
 echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx;
 echo -n "${bold}Adjusting Permissions${normal} ... ";_perms;
 echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish;
