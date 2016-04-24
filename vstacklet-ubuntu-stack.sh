@@ -293,19 +293,20 @@ fi
 
 # setting locale function (5)
 function _locale() {
-echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
-echo "LANG=en_US.UTF-8" > /etc/default/locale
-echo "LANGUAGE=en_US.UTF-8">>/etc/default/locale
-echo "LC_ALL=en_US.UTF-8" >>/etc/default/locale
-  if [[ -e /usr/sbin/locale-gen ]]; then locale-gen >>"${OUTTO}" 2>&1
-  else
-    apt-get update >>"${OUTTO}" 2>&1
-    apt-get install locales locale-gen -y --force-yes >>"${OUTTO}" 2>&1
-    locale-gen >>"${OUTTO}" 2>&1
-    export LANG="en_US.UTF-8"
-    export LC_ALL="en_US.UTF-8"
-    export LANGUAGE="en_US.UTF-8"
-  fi
+    apt-get install -y language-pack-en-base >>"${OUTTO}" 2>&1
+    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+    echo "LANG=en_US.UTF-8" > /etc/default/locale
+    echo "LANGUAGE=en_US.UTF-8">>/etc/default/locale
+    echo "LC_ALL=en_US.UTF-8" >>/etc/default/locale
+    if [[ -e /usr/sbin/locale-gen ]]; then locale-gen >>"${OUTTO}" 2>&1
+    else
+        apt-get update >>"${OUTTO}" 2>&1
+        apt-get install locales locale-gen -y --force-yes >>"${OUTTO}" 2>&1
+        locale-gen >>"${OUTTO}" 2>&1
+        export LANG="en_US.UTF-8"
+        export LC_ALL="en_US.UTF-8"
+        export LANGUAGE="en_US.UTF-8"
+    fi
 }
 
 # system packages and repos function (6)
@@ -336,8 +337,8 @@ function _keys() {
 # package and repo addition (d) _add respo sources_
 function _repos() {
   # now working with php 7 - so let's add it
-  export DEBIAN_FRONTEND=noninteractive &&
-  add-apt-repository ppa:ondrej/php -y >>"${OUTTO}" 2>&1;
+  #export DEBIAN_FRONTEND=noninteractive &&
+  LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php -y >>"${OUTTO}" 2>&1;
 
   cat >/etc/apt/sources.list.d/mariadb.list<<EOF
 deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
