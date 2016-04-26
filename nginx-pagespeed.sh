@@ -40,16 +40,16 @@ bash bush.sh
 tar -xzf *.tar.gz
 
 cd ~/new/nginx_source/nginx-*/debian/
-sed -i '22 a --add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
+sed -i '22 a 	--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
 if [[ "$RELEASE_CDN" = '14.04' ]]; then
-sed -i '61 a --add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
+sed -i '61 a 	--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
        exit
 fi
 
 if [[ "$RELEASE_CDN" =~ ("15.04"|"15.10"|"16.04") ]]; then
-sed -i '65 a --add-module=../../ngx_pagespeed/ngx_pagespeed-master \' rules
-sed -i '58 a --with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0" \' rules
-sed -i '101 a --with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0" \' rules
+sed -i '65 a 	--add-module=../../ngx_pagespeed/ngx_pagespeed-master \' rules
+sed -i '58 a 	--with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0" \' rules
+sed -i '101 a 	--with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0" \' rules
        exit
 fi
 cd ~/new/nginx_source/nginx-*/
@@ -60,8 +60,8 @@ nginx -V
 mkdir -p /var/ngx_pagespeed_cache
 chown -R www-data:www-data /var/ngx_pagespeed_cache
 cd /etc/nginx/
-sed -i '30ipagespeed on;' nginx.conf
-sed -i '31ipagespeed FileCachePath /var/ngx_pagespeed_cache;' nginx.conf
+sed -i '30ipagespeed 	on;' nginx.conf
+sed -i '31ipagespeed 	FileCachePath /var/ngx_pagespeed_cache;' nginx.conf
 service nginx restart
 curl -I -p http://localhost|grep X-Page-Speed
 exit
