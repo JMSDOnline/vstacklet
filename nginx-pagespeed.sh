@@ -119,4 +119,4 @@ _logcheck
 _nginxenial
 echo -n "${bold}Downloading Nginx Packages${normal} ... ";_nginxdeb
 echo -n "${bold}Building Nginx with Pagespeed${normal} ... ";_buildnginx
-_finish
+echo -n "${bold}Restarting Nginx${normal} ... ";_finish
