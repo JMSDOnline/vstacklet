@@ -1,61 +1,25 @@
 #!/bin/bash
-TAB='\t'
 if [[ "$USER" != 'root' ]]; then
 	echo "Sorry, you need to run this as root"
 	exit
 fi
-RELEASE_CDN=`lsb_release -sr`
-apt-get update
-apt-get -y install dpkg-dev build-essential zlib1g-dev libpcre3 libpcre3-dev unzip
-if [[ "$RELEASE_CDN" = '14.04' ]]; then
-echo "deb http://nginx.org/packages/ubuntu/ trusty nginx" >> /etc/apt/sources.list.d/nginx.list
-echo "deb-src http://nginx.org/packages/ubuntu/ trusty nginx" >> /etc/apt/sources.list.d/nginx.list
-        exit
-fi
-if [[ "$RELEASE_CDN" =~ ("15.04"|"15.10"|"16.04") ]]; then
-echo "deb http://nginx.org/packages/mainline/ubuntu/ wily nginx" >> /etc/apt/sources.list.d/nginx.list
-echo "deb-src http://nginx.org/packages/mainline/ubuntu/ wily nginx" >> /etc/apt/sources.list.d/nginx.list
-        exit
-fi
-wget -q "http://nginx.org/packages/keys/nginx_signing.key" -O-| sudo apt-key add -
-apt-get update
-mkdir -p ~/new/nginx_source/
-cd ~/new/nginx_source/
-apt-get -y source nginx
-apt-get -y build-dep nginx
-mkdir -p ~/new/ngx_pagespeed/
-cd ~/new/ngx_pagespeed/
-wget --no-check-certificate https://github.com/pagespeed/ngx_pagespeed/archive/master.zip
-unzip master.zip
-cd ngx_pagespeed-master/
-echo '#!/bin/bash' >> bush.sh
-grep wget config > bush.sh
-sed -i 's/echo "     $ w/w/' bush.sh
-sed -i 's/gz"/gz/' bush.sh
-bash bush.sh
-tar -xzf *.tar.gz
-cd ~/new/nginx_source/nginx-*/debian/
-sed -i '22 a  \ \ \ \ \ \ \ \ \ \ --add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
-if [[ "$RELEASE_CDN" = '14.04' ]]; then
-sed -i '61 a  \ \ \ \ \ \ \ \ \ \ --add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
-       exit
-fi
-if [[ "$RELEASE_CDN" =~ ("15.04"|"15.10"|"16.04") ]]; then
-sed -i '65 a  \ \ \ \ \ \ \ \ \ \ --add-module=../../ngx_pagespeed/ngx_pagespeed-master \' rules
-sed -i '58 a  \ \ \ \ \ \ \ \ \ \ --with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0" \' rules
-sed -i '101 a   \ \ \ \ \ \ \ \ \ \ --with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0" \' rules
-       exit
-fi
-cd ~/new/nginx_source/nginx-*/
-dpkg-buildpackage -b
-cd ~/new/nginx_source/
+
+mkdir -p ~/nginx/xenial/
+cd ~/nginx/xenial/
+
+wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx_1.9.15-1~wily~vstacklet_amd64.deb
+wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx-dbg_1.9.15-1~wily~vstacklet_amd64.deb
+wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx-module-geoip_1.9.15-1~wily~vstacklet_amd64.deb
+wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx-module-image-filter_1.9.15-1~wily~vstacklet_amd64.deb
+wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx-module-njs_0.0.20160414.1c50334fbea6-1~xenial_amd64.deb
+wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx-module-perl_1.9.15-1~wily~vstacklet_amd64.deb
+wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx-module-xslt_1.9.15-1~wily~vstacklet_amd64.deb
+
 dpkg -i nginx_*amd64.deb
-nginx -V
 mkdir -p /etc/nginx/ngx_pagespeed_cache
 chown -R www-data:www-data /etc/nginx/ngx_pagespeed_cache
 cd /etc/nginx/
-sed -i '30i  \ \ \ \ \ \ \ \ \ \ pagespeed 	on;' nginx.conf
-sed -i '31i  \ \ \ \ \ \ \ \ \ \ pagespeed 	FileCachePath /etc/nginx/ngx_pagespeed_cache;' nginx.conf
+sed -i '68i  pagespeed 	on;' nginx.conf
+sed -i '69i  pagespeed 	FileCachePath /etc/nginx/ngx_pagespeed_cache;' nginx.conf
+
 service nginx restart
-curl -I -p http://localhost|grep X-Page-Speed
-exit
