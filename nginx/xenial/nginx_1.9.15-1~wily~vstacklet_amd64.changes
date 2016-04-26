@@ -1,0 +1,47 @@
+Format: 1.8
+Date: Tue, 19 Apr 2016 20:10:00 +0300
+Source: nginx
+Binary: nginx nginx-dbg nginx-module-xslt nginx-module-image-filter nginx-module-geoip nginx-module-perl nginx-module-njs
+Architecture: amd64
+Version: 1.9.15-1~wily~vstacklet
+Distribution: wily
+Urgency: low
+Maintainer: Sergey Budnevitch <sb@nginx.com>
+Changed-By: Konstantin Pavlov <thresh@nginx.com>
+Description:
+ nginx      - high performance web server
+ nginx-dbg  - nginx debug symbols
+ nginx-module-geoip - geoip module
+ nginx-module-image-filter - image filter module
+ nginx-module-njs - nJScript module
+ nginx-module-perl - perl module
+ nginx-module-xslt - xslt module
+Changes:
+ nginx (1.9.15-1~wily~vstacklet) wily; urgency=low
+ .
+   * 1.9.15
+   * njs updated to 1c50334fbea6.
+Checksums-Sha1:
+ a36316d5dd726c31ae4da1c7629b07f536df9afb 37463038 nginx-dbg_1.9.15-1~wily~vstacklet_amd64.deb
+ 5499c351e3c101696ef4fcacdf8c077726cf3a3d 9452 nginx-module-geoip_1.9.15-1~wily~vstacklet_amd64.deb
+ a6ccd561451c1933884aa336fea69a6ff45cc4c1 14878 nginx-module-image-filter_1.9.15-1~wily~vstacklet_amd64.deb
+ 501d9f0cd1f89d7c3f4c0bf73d6e812e8e1ac724 64536 nginx-module-njs_0.0.20160414.1c50334fbea6-1~xenial_amd64.deb
+ c685c107ac0b91fa08bdac06b4985ff82c596fa0 24246 nginx-module-perl_1.9.15-1~wily~vstacklet_amd64.deb
+ 6121cb8c89510c80fdd03f0e218099efa6af3205 13036 nginx-module-xslt_1.9.15-1~wily~vstacklet_amd64.deb
+ 054910f997bd31e06685134257f6c285ae99948f 7029098 nginx_1.9.15-1~wily~vstacklet_amd64.deb
+Checksums-Sha256:
+ 1d53ccb226eb7cc1056970002f584b08be6db5094dc24cc687847fed10924126 37463038 nginx-dbg_1.9.15-1~wily~vstacklet_amd64.deb
+ 27f2b16730b0a59d61faf9ebb67fe0bba51fb0cd540b8f90390cd6a19b1d1b41 9452 nginx-module-geoip_1.9.15-1~wily~vstacklet_amd64.deb
+ 96be7ce8446d76b44b00e8e9b1226b38276c3cba3612c7fec6c1666978b4ed04 14878 nginx-module-image-filter_1.9.15-1~wily~vstacklet_amd64.deb
+ a387e9d110fb50af36811fc2cbaa869ce1aafbe03425c6f72ef6d54b4bb3411d 64536 nginx-module-njs_0.0.20160414.1c50334fbea6-1~xenial_amd64.deb
+ 6e2a2bac795be1ae52176d15e6429961790fff33aa9e77b599f1a54e53091b41 24246 nginx-module-perl_1.9.15-1~wily~vstacklet_amd64.deb
+ 871857b747151e756a8b22a32a0eca1ea91d5a7518c8fb703e85d0b5a1ecf12f 13036 nginx-module-xslt_1.9.15-1~wily~vstacklet_amd64.deb
+ 552131e81a1d6bc9a70146e72403e6f6ac8b846a624712756fca41bbcf9a2af3 7029098 nginx_1.9.15-1~wily~vstacklet_amd64.deb
+Files:
+ c34a6e47b3e05064e246f23b19fccea7 37463038 debug extra nginx-dbg_1.9.15-1~wily~vstacklet_amd64.deb
+ 435623ed559c7ab56e81228ef8d5a83c 9452 httpd extra nginx-module-geoip_1.9.15-1~wily~vstacklet_amd64.deb
+ 1352238d856dcf28c1ff2bd28f2d533a 14878 httpd extra nginx-module-image-filter_1.9.15-1~wily~vstacklet_amd64.deb
+ 11b1d28753f59410fd9102d2e9346247 64536 httpd extra nginx-module-njs_0.0.20160414.1c50334fbea6-1~xenial_amd64.deb
+ 4a34acd7140308176702df08b5cd03e6 24246 httpd extra nginx-module-perl_1.9.15-1~wily~vstacklet_amd64.deb
+ c9617ada189df16eac88f73f1451229c 13036 httpd extra nginx-module-xslt_1.9.15-1~wily~vstacklet_amd64.deb
+ 87ec750af5a0be9f63bd0af85ed3a790 7029098 httpd optional nginx_1.9.15-1~wily~vstacklet_amd64.deb

@@ -327,7 +327,7 @@ function _depends() {
 
 # package and repo addition (c) _add signed keys_
 function _keys() {
-  apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db >>"${OUTTO}" 2>&1;
+  apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8 >>"${OUTTO}" 2>&1;
   curl -s https://repo.varnish-cache.org/GPG-key.txt | apt-key add - > /dev/null 2>&1;
   curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - > /dev/null 2>&1;
   echo "${OK}"
@@ -341,7 +341,8 @@ function _repos() {
   LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php -y >>"${OUTTO}" 2>&1;
 
   cat >/etc/apt/sources.list.d/mariadb.list<<EOF
-deb http://mirrors.syringanetworks.net/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
+deb [arch=amd64,i386] http://mirrors.syringanetworks.net/mariadb/repo/10.1/ubuntu $(lsb_release -sc) main
+deb-src http://mirrors.syringanetworks.net/mariadb/repo/10.1/ubuntu $(lsb_release -sc) main
 EOF
 # what is seen below is merely an attempt at future-proofing the script
 # for now we continue to use the trusty branch to install varnish
