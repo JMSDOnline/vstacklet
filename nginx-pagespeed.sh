@@ -4,10 +4,6 @@ if [[ "$USER" != 'root' ]]; then
 	exit
 fi
 
-cd ~/new/nginx_source/nginx-*/
-dpkg-buildpackage -b
-
-
 mkdir -p ~/nginx/xenial/
 cd ~/nginx/xenial/
 
