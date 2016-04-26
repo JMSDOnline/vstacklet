@@ -1,6 +1,4 @@
 #!/bin/bash
-TAB=$'\t'
-
 if [[ "$USER" != 'root' ]]; then
 	echo "Sorry, you need to run this as root"
 	exit
@@ -18,19 +16,14 @@ echo "deb http://nginx.org/packages/mainline/ubuntu/ wily nginx" >> /etc/apt/sou
 echo "deb-src http://nginx.org/packages/mainline/ubuntu/ wily nginx" >> /etc/apt/sources.list.d/nginx.list
         exit
 fi
-
 wget -q "http://nginx.org/packages/keys/nginx_signing.key" -O-| sudo apt-key add -
-
 apt-get update
-
 mkdir -p ~/new/nginx_source/
 cd ~/new/nginx_source/
 apt-get -y source nginx
 apt-get -y build-dep nginx
-
 mkdir -p ~/new/ngx_pagespeed/
 cd ~/new/ngx_pagespeed/
-
 wget --no-check-certificate https://github.com/pagespeed/ngx_pagespeed/archive/master.zip
 unzip master.zip
 cd ngx_pagespeed-master/
@@ -40,18 +33,16 @@ sed -i 's/echo "     $ w/w/' bush.sh
 sed -i 's/gz"/gz/' bush.sh
 bash bush.sh
 tar -xzf *.tar.gz
-
 cd ~/new/nginx_source/nginx-*/debian/
-sed -i '22 a ${TAB}--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
+sed -i '22 a \t --add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
 if [[ "$RELEASE_CDN" = '14.04' ]]; then
-sed -i '61 a ${TAB}--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
+sed -i '61 a \t --add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
        exit
 fi
-
 if [[ "$RELEASE_CDN" =~ ("15.04"|"15.10"|"16.04") ]]; then
-sed -i '65 a ${TAB}--add-module=../../ngx_pagespeed/ngx_pagespeed-master \' rules
-sed -i '58 a ${TAB}--with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0" \' rules
-sed -i '101 a ${TAB}--with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0" \' rules
+sed -i '65 a \t --add-module=../../ngx_pagespeed/ngx_pagespeed-master \' rules
+sed -i '58 a \t --with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0" \' rules
+sed -i '101 a \t --with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0" \' rules
        exit
 fi
 cd ~/new/nginx_source/nginx-*/
@@ -62,8 +53,8 @@ nginx -V
 mkdir -p /etc/nginx/ngx_pagespeed_cache
 chown -R www-data:www-data /etc/nginx/ngx_pagespeed_cache
 cd /etc/nginx/
-sed -i '30ipagespeed 	on;' nginx.conf
-sed -i '31ipagespeed 	FileCachePath /etc/nginx/ngx_pagespeed_cache;' nginx.conf
+sed -i '30i\t pagespeed 	on;' nginx.conf
+sed -i '31i\t pagespeed 	FileCachePath /etc/nginx/ngx_pagespeed_cache;' nginx.conf
 service nginx restart
 curl -I -p http://localhost|grep X-Page-Speed
 exit
