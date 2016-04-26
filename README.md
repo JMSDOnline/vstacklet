@@ -111,6 +111,13 @@ chmod +x dev-vstacklet.sh
 ./dev-vstacklet.sh
 ```
 
+### To compile Nginx with Pagespeed
+```
+curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx-pagespeed.sh
+chmod +x nginx-pagespeed.sh
+./nginx-pagespeed.sh
+```
+
 ### VStacklet VS-Backup - Installs needed files for running complete system backups:
 ```
 curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet-backup-standalone.sh
