@@ -163,8 +163,8 @@ function _setpsng() {
 	mkdir -p /etc/nginx/ngx_pagespeed_cache
 	chown -R www-data:www-data /etc/nginx/ngx_pagespeed_cache
 	cd /etc/nginx/
-	sed -i '30i \ \ \ \ \#pagespeed on;' nginx.conf
-	sed -i '31i \ \ \ \ \#pagespeed FileCachePath /etc/nginx/ngx_pagespeed_cache;' nginx.conf
+	sed -i '30i \ \ \ \ \pagespeed on;' nginx.conf
+	sed -i '31i \ \ \ \ \pagespeed FileCachePath /etc/nginx/ngx_pagespeed_cache;' nginx.conf
 }
 
 function _restartservice() {
