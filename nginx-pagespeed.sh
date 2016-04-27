@@ -147,7 +147,7 @@ function _buildpagespeed() {
         curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/changelog
     	curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/rules
         cd ~/new/nginx_source/nginx-*/src/core
-        sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION ~ vstacklet/g' nginx.h
+        sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
         cd
     fi
 }
