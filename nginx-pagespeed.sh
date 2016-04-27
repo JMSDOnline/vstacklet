@@ -22,8 +22,8 @@ function _string() { perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15
 function _intro() {
   echo
   echo
-  echo "	[${repo_title}vstacklet${normal}] ${title} Nginx+Pagespeed Compilation & Installation Script ${normal}  "
-  echo "	   ${alert} Configured and tested for Ubuntu 14.04, 15.10 & 16.04 ${normal}"
+  echo "	[${repo_title}vstacklet${normal}] ${title} Nginx+Pagespeed Compilation & Installation Script ${normal}"
+  echo "	     Configured and tested for Ubuntu 14.04, 15.10 & 16.04"
   echo
   echo
 
@@ -197,7 +197,8 @@ function _restartservice() {
 }
 
 function _psngprooftest() {
-	curl -s -I -p http://localhost|grep X-Page-Speed
+    PSVERIFY=$(curl -s -I -p http://localhost|grep X-Page-Speed)
+    echo "${standout}$PSVERIFY${normal}"
 }
 
 
@@ -213,11 +214,11 @@ echo -n "${bold}Running Initial System Updates${normal} ... ";_aupdate
 echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon
 echo -n "${bold}Installing Software Packages and Dependencies${normal} ... ";_depends
 echo -n "${bold}Installing Required Signed Keys${normal} ... ";_keys
-echo -n "${bold}Setting Required Repos to '/etc/apt/sources.list.d/nginx-vstacklet.list'${normal} ... ";_repos
-echo -n "${bold}Running System Updates${normal} ... ";_bupdate
+echo -n "${bold}Setting Repo to ${yellow}sources.list.d/nginx-vstacklet.list${normal} ... ";_repos
+echo -n "${bold}Running System Updates against New Repos${normal} ... ";_bupdate
 echo -n "${bold}Setting Up and Building Nginx${normal} ... ";_buildnginx
 echo -n "${bold}Setting Up and Building Pagespeed${normal} ... ";_buildpagespeed
-echo -n "${bold}Compiling Nginx-full with Pagespeed${normal} ... ";_compnginx
+echo -n "${bold}Compiling Nginx-full-vstacklet with Pagespeed${normal} ... ";_compnginx
 echo -n "${bold}Creating Pagespeed Cache Directory and Enabling${normal} ... ";_setpsng
 echo -n "${bold}Restarting Nginx${normal} ... ";_restartservice
 echo -n "${bold}Verifying X-Page-Speed${normal} ... ";_psngprooftest
