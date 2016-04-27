@@ -63,9 +63,9 @@ function _checkroot() {
 function _logcheck() {
 	echo -ne "${bold}${yellow}Do you wish to write to a log file?${normal} (Default: ${green}${bold}Y${normal}) "; read input
     case $input in
-		[yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal}" ;;
+		[yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet-nginx.log${normal}" ;;
 		[nN] | [nN][Oo] ) OUTTO="/dev/null 2>&1";echo "${cyan}NO output will be logged${normal}" ;;
-		*) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal}" ;;
+		*) OUTTO="vstacklet-nginx.log";echo "${bold}Output is being sent to /root/vstacklet-nginx.log${normal}" ;;
     esac
 	echo
 	echo "Press ${standout}${green}ENTER${normal} when you're ready to begin" ;read input
@@ -73,7 +73,7 @@ function _logcheck() {
 }
 
 function _aupdate() {
-	apt-get -y update
+	apt-get -y update >>"${OUTTO}" 2>&1;
 }
 
 # package and repo addition (a) _install common properties_
@@ -85,7 +85,9 @@ function _softcommon() {
 
 # package and repo addition (b) _install softwares and packages_
 function _depends() {
-	apt-get -y install dpkg-dev build-essential zlib1g-dev libpcre3 libpcre3-dev unzip curl
+	apt-get -y install dpkg-dev build-essential zlib1g-dev libpcre3 libpcre3-dev unzip curl >>"${OUTTO}" 2>&1;
+    echo "${OK}"
+    echo
 }
 
 # package and repo addition (c) _add signed keys_
@@ -112,40 +114,42 @@ fi
 }
 
 function _bupdate() {
-	apt-get -y update
+	apt-get -y update >>"${OUTTO}" 2>&1;
 }
 
 function _buildnginx() {
 	mkdir -p ~/new/nginx_source/
 	cd ~/new/nginx_source/
-	apt-get -y source nginx
-	apt-get -y build-dep nginx
+	apt-get -y source nginx  >>"${OUTTO}" 2>&1;
+	apt-get -y build-dep nginx  >>"${OUTTO}" 2>&1;
 }
 
 function _buildpagespeed() {
 	mkdir -p ~/new/ngx_pagespeed/
 	cd ~/new/ngx_pagespeed/
-	wget --no-check-certificate https://github.com/pagespeed/ngx_pagespeed/archive/master.zip
-	unzip master.zip
+	wget --no-check-certificate https://github.com/pagespeed/ngx_pagespeed/archive/master.zip > /dev/null 2>&1;
+	unzip master.zip > /dev/null 2>&1;
 	cd ngx_pagespeed-master/
+
 	echo '#!/bin/bash' >> bush.sh
 	grep wget config > bush.sh
 	sed -i 's/echo "     $ w/w/' bush.sh
 	sed -i 's/gz"/gz/' bush.sh
-	bash bush.sh
-	tar -xzf *.tar.gz
+
+	bash bush.sh > /dev/null 2>&1;
+	tar -xzf *.tar.gz >>"${OUTTO}" 2>&1;
 	cd ~/new/nginx_source/nginx-*/debian/
     sed -i '22 a \ \ \ \ \ \--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
     if [[ "${rel}" = "14.04" ]]; then
     	sed -i '61 a \ \ \ \ \ \--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
     fi
     if [[ "${rel}" =~ ("15.04"|"15.10") ]]; then
-        curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
-    	curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
+        curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
+    	curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
     fi
     if [[ "${rel}" = "16.04" ]]; then
-        curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/changelog
-    	curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/rules
+        curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/changelog
+    	curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/rules
         cd ~/new/nginx_source/nginx-*/src/core
         sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
         cd
@@ -154,9 +158,9 @@ function _buildpagespeed() {
 
 function _compnginx() {
 	cd ~/new/nginx_source/nginx-*/
-	dpkg-buildpackage -b
+	dpkg-buildpackage -b >>"${OUTTO}" 2>&1;
 	cd ~/new/nginx_source/
-	dpkg -i nginx_*amd64.deb
+	dpkg -i nginx_*amd64.deb >>"${OUTTO}" 2>&1;
 }
 
 function _setpsng() {
