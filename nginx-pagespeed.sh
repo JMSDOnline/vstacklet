@@ -180,15 +180,49 @@ function _compnginx() {
     #echo
 }
 
-function _setpsng() {
-	mkdir -p /etc/nginx/ngx_pagespeed_cache
-	chown -R www-data:www-data /etc/nginx/ngx_pagespeed_cache
-	cd /etc/nginx/
-	sed -i '30i \ \ \ \ \pagespeed on;' nginx.conf
-	sed -i '31i \ \ \ \ \pagespeed FileCachePath /etc/nginx/ngx_pagespeed_cache;' nginx.conf
-    echo "${OK}"
-    #echo
+# set page speed module on function
+function _asksetpsng() {
+    echo -n "${bold}${yellow}Are you rebuilding over a current Nginx install?${normal} (${bold}${green}N${normal}/y): "
+    read responce
+    case $responce in
+        [yY] | [yY][Ee][Ss] ) setpsng=yes ;;
+        [nN] | [nN][Oo] | "" ) setpsng=no ;;
+    esac
 }
+
+function _setpsng() {
+    if [[ ${setpsng} == "yes" ]]; then
+        mkdir -p /etc/nginx/ngx_pagespeed_cache
+    	chown -R www-data:www-data /etc/nginx/ngx_pagespeed_cache
+    	cd /etc/nginx/
+        echo "# Set the two variable below within your http {} block" >> nginx.conf
+        echo "# Prefereably under the gzip module setting" >> nginx.conf
+    	echo "#    pagespeed on;" >> nginx.conf
+    	echo "#    pagespeed FileCachePath /etc/nginx/ngx_pagespeed_cache;" >> nginx.conf
+        echo "${OK}"
+    fi
+}
+
+function _nosetpsng() {
+    if [[ ${setpsng} == "no" ]]; then
+        mkdir -p /etc/nginx/ngx_pagespeed_cache
+    	chown -R www-data:www-data /etc/nginx/ngx_pagespeed_cache
+    	cd /etc/nginx/
+    	sed -i '30i \ \ \ \ \pagespeed on;' nginx.conf
+    	sed -i '31i \ \ \ \ \pagespeed FileCachePath /etc/nginx/ngx_pagespeed_cache;' nginx.conf
+        echo "${OK}"
+    fi
+}
+
+#function _setpsng() {
+#	mkdir -p /etc/nginx/ngx_pagespeed_cache
+#	chown -R www-data:www-data /etc/nginx/ngx_pagespeed_cache
+#	cd /etc/nginx/
+#	sed -i '30i \ \ \ \ \pagespeed on;' nginx.conf
+#	sed -i '31i \ \ \ \ \pagespeed FileCachePath /etc/nginx/ngx_pagespeed_cache;' nginx.conf
+#    echo "${OK}"
+#    #echo
+#}
 
 function _restartservice() {
 	service nginx restart
@@ -219,7 +253,9 @@ echo -n "${bold}Running System Updates against New Repos${normal} ... ";_bupdate
 echo -n "${bold}Setting Up and Building Nginx${normal} ... ";_buildnginx
 echo -n "${bold}Setting Up and Building Pagespeed${normal} ... ";_buildpagespeed
 echo -n "${bold}Compiling Nginx-full-vstacklet with Pagespeed${normal} ... ";_compnginx
-echo -n "${bold}Creating Pagespeed Cache Directory and Enabling${normal} ... ";_setpsng
+_asksetpsng
+echo -n "${bold}Creating Pagespeed Cache Directory ${yellow}[see /etc/nginx/nginx.conf]${normal} ... ";_setpsng
+echo -n "${bold}Creating Pagespeed Cache Directory and Enabling${normal} ... ";_nosetpsng
 echo -n "${bold}Restarting Nginx${normal} ... ";_restartservice
 echo -n "${bold}Verifying X-Page-Speed${normal} ... ";_psngprooftest
 
