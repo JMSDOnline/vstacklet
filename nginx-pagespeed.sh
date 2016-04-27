@@ -74,27 +74,28 @@ function _logcheck() {
 
 function _aupdate() {
 	apt-get -y update >>"${OUTTO}" 2>&1;
+    echo "${OK}"
 }
 
 # package and repo addition (a) _install common properties_
 function _softcommon() {
 	apt-get -y install software-properties-common python-software-properties apt-transport-https >>"${OUTTO}" 2>&1;
 	echo "${OK}"
-	echo
+	#echo
 }
 
 # package and repo addition (b) _install softwares and packages_
 function _depends() {
 	apt-get -y install dpkg-dev build-essential zlib1g-dev libpcre3 libpcre3-dev unzip curl >>"${OUTTO}" 2>&1;
     echo "${OK}"
-    echo
+    #echo
 }
 
 # package and repo addition (c) _add signed keys_
 function _keys() {
 	curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - > /dev/null 2>&1;
 	echo "${OK}"
-	echo
+	#echo
 }
 
 # package and repo addition (d) _add respo sources_
@@ -111,10 +112,14 @@ deb http://nginx.org/packages/mainline/ubuntu/ trusty nginx
 deb-src http://nginx.org/packages/mainline/ubuntu/ trusty nginx
 EOF
 fi
+echo "${OK}"
+#echo
 }
 
 function _bupdate() {
 	apt-get -y update >>"${OUTTO}" 2>&1;
+    echo "${OK}"
+    #echo
 }
 
 function _buildnginx() {
@@ -122,6 +127,8 @@ function _buildnginx() {
 	cd ~/new/nginx_source/
 	apt-get -y source nginx  >>"${OUTTO}" 2>&1;
 	apt-get -y build-dep nginx  >>"${OUTTO}" 2>&1;
+    echo "${OK}"
+    #echo
 }
 
 function _buildpagespeed() {
@@ -142,10 +149,16 @@ function _buildpagespeed() {
     sed -i '22 a \ \ \ \ \ \--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
     if [[ "${rel}" = "14.04" ]]; then
     	sed -i '61 a \ \ \ \ \ \--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
+        cd ~/new/nginx_source/nginx-*/src/core
+        sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
+        cd
     fi
     if [[ "${rel}" =~ ("15.04"|"15.10") ]]; then
         curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
     	curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
+        cd ~/new/nginx_source/nginx-*/src/core
+        sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
+        cd
     fi
     if [[ "${rel}" = "16.04" ]]; then
         curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/changelog
@@ -154,6 +167,8 @@ function _buildpagespeed() {
         sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
         cd
     fi
+    echo "${OK}"
+    #echo
 }
 
 function _compnginx() {
@@ -161,6 +176,8 @@ function _compnginx() {
 	dpkg-buildpackage -b >>"${OUTTO}" 2>&1;
 	cd ~/new/nginx_source/
 	dpkg -i nginx_*amd64.deb >>"${OUTTO}" 2>&1;
+    echo "${OK}"
+    #echo
 }
 
 function _setpsng() {
@@ -169,14 +186,18 @@ function _setpsng() {
 	cd /etc/nginx/
 	sed -i '30i \ \ \ \ \pagespeed on;' nginx.conf
 	sed -i '31i \ \ \ \ \pagespeed FileCachePath /etc/nginx/ngx_pagespeed_cache;' nginx.conf
+    echo "${OK}"
+    #echo
 }
 
 function _restartservice() {
 	service nginx restart
+    echo "${OK}"
+    #echo
 }
 
 function _psngprooftest() {
-	curl -I -p http://localhost|grep X-Page-Speed
+	curl -s -I -p http://localhost|grep X-Page-Speed
 }
 
 
@@ -188,17 +209,17 @@ OK=$(echo -e "[ ${bold}${green}DONE${normal} ]")
 _intro
 _checkroot
 _logcheck
-_aupdate
-_softcommon
-_depends
-_keys
-_repos
-_bupdate
-_buildnginx
-_buildpagespeed
-_compnginx
-_setpsng
-_restartservice
-_psngprooftest
+echo -n "${bold}Running Initial System Updates${normal} ... ";_aupdate
+echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon
+echo -n "${bold}Installing Software Packages and Dependencies${normal} ... ";_depends
+echo -n "${bold}Installing Required Signed Keys${normal} ... ";_keys
+echo -n "${bold}Setting Required Repos to '/etc/apt/sources.list.d/nginx-vstacklet.list'${normal} ... ";_repos
+echo -n "${bold}Running System Updates${normal} ... ";_bupdate
+echo -n "${bold}Setting Up and Building Nginx${normal} ... ";_buildnginx
+echo -n "${bold}Setting Up and Building Pagespeed${normal} ... ";_buildpagespeed
+echo -n "${bold}Compiling Nginx-full with Pagespeed${normal} ... ";_compnginx
+echo -n "${bold}Creating Pagespeed Cache Directory and Enabling${normal} ... ";_setpsng
+echo -n "${bold}Restarting Nginx${normal} ... ";_restartservice
+echo -n "${bold}Verifying X-Page-Speed${normal} ... ";_psngprooftest
 
 exit
