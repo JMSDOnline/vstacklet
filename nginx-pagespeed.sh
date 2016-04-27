@@ -188,6 +188,7 @@ function _asksetpsng() {
         [yY] | [yY][Ee][Ss] ) setpsng=yes ;;
         [nN] | [nN][Oo] | "" ) setpsng=no ;;
     esac
+    echo
 }
 
 function _setpsng() {
@@ -248,7 +249,7 @@ echo -n "${bold}Running Initial System Updates${normal} ... ";_aupdate
 echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon
 echo -n "${bold}Installing Software Packages and Dependencies${normal} ... ";_depends
 echo -n "${bold}Installing Required Signed Keys${normal} ... ";_keys
-echo -n "${bold}Setting Repo to ${yellow}sources.list.d/nginx-vstacklet.list${normal} ... ";_repos
+echo -n "${bold}Sending Repo to ${yellow}sources.list.d/nginx-vstacklet.list${normal} ... ";_repos
 echo -n "${bold}Running System Updates against New Repos${normal} ... ";_bupdate
 echo -n "${bold}Setting Up and Building Nginx${normal} ... ";_buildnginx
 echo -n "${bold}Setting Up and Building Pagespeed${normal} ... ";_buildpagespeed

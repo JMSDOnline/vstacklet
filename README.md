@@ -18,11 +18,11 @@ VStacklet - A Buff LEMP Stack Kit
 
 Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04, 15.10 and 16.04 servers.
 
-Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.0 (drop-in replacement for MySQL), PHP5, Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
+Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.1 (drop-in replacement for MySQL), PHP5 or PHP7 (users choice **new**), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
 
 Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
-> Please note: that if you are going to use php 7 that phpmyadmin as well as ioncube are currently not supported. Additionally, in future versions, php 7 and php 5 installers will be contained in separate scripts. Lets Encrypt will be the standard SSL installer in the coming versions.
+> Please note: that if you are going to use php 7 that phpmyadmin as well as ioncube are currently not supported. Additionally, in future versions, php7 and php5 installers will be contained in separate scripts. Lets Encrypt will be the standard SSL installer in the coming versions.
 
 
 Script Features
@@ -54,7 +54,7 @@ __VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for W
   * Enables OPCode Cache and fine-tuning
   * Installs and Enables IonCube Loader
   * Installs and Auto-Configures phpMyAdmin - MySQL & phpMyAdmin credentials are stored in /root/.my.cnf
-  * MariaDB 10.0 can easily switched to 5.5 or substituted for PostgreSQL.
+  * MariaDB 10.1 can easily switched to 5.5 or substituted for PostgreSQL.
   * Installs and Adjusts CSF (Config Server Firewall) - prepares ports used for VStacklet as well as informing your entered email for security alerts.
   * Installs and Enables (PHP) Sendmail
   * Supports IPv6 by default.
@@ -111,9 +111,9 @@ chmod +x dev-vstacklet.sh
 ./dev-vstacklet.sh
 ```
 
-### To compile Nginx with Pagespeed
+### To compile Nginx with Pagespeed [standalone - or rebuild]
 ```
-curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx-pagespeed.sh
+curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/nginx-pagespeed.sh
 chmod +x nginx-pagespeed.sh
 ./nginx-pagespeed.sh
 ```
@@ -136,6 +136,7 @@ chmod +x vstacklet-backup-standalone.sh
 - [x] VS-Backup standalone kit (included in FULL Kit also)
 - [ ] VStacklet-lite
 - [x] Full support for Ubuntu 14.04, 15.04, 15.10 and 16.04
+- [x] Nginx + Page Speed building
 
 
 ### Additional Notes and honorable mentions
