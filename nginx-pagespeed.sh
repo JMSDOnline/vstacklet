@@ -139,13 +139,16 @@ function _buildpagespeed() {
     if [[ "${rel}" = "14.04" ]]; then
     	sed -i '61 a \ \ \ \ \ \--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
     fi
-    if [[ "${rel}" =~ ("15.10") ]]; then
+    if [[ "${rel}" =~ ("15.04"|"15.10") ]]; then
         curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
     	curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
     fi
     if [[ "${rel}" = "16.04" ]]; then
         curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/changelog
     	curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/rules
+        cd ~/new/nginx_source/nginx-*/src/core
+        sed -i 's/"nginx/" NGINX_VERSION/"nginx/" NGINX_VERSION-vstacklet/'
+        cd
     fi
 }
 
