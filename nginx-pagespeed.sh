@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# [VStacklet Nginx+Pagespeed (nginx_1.9.15-1~wily~vstacklet) Installation Script]
+# [VStacklet Nginx+Pagespeed Compilation & Installation Script]
 #
 # GitHub:   https://github.com/JMSDOnline/vstacklet
 # Author:   Jason Matthews
@@ -16,22 +16,14 @@ dim=$(tput dim); underline=$(tput smul); reset_underline=$(tput rmul); standout=
 reset_standout=$(tput rmso); normal=$(tput sgr0); alert=${white}${on_red}; title=${standout};
 sub_title=${bold}${yellow}; repo_title=${black}${on_green};
 #################################################################################
-if [[ -f /usr/bin/lsb_release ]]; then
-    DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)
-elif [ -f "/etc/redhat-release" ]; then
-    DISTRO=$(egrep -o 'Fedora|CentOS|Red.Hat' /etc/redhat-release)
-elif [ -f "/etc/debian_version" ]; then
-    DISTRO=='Debian'
-fi
-#################################################################################
 function _string() { perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15 ; }
 
 # intro function (1)
 function _intro() {
   echo
   echo
-  echo "  [${repo_title}vstacklet${normal}] ${title} VStacklet Nginx+Pagespeed (nginx_1.9.15-1~wily~vstacklet) ${normal}  "
-  echo "${alert} Configured and tested for Ubuntu 15.04, 15.10 & 16.04 ${normal}"
+  echo "	[${repo_title}vstacklet${normal}] ${title} Nginx+Pagespeed Compilation & Installation Script ${normal}  "
+  echo "	   ${alert} Configured and tested for Ubuntu 14.04, 15.10 & 16.04 ${normal}"
   echo
   echo
 
@@ -49,7 +41,7 @@ function _intro() {
     echo "${dis}: You do not appear to be running Ubuntu"
     echo 'Exiting...'
     exit 1
-elif [[ ! "${rel}" =~ ("15.04"|"15.10"|"16.04") ]]; then
+elif [[ ! "${rel}" =~ ("14.04"|"15.10"|"16.04") ]]; then
     echo "${bold}${rel}:${normal} You do not appear to be running a supported Ubuntu release."
     echo 'Exiting...'
     exit 1
@@ -58,65 +50,148 @@ elif [[ ! "${rel}" =~ ("15.04"|"15.10"|"16.04") ]]; then
 
 # check if root function (2)
 function _checkroot() {
-  if [[ $EUID != 0 ]]; then
-    echo 'This script must be run with root privileges.'
-    echo 'Exiting...'
-    exit 1
-  fi
-  echo "${green}Congrats! You're running as root. Let's continue${normal} ... "
-  echo
+	if [[ $EUID != 0 ]]; then
+		echo 'This script must be run with root privileges.'
+		echo 'Exiting...'
+		exit 1
+	fi
+	echo "${green}Congrats! You're running as root. Let's continue${normal} ... "
+	echo
 }
 
 # check if create log function (3)
 function _logcheck() {
-  echo -ne "${bold}${yellow}Do you wish to write to a log file?${normal} (Default: ${green}${bold}Y${normal}) "; read input
+	echo -ne "${bold}${yellow}Do you wish to write to a log file?${normal} (Default: ${green}${bold}Y${normal}) "; read input
     case $input in
-      [yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal}" ;;
-      [nN] | [nN][Oo] ) OUTTO="/dev/null 2>&1";echo "${cyan}NO output will be logged${normal}" ;;
-    *) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal}" ;;
+		[yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal}" ;;
+		[nN] | [nN][Oo] ) OUTTO="/dev/null 2>&1";echo "${cyan}NO output will be logged${normal}" ;;
+		*) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet.log${normal}" ;;
     esac
-  echo
-  echo "Press ${standout}${green}ENTER${normal} when you're ready to begin" ;read input
-  echo
+	echo
+	echo "Press ${standout}${green}ENTER${normal} when you're ready to begin" ;read input
+	echo
 }
 
-function _nginxenial() {
-	mkdir -p ~/nginx/xenial/
-	cd ~/nginx/xenial/
+function _aupdate() {
+	apt-get -y update
 }
 
-function _nginxdeb() {
-	wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx_1.9.15-1~wily~vstacklet_amd64.deb > /dev/null 2>&1;
-	wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx-dbg_1.9.15-1~wily~vstacklet_amd64.deb > /dev/null 2>&1;
-	wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx-module-geoip_1.9.15-1~wily~vstacklet_amd64.deb > /dev/null 2>&1;
-	wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx-module-image-filter_1.9.15-1~wily~vstacklet_amd64.deb > /dev/null 2>&1;
-	wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx-module-njs_0.0.20160414.1c50334fbea6-1~xenial_amd64.deb > /dev/null 2>&1;
-	wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx-module-perl_1.9.15-1~wily~vstacklet_amd64.deb > /dev/null 2>&1;
-	wget https://github.com/JMSDOnline/vstacklet/blob/master/nginx/xenial/nginx-module-xslt_1.9.15-1~wily~vstacklet_amd64.deb > /dev/null 2>&1;
-	  echo "${OK}"
+# package and repo addition (a) _install common properties_
+function _softcommon() {
+	apt-get -y install software-properties-common python-software-properties apt-transport-https >>"${OUTTO}" 2>&1;
+	echo "${OK}"
+	echo
+}
+
+# package and repo addition (b) _install softwares and packages_
+function _depends() {
+	apt-get -y install dpkg-dev build-essential zlib1g-dev libpcre3 libpcre3-dev unzip curl
+}
+
+# package and repo addition (c) _add signed keys_
+function _keys() {
+	curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - > /dev/null 2>&1;
+	echo "${OK}"
+	echo
+}
+
+# package and repo addition (d) _add respo sources_
+function _repos() {
+if [[ ${rel} =~ ("15.04"|"15.10"|"16.04") ]]; then
+  cat >/etc/apt/sources.list.d/nginx-vstacklet.list<<EOF
+deb http://nginx.org/packages/mainline/ubuntu/ wily nginx
+deb-src http://nginx.org/packages/mainline/ubuntu/ wily nginx
+EOF
+fi
+if [[ ${rel} = "14.04" ]]; then
+    cat >/etc/apt/sources.list.d/nginx-vstacklet.list<<EOF
+deb http://nginx.org/packages/mainline/ubuntu/ trusty nginx
+deb-src http://nginx.org/packages/mainline/ubuntu/ trusty nginx
+EOF
+fi
+}
+
+function _bupdate() {
+	apt-get -y update
 }
 
 function _buildnginx() {
-	dpkg -i nginx_*amd64.deb > /dev/null 2>&1;
-	mkdir -p /etc/nginx/ngx_pagespeed_cache
+	mkdir -p ~/new/nginx_source/
+	cd ~/new/nginx_source/
+	apt-get -y source nginx
+	apt-get -y build-dep nginx
+}
+
+function _buildpagespeed() {
+	mkdir -p ~/new/ngx_pagespeed/
+	cd ~/new/ngx_pagespeed/
+	wget --no-check-certificate https://github.com/pagespeed/ngx_pagespeed/archive/master.zip
+	unzip master.zip
+	cd ngx_pagespeed-master/
+	echo '#!/bin/bash' >> bush.sh
+	grep wget config > bush.sh
+	sed -i 's/echo "     $ w/w/' bush.sh
+	sed -i 's/gz"/gz/' bush.sh
+	bash bush.sh
+	tar -xzf *.tar.gz
+	cd ~/new/nginx_source/nginx-*/debian/
+    sed -i '22 a \ \ \ \ \ \--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
+    if [[ "${rel}" = "14.04" ]]; then
+    	sed -i '61 a \ \ \ \ \ \--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
+    fi
+    if [[ "${rel}" =~ ("15.10") ]]; then
+        curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
+    	curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
+    fi
+    if [[ "${rel}" = "16.04" ]]; then
+        curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/changelog
+    	curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/rules
+    fi
+}
+
+function _compnginx() {
+	cd ~/new/nginx_source/nginx-*/
+	dpkg-buildpackage -b
+	cd ~/new/nginx_source/
+	dpkg -i nginx_*amd64.deb
+}
+
+function _setpsng() {
+	mkdir -p /var/ngx_pagespeed_cache
 	chown -R www-data:www-data /etc/nginx/ngx_pagespeed_cache
 	cd /etc/nginx/
-	sed -i '68i  pagespeed 	on;' nginx.conf
-	sed -i '69i  pagespeed 	FileCachePath /etc/nginx/ngx_pagespeed_cache;' nginx.conf
-	  echo "${OK}"
+	sed -i '30i \ \ \ \ \pagespeed on;' nginx.conf
+	sed -i '31i \ \ \ \ \pagespeed FileCachePath /etc/nginx/ngx_pagespeed_cache;' nginx.conf
 }
 
-function _finish() {
+function _restartservice() {
 	service nginx restart
-  	echo "${OK}"
 }
 
+function _psngprooftest() {
+	curl -I -p http://localhost|grep X-Page-Speed
+}
+
+
+clear
+
+S=$(date +%s)
 OK=$(echo -e "[ ${bold}${green}DONE${normal} ]")
 
 _intro
 _checkroot
 _logcheck
-_nginxenial
-echo -n "${bold}Downloading Nginx Packages${normal} ... ";_nginxdeb
-echo -n "${bold}Building Nginx with Pagespeed${normal} ... ";_buildnginx
-_finish
+_aupdate
+_softcommon
+_depends
+_keys
+_repos
+_bupdate
+_buildnginx
+_buildpagespeed
+_compnginx
+_setpsng
+_restartservice
+_psngprooftest
+
+exit
