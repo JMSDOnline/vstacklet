@@ -105,6 +105,7 @@ if [[ ${rel} = "16.04" ]]; then
 deb http://nginx.org/packages/mainline/ubuntu/ xenial nginx
 deb-src http://nginx.org/packages/mainline/ubuntu/ xenial nginx
 EOF
+fi
 if [[ ${rel} =~ ("15.04"|"15.10") ]]; then
   cat >/etc/apt/sources.list.d/nginx-vstacklet.list<<EOF
 deb http://nginx.org/packages/mainline/ubuntu/ wily nginx
@@ -149,7 +150,7 @@ function _buildpagespeed() {
 	bash bush.sh > /dev/null 2>&1;
 	tar -xzf *.tar.gz >>"${OUTTO}" 2>&1;
 
-    if [[ "${NGINX}" = "nginx/1.10.0" ]] then
+    if [[ ${NGINX} == "nginx/1.10.0" ]]; then
         cd ~/new/
         mv ~/new/ngx_pagespeed ~/new/nginx_source/nginx-*/debian/modules/
     fi
@@ -170,13 +171,13 @@ function _buildpagespeed() {
         cd
     fi
     if [[ "${rel}" = "16.04" ]]; then
-        if [[ "${NGINX}" = "nginx/1.9.15" ]] then
+        if [[ ${NGINX} == "nginx/1.9.15" ]]; then
             curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
             curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
             cd ~/new/nginx_source/nginx-*/src/core
             sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
             cd
-        elif [[ "${NGINX}" = "nginx/1.10.0" ]] then
+        elif [[ ${NGINX} == "nginx/1.10.0" ]]; then
     	    curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/rules
             cd ~/new/nginx_source/nginx-*/src/core
             sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
@@ -191,9 +192,9 @@ function _compnginx() {
 	cd ~/new/nginx_source/nginx-*/
 	dpkg-buildpackage -b >>"${OUTTO}" 2>&1;
 	cd ~/new/nginx_source/
-    if [[ "${NGINX}" = "nginx/1.9.15" ]] then
+    if [[ ${NGINX} == "nginx/1.9.15" ]]; then
 	    dpkg -i nginx_*amd64.deb >>"${OUTTO}" 2>&1;
-    elif [[ "${NGINX}" = "nginx/1.10.0" ]] then
+    elif [[ ${NGINX} == "nginx/1.10.0" ]]; then
         dpkg -i nginx_*all.deb >>"${OUTTO}" 2>&1;
     fi
     echo "${OK}"
