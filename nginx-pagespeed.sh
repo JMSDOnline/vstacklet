@@ -105,6 +105,7 @@ if [[ ${rel} = "16.04" ]]; then
 deb http://nginx.org/packages/mainline/ubuntu/ xenial nginx
 deb-src http://nginx.org/packages/mainline/ubuntu/ xenial nginx
 EOF
+fi
 if [[ ${rel} =~ ("15.04"|"15.10") ]]; then
   cat >/etc/apt/sources.list.d/nginx-vstacklet.list<<EOF
 deb http://nginx.org/packages/mainline/ubuntu/ wily nginx
