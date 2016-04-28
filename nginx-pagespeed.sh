@@ -179,7 +179,8 @@ function _buildpagespeed() {
             cd ~/new/nginx_source/nginx-*/src/core
             sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
             cd
-        elif [[ "${NGVS}" = "nginx-1.10.*" ]]; then
+        fi
+        if [[ "${NGVS}" = "nginx-1.10.*" ]]; then
     	    curl -s -Lo ~/new/nginx_source/nginx-*/debian/rules https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/rules
             cd ~/new/nginx_source/nginx-*/src/core
             sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
