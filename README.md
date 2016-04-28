@@ -117,6 +117,12 @@ curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/nginx-pag
 chmod +x nginx-pagespeed.sh
 ./nginx-pagespeed.sh
 ```
+### To compile Nginx with Pagespeed [standalone - or rebuild] (dev branch)
+```
+curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx-pagespeed.sh
+chmod +x nginx-pagespeed.sh
+./nginx-pagespeed.sh
+```
 
 ### VStacklet VS-Backup - Installs needed files for running complete system backups:
 ```
