@@ -281,7 +281,7 @@ NGVS=$(printf '%q\n' "${PWD##*/}");
 echo -n "${bold}Setting Up and Building Nginx${normal} ... ";_buildnginx
 echo -n "${bold}Setting Up and Building Pagespeed${normal} ... ";_buildpagespeed
 echo -n "${bold}Compiling Nginx-full-vstacklet with Pagespeed${normal} ... ";_compnginx
-_asksetpsng
+_asksetpsng;echo;
 echo -n "${bold}Creating Pagespeed Cache Directory ${yellow}[see /etc/nginx/nginx.conf]${normal} ... ";_setpsng
 echo -n "${bold}Creating Pagespeed Cache Directory and Enabling${normal} ... ";_nosetpsng
 echo -n "${bold}Restarting Nginx${normal} ... ";_restartservice
