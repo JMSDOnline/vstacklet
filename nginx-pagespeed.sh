@@ -150,7 +150,7 @@ function _buildpagespeed() {
 	bash bush.sh > /dev/null 2>&1;
 	tar -xzf *.tar.gz >>"${OUTTO}" 2>&1;
 
-    cd /root/new/nginx_source/
+    cd /root/new/nginx_source/nginx-*/
     if [[ "${NGVS}" = "nginx-1.10.*" ]]; then
         cd ~/new/
         mv ~/new/ngx_pagespeed ~/new/nginx_source/nginx-*/debian/modules/
@@ -172,7 +172,7 @@ function _buildpagespeed() {
         cd
     fi
     if [[ "${rel}" = "16.04" ]]; then
-        cd /root/new/nginx_source/
+        cd /root/new/nginx_source/nginx-*/
         if [[ "${NGVS}" = "nginx-1.9.15" ]]; then
             curl -s -Lo ~/new/nginx_source/nginx-*/debian/changelog https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
             curl -s -Lo ~/new/nginx_source/nginx-*/debian/rules https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
@@ -194,10 +194,12 @@ function _buildpagespeed() {
 function _compnginx() {
 	cd ~/new/nginx_source/nginx-*/
 	dpkg-buildpackage -b >>"${OUTTO}" 2>&1;
-	cd ~/new/nginx_source/
+	cd ~/new/nginx_source/nginx-*/
     if [[ "${NGVS}" = "nginx-1.9.15" ]]; then
+        cd ~/new/nginx_source/
 	    dpkg -i nginx_*amd64.deb >>"${OUTTO}" 2>&1;
-    elif [[ "${NGVS}" = "nginx-1.10.*" ]]; then
+    elif [[ "${NGVS}" = "nginx-1.10.0" ]]; then
+        cd ~/new/nginx_source/
         dpkg -i nginx_*all.deb >>"${OUTTO}" 2>&1;
     fi
     echo "${OK}"
