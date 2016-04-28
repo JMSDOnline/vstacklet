@@ -124,7 +124,7 @@ echo "${OK}"
 
 function _bupdate() {
 	apt-get -y update >>"${OUTTO}" 2>&1;
-    apt-get -y nginx >>"${OUTTO}" 2>&1;
+    apt-get -y install nginx >>"${OUTTO}" 2>&1;
     echo "${OK}"
     #echo
 }
