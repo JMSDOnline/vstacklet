@@ -63,7 +63,7 @@ function _checkroot() {
 function _logcheck() {
 	echo -ne "${bold}${yellow}Do you wish to write to a log file?${normal} (Default: ${green}${bold}Y${normal}) "; read input
     case $input in
-		[yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet.log";echo "${bold}Output is being sent to /root/vstacklet-nginx.log${normal}" ;;
+		[yY] | [yY][Ee][Ss] | "" ) OUTTO="vstacklet-nginx.log";echo "${bold}Output is being sent to /root/vstacklet-nginx.log${normal}" ;;
 		[nN] | [nN][Oo] ) OUTTO="/dev/null 2>&1";echo "${cyan}NO output will be logged${normal}" ;;
 		*) OUTTO="vstacklet-nginx.log";echo "${bold}Output is being sent to /root/vstacklet-nginx.log${normal}" ;;
     esac
@@ -100,6 +100,11 @@ function _keys() {
 
 # package and repo addition (d) _add respo sources_
 function _repos() {
+if [[ ${rel} = "16.04" ]]; then
+  cat >/etc/apt/sources.list.d/nginx-vstacklet.list<<EOF
+deb http://nginx.org/packages/mainline/ubuntu/ xenial nginx
+deb-src http://nginx.org/packages/mainline/ubuntu/ xenial nginx
+EOF
 if [[ ${rel} =~ ("15.04"|"15.10"|"16.04") ]]; then
   cat >/etc/apt/sources.list.d/nginx-vstacklet.list<<EOF
 deb http://nginx.org/packages/mainline/ubuntu/ wily nginx
@@ -137,17 +142,21 @@ function _buildpagespeed() {
 	wget --no-check-certificate https://github.com/pagespeed/ngx_pagespeed/archive/master.zip > /dev/null 2>&1;
 	unzip master.zip > /dev/null 2>&1;
 	cd ngx_pagespeed-master/
-
 	echo '#!/bin/bash' >> bush.sh
 	grep wget config > bush.sh
 	sed -i 's/echo "     $ w/w/' bush.sh
 	sed -i 's/gz"/gz/' bush.sh
-
 	bash bush.sh > /dev/null 2>&1;
 	tar -xzf *.tar.gz >>"${OUTTO}" 2>&1;
+
+    if [[ "${NGINX}" = "nginx/1.10.0" ]] then
+        cd ~/new/
+        mv ~/new/ngx_pagespeed ~/new/nginx_source/nginx-*/debian/modules/
+    fi
+
 	cd ~/new/nginx_source/nginx-*/debian/
-    sed -i '22 a \ \ \ \ \ \--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
     if [[ "${rel}" = "14.04" ]]; then
+        sed -i '22 a \ \ \ \ \ \--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
     	sed -i '61 a \ \ \ \ \ \--add-module=../../ngx_pagespeed/ngx_pagespeed-master \\' rules
         cd ~/new/nginx_source/nginx-*/src/core
         sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
@@ -161,11 +170,18 @@ function _buildpagespeed() {
         cd
     fi
     if [[ "${rel}" = "16.04" ]]; then
-        curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/changelog
-    	curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/rules
-        cd ~/new/nginx_source/nginx-*/src/core
-        sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
-        cd
+        if [[ "${NGINX}" = "nginx/1.9.15" ]] then
+            curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
+            curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
+            cd ~/new/nginx_source/nginx-*/src/core
+            sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
+            cd
+        elif [[ "${NGINX}" = "nginx/1.10.0" ]] then
+    	    curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/rules
+            cd ~/new/nginx_source/nginx-*/src/core
+            sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
+            cd
+        fi
     fi
     echo "${OK}"
     #echo
@@ -175,7 +191,11 @@ function _compnginx() {
 	cd ~/new/nginx_source/nginx-*/
 	dpkg-buildpackage -b >>"${OUTTO}" 2>&1;
 	cd ~/new/nginx_source/
-	dpkg -i nginx_*amd64.deb >>"${OUTTO}" 2>&1;
+    if [[ "${NGINX}" = "nginx/1.9.15" ]] then
+	    dpkg -i nginx_*amd64.deb >>"${OUTTO}" 2>&1;
+    elif [[ "${NGINX}" = "nginx/1.10.0" ]] then
+        dpkg -i nginx_*all.deb >>"${OUTTO}" 2>&1;
+    fi
     echo "${OK}"
     #echo
 }
@@ -241,6 +261,7 @@ clear
 
 S=$(date +%s)
 OK=$(echo -e "[ ${bold}${green}DONE${normal} ]")
+NGINX=$(nginx -v)
 
 _intro
 _checkroot

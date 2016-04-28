@@ -1,133 +1,179 @@
 #!/usr/bin/make -f
+export DH_VERBOSE=1
 
-#export DH_VERBOSE=1
-CFLAGS ?= $(shell dpkg-buildflags --get CFLAGS)
-LDFLAGS ?= $(shell dpkg-buildflags --get LDFLAGS)
-WITH_HTTP2 := $(shell printf \
-	"Source: nginx\nBuild-Depends: libssl-dev (>= 1.0.1)\n" | \
-	dpkg-checkbuilddeps - >/dev/null 2>&1 && \
-	echo "--with-http_v2_module")
-PKGS = nginx nginx-dbg \
-	nginx-module-xslt nginx-module-geoip nginx-module-image-filter \
-	nginx-module-perl nginx-module-njs
-COMMON_CONFIGURE_ARGS := \
-	--prefix=/etc/nginx \
-	--sbin-path=/usr/sbin/nginx \
-	--modules-path=/usr/lib/nginx/modules \
-	--conf-path=/etc/nginx/nginx.conf \
-	--error-log-path=/var/log/nginx/error.log \
-	--http-log-path=/var/log/nginx/access.log \
-	--pid-path=/var/run/nginx.pid \
-	--lock-path=/var/run/nginx.lock \
-	--http-client-body-temp-path=/var/cache/nginx/client_temp \
-     --add-module=../../ngx_pagespeed/ngx_pagespeed-master \
-	--http-proxy-temp-path=/var/cache/nginx/proxy_temp \
-	--http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
-	--http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
-	--http-scgi-temp-path=/var/cache/nginx/scgi_temp \
-	--user=nginx \
-	--group=nginx \
-	--with-http_ssl_module \
-	--with-http_realip_module \
-	--with-http_addition_module \
-	--with-http_sub_module \
-	--with-http_dav_module \
-	--with-http_flv_module \
-	--with-http_mp4_module \
-	--with-http_gunzip_module \
-	--with-http_gzip_static_module \
-	--with-http_random_index_module \
-	--with-http_secure_link_module \
-	--with-http_stub_status_module \
-	--with-http_auth_request_module \
-	--with-http_xslt_module=dynamic \
-	--with-http_image_filter_module=dynamic \
-	--with-http_geoip_module=dynamic \
-	--with-http_perl_module=dynamic \
-	--add-dynamic-module=debian/extra/njs-1c50334fbea6/nginx \
-	--with-threads \
-	--with-stream \
-	--with-stream_ssl_module \
-	--with-http_slice_module \
-	--with-mail \
-	--with-mail_ssl_module \
-	--with-file-aio \
-	--with-ipv6 \
-	$(WITH_HTTP2) \
-	--with-cc-opt="$(CFLAGS)" \
-	--with-ld-opt="$(LDFLAGS)" \
-    --with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0"
+export DEB_BUILD_MAINT_OPTIONS=hardening=+all
+debian_cflags:=$(shell dpkg-buildflags --get CFLAGS) $(shell dpkg-buildflags --get CPPFLAGS)
+debian_ldflags:=$(shell dpkg-buildflags --get LDFLAGS)
+
+# export necessary perl hardenging flags
+# see: src/http/modules/perl/Makefile.PL
+DEBIAN_NGINX_PERL_LDFLAGS:= $(shell DEB_BUILD_MAINT_OPTIONS=hardening=+all,-pie dpkg-buildflags --get LDFLAGS)
+export DEBIAN_NGINX_PERL_LDFLAGS
+
+FLAVOURS := core full light extras
+
+MODULESDIR = $(CURDIR)/debian/modules
+BASEDIR = $(CURDIR)
+$(foreach flavour,$(FLAVOURS),$(eval BUILDDIR_$(flavour) = $(CURDIR)/debian/build-$(flavour)))
+
+DEB_BUILD_ARCH ?=$(shell dpkg-architecture -qDEB_BUILD_ARCH)
+ifeq ($(DEB_BUILD_ARCH),sparc)
+	debian_cflags += -m32 -mcpu=ultrasparc
+endif
+
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+	NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+	MAKEFLAGS += -j$(NUMJOBS)
+endif
+
+# configure flags
+common_configure_flags := \
+			--with-cc-opt="$(debian_cflags)" \
+			--with-ld-opt="$(debian_ldflags)" \
+			--with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0" \
+			--prefix=/usr/share/nginx \
+			--conf-path=/etc/nginx/nginx.conf \
+			--http-log-path=/var/log/nginx/access.log \
+			--error-log-path=/var/log/nginx/error.log \
+			--lock-path=/var/lock/nginx.lock \
+			--pid-path=/run/nginx.pid \
+			--http-client-body-temp-path=/var/lib/nginx/body \
+			--http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
+			--http-proxy-temp-path=/var/lib/nginx/proxy \
+			--http-scgi-temp-path=/var/lib/nginx/scgi \
+			--http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
+			--with-debug \
+			--with-pcre-jit \
+			--with-ipv6 \
+			--with-http_ssl_module \
+			--with-http_stub_status_module \
+			--with-http_realip_module \
+			--with-http_auth_request_module
+
+core_configure_flags := \
+                        $(common_configure_flags) \
+                        --with-http_addition_module \
+                        --with-http_dav_module \
+                        --with-http_geoip_module \
+                        --with-http_gunzip_module \
+                        --with-http_gzip_static_module \
+                        --with-http_image_filter_module \
+                        --with-http_v2_module \
+                        --with-http_sub_module \
+                        --with-http_xslt_module \
+                        --with-stream \
+                        --with-stream_ssl_module \
+                        --with-mail \
+                        --with-mail_ssl_module \
+                        --with-threads
+
+light_configure_flags := \
+			$(common_configure_flags) \
+			--with-http_gzip_static_module \
+			--without-http_browser_module \
+			--without-http_geo_module \
+			--without-http_limit_req_module \
+			--without-http_limit_conn_module \
+			--without-http_memcached_module \
+			--without-http_referer_module \
+			--without-http_scgi_module \
+			--without-http_split_clients_module \
+			--without-http_ssi_module \
+			--without-http_userid_module \
+			--without-http_uwsgi_module \
+			--add-module=$(MODULESDIR)/nginx-echo
+
+full_configure_flags := \
+			$(common_configure_flags) \
+			--with-http_addition_module \
+			--with-http_dav_module \
+			--with-http_geoip_module \
+			--with-http_gunzip_module \
+			--with-http_gzip_static_module \
+			--with-http_image_filter_module \
+                        --with-http_v2_module \
+			--with-http_sub_module \
+			--with-http_xslt_module \
+			--with-stream \
+			--with-stream_ssl_module \
+			--with-mail \
+			--with-mail_ssl_module \
+			--with-threads \
+			--add-module=$(MODULESDIR)/nginx-auth-pam \
+			--add-module=$(MODULESDIR)/nginx-dav-ext-module \
+			--add-module=$(MODULESDIR)/nginx-echo \
+			--add-module=$(MODULESDIR)/nginx-upstream-fair \
+			--add-module=$(MODULESDIR)/ngx_http_substitutions_filter_module
+
+extras_configure_flags := \
+			$(common_configure_flags) \
+			--with-http_addition_module \
+			--with-http_dav_module \
+			--with-http_flv_module \
+			--with-http_geoip_module \
+			--with-http_gunzip_module \
+			--with-http_gzip_static_module \
+			--with-http_image_filter_module \
+			--with-http_mp4_module \
+			--with-http_perl_module \
+			--with-http_random_index_module \
+			--with-http_secure_link_module \
+                        --with-http_v2_module \
+			--with-http_sub_module \
+			--with-http_xslt_module \
+			--with-mail \
+			--with-mail_ssl_module \
+			--with-stream \
+			--with-stream_ssl_module \
+			--with-threads \
+			--add-module=$(MODULESDIR)/headers-more-nginx-module \
+			--add-module=$(MODULESDIR)/nginx-auth-pam \
+			--add-module=$(MODULESDIR)/nginx-cache-purge \
+			--add-module=$(MODULESDIR)/nginx-dav-ext-module \
+			--add-module=$(MODULESDIR)/nginx-development-kit \
+			--add-module=$(MODULESDIR)/nginx-echo \
+			--add-module=$(MODULESDIR)/ngx-fancyindex \
+			--add-module=$(MODULESDIR)/nginx-http-push \
+			--add-module=$(MODULESDIR)/nginx-lua \
+			--add-module=$(MODULESDIR)/nginx-upload-progress \
+			--add-module=$(MODULESDIR)/nginx-upstream-fair \
+			--add-module=$(MODULESDIR)/ngx_http_substitutions_filter_module \
+			--add-module=$(MODULESDIR)/ngx_pagespeed/ngx_pagespeed-master
 
 %:
-	dh $@
+	dh $@ --with systemd
 
-override_dh_auto_configure: configure_debug
-
-override_dh_strip:
-	--add-module=../../ngx_pagespeed/ngx_pagespeed-master
-	dh_strip --dbg-package=nginx-dbg
-
-override_dh_auto_build:
-	dh_auto_build
-	mv objs/nginx objs/nginx-debug
-	mv objs/ngx_http_xslt_filter_module.so objs/ngx_http_xslt_filter_module-debug.so
-	mv objs/ngx_http_image_filter_module.so objs/ngx_http_image_filter_module-debug.so
-	mv objs/ngx_http_geoip_module.so objs/ngx_http_geoip_module-debug.so
-	mv objs/ngx_http_perl_module.so objs/ngx_http_perl_module-debug.so
-	mv objs/src/http/modules/perl/blib/arch/auto/nginx/nginx.so objs/src/http/modules/perl/blib/arch/auto/nginx/nginx-debug.so
-	mv objs/ngx_http_js_module.so objs/ngx_http_js_module-debug.so
-	CFLAGS="" ./configure $(COMMON_CONFIGURE_ARGS)
-	dh_auto_build
-
-configure_debug:
-	CFLAGS="" ./configure $(COMMON_CONFIGURE_ARGS) \
-		--with-debug
-
-override_dh_auto_install:
-	sed -e 's/%%PROVIDES%%/nginx/g' \
-		-e 's/%%DEFAULTSTART%%/2 3 4 5/g' \
-		-e 's/%%DEFAULTSTOP%%/0 1 6/g' \
-		< debian/init.d.in > debian/init.d
-	dh_auto_install
-	mkdir -p debian/nginx/etc/init.d debian/nginx/etc/default \
-		debian/nginx/usr/lib/nginx/modules
-	sed -e 's/%%PROVIDES%%/nginx-debug/g' \
-		-e 's/%%DEFAULTSTART%%//g' \
-		-e 's/%%DEFAULTSTOP%%/0 1 2 3 4 5 6/g' \
-		< debian/init.d.in > debian/debug.init.d
-	/usr/bin/install -m 755 debian/debug.init.d \
-		debian/nginx/etc/init.d/nginx-debug
-	/usr/bin/install -m 644 debian/nginx-debug.default \
-		debian/nginx/etc/default/nginx-debug
-		--with-cc-opt=" -D_GLIBCXX_USE_CXX11_ABI=0" 
-	/usr/bin/install -m 644 debian/nginx.conf debian/nginx/etc/nginx/
-	/usr/bin/install -m 644 conf/win-utf debian/nginx/etc/nginx/
-	/usr/bin/install -m 644 conf/koi-utf debian/nginx/etc/nginx/
-	/usr/bin/install -m 644 conf/koi-win debian/nginx/etc/nginx/
-	/usr/bin/install -m 644 conf/mime.types debian/nginx/etc/nginx/
-	/usr/bin/install -m 644 conf/scgi_params debian/nginx/etc/nginx/
-	/usr/bin/install -m 644 conf/fastcgi_params debian/nginx/etc/nginx/
-	/usr/bin/install -m 644 conf/uwsgi_params debian/nginx/etc/nginx/
-	/usr/bin/install -m 644 html/index.html \
-		debian/nginx/usr/share/nginx/html/
-	/usr/bin/install -m 644 html/50x.html \
-		debian/nginx/usr/share/nginx/html/
-	/usr/bin/install -m 644 debian/nginx.vh.default.conf \
-		debian/nginx/etc/nginx/conf.d/default.conf
-	/usr/bin/install -m 755 objs/nginx  debian/nginx/usr/sbin/
-	/usr/bin/install -m 755 objs/nginx-debug  debian/nginx/usr/sbin/
-	cd debian/nginx/etc/nginx && /bin/ln -s \
-		../../usr/lib/nginx/modules modules && cd -
-
-override_dh_gencontrol:
-	for p in $(PKGS); do \
-		if [ -e debian/$$p.version ]; then \
-			dpkg-gencontrol -p$$p -ldebian/changelog -Tdebian/$$p.substvars -Pdebian/$$p -v`cat debian/$$p.version`~`lsb_release -cs`; \
-		else \
-			dpkg-gencontrol -p$$p -ldebian/changelog -Tdebian/$$p.substvars -Pdebian/$$p ; \
-		fi ; \
-	done
-
-override_dh_clean:
+override_dh_auto_configure: $(foreach flavour,$(FLAVOURS),config.arch.$(flavour))
+override_dh_auto_build:     $(foreach flavour,$(FLAVOURS),build.arch.$(flavour))
+override_dh_strip:          $(foreach flavour,$(FLAVOURS),strip.arch.$(flavour))
+override_dh_clean:          $(foreach flavour,$(FLAVOURS),clean.$(flavour))
 	dh_clean
-	rm -f debian/*init.d
+
+override_dh_installinit:
+	dh_installinit --no-restart-on-upgrade --no-start --name=nginx
+
+override_dh_systemd_enable:
+	dh_systemd_enable --name=nginx
+
+override_dh_installlogrotate:
+	dh_installlogrotate --package nginx-common --name=nginx
+
+build.arch.%:
+	$(MAKE) -C $(BUILDDIR_$*) build
+
+strip.arch.%:
+	dh_strip --package=nginx-$(*) --dbg-package=nginx-$(*)-dbg
+
+config.arch.%:
+	dh_testdir
+	mkdir -p $(BUILDDIR_$*)
+	cp -Pa $(CURDIR)/auto $(BUILDDIR_$*)/
+	cp -Pa $(CURDIR)/conf $(BUILDDIR_$*)/
+	cp -Pa $(CURDIR)/configure $(BUILDDIR_$*)/
+	cp -Pa $(CURDIR)/contrib $(BUILDDIR_$*)/
+	cp -Pa $(CURDIR)/src $(BUILDDIR_$*)/
+	cp -Pa $(CURDIR)/man $(BUILDDIR_$*)/
+	cd $(BUILDDIR_$*) && ./configure $($*_configure_flags)
+
+clean.%:
+	rm -rf $(BUILDDIR_$*)
