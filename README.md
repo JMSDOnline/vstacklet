@@ -111,13 +111,14 @@ chmod +x dev-vstacklet.sh
 ./dev-vstacklet.sh
 ```
 
-### To compile Nginx with Pagespeed [standalone - or rebuild]
-```
-curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/nginx-pagespeed.sh
-chmod +x nginx-pagespeed.sh
-./nginx-pagespeed.sh
-```
 ### To compile Nginx with Pagespeed [standalone - or rebuild] (dev branch)
+> Please be advised. Recently Nginx 1.10.0 has been released. This script will run the needed
+processes for build, however, compilation may fail due to the newer version being released.
+Just so happens 2 days after me writing this script... 1.10.0 was released. The tricky bit
+is that not all providers have this getting installed in xenial packages. Providers such as
+Linode however, do have 1.10.0 in their xenial images. I wouldn't suggest running this script
+unless you know how to recompile nginx on your own... although, this will do about 75% of the
+grunt work for you :wink: I will have this fixed as soon as time permits.
 ```
 curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx-pagespeed.sh
 chmod +x nginx-pagespeed.sh
