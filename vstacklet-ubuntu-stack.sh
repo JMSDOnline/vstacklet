@@ -483,7 +483,7 @@ function _nginx() {
   sh -c 'find /etc/nginx/cache -type d -print0 | sudo xargs -0 chmod g+s'
   # rename default.conf template
   if [[ $sitename -eq yes ]];then
-      if [[ $PHPVERSION=7.0 ]];then
+      if [[ "$PHPVERSION" = "7.0" ]];then
           cp /etc/nginx/conf.d/default.php7.conf.save /etc/nginx/conf.d/${sitename}.conf
           # build applications web root directory if sitename is provided
           mkdir -p /srv/www/${sitename}/logs >/dev/null 2>&1;
@@ -497,7 +497,7 @@ function _nginx() {
           mkdir -p /srv/www/${sitename}/public >/dev/null 2>&1;
       fi
   else
-      if [[ $PHPVERSION=7.0 ]];then
+      if [[ "$PHPVERSION" = "7.0" ]];then
           cp /etc/nginx/conf.d/default.php7.conf.save /etc/nginx/conf.d/${hostname1}.conf
           # build applications web root directory if no sitename is provided
           mkdir -p /srv/www/${hostname1}/logs >/dev/null 2>&1;
@@ -988,7 +988,7 @@ function _cert() {
              -e "s/# include vstacklet\/directive-only\/ssl.conf;/include vstacklet\/directive-only\/ssl.conf;/" \
              -e "s/# ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/" \
              -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" /etc/nginx/conf.d/${sitename}.conf
-      sed -i "s/sitename/${sitename}/" /etc/nginx/conf.d/${sitename}.conf
+      sed -i "s/sitename/$sitename/" /etc/nginx/conf.d/${sitename}.conf
     else
       openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /srv/www/${hostname1}/ssl/${hostname1}.key -out /srv/www/${hostname1}/ssl/${hostname1}.crt
       chmod 400 /etc/ssl/private/${hostname1}.key
@@ -997,7 +997,7 @@ function _cert() {
              -e "s/# include vstacklet\/directive-only\/ssl.conf;/include vstacklet\/directive-only\/ssl.conf;/" \
              -e "s/# ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/" \
              -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" /etc/nginx/conf.d/${hostname1}.conf
-      sed -i "s/sitename/${hostname1}/" /etc/nginx/conf.d/${hostname1}.conf
+      sed -i "s/sitename/$hostname1/" /etc/nginx/conf.d/${hostname1}.conf
     fi
     echo "${OK}"
     echo
