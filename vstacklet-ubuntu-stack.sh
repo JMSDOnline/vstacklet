@@ -410,6 +410,60 @@ function _nositename() {
   fi
 }
 
+# ask php version function (12)
+function _askphpversion() {
+  echo -e "1) php${green}7.0${normal}"
+  echo -e "2) php${green}5${normal}"
+  echo -ne "${yellow}What version of php do you want?${normal} (Default php${green}7.0${normal}): "; read version
+  case $version in
+    1 | "") PHPVERSION=7.0  ;;
+    2) PHPVERSION=5  ;;
+    *) PHPVERSION=7.0 ;;
+  esac
+  #echo "Using php$PHPVERSION"
+  echo
+}
+
+# install php function (11)
+function _php() {
+  echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-fpm w/ OPCode Cache ... "
+  if [[ $PHPVERSION=7.0 ]];then
+      apt-get -y install php7.0 php7.0-fpm php7.0-mbstring php7.0-zip php7.0-mysql php7.0-curl php7.0-gd php7.0-json php7.0-mcrypt php7.0-opcache php7.0-xml >>"${OUTTO}" 2>&1;
+      sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
+        -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
+        -e "s/expose_php = On/expose_php = Off/" \
+        -e "s/128M/512M/" \
+        -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
+        -e "s/;opcache.enable=0/opcache.enable=1/" \
+        -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
+        -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
+        -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php/7.0/fpm/php.ini
+  elif [[ $PHPVERSION=5 ]];then
+      apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
+      sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
+        -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
+        -e "s/expose_php = On/expose_php = Off/" \
+        -e "s/128M/512M/" \
+        -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
+        -e "s/;opcache.enable=0/opcache.enable=1/" \
+        -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
+        -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
+        -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php5/fpm/php.ini
+      # ensure opcache module is activated
+      php5enmod opcache
+      # ensure mcrypt module is activated
+      php5enmod mcrypt
+  fi
+      # write checkinfo for php verification
+      if [[ $sitename -eq yes ]];then
+          echo '<?php phpinfo(); ?>' > /srv/www/${sitename}/public/checkinfo.php
+      else
+          echo '<?php phpinfo(); ?>' > /srv/www/${hostname1}/public/checkinfo.php
+      fi
+  echo "${OK}"
+  echo
+}
+
 # install nginx function (8)
 function _nginx() {
   apt-get -y install nginx >>"${OUTTO}" 2>&1;
@@ -487,60 +541,6 @@ function _varnish() {
     sed -i "s/6081/80/" /lib/systemd/system/varnish.service
     systemctl daemon-reload
   fi
-  echo "${OK}"
-  echo
-}
-
-# ask php version function (12)
-function _askphpversion() {
-  echo -e "1) php${green}7.0${normal}"
-  echo -e "2) php${green}5${normal}"
-  echo -ne "${yellow}What version of php do you want?${normal} (Default php${green}7.0${normal}): "; read version
-  case $version in
-    1 | "") PHPVERSION=7.0  ;;
-    2) PHPVERSION=5  ;;
-    *) PHPVERSION=7.0 ;;
-  esac
-  #echo "Using php$PHPVERSION"
-  echo
-}
-
-# install php function (11)
-function _php() {
-  echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-fpm w/ OPCode Cache ... "
-  if [[ $PHPVERSION=7.0 ]];then
-      apt-get -y install php7.0 php7.0-fpm php7.0-mbstring php7.0-zip php7.0-mysql php7.0-curl php7.0-gd php7.0-json php7.0-mcrypt php7.0-opcache php7.0-xml >>"${OUTTO}" 2>&1;
-      sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
-        -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
-        -e "s/expose_php = On/expose_php = Off/" \
-        -e "s/128M/512M/" \
-        -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
-        -e "s/;opcache.enable=0/opcache.enable=1/" \
-        -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
-        -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
-        -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php/7.0/fpm/php.ini
-  elif [[ $PHPVERSION=5 ]];then
-      apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
-      sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
-        -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
-        -e "s/expose_php = On/expose_php = Off/" \
-        -e "s/128M/512M/" \
-        -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
-        -e "s/;opcache.enable=0/opcache.enable=1/" \
-        -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
-        -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
-        -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php5/fpm/php.ini
-      # ensure opcache module is activated
-      php5enmod opcache
-      # ensure mcrypt module is activated
-      php5enmod mcrypt
-  fi
-      # write checkinfo for php verification
-      if [[ $sitename -eq yes ]];then
-          echo '<?php phpinfo(); ?>' > /srv/www/${sitename}/public/checkinfo.php
-      else
-          echo '<?php phpinfo(); ?>' > /srv/www/${hostname1}/public/checkinfo.php
-      fi
   echo "${OK}"
   echo
 }
