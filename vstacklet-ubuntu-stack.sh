@@ -456,11 +456,11 @@ function _php5() {
                -e "s/;opcache.enable=0/opcache.enable=1/" \
                -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
                -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
-               -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php5/fpm/php.ini
+               -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php/5.6/fpm/php.ini
     # ensure opcache module is activated
-    php5enmod opcache
+    phpenmod -v 5.6 opcache
     # ensure mcrypt module is activated
-    php5enmod mcrypt
+    phpenmod -v 5.6 mcrypt
     echo "${OK}"
     echo
 }
