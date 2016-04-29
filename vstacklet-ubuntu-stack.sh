@@ -454,12 +454,6 @@ function _php() {
       # ensure mcrypt module is activated
       php5enmod mcrypt
   fi
-      # write checkinfo for php verification
-      if [[ $sitename -eq yes ]];then
-          echo '<?php phpinfo(); ?>' > /srv/www/${sitename}/public/checkinfo.php
-      else
-          echo '<?php phpinfo(); ?>' > /srv/www/${hostname1}/public/checkinfo.php
-      fi
   echo "${OK}"
   echo
 }
@@ -509,6 +503,12 @@ function _nginx() {
           mkdir -p /srv/www/${hostname1}/ssl >/dev/null 2>&1;
           mkdir -p /srv/www/${hostname1}/public >/dev/null 2>&1;
       fi
+  fi
+  # write checkinfo for php verification
+  if [[ $sitename -eq yes ]];then
+      echo '<?php phpinfo(); ?>' > /srv/www/${sitename}/public/checkinfo.php
+  else
+      echo '<?php phpinfo(); ?>' > /srv/www/${hostname1}/public/checkinfo.php
   fi
   echo "${OK}"
   echo
