@@ -1078,7 +1078,7 @@ _updates;
 #_locale;
 echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon;
 echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${normal} ... ";_depends;
-echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys;
+echo -n "${bold}Installing signed keys for MariaDB, Nginx, PHP7 and Varnish${normal} ... ";_keys;
 echo -n "${bold}Adding trusted repositories${normal} ... ";_repos;
 echo -n "${bold}Applying Updates${normal} ... ";_updates;
 _asksitename;
@@ -1087,9 +1087,6 @@ if [[ ${sitename} == "yes" ]]; then
 elif [[ ${sitename} == "no" ]]; then
     _nositename;
 fi
-echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx;
-echo -n "${bold}Adjusting Permissions${normal} ... ";_perms;
-echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish;
 _askphpversion;_php;
 if [[ "$PHPVERSION" == "7.0" ]]; then
     _askmemcached;
@@ -1106,6 +1103,9 @@ if [[ "$PHPVERSION" == "5" ]]; then
         _noioncube;
     fi
 fi
+echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx;
+echo -n "${bold}Adjusting Permissions${normal} ... ";_perms;
+echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish;
 _askmariadb;
 if [[ ${mariadb} == "yes" ]]; then
     echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb;
