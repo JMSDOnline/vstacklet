@@ -413,11 +413,11 @@ function _nositename() {
 # ask php version function (12)
 function _askphpversion() {
   echo -e "1) php${green}7.0${normal}"
-  echo -e "2) php${green}5${normal}"
+  echo -e "2) php${green}5.6${normal}"
   echo -ne "${yellow}What version of php do you want?${normal} (Default php${green}7.0${normal}): "; read version
   case $version in
     1 | "") PHPVERSION=7.0  ;;
-    2) PHPVERSION=5  ;;
+    2) PHPVERSION=5.6  ;;
     *) PHPVERSION=7.0 ;;
   esac
   #echo "Using php$PHPVERSION"
@@ -445,7 +445,9 @@ function _php7() {
     echo
 }
 function _php5() {
-    apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
+    echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-fpm w/ OPCode Cache ... "
+    #apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php5-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
+    apt-get -y install libssl1.0.2 php-common php5.6 php5.6-cli php5.6-common php5.6-fpm php5.6-json php5.6-opcache php5.6-readline php5.6-mysql php5.6-curl php5.6-gd php5.6-dev php5.6-imap php5.6-mcrypt
     sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
                -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
                -e "s/expose_php = On/expose_php = Off/" \
@@ -1097,7 +1099,7 @@ _askphpversion;
 if [[ "$PHPVERSION" == "7.0" ]]; then
     _php7;
 fi
-if [[ "$PHPVERSION" == "5" ]]; then
+if [[ "$PHPVERSION" == "5.6" ]]; then
     _php5;
 fi
 if [[ "$PHPVERSION" == "7.0" ]]; then
@@ -1108,7 +1110,7 @@ if [[ "$PHPVERSION" == "7.0" ]]; then
         _nomemcached;
     fi
 fi
-if [[ "$PHPVERSION" == "5" ]]; then
+if [[ "$PHPVERSION" == "5.6" ]]; then
     _askioncube;
     if [[ ${ioncube} == "yes" ]]; then
         _ioncube; elif [[ ${ioncube} == "no" ]]; then
@@ -1124,7 +1126,7 @@ if [[ ${mariadb} == "yes" ]]; then
 elif [[ ${mariadb} == "no" ]]; then
     _nomariadb;
 fi
-if [[ "$PHPVERSION" == "5" ]]; then
+if [[ "$PHPVERSION" == "5.6" ]]; then
     _askphpmyadmin;
     if [[ ${phpmyadmin} == "yes" ]]; then
         _phpmyadmin;
