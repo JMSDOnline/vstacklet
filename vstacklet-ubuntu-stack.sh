@@ -418,7 +418,7 @@ function _askphpversion() {
   case $version in
     1 | "") PHPVERSION=7.0  ;;
     2) PHPVERSION=5  ;;
-    *) PHPVERSION=7.0 ;;
+    *) PHPVERSION=5 ;;
   esac
   #echo "Using php$PHPVERSION"
   echo
