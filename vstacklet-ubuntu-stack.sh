@@ -287,7 +287,7 @@ fi
     #  sed -i 's/Port 22/Port 2222/g' /etc/ssh/sshd_config
     #  service ssh restart >>"${OUTTO}" 2>&1
     #fi
-  echo "${OK}"
+  #echo "${OK}"
   clear
 }
 

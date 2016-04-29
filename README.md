@@ -104,7 +104,7 @@ chmod +x vstacklet.sh
 ./vstacklet.sh
 ```
 
-### For Development & Testing - use this
+### For Development & Testing - use the following:
 ```
 curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/dev-vstacklet.sh
 chmod +x dev-vstacklet.sh
