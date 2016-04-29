@@ -447,7 +447,7 @@ function _php7() {
 function _php5() {
     echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-fpm w/ OPCode Cache ... "
     #apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php5-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
-    apt-get -y install libssl1.0.2 php-common php5.6 php5.6-cli php5.6-common php5.6-fpm php5.6-json php5.6-opcache php5.6-readline php5.6-mysql php5.6-curl php5.6-gd php5.6-dev php5.6-imap php5.6-mcrypt
+    apt-get -y install libssl1.0.2 php-common php5.6 php5.6-cli php5.6-common php5.6-fpm php5.6-json php5.6-opcache php5.6-readline php5.6-mysql php5.6-curl php5.6-gd php5.6-dev php5.6-imap php5.6-mcrypt >>"${OUTTO}" 2>&1;
     sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
                -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
                -e "s/expose_php = On/expose_php = Off/" \
