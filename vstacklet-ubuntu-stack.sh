@@ -434,7 +434,7 @@ function _nginx() {
           mkdir -p /srv/www/${sitename}/logs >/dev/null 2>&1;
           mkdir -p /srv/www/${sitename}/ssl >/dev/null 2>&1;
           mkdir -p /srv/www/${sitename}/public >/dev/null 2>&1;
-      else
+      elif [[ $PHPVERSION=5 ]];then
           cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/${sitename}.conf
           # build applications web root directory if sitename is provided
           mkdir -p /srv/www/${sitename}/logs >/dev/null 2>&1;
@@ -448,7 +448,7 @@ function _nginx() {
           mkdir -p /srv/www/${hostname1}/logs >/dev/null 2>&1;
           mkdir -p /srv/www/${hostname1}/ssl >/dev/null 2>&1;
           mkdir -p /srv/www/${hostname1}/public >/dev/null 2>&1;
-      else
+      elif [[ $PHPVERSION=5 ]];then
           cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/${hostname1}.conf
           # build applications web root directory if no sitename is provided
           mkdir -p /srv/www/${hostname1}/logs >/dev/null 2>&1;
@@ -519,7 +519,7 @@ function _php() {
         -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
         -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
         -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php/7.0/fpm/php.ini
-  else
+  elif [[ $PHPVERSION=5 ]];then
       apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
       sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
         -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
