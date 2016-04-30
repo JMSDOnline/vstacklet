@@ -336,6 +336,10 @@ function _keys() {
 
 # package and repo addition (d) _add respo sources_
 function _repos() {
+  # now working with php 7 - so let's add it
+  #export DEBIAN_FRONTEND=noninteractive &&
+  LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php -y >>"${OUTTO}" 2>&1;
+
   cat >/etc/apt/sources.list.d/mariadb.list<<EOF
 deb [arch=amd64,i386] http://mirrors.syringanetworks.net/mariadb/repo/10.1/ubuntu $(lsb_release -sc) main
 deb-src http://mirrors.syringanetworks.net/mariadb/repo/10.1/ubuntu $(lsb_release -sc) main
@@ -409,11 +413,11 @@ function _nositename() {
 # ask php version function (12)
 function _askphpversion() {
   echo -e "1) php${green}7.0${normal}"
-  echo -e "2) php${green}5${normal}"
+  echo -e "2) php${green}5.6${normal}"
   echo -ne "${yellow}What version of php do you want?${normal} (Default php${green}7.0${normal}): "; read version
   case $version in
     1 | "") PHPVERSION=7.0  ;;
-    2) PHPVERSION=5  ;;
+    2) PHPVERSION=5.6  ;;
     *) PHPVERSION=7.0 ;;
   esac
   #echo "Using php$PHPVERSION"
@@ -422,10 +426,6 @@ function _askphpversion() {
 
 # install php function (11)
 function _php7() {
-    # now working with php 7 - so let's add it
-    #export DEBIAN_FRONTEND=noninteractive &&
-    LC_ALL=en_US.UTF-8 add-apt-repository ppa:ondrej/php -y >>"${OUTTO}" 2>&1;
-    apt-get -y update >>"${OUTTO}" 2>&1;
     echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-fpm w/ OPCode Cache ... "
     apt-get -y install php7.0 php7.0-fpm php7.0-mbstring php7.0-zip php7.0-mysql php7.0-curl php7.0-gd php7.0-json php7.0-mcrypt php7.0-opcache php7.0-xml >>"${OUTTO}" 2>&1;
     sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
@@ -447,7 +447,7 @@ function _php7() {
 function _php5() {
     echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-fpm w/ OPCode Cache ... "
     #apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php5-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
-    apt-get -y install libssl1.0.2 php-common php5 php5-cli php5-common php5-fpm php5-json php5-opcache php5-readline php5-mysql php5-curl php5-gd php5-dev php5-imap php5-mcrypt php5-mbstring php5-xml >>"${OUTTO}" 2>&1;
+    apt-get -y install libssl1.0.2 php-common php5.6 php5.6-cli php5.6-common php5.6-fpm php5.6-json php5.6-opcache php5.6-readline php5.6-mysql php5.6-curl php5.6-gd php5.6-dev php5.6-imap php5.6-mcrypt php5.6-mbstring php5.6-xml >>"${OUTTO}" 2>&1;
     sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
                -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
                -e "s/expose_php = On/expose_php = Off/" \
@@ -456,15 +456,15 @@ function _php5() {
                -e "s/;opcache.enable=0/opcache.enable=1/" \
                -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
                -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
-               -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php5/fpm/php.ini
+               -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php/5.6/fpm/php.ini
     # ensure opcache module is activated
-    php5enmod-opcache
+    phpenmod -v 5.6 opcache
     # ensure mcrypt module is activated
-    php5enmod-mcrypt
+    phpenmod -v 5.6 mcrypt
     # ensure mbstring module is activated
-    php5enmod-mbstring
+    phpenmod -v 5.6 mbstring
     # ensure xml module is activated
-    php5enmod-xml
+    phpenmod -v 5.6 xml
     echo "${OK}"
     echo
 }
@@ -605,12 +605,12 @@ function _ioncube() {
         cd ioncube >/dev/null 2>&1;
         if [[ ${rel} =~ ("15.04"|"15.10"|"16.04") ]]; then
             cp ioncube_loader_lin_5.6.so /usr/lib/php5/20131226/ >/dev/null 2>&1;
-            echo -e "zend_extension = /usr/lib/php5/20131226/ioncube_loader_lin_5.6.so" > /etc/php5/fpm/conf.d/20-ioncube.ini
-            echo "zend_extension = /usr/lib/php5/20131226/ioncube_loader_lin_5.6.so" >> /etc/php5/fpm/php.ini
+            echo -e "zend_extension = /usr/lib/php/20131226/ioncube_loader_lin_5.6.so" > /etc/php/5.6/fpm/conf.d/20-ioncube.ini
+            echo "zend_extension = /usr/lib/php/20131226/ioncube_loader_lin_5.6.so" >> /etc/php/5.6/fpm/php.ini
         elif [[ ${rel} =~ ("14.04") ]]; then
             cp ioncube_loader_lin_5.5.so /usr/lib/php5/20121212/ >/dev/null 2>&1;
-            echo -e "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" > /etc/php5/fpm/conf.d/20-ioncube.ini
-            echo "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" >> /etc/php5/fpm/php.ini
+            echo -e "zend_extension = /usr/lib/php/20121212/ioncube_loader_lin_5.5.so" > /etc/php/5.6/fpm/conf.d/20-ioncube.ini
+            echo "zend_extension = /usr/lib/php/20121212/ioncube_loader_lin_5.5.so" >> /etc/php/5.6/fpm/php.ini
         fi
         cd
         rm -rf tmp*
@@ -1118,7 +1118,7 @@ _askphpversion;
 if [[ "$PHPVERSION" == "7.0" ]]; then
     _php7;
 fi
-if [[ "$PHPVERSION" == "5" ]]; then
+if [[ "$PHPVERSION" == "5.6" ]]; then
     _php5;
 fi
 if [[ "$PHPVERSION" == "7.0" ]]; then
@@ -1129,7 +1129,7 @@ if [[ "$PHPVERSION" == "7.0" ]]; then
         _nomemcached;
     fi
 fi
-if [[ "$PHPVERSION" == "5" ]]; then
+if [[ "$PHPVERSION" == "5.6" ]]; then
     _askioncube;
     if [[ ${ioncube} == "yes" ]]; then
         _ioncube; elif [[ ${ioncube} == "no" ]]; then
@@ -1145,7 +1145,7 @@ if [[ ${mariadb} == "yes" ]]; then
 elif [[ ${mariadb} == "no" ]]; then
     _nomariadb;
 fi
-if [[ "$PHPVERSION" == "5" ]]; then
+if [[ "$PHPVERSION" == "5.6" ]]; then
     _askphpmyadmin;
     if [[ ${phpmyadmin} == "yes" ]]; then
         _phpmyadmin;
