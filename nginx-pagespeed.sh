@@ -124,7 +124,6 @@ echo "${OK}"
 
 function _bupdate() {
 	apt-get -y update >>"${OUTTO}" 2>&1;
-    apt-get -y install nginx >>"${OUTTO}" 2>&1;
     echo "${OK}"
     #echo
 }
@@ -151,7 +150,8 @@ function _buildpagespeed() {
 	bash bush.sh > /dev/null 2>&1;
 	tar -xzf *.tar.gz >>"${OUTTO}" 2>&1;
 
-    if [[ "${NGINX}" = "nginx/1.10.0" ]]; then
+    cd /root/new/nginx_source/nginx-*/
+    if [[ "${NGVS}" = "nginx-1.10.*" ]]; then
         cd ~/new/
         mv ~/new/ngx_pagespeed ~/new/nginx_source/nginx-*/debian/modules/
     fi
@@ -165,21 +165,23 @@ function _buildpagespeed() {
         cd
     fi
     if [[ "${rel}" =~ ("15.04"|"15.10") ]]; then
-        curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
-    	curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
+        curl -s -Lo ~/new/nginx_source/nginx-*/debian/changelog https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
+    	curl -s -Lo ~/new/nginx_source/nginx-*/debian/rules https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
         cd ~/new/nginx_source/nginx-*/src/core
         sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
         cd
     fi
     if [[ "${rel}" = "16.04" ]]; then
-        if [[ "${NGINX}" = "nginx/1.9.15" ]]; then
-            curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
-            curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
+        cd /root/new/nginx_source/nginx-*/
+        if [[ "${NGVS}" = "nginx-1.9.15" ]]; then
+            curl -s -Lo ~/new/nginx_source/nginx-*/debian/changelog https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
+            curl -s -Lo ~/new/nginx_source/nginx-*/debian/rules https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
             cd ~/new/nginx_source/nginx-*/src/core
             sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
             cd
-        elif [[ "${NGINX}" = "nginx/1.10.0" ]]; then
-    	    curl -s -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/rules
+        fi
+        if [[ "${NGVS}" = "nginx-1.10.*" ]]; then
+    	    curl -s -Lo ~/new/nginx_source/nginx-*/debian/rules https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/xenial/rules
             cd ~/new/nginx_source/nginx-*/src/core
             sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
             cd
@@ -192,10 +194,12 @@ function _buildpagespeed() {
 function _compnginx() {
 	cd ~/new/nginx_source/nginx-*/
 	dpkg-buildpackage -b >>"${OUTTO}" 2>&1;
-	cd ~/new/nginx_source/
-    if [[ "${NGINX}" = "nginx/1.9.15" ]]; then
+	cd ~/new/nginx_source/nginx-*/
+    if [[ "${NGVS}" = "nginx-1.9.15" ]]; then
+        cd ~/new/nginx_source/
 	    dpkg -i nginx_*amd64.deb >>"${OUTTO}" 2>&1;
-    elif [[ "${NGINX}" = "nginx/1.10.0" ]]; then
+    elif [[ "${NGVS}" = "nginx-1.10.0" ]]; then
+        cd ~/new/nginx_source/
         dpkg -i nginx_*all.deb >>"${OUTTO}" 2>&1;
     fi
     echo "${OK}"
@@ -263,7 +267,6 @@ clear
 
 S=$(date +%s)
 OK=$(echo -e "[ ${bold}${green}DONE${normal} ]")
-NGINX=$(nginx -v)
 
 _intro
 _checkroot
@@ -274,10 +277,11 @@ echo -n "${bold}Installing Software Packages and Dependencies${normal} ... ";_de
 echo -n "${bold}Installing Required Signed Keys${normal} ... ";_keys
 echo -n "${bold}Sending Repo to ${yellow}sources.list.d/nginx-vstacklet.list${normal} ... ";_repos
 echo -n "${bold}Running System Updates against New Repos${normal} ... ";_bupdate
+NGVS=$(printf '%q\n' "${PWD##*/}");
 echo -n "${bold}Setting Up and Building Nginx${normal} ... ";_buildnginx
 echo -n "${bold}Setting Up and Building Pagespeed${normal} ... ";_buildpagespeed
 echo -n "${bold}Compiling Nginx-full-vstacklet with Pagespeed${normal} ... ";_compnginx
-_asksetpsng
+_asksetpsng;echo;
 echo -n "${bold}Creating Pagespeed Cache Directory ${yellow}[see /etc/nginx/nginx.conf]${normal} ... ";_setpsng
 echo -n "${bold}Creating Pagespeed Cache Directory and Enabling${normal} ... ";_nosetpsng
 echo -n "${bold}Restarting Nginx${normal} ... ";_restartservice

@@ -287,7 +287,7 @@ fi
     #  sed -i 's/Port 22/Port 2222/g' /etc/ssh/sshd_config
     #  service ssh restart >>"${OUTTO}" 2>&1
     #fi
-  echo "${OK}"
+  #echo "${OK}"
   clear
 }
 
@@ -410,6 +410,61 @@ function _nositename() {
   fi
 }
 
+# ask php version function (12)
+function _askphpversion() {
+  echo -e "1) php${green}7.0${normal}"
+  echo -e "2) php${green}5.6${normal}"
+  echo -ne "${yellow}What version of php do you want?${normal} (Default php${green}7.0${normal}): "; read version
+  case $version in
+    1 | "") PHPVERSION=7.0  ;;
+    2) PHPVERSION=5.6  ;;
+    *) PHPVERSION=7.0 ;;
+  esac
+  #echo "Using php$PHPVERSION"
+  echo
+}
+
+# install php function (11)
+function _php7() {
+    echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-fpm w/ OPCode Cache ... "
+    apt-get -y install php7.0 php7.0-fpm php7.0-mbstring php7.0-zip php7.0-mysql php7.0-curl php7.0-gd php7.0-json php7.0-mcrypt php7.0-opcache php7.0-xml >>"${OUTTO}" 2>&1;
+    sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
+               -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
+               -e "s/expose_php = On/expose_php = Off/" \
+               -e "s/128M/512M/" \
+               -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
+               -e "s/;opcache.enable=0/opcache.enable=1/" \
+               -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
+               -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
+               -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php/7.0/fpm/php.ini
+    # ensure opcache module is activated
+    phpenmod -v 7.0 opcache
+    # ensure mcrypt module is activated
+    phpenmod -v 7.0 mcrypt
+    echo "${OK}"
+    echo
+}
+function _php5() {
+    echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-fpm w/ OPCode Cache ... "
+    #apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php5-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
+    apt-get -y install libssl1.0.2 php-common php5.6 php5.6-cli php5.6-common php5.6-fpm php5.6-json php5.6-opcache php5.6-readline php5.6-mysql php5.6-curl php5.6-gd php5.6-dev php5.6-imap php5.6-mcrypt >>"${OUTTO}" 2>&1;
+    sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
+               -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
+               -e "s/expose_php = On/expose_php = Off/" \
+               -e "s/128M/512M/" \
+               -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
+               -e "s/;opcache.enable=0/opcache.enable=1/" \
+               -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
+               -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
+               -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php/5.6/fpm/php.ini
+    # ensure opcache module is activated
+    phpenmod -v 5.6 opcache
+    # ensure mcrypt module is activated
+    phpenmod -v 5.6 mcrypt
+    echo "${OK}"
+    echo
+}
+
 # install nginx function (8)
 function _nginx() {
   apt-get -y install nginx >>"${OUTTO}" 2>&1;
@@ -428,7 +483,7 @@ function _nginx() {
   sh -c 'find /etc/nginx/cache -type d -print0 | sudo xargs -0 chmod g+s'
   # rename default.conf template
   if [[ $sitename -eq yes ]];then
-      if [[ $PHPVERSION=7.0 ]];then
+      if [[ "$PHPVERSION" = "7.0" ]];then
           cp /etc/nginx/conf.d/default.php7.conf.save /etc/nginx/conf.d/${sitename}.conf
           # build applications web root directory if sitename is provided
           mkdir -p /srv/www/${sitename}/logs >/dev/null 2>&1;
@@ -442,7 +497,7 @@ function _nginx() {
           mkdir -p /srv/www/${sitename}/public >/dev/null 2>&1;
       fi
   else
-      if [[ $PHPVERSION=7.0 ]];then
+      if [[ "$PHPVERSION" = "7.0" ]];then
           cp /etc/nginx/conf.d/default.php7.conf.save /etc/nginx/conf.d/${hostname1}.conf
           # build applications web root directory if no sitename is provided
           mkdir -p /srv/www/${hostname1}/logs >/dev/null 2>&1;
@@ -455,6 +510,12 @@ function _nginx() {
           mkdir -p /srv/www/${hostname1}/ssl >/dev/null 2>&1;
           mkdir -p /srv/www/${hostname1}/public >/dev/null 2>&1;
       fi
+  fi
+  # write checkinfo for php verification
+  if [[ $sitename -eq yes ]];then
+      echo '<?php phpinfo(); ?>' > /srv/www/${sitename}/public/checkinfo.php
+  else
+      echo '<?php phpinfo(); ?>' > /srv/www/${hostname1}/public/checkinfo.php
   fi
   echo "${OK}"
   echo
@@ -487,60 +548,6 @@ function _varnish() {
     sed -i "s/6081/80/" /lib/systemd/system/varnish.service
     systemctl daemon-reload
   fi
-  echo "${OK}"
-  echo
-}
-
-# ask php version function (12)
-function _askphpversion() {
-  echo -e "1) php${green}7.0${normal}"
-  echo -e "2) php${green}5${normal}"
-  echo -ne "${yellow}What version of php do you want?${normal} (Default php${green}7.0${normal}): "; read version
-  case $version in
-    1 | "") PHPVERSION=7.0  ;;
-    2) PHPVERSION=5  ;;
-    *) PHPVERSION=7.0 ;;
-  esac
-  #echo "Using php$PHPVERSION"
-  echo
-}
-
-# install php function (11)
-function _php() {
-  echo -ne "Installing and Adjusting php${green}$PHPVERSION${normal}-fpm w/ OPCode Cache ... "
-  if [[ $PHPVERSION=7.0 ]];then
-      apt-get -y install php7.0 php7.0-fpm php7.0-mbstring php7.0-zip php7.0-mysql php7.0-curl php7.0-gd php7.0-json php7.0-mcrypt php7.0-opcache php7.0-xml >>"${OUTTO}" 2>&1;
-      sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
-        -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
-        -e "s/expose_php = On/expose_php = Off/" \
-        -e "s/128M/512M/" \
-        -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
-        -e "s/;opcache.enable=0/opcache.enable=1/" \
-        -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
-        -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
-        -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php/7.0/fpm/php.ini
-  else
-      apt-get -y install php5-common php5-mysqlnd php5-curl php5-gd php5-cli php5-fpm php-pear php5-dev php5-imap php5-mcrypt >>"${OUTTO}" 2>&1;
-      sed -i.bak -e "s/post_max_size = 8M/post_max_size = 64M/" \
-        -e "s/upload_max_filesize = 2M/upload_max_filesize = 92M/" \
-        -e "s/expose_php = On/expose_php = Off/" \
-        -e "s/128M/512M/" \
-        -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" \
-        -e "s/;opcache.enable=0/opcache.enable=1/" \
-        -e "s/;opcache.memory_consumption=64/opcache.memory_consumption=128/" \
-        -e "s/;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=4000/" \
-        -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=240/" /etc/php5/fpm/php.ini
-      # ensure opcache module is activated
-      php5enmod opcache
-      # ensure mcrypt module is activated
-      php5enmod mcrypt
-  fi
-      # write checkinfo for php verification
-      if [[ $sitename -eq yes ]];then
-          echo '<?php phpinfo(); ?>' > /srv/www/${sitename}/public/checkinfo.php
-      else
-          echo '<?php phpinfo(); ?>' > /srv/www/${hostname1}/public/checkinfo.php
-      fi
   echo "${OK}"
   echo
 }
@@ -594,12 +601,12 @@ function _ioncube() {
         cd ioncube >/dev/null 2>&1;
         if [[ ${rel} =~ ("15.04"|"15.10"|"16.04") ]]; then
             cp ioncube_loader_lin_5.6.so /usr/lib/php5/20131226/ >/dev/null 2>&1;
-            echo -e "zend_extension = /usr/lib/php5/20131226/ioncube_loader_lin_5.6.so" > /etc/php5/fpm/conf.d/20-ioncube.ini
-            echo "zend_extension = /usr/lib/php5/20131226/ioncube_loader_lin_5.6.so" >> /etc/php5/fpm/php.ini
+            echo -e "zend_extension = /usr/lib/php5/20131226/ioncube_loader_lin_5.6.so" > /etc/php/5.6/fpm/conf.d/20-ioncube.ini
+            echo "zend_extension = /usr/lib/php5/20131226/ioncube_loader_lin_5.6.so" >> /etc/php/5.6/fpm/php.ini
         elif [[ ${rel} =~ ("14.04") ]]; then
             cp ioncube_loader_lin_5.5.so /usr/lib/php5/20121212/ >/dev/null 2>&1;
-            echo -e "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" > /etc/php5/fpm/conf.d/20-ioncube.ini
-            echo "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" >> /etc/php5/fpm/php.ini
+            echo -e "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" > /etc/php/5.6/fpm/conf.d/20-ioncube.ini
+            echo "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" >> /etc/php/5.6/fpm/php.ini
         fi
         cd
         rm -rf tmp*
@@ -974,14 +981,18 @@ function _cert() {
         # Using Lets Encrypt for SSL deployment is currently being developed on VStacklet
         #git clone https://github.com/letsencrypt/letsencrypt /opt/letsencrypt
 
-      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/${sitename}.key -out /etc/ssl/certs/${sitename}.crt
+      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /srv/www/${sitename}/ssl/${sitename}.key -out /srv/www/${sitename}/ssl/${sitename}.crt
       chmod 400 /etc/ssl/private/${sitename}.key
       sed -i -e "s/# listen [::]:443 ssl http2;/listen [::]:443 ssl http2;/" \
              -e "s/# listen *:443 ssl http2;/listen *:443 ssl http2;/" \
              -e "s/# include vstacklet\/directive-only\/ssl.conf;/include vstacklet\/directive-only\/ssl.conf;/" \
              -e "s/# ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/" \
              -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" /etc/nginx/conf.d/${sitename}.conf
-      sed -i "s/sitename/${sitename}/" /etc/nginx/conf.d/${sitename}.conf
+        sed -i "s/sitename/${sitename}/" /etc/nginx/conf.d/${sitename}.conf
+        #sed -i "s/sitename.crt/${sitename}_access/" /etc/nginx/conf.d/${sitename}.conf
+        #sed -i "s/sitename.key/${sitename}_error/" /etc/nginx/conf.d/${sitename}.conf
+        #sed -i "s/sitename.crt/${sitename}.crt/" /etc/nginx/conf.d/${sitename}.conf
+        #sed -i "s/sitename.key/${sitename}.key/" /etc/nginx/conf.d/${sitename}.con
     else
       openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /srv/www/${hostname1}/ssl/${hostname1}.key -out /srv/www/${hostname1}/ssl/${hostname1}.crt
       chmod 400 /etc/ssl/private/${hostname1}.key
@@ -990,7 +1001,11 @@ function _cert() {
              -e "s/# include vstacklet\/directive-only\/ssl.conf;/include vstacklet\/directive-only\/ssl.conf;/" \
              -e "s/# ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/ssl_certificate \/srv\/www\/sitename\/ssl\/sitename.crt;/" \
              -e "s/# ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/ssl_certificate_key \/srv\/www\/sitename\/ssl\/sitename.key;/" /etc/nginx/conf.d/${hostname1}.conf
-      sed -i "s/sitename/${hostname1}/" /etc/nginx/conf.d/${hostname1}.conf
+        sed -i "s/sitename/${hostname1}/" /etc/nginx/conf.d/${hostname1}.conf
+        #sed -i "s/sitename_access/${hostname1}_access/" /etc/nginx/conf.d/${hostname1}.conf
+        #sed -i "s/sitename_error/${hostname1}_error/" /etc/nginx/conf.d/${hostname1}.conf
+        #sed -i "s/sitename.crt/${hostname1}.crt/" /etc/nginx/conf.d/${hostname1}.conf
+        #sed -i "s/sitename.key/${hostname1}.key/" /etc/nginx/conf.d/${hostname1}.conf
     fi
     echo "${OK}"
     echo
@@ -1001,8 +1016,16 @@ function _nocert() {
   if [[ ${cert} == "no" ]]; then
     if [[ $sitename -eq yes ]];then
       sed -i "s/sitename/${sitename}/" /etc/nginx/conf.d/${sitename}.conf
+      #sed -i "s/sitename.crt/${sitename}_access/" /etc/nginx/conf.d/${sitename}.conf
+      #sed -i "s/sitename.key/${sitename}_error/" /etc/nginx/conf.d/${sitename}.conf
+      #sed -i "s/sitename.crt/${sitename}.crt/" /etc/nginx/conf.d/${sitename}.conf
+      #sed -i "s/sitename.key/${sitename}.key/" /etc/nginx/conf.d/${sitename}.conf
     else
       sed -i "s/sitename/${hostname1}/" /etc/nginx/conf.d/${hostname1}.conf
+      #sed -i "s/sitename.crt/${hostname1}_access/" /etc/nginx/conf.d/${hostname1}.conf
+      #sed -i "s/sitename.key/${hostname1}_error/" /etc/nginx/conf.d/${hostname1}.conf
+      #sed -i "s/sitename.crt/${hostname1}.crt/" /etc/nginx/conf.d/${hostname1}.conf
+      #sed -i "s/sitename.key/${hostname1}.key/" /etc/nginx/conf.d/${hostname1}.conf
     fi
     echo "${cyan}Skipping SSL Certificate Creation...${normal}"
     echo
@@ -1078,7 +1101,7 @@ _updates;
 #_locale;
 echo -n "${bold}Installing Common Software Properties${normal} ... ";_softcommon;
 echo -n "${bold}Installing: nano, unzip, dos2unix, htop, iotop, libwww-perl${normal} ... ";_depends;
-echo -n "${bold}Installing signed keys for MariaDB, Nginx, and Varnish${normal} ... ";_keys;
+echo -n "${bold}Installing signed keys for MariaDB, Nginx, PHP7 and Varnish${normal} ... ";_keys;
 echo -n "${bold}Adding trusted repositories${normal} ... ";_repos;
 echo -n "${bold}Applying Updates${normal} ... ";_updates;
 _asksitename;
@@ -1087,10 +1110,13 @@ if [[ ${sitename} == "yes" ]]; then
 elif [[ ${sitename} == "no" ]]; then
     _nositename;
 fi
-echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx;
-echo -n "${bold}Adjusting Permissions${normal} ... ";_perms;
-echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish;
-_askphpversion;_php;
+_askphpversion;
+if [[ "$PHPVERSION" == "7.0" ]]; then
+    _php7;
+fi
+if [[ "$PHPVERSION" == "5.6" ]]; then
+    _php5;
+fi
 if [[ "$PHPVERSION" == "7.0" ]]; then
     _askmemcached;
     if [[ ${memcached} == "yes" ]]; then
@@ -1099,20 +1125,23 @@ if [[ "$PHPVERSION" == "7.0" ]]; then
         _nomemcached;
     fi
 fi
-if [[ "$PHPVERSION" == "5" ]]; then
+if [[ "$PHPVERSION" == "5.6" ]]; then
     _askioncube;
     if [[ ${ioncube} == "yes" ]]; then
         _ioncube; elif [[ ${ioncube} == "no" ]]; then
         _noioncube;
     fi
 fi
+echo -n "${bold}Installing and Configuring Nginx${normal} ... ";_nginx;
+echo -n "${bold}Adjusting Permissions${normal} ... ";_perms;
+echo -n "${bold}Installing and Configuring Varnish${normal} ... ";_varnish;
 _askmariadb;
 if [[ ${mariadb} == "yes" ]]; then
     echo -n "${bold}Installing MariaDB Drop-in Replacement${normal} ... ";_mariadb;
 elif [[ ${mariadb} == "no" ]]; then
     _nomariadb;
 fi
-if [[ "$PHPVERSION" == "5" ]]; then
+if [[ "$PHPVERSION" == "5.6" ]]; then
     _askphpmyadmin;
     if [[ ${phpmyadmin} == "yes" ]]; then
         _phpmyadmin;
