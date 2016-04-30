@@ -7,7 +7,7 @@ VStacklet - A Buff LEMP Stack Kit
 
 #### Script status
 
-[![Version 3.0.1-production](https://img.shields.io/badge/version-3.0.1-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Version 3.0.2-production](https://img.shields.io/badge/version-3.0.2-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 [![Ubuntu 16.04 Passing](https://img.shields.io/badge/Ubuntu%2016.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![Ubuntu 15.10 Passing](https://img.shields.io/badge/Ubuntu%2015.10-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
@@ -18,7 +18,7 @@ VStacklet - A Buff LEMP Stack Kit
 
 Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04, 15.10 and 16.04 servers.
 
-Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.1 (drop-in replacement for MySQL), PHP5 or PHP7 (users choice **new**), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
+Components include a recent mainline version of Nginx (1.10.0 (Xenial)) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.1 (drop-in replacement for MySQL), PHP5 or PHP7 (users choice **new**), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
 
 Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
@@ -48,17 +48,18 @@ Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode
 
 __VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments.
   *
-  * Adds repositories for the latest stable versions of MariaDB, mainline (1.9.x) versions of Nginx, and Varnish 4.
+  * Adds repositories for the latest stable versions of MariaDB, mainline (1.10.x) versions of Nginx, and Varnish 4.x.
   * Installs and configures Nginx, Varnish and MariaDB.
-  * Installs PHP-FPM for PHP5.
-  * Enables OPCode Cache and fine-tuning
-  * Installs and Enables IonCube Loader
+  * Installs PHP-FPM for PHP5 _or_ PHP7.
+  * Enables OPCode Cache and fine-tuning [_optional_]
+  * Installs & Enables Memcached Cache and fine-tuning [_optional_]
+  * Installs and Enables IonCube Loader [_optional_]
   * Installs and Auto-Configures phpMyAdmin - MySQL & phpMyAdmin credentials are stored in /root/.my.cnf
-  * MariaDB 10.1 can easily switched to 5.5 or substituted for PostgreSQL.
+  * MariaDB 10.1 can easily switched to 5.5+ or substituted for PostgreSQL.
   * Installs and Adjusts CSF (Config Server Firewall) - prepares ports used for VStacklet as well as informing your entered email for security alerts.
   * Installs and Enables (PHP) Sendmail
   * Supports IPv6 by default.
-  * Optional self-signed SSL cert configuration.
+  * Optional self-signed SSL cert configuration. [*wip*]
   * Easy to configure & run backup executable __vs-backup__ for data-protection.
 
 __VS-Backup__ - Installs scripts to help manage and automate server/site backups
@@ -134,6 +135,7 @@ chmod +x vstacklet-backup-standalone.sh
 
 ### The TO-DO List
 - [x] Enable OPCode Caching
+- [x] Enable Memcached Caching
 - [x] Sendmail
 - [x] IonCube Loader (w/ option prompt)
 - [x] Improve script structure
@@ -144,6 +146,7 @@ chmod +x vstacklet-backup-standalone.sh
 - [ ] VStacklet-lite
 - [x] Full support for Ubuntu 14.04, 15.04, 15.10 and 16.04
 - [x] Nginx + Page Speed building
+- [ ] Build SSL with LetsEncrypt
 
 
 ### Additional Notes and honorable mentions
