@@ -7,7 +7,7 @@ VStacklet - A Buff LEMP Stack Kit
 
 #### Script status
 
-[![Version 3.0.1-production](https://img.shields.io/badge/version-3.0.1-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Version 3.0.2-production](https://img.shields.io/badge/version-3.0.2-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 [![Ubuntu 16.04 Passing](https://img.shields.io/badge/Ubuntu%2016.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![Ubuntu 15.10 Passing](https://img.shields.io/badge/Ubuntu%2015.10-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
@@ -18,7 +18,7 @@ VStacklet - A Buff LEMP Stack Kit
 
 Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04, 15.10 and 16.04 servers.
 
-Components include a recent mainline version of Nginx (1.9.9) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.1 (drop-in replacement for MySQL), PHP5 or PHP7 (users choice **new**), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
+Components include a recent mainline version of Nginx (1.10.0 (Xenial)) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.1 (drop-in replacement for MySQL), PHP5 or PHP7 (users choice **new**), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
 
 Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
