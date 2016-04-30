@@ -48,17 +48,18 @@ Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode
 
 __VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments.
   *
-  * Adds repositories for the latest stable versions of MariaDB, mainline (1.9.x) versions of Nginx, and Varnish 4.
+  * Adds repositories for the latest stable versions of MariaDB, mainline (1.10.x) versions of Nginx, and Varnish 4.x.
   * Installs and configures Nginx, Varnish and MariaDB.
-  * Installs PHP-FPM for PHP5.
-  * Enables OPCode Cache and fine-tuning
-  * Installs and Enables IonCube Loader
+  * Installs PHP-FPM for PHP5 _or_ PHP7.
+  * Enables OPCode Cache and fine-tuning [_optional_]
+  * Installs & Enables Memcached Cache and fine-tuning [_optional_]
+  * Installs and Enables IonCube Loader [_optional_]
   * Installs and Auto-Configures phpMyAdmin - MySQL & phpMyAdmin credentials are stored in /root/.my.cnf
-  * MariaDB 10.1 can easily switched to 5.5 or substituted for PostgreSQL.
+  * MariaDB 10.1 can easily switched to 5.5+ or substituted for PostgreSQL.
   * Installs and Adjusts CSF (Config Server Firewall) - prepares ports used for VStacklet as well as informing your entered email for security alerts.
   * Installs and Enables (PHP) Sendmail
   * Supports IPv6 by default.
-  * Optional self-signed SSL cert configuration.
+  * Optional self-signed SSL cert configuration. [*wip*]
   * Easy to configure & run backup executable __vs-backup__ for data-protection.
 
 __VS-Backup__ - Installs scripts to help manage and automate server/site backups
@@ -134,6 +135,7 @@ chmod +x vstacklet-backup-standalone.sh
 
 ### The TO-DO List
 - [x] Enable OPCode Caching
+- [x] Enable Memcached Caching
 - [x] Sendmail
 - [x] IonCube Loader (w/ option prompt)
 - [x] Improve script structure
@@ -144,6 +146,7 @@ chmod +x vstacklet-backup-standalone.sh
 - [ ] VStacklet-lite
 - [x] Full support for Ubuntu 14.04, 15.04, 15.10 and 16.04
 - [x] Nginx + Page Speed building
+- [ ] Build SSL with LetsEncrypt
 
 
 ### Additional Notes and honorable mentions
