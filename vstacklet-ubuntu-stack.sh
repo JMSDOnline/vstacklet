@@ -601,12 +601,12 @@ function _ioncube() {
         cd ioncube >/dev/null 2>&1;
         if [[ ${rel} =~ ("15.04"|"15.10"|"16.04") ]]; then
             cp ioncube_loader_lin_5.6.so /usr/lib/php5/20131226/ >/dev/null 2>&1;
-            echo -e "zend_extension = /usr/lib/php5/20131226/ioncube_loader_lin_5.6.so" > /etc/php/5.6/fpm/conf.d/20-ioncube.ini
-            echo "zend_extension = /usr/lib/php5/20131226/ioncube_loader_lin_5.6.so" >> /etc/php/5.6/fpm/php.ini
+            echo -e "zend_extension = /usr/lib/php/20131226/ioncube_loader_lin_5.6.so" > /etc/php/5.6/fpm/conf.d/20-ioncube.ini
+            echo "zend_extension = /usr/lib/php/20131226/ioncube_loader_lin_5.6.so" >> /etc/php/5.6/fpm/php.ini
         elif [[ ${rel} =~ ("14.04") ]]; then
             cp ioncube_loader_lin_5.5.so /usr/lib/php5/20121212/ >/dev/null 2>&1;
-            echo -e "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" > /etc/php/5.6/fpm/conf.d/20-ioncube.ini
-            echo "zend_extension = /usr/lib/php5/20121212/ioncube_loader_lin_5.5.so" >> /etc/php/5.6/fpm/php.ini
+            echo -e "zend_extension = /usr/lib/php/20121212/ioncube_loader_lin_5.5.so" > /etc/php/5.6/fpm/conf.d/20-ioncube.ini
+            echo "zend_extension = /usr/lib/php/20121212/ioncube_loader_lin_5.5.so" >> /etc/php/5.6/fpm/php.ini
         fi
         cd
         rm -rf tmp*
