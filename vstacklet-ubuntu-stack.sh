@@ -501,8 +501,8 @@ function _nginx() {
           mkdir -p /srv/www/${sitename}/public >/dev/null 2>&1;
       fi
   else
-      if [[ "$PHPVERSION" = "7.0" ]];then
-          cp /etc/nginx/conf.d/default.php7.conf.save /etc/nginx/conf.d/${hostname1}.conf
+      if [[ "$PHPVERSION" = "5.6" ]];then
+          cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/${hostname1}.conf
           # build applications web root directory if no sitename is provided
           mkdir -p /srv/www/${hostname1}/logs >/dev/null 2>&1;
           mkdir -p /srv/www/${hostname1}/ssl >/dev/null 2>&1;
