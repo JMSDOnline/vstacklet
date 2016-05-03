@@ -328,6 +328,8 @@ function _depends() {
 # package and repo addition (c) _add signed keys_
 function _keys() {
   apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8 >>"${OUTTO}" 2>&1;
+  apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db >>"${OUTTO}" 2>&1;
+
   curl -s https://repo.varnish-cache.org/GPG-key.txt | apt-key add - > /dev/null 2>&1;
   curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - > /dev/null 2>&1;
   echo "${OK}"
