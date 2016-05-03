@@ -501,8 +501,8 @@ function _nginx() {
           mkdir -p /srv/www/${sitename}/public >/dev/null 2>&1;
       fi
   else
-      if [[ "$PHPVERSION" = "7.0" ]];then
-          cp /etc/nginx/conf.d/default.php7.conf.save /etc/nginx/conf.d/${hostname1}.conf
+      if [[ "$PHPVERSION" = "5.6" ]];then
+          cp /etc/nginx/conf.d/default.conf.save /etc/nginx/conf.d/${hostname1}.conf
           # build applications web root directory if no sitename is provided
           mkdir -p /srv/www/${hostname1}/logs >/dev/null 2>&1;
           mkdir -p /srv/www/${hostname1}/ssl >/dev/null 2>&1;
@@ -570,7 +570,7 @@ function _memcached() {
     if [[ ${memcached} == "yes" ]]; then
         echo -n "Installing Memcached for PHP 7 ... "
         apt-get install -y php7.0-dev git pkg-config build-essential libmemcached-dev >/dev/null 2>&1;
-        apt-get install -y php-memcached >/dev/null 2>&1;
+        apt-get install -y php-memcached memcached >/dev/null 2>&1;
         sudo ln -s /etc/php/mods-available/memcached.ini /etc/php/7.0/fpm/conf.d/20-memcached.ini
         sudo ln -s /etc/php/mods-available/memcached.ini /etc/php/7.0/cli/conf.d/20-memcached.ini
     fi
