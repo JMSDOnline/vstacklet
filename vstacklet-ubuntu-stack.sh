@@ -570,7 +570,7 @@ function _memcached() {
     if [[ ${memcached} == "yes" ]]; then
         echo -n "Installing Memcached for PHP 7 ... "
         apt-get install -y php7.0-dev git pkg-config build-essential libmemcached-dev >/dev/null 2>&1;
-        apt-get install -y php-memcached >/dev/null 2>&1;
+        apt-get install -y php-memcached memcached >/dev/null 2>&1;
         sudo ln -s /etc/php/mods-available/memcached.ini /etc/php/7.0/fpm/conf.d/20-memcached.ini
         sudo ln -s /etc/php/mods-available/memcached.ini /etc/php/7.0/cli/conf.d/20-memcached.ini
     fi
