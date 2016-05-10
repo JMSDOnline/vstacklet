@@ -16,6 +16,9 @@ VStacklet - A Buff LEMP Stack Kit
 
 --------
 
+> ### HEADS UP!
+I will be deprecating the support in VStacklet for Ubuntu 14.04. This is due to 16.04 LTS now becoming more common place with at least 90% of the providers on the market. Additionally, SSL creation and install in the script has been disabled until I have LetsEncrypt fully integrated.
+
 Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04, 15.10 and 16.04 servers.
 
 Components include a recent mainline version of Nginx (1.10.0 (Xenial)) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.1 (drop-in replacement for MySQL), PHP5 or PHP7 (users choice **new**), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))

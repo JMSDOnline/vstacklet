@@ -1,0 +1,84 @@
+server {
+    listen *:8080;
+    listen [::]:8080;
+    # listen [::]:443 ssl http2;
+    # listen *:443 ssl http2;
+    server_name sitename;
+
+    access_log /srv/www/sitename/logs/sitename_access.log;
+    error_log /srv/www/sitename/logs/sitename_error.log;
+
+    # include vstacklet/directive-only/ssl.conf;
+    # ssl_certificate /srv/www/sitename/ssl/sitename.crt;
+    # ssl_certificate_key /srv/www/sitename/ssl/sitename.key;
+    root /srv/www/sitename/public;
+    index index.html index.htm index.php;
+
+
+    # These options are for nginx caching.
+    # Update the uri paths to match your needs.
+    # Typically you would want to add
+    # /wp-admin/ - Wordpress
+    # /administrator/ - Joomla! etc...
+    set $no_cache 0;
+    if ($query_string) {
+      set $no_cache 1;
+    }
+    if ($http_x_custom_header) {
+      set $no_cache 0;
+    }
+    if ($uri ~ "/your-admin-login/") {
+      set $no_cache 1;
+    }
+    if ($http_cookie ~ "users_login_cookie") {
+      set $no_cache 1;
+    }
+
+    location ~ [^/]\.php(/|$) {
+        try_files $uri =404;
+
+        # These options are for nginx caching.
+        # All cached files are stored in /etc/nginx/cache.
+        # Uncomment if caching with Nginx is your jam!
+        #fastcgi_cache phpcache;
+        #fastcgi_cache_methods GET HEAD;
+        #add_header X-Fastcgi-Cache $upstream_cache_status;
+        #fastcgi_cache_bypass $no_cache;
+        #fastcgi_no_cache $no_cache;
+        #fastcgi_cache_valid 200 302 60m;
+        #fastcgi_cache_valid  404 5m;
+        #proxy_read_timeout 300;
+
+        # These are typical nginx settings.
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_index index.php;
+        include fcgi.conf;
+        fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_read_timeout 300;
+        fastcgi_ignore_headers X-Accel-Expires Expires Cache-Control;
+    }
+
+    # Location Functions
+    locconf1
+    locconf2
+    locconf3
+    locconf4
+    # Lets Encrypt - required .well-known directory for generating ssl
+    # Uncomment this if it's something you don't require.
+    # locconf5
+
+    # Security Functions
+    secconf1
+    secconf2
+    secconf3
+
+    # WordPress Specific
+    # include wordpress.conf;
+    # include restrictions.conf;
+    # We only enable this option if either W3TC is in effect on a WordPress install
+    # Or you manage an override from your application root. 
+	# An example would be that of Admin Tools for Joomla!
+    # include /srv/www/sitename/public/nginx.conf;
+
+}

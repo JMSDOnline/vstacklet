@@ -1019,7 +1019,7 @@ function _cert() {
 }
 
 function _nocert() {
-  if [[ ${cert} == "no" ]]; then
+#  if [[ ${cert} == "no" ]]; then
     if [[ $sitename -eq yes ]];then
       sed -i "s/sitename/${sitename}/" /etc/nginx/conf.d/${sitename}.conf
       #sed -i "s/sitename.crt/${sitename}_access/" /etc/nginx/conf.d/${sitename}.conf
@@ -1033,9 +1033,9 @@ function _nocert() {
       #sed -i "s/sitename.crt/${hostname1}.crt/" /etc/nginx/conf.d/${hostname1}.conf
       #sed -i "s/sitename.key/${hostname1}.key/" /etc/nginx/conf.d/${hostname1}.conf
     fi
-    echo "${cyan}Skipping SSL Certificate Creation...${normal}"
-    echo
-  fi
+#    echo "${cyan}Skipping SSL Certificate Creation...${normal}"
+#    echo
+#  fi
 }
 
 # finalize and restart services function (20)
@@ -1179,12 +1179,12 @@ echo "${bold}Addressing Location Edits: cache busting, cross domain font support
 echo -n "${bold}expires tags, and system file protection${normal} ... ";_locenhance;
 echo "${bold}Performing Security Enhancements: protecting against bad bots,${normal}";
 echo -n "${bold}file injection, and php easter eggs${normal} ... ";_security;
-_askcert;
-if [[ ${cert} == "yes" ]]; then
-    _cert;
-elif [[ ${cert} == "no" ]]; then
+#_askcert;
+#if [[ ${cert} == "yes" ]]; then
+#    _cert;
+#elif [[ ${cert} == "no" ]]; then
     _nocert;
-fi
+#fi
 echo -n "${bold}Completing Installation & Restarting Services${normal} ... ";_services;
 
 E=$(date +%s)
