@@ -166,7 +166,7 @@ function _buildpagespeed() {
     fi
     if [[ "${rel}" =~ ("15.04"|"15.10") ]]; then
         curl -s -Lo ~/new/nginx_source/nginx-*/debian/changelog https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/changelog
-    	curl -s -Lo ~/new/nginx_source/nginx-*/debian/rules https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
+    	  curl -s -Lo ~/new/nginx_source/nginx-*/debian/rules https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx/wily/rules
         cd ~/new/nginx_source/nginx-*/src/core
         sed -i 's/"nginx\/\" NGINX_VERSION/"nginx\/\" NGINX_VERSION "~vstacklet"/g' nginx.h
         cd
