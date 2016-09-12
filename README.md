@@ -9,8 +9,8 @@ VStacklet - A Buff LEMP Stack Kit
 
 [![Version 3.1.0-production](https://img.shields.io/badge/version-3.1.0-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
-[![Ubuntu 16.04 Passing](https://img.shields.io/badge/Ubuntu%2016.04-failing-brightred.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
-[![Debian 8 Passing](https://img.shields.io/badge/Debian%208-failing-brightred.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Ubuntu 16.04 Failing](https://img.shields.io/badge/Ubuntu%2016.04-failing-brightred.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-brightred.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 
 --------
 
@@ -102,7 +102,7 @@ apt -y install git
 ```
 ... then run our main installer ...
 ```
-git clone --recursive https://github.com/JMSDOnline/vstacklet /etc/vstacklet &&
+git clone --recursive --branch "development" https://github.com/JMSDOnline/vstacklet /etc/vstacklet &&
 chmod +x /etc/vstacklet/vstacklet_setup/vstacklet.sh
 cd /etc/vstacklet/vstacklet_setup && ./vstacklet.sh
 ```
