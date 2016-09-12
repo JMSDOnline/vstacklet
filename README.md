@@ -103,8 +103,8 @@ apt -y install git
 ... then run our main installer ...
 ```
 git clone --recursive --branch "development" https://github.com/JMSDOnline/vstacklet /etc/vstacklet &&
-chmod +x /etc/vstacklet/vstacklet_setup/vstacklet.sh
-cd /etc/vstacklet/vstacklet_setup && ./vstacklet.sh
+chmod +x /etc/vstacklet/setup/vstacklet.sh
+cd /etc/vstacklet/setup && ./vstacklet.sh
 ```
 
 ### To compile Nginx with Pagespeed [standalone - or rebuild] (dev branch)
