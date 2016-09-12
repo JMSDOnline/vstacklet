@@ -28,24 +28,18 @@ elif [ -f "/etc/debian_version" ]; then
 fi
 #################################################################################
 
+# Run system upgrades if needed
+apt-get -yqq update; apt-get -yqq upgrade; apt-get -yqq install git lsb-release;
 
 # Create vstacklet & backup directory strucutre
-mkdir -p vstacklet /backup/{directories,databases}
-cd vstacklet
+mkdir -p /etc/vstacklet /backup/{directories,databases}
 
 # Download the needed scripts for VStacklet
-curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/vstacklet-ubuntu-stack.sh >/dev/null 2>&1;
-curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/files-backup.sh >/dev/null 2>&1;
-curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/database-backup.sh >/dev/null 2>&1;
-curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/package-backups.sh >/dev/null 2>&1;
-curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/backup-cleanup.sh >/dev/null 2>&1;
-
-# Convert all shell scripts to executable
-chmod +x *.sh
-cd
+git clone --recursive https://github.com/JMSDOnline/vstacklet /etc/vstacklet &&
+cd /etc/vstacklet
 
 # Download VStacklet System Backup Executable
-curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/vs-backup >/dev/null 2>&1;
+cd vstacklet_packages/backup
 chmod +x vs-backup
 mv vs-backup /usr/local/bin
 
@@ -63,7 +57,7 @@ function _askvstacklet() {
   echo "${bold} Actively maintained and quality controlled.${normal}"
   echo
   echo
-  echo -n "${bold}${yellow}Are you ready to install VStacklet for Ubuntu 14.04 - 16.04?${normal} (${bold}${green}Y${normal}/n): "
+  echo -n "${bold}${yellow}Are you ready to install VStacklet for Ubuntu 16.04 & Debian 8?${normal} (${bold}${green}Y${normal}/n): "
   read responce
   case $responce in
     [yY] | [yY][Ee][Ss] | "" ) vstacklet=yes ;;
@@ -75,9 +69,9 @@ clear
 
 function _vstacklet() {
   if [[ ${vstacklet} == "yes" ]]; then
-    DIR="vstacklet"
+    DIR="/etc/vstacklet"
     if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
-      . "$DIR/vstacklet-ubuntu-stack.sh"
+      . "$DIR/vstacklet-server-stack.sh"
   fi
 }
 
@@ -88,4 +82,4 @@ function _novstacklet() {
   fi
 }
 
-_askvstacklet;if [[ ${vstacklet} == "yes" ]]; then echo -n "${bold}Installing VStacklet Kit for 14.04, 15.04, 15.10 and 16.04 support${normal} ... ";_vstacklet; elif [[ ${vstacklet} == "no" ]]; then _novstacklet;  fi
+_askvstacklet;if [[ ${vstacklet} == "yes" ]]; then echo -n "${bold}Installing VStacklet Kit for Ubuntu 16.04 and Debian 8 support${normal} ... ";_vstacklet; elif [[ ${vstacklet} == "no" ]]; then _novstacklet;  fi

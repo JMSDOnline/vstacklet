@@ -1,0 +1,28 @@
+[submodule "setup"]
+	path = vstacklet_setup
+	url = https://github.com/JMSDOnline/vstacklet_setup.git
+	branch = development
+[submodule "php7"]
+	path = php7_base
+	url = https://github.com/JMSDOnline/vstacklet_php7_base.git
+	branch = development
+[submodule "php5"]
+	path = php5_base
+	url = https://github.com/JMSDOnline/vstacklet_php5_base.git
+	branch = development
+[submodule "hhvm"]
+	path = hhvm_base
+	url = https://github.com/JMSDOnline/vstacklet_hhvm_base.git
+	branch = development
+[submodule "nginx"]
+	path = nginx_base
+	url = https://github.com/JMSDOnline/vstacklet_nginx_base.git
+	branch = development
+[submodule "varnish"]
+	path = varnish_base
+	url = https://github.com/JMSDOnline/vstacklet_varnish_base.git
+	branch = development
+[submodule "packages"]
+	path = vstacklet_packages
+	url = https://github.com/JMSDOnline/vstacklet_packages.git
+	branch = development
