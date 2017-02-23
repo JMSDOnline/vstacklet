@@ -7,34 +7,33 @@ VStacklet - A Buff LEMP Stack Kit
 
 #### Script status
 
-[![Version 3.0.2-production](https://img.shields.io/badge/version-3.0.2-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Version 3.1.0-production](https://img.shields.io/badge/version-3.1.0-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
-[![Ubuntu 16.04 Passing](https://img.shields.io/badge/Ubuntu%2016.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
-[![Ubuntu 15.10 Passing](https://img.shields.io/badge/Ubuntu%2015.10-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
-[![Ubuntu 15.04 Passing](https://img.shields.io/badge/Ubuntu%2015.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
-[![Ubuntu 14.04 Passing](https://img.shields.io/badge/Ubuntu%2014.04-passing-brightgreen.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Ubuntu 16.04 Failing](https://img.shields.io/badge/Ubuntu%2016.04-failing-brightred.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-brightred.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 
 --------
 
 > ### HEADS UP!
-I will be deprecating the support in VStacklet for Ubuntu 14.04. This is due to 16.04 LTS now becoming more common place with at least 90% of the providers on the market. Additionally, SSL creation and install in the script has been disabled until I have LetsEncrypt fully integrated.
+VStacklet for Ubuntu 14.04 & 15.10 has been deprecated. This is due to 16.04 LTS now becoming more common place with at least 90% of the providers on the market. Additionally, SSL creation and install in the script has been disabled until I have LetsEncrypt fully integrated.
 
 Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04, 15.10 and 16.04 servers.
 
-Components include a recent mainline version of Nginx (1.10.0 (Xenial)) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.1 (drop-in replacement for MySQL), PHP5 or PHP7 (users choice **new**), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
+Components include a recent mainline version of Nginx (1.11.3 (Wily)) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.2 (drop-in replacement for MySQL), PHP7.0, PHP5.6 or HHVM **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
 
 Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
-> Please note: that if you are going to use php 7 that phpmyadmin as well as ioncube are currently not supported. Additionally, in future versions, php7 and php5 installers will be contained in separate scripts. Lets Encrypt will be the standard SSL installer in the coming versions.
+> Please note: that if you are going to use php 7 that ioncube are currently not supported. Additionally, Lets Encrypt will be the standard SSL installer in the coming versions.
 
 
 Script Features
 --------
   * Quiet installer - no more long scrolling text vomit, just see what's important; when it's presented.
-  * Script writes output to /root/vstacklet.log for additional observations.
+  * Script writes output to /root/vstacklet.`###`.log for additional observations.
   * Color Coding for emphasis on install processes.
   * Defaults are set to (Y) - just hit enter if you accept.
-  * Varnish Cache on port 80 with Nginx port 8080 SSL terminiation on 443.
+  * Varnish Cache on port 80 with Nginx port 8080 SSL termination on 443.
+  * Users choice of php5.6, php7.0 or HHVM
   * No Apache - Full throttle!
   * Fast and Lightweight install.
   * Full Kit functionality - backup scripts included.
@@ -54,11 +53,12 @@ __VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for W
   * Adds repositories for the latest stable versions of MariaDB, mainline (1.10.x) versions of Nginx, and Varnish 4.x.
   * Installs and configures Nginx, Varnish and MariaDB.
   * Installs PHP-FPM for PHP5 _or_ PHP7.
+  * Installs HHVM [_optional_].
   * Enables OPCode Cache and fine-tuning [_optional_]
   * Installs & Enables Memcached Cache and fine-tuning [_optional_]
   * Installs and Enables IonCube Loader [_optional_]
   * Installs and Auto-Configures phpMyAdmin - MySQL & phpMyAdmin credentials are stored in /root/.my.cnf
-  * MariaDB 10.1 can easily switched to 5.5+ or substituted for PostgreSQL.
+  * MariaDB 10.2 can easily switched to 5.5+ or substituted for PostgreSQL.
   * Installs and Adjusts CSF (Config Server Firewall) - prepares ports used for VStacklet as well as informing your entered email for security alerts.
   * Installs and Enables (PHP) Sendmail
   * Supports IPv6 by default.
@@ -81,7 +81,8 @@ Getting Started
 _You should read these scripts before running them so you know what they're
 doing._ Changes may be necessary to meet your needs.
 
-__Setup__ should be run as __root__ on a fresh __Ubuntu__ installation. __Stack__ should be run on a server without any existing LEMP or LAMP components.
+__Setup__ should be run as __root__ on a fresh __Ubuntu__ or __Debian__ installation.
+__Stack__ should be run on a server without any existing LEMP or LAMP components.
 
 If components are already installed, the core packages can be removed with:
 ```
@@ -96,49 +97,36 @@ apt-get autoremove
 ### VStacklet FULL Kit - Installs and configures the VStacklet LEMP kit stack:
 ( _includes backup scripts_ )
 
-**NOTE:** Want to go 15.x? You may need to run first the following  -
-
 ```
-apt-get install -y curl
+apt -y install git
 ```
 ... then run our main installer ...
 ```
-curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet.sh
-chmod +x vstacklet.sh
-./vstacklet.sh
-```
-
-### For Development & Testing - use the following:
-```
-curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/dev-vstacklet.sh
-chmod +x dev-vstacklet.sh
-./dev-vstacklet.sh
+git clone --recursive --branch "development" https://github.com/JMSDOnline/vstacklet /etc/vstacklet &&
+chmod +x /etc/vstacklet/setup/vstacklet.sh
+cd /etc/vstacklet/setup && ./vstacklet.sh
 ```
 
 ### To compile Nginx with Pagespeed [standalone - or rebuild] (dev branch)
-> Please be advised. Recently Nginx 1.10.0 has been released. This script will run the needed
-processes for build, however, compilation may fail due to the newer version being released.
-Just so happens 2 days after me writing this script... 1.10.0 was released. The tricky bit
-is that not all providers have this getting installed in xenial packages. Providers such as
-Linode however, do have 1.10.0 in their xenial images. I wouldn't suggest running this script
-unless you know how to recompile nginx on your own... although, this will do about 75% of the
-grunt work for you :wink: I will have this fixed as soon as time permits.
+> Please be advised. Recently Nginx 1.11.3 has been released. This script will run the needed
+processes for build, however, compilation may fail due to newer versions etc. etc. being released.
 ```
-curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/nginx-pagespeed.sh
+curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet_nginx_base/master/pagespeed/[wip]nginx-pagespeed.sh
 chmod +x nginx-pagespeed.sh
 ./nginx-pagespeed.sh
 ```
 
 ### VStacklet VS-Backup - Installs needed files for running complete system backups:
 ```
-curl -LO https://raw.github.com/JMSDOnline/vstacklet/master/vstacklet-backup-standalone.sh
-chmod +x vstacklet-backup-standalone.sh
-./vstacklet-backup-standalone.sh
+git clone https://github.com/JMSDOnline/vstacklet_packages.git /etc/vstacklet
+chmod +x /etc/vstacklet/packages/backup/vstacklet-backup-standalone.sh
+cd /etc/vstacklet/packages/backup && ./vstacklet-backup-standalone.sh
 ```
 
 ### The TO-DO List
 - [x] Enable OPCode Caching
 - [x] Enable Memcached Caching
+- [ ] Optional install of php5.6, php7.0 or HHVM [wip]
 - [x] Sendmail
 - [x] IonCube Loader (w/ option prompt)
 - [x] Improve script structure
@@ -146,9 +134,8 @@ chmod +x vstacklet-backup-standalone.sh
 - [x] phpMyAdmin (w/ option prompt)
 - [x] CSF (w/ option prompt)
 - [x] VS-Backup standalone kit (included in FULL Kit also)
-- [ ] VStacklet-lite
-- [x] Full support for Ubuntu 14.04, 15.04, 15.10 and 16.04
-- [x] Nginx + Page Speed building
+- [ ] Full support for Ubuntu 16.04 & Debian 8 [wip]
+- [ ] Nginx + Page Speed building
 - [ ] Build SSL with LetsEncrypt
 
 
@@ -160,6 +147,6 @@ Quick-Lemp is geared towards python based application installs and using default
 
 My focus was and is to provide a modified version for CMS and typical website server i.e;(WordPress, Joomla!, Drupal, Ghost, Magento ... etc ... ) installations, Updated/Modified/Customized Boilerplate templates to be more 'Nginx mainline' friendly; i.e http/2, as well as the ongoing use of static websites (which the original still handles splendidly!)
 
-Again, please be advised that I am building/testing this script on Ubuntu 14.04 (Trusty) as it supports Nginx versions higher than 1.8.
+Again, please be advised that I am building/testing this script on Ubuntu 16.04 (Wily) as it supports Nginx versions higher than 1.8.
 
 As per any contributions, be it suggestions, critiques, alterations and on and on are all welcome!
