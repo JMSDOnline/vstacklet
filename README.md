@@ -102,6 +102,12 @@ apt -y install git
 ```
 ... then run our main installer ...
 ```
+git clone --recursive https://github.com/JMSDOnline/vstacklet /etc/vstacklet &&
+chmod +x /etc/vstacklet/setup/vstacklet.sh
+cd /etc/vstacklet/setup && ./vstacklet.sh
+```
+... for the development branch ...
+```
 git clone --recursive --branch "development" https://github.com/JMSDOnline/vstacklet /etc/vstacklet &&
 chmod +x /etc/vstacklet/setup/vstacklet.sh
 cd /etc/vstacklet/setup && ./vstacklet.sh
