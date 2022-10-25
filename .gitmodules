@@ -26,3 +26,5 @@
   path = packages
   url = https://github.com/JMSDOnline/vstacklet_packages.git
   branch = development
+[submodule "php8"]
+	url = https://github.com/JMSDOnline/vstacklet_php8_base.git
