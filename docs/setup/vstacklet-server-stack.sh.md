@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1147
+# vstacklet-server-stack.sh - v3.1.1149
 
 
 ### vstacklet::environment::init()
@@ -279,6 +279,31 @@ install ioncube (optional)
 ```
  ./vstacklet.sh -ioncube
  ./vstacklet.sh --ioncube
+```
+
+### vstacklet::mariadb::install()
+
+install mariadb (optional)
+
+#### arguments:
+
+-  $1 - (optional) -mariadb | --mariadb (no argument)
+-  $2 - (optional) [port]
+-  $3 - (optional) [user]
+-  $4 - (optional) [password]
+
+#### options:
+
+-  $1 - -mariadb | --mariadb
+-  $2 - -mariadbP | --mariadb_port
+-  $3 - -mariadbU | --mariadb_user
+-  $4 - -mariadbPw | --mariadb_password
+
+#### examples:
+
+```
+ ./vstacklet.sh -mariadb -mariadbP 3306 -mariadbU root -mariadbPw password
+ ./vstacklet.sh --mariadb --mariadb_port 3306 --mariadb_user root --mariadb_password password
 ```
 
 
