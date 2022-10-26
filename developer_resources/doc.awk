@@ -2,21 +2,19 @@
 ################################################################################
 # <START METADATA>
 # @file_name: doc.awk
-# @version: 1.0.203
-# @project_name: mflibs
-# @description: auto generated markdown file
+# @version: 1.0.31
+# @description: automated documentation
+# @project_name: vstacklet
 #
 # @save_tasks:
 #  automated_versioning: true
 #  automated_documentation: false
 #
 # @author: Jason Matthews (JMSolo)
-# @author_contact: support@quickbox.io
-# @author: Jamie Dobbs (mschf)
-# @author_contact: jamie.dobbs@mschf.dev
+# @author_contact: https://github.com/JMSDOnline/vstacklet
 #
-# @license: BSD-3 Clause (Included in LICENSE)
-# Copyright (C) 2019-2022, QuickBox.IO
+# @license: MIT License (Included in LICENSE)
+# Copyright (C) 2016-2022, Jason Matthews
 # All rights reserved.
 # <END METADATA>
 ################################################################################
@@ -41,6 +39,10 @@ BEGIN {
     styles["argN", "to"] = "**\\1** (\\2):"
     styles["arg@", "from"] = "^\\$@ (\\S+)"
     styles["arg@", "to"] = "**...** (\\1):"
+	styles["paramN", "from"] = "^(\\$[0-9]) (\\S+)"
+    styles["paramN", "to"] = "**\\1** (\\2):"
+    styles["param@", "from"] = "^\\$@ (\\S+)"
+    styles["param@", "to"] = "**...** (\\1):"
     styles["li", "from"] = ".*"
     styles["li", "to"] = "- &"
     styles["i", "from"] = ".*"
@@ -71,12 +73,14 @@ function render(type, text) {
 function reset() {
     has_example = 0
     has_args = 0
+	has_params = 0
     has_exitcode = 0
     has_stdout = 0
 
     content_desc = ""
     content_example  = ""
     content_args = ""
+	content_params = ""
     content_exitcode = ""
     content_seealso = ""
     content_stdout = ""
@@ -129,14 +133,18 @@ in_description {
 }
 
 in_example {
-
-    if (! /^[[:space:]]*#[ ]{3}/) {
-
+    #if (! /^[[:space:]]*# [ ]{3}/) {
+	if (/^[^[[:space:]]*#]|^[[:space:]]*# @[^example]|^[[:space:]]*[^#]/) {
+		if (!match(content_example, /\n$/)) {
+            content_example = content_example "\n" render("/code") "\n"
+        }
         in_example = 0
 
-        content_example = content_example "\n" render("/code") "\n"
+        #content_example = content_example "\n" render("/code") "\n"
     } else {
         sub(/^[[:space:]]*#[ ]{3}/, "")
+		sub(/^[[:space:]]*# /, "")
+        #sub(/^[[:space:]]*#$/, "")
 
         content_example = content_example "\n" $0
     }
@@ -144,8 +152,8 @@ in_example {
 
 /^[[:space:]]*# @example/ {
     in_example = 1
-    content_example = content_example "\n" render("h4", "example:") "\n"
-	sub(/^[[:space:]]*# @example /, "")
+    content_example = content_example "\n" render("h4", "examples:") "\n"
+	sub(/^[[:space:]]*# @example:/, "")
     content_example = content_example "\n" render("code", "\n"$0, "bash")
 }
 
@@ -164,6 +172,23 @@ in_example {
 
 /^[[:space:]]*# @noargs/ {
     content_args = content_args "\n" render("i", "function has no arguments") "\n"
+}
+
+/^[[:space:]]*# @param/ {
+	if (!has_params) {
+		has_params = 1
+
+		content_params = content_params "\n" render("h4", "parameters:") "\n\n"
+	}
+
+	sub(/^[[:space:]]*# @param:/, "")
+	$0 = render("paramN", $0)
+	$0 = render("param@", $0)
+	content_params = content_params render("li", $0) "\n"
+}
+
+/^[[:space:]]*# @noparams/ {
+    content_params = content_params "\n" render("i", "function has no parameters") "\n"
 }
 
 /^[[:space:]]*# @return_code/ {
@@ -188,7 +213,7 @@ in_example {
 }
 
 {
-    docblock = content_desc content_args content_exitcode content_stdout content_example content_seealso
+    docblock = content_desc content_args content_params content_exitcode content_stdout content_example content_seealso
 }
 
 /^[ \t]*(function([ \t])+)?([a-zA-Z0-9_:-]+)([ \t]*)(\(([ \t]*)\))?[ \t]*\{/ && docblock != "" && !in_example {
