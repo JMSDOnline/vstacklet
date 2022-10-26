@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1169
+# vstacklet-server-stack.sh - v3.1.1170
 
 
 ### vstacklet::environment::init()
@@ -106,7 +106,7 @@ set system hostname
 
 #### options:
 
--  $1 - `-h | --hostname`
+-  $1 - `-h | --hostname` (optional) (takes one argument)
 
 #### arguments:
 
@@ -152,7 +152,7 @@ set ssh port to custom port (if nothing is set, default port is 22)
 
 #### options:
 
--  $1 - `-ssh | --ssh_port` (optional) (default: 22)
+-  $1 - `-ssh | --ssh_port` (optional) (takes one argument)
 
 #### arguments:
 
@@ -291,7 +291,7 @@ install nginx (optional) (default: not installed)
 
 #### options:
 
--  $1 - `-nginx | --nginx`
+-  $1 - `-nginx | --nginx` (optional) (takes no arguments)
 
 #### examples:
 
@@ -354,7 +354,7 @@ install ioncube (optional)
 
 #### options:
 
--  $1 - -ioncube | --ioncube
+-  $1 - `-ioncube | --ioncube` (optional) (takes no arguments)
 
 #### examples:
 
