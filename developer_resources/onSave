@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+################################################################################
+# <START METADATA>
+# @file_name: on_save
+# @version: 1.0.1
+# @description: automated save editing
+# @project_name: vstacklet
+#
+# @save_tasks:
+#  automated_versioning: true
+#  automated_documentation: true
+#
+# @build_tasks:
+#  automated_comment_strip: false
+#  automated_encryption: false
+#
+# @author: Jason Matthews (JMSolo)
+# @author_contact: https://github.com/JMSDOnline/vstacklet
+#
+# @license: MIT License (Included in LICENSE)
+# Copyright (C) 2016-2022, Jason Matthews
+# All rights reserved.
+# <END METADATA>
+################################################################################
+
+################################################################################
+# @description: loads variables for save script
+# @arg $1: file
+# @arg $2: workspace
+################################################################################
+load::variables() {
+	declare -g file="${1}"
+	declare -g filename="${file##*/}"
+	declare -g workspace="${2}"
+}
+
+################################################################################
+# @description: parses variables from supplied file for post-process
+# @noargs
+################################################################################
+parse::meta_data() {
+	declare variable value parse
+	declare -a auto_variables
+	if grep -q '@save_tasks' "${file}"; then
+		declare -g type=newmeta
+		while IFS='' read -r line; do auto_variables+=("${line}"); done < <(sed -n -e '/\@save_tasks/,/\@author:/ p' "${file}" | head -n -2 | tail -n +2 | sed -e 's/: /=/g' | tr -d "# ")
+		for parse in "${auto_variables[@]}"; do
+			variable=$(echo "${parse,,}" | cut -f1 -d=)
+			value=$(echo "${parse,,}" | cut -f2 -d=)
+			printf -v "${variable}" '%s' "${value}" >/dev/null 2>&1
+		done
+	elif grep -q 'Save Tasks' "${file}"; then
+		declare -g type=oldmeta
+		while IFS='' read -r line; do auto_variables+=("${line}"); done < <(sed -n -e '/Save\ Tasks/,/Author:/ p' "${file}" | head -n -2 | tail -n +2 | sed -e 's/: /=/g' | tr -d "# ")
+		for parse in "${auto_variables[@]}"; do
+			variable=$(echo "${parse,,}" | cut -f1 -d=)
+			value=$(echo "${parse,,}" | cut -f2 -d=)
+			printf -v "${variable}" '%s' "${value}" >/dev/null 2>&1
+		done
+	fi
+}
+
+################################################################################
+# @description: automated incrementation of necessary file version information
+# @noargs
+################################################################################
+save::versioning() {
+	declare version_old version_number version_split version_new
+	version_new=$(curl -s -X GET -H "authorization: Bearer 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" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/JMSDOnline/vstacklet/releases | grep -E \"tag_name\" | awk -F '["",]' '{print $4}' | head -n 1 | sed ':a;N;$!ba;s/\n//g')
+	sed -i "0,/.*Version.*/s/.*Version.*/  Version: ${version_new}/" "${workspace}/README.md"
+	if [[ ${filename} == "developer_documentation.md" ]]; then
+		version_old=$(grep -o 'Version:.*' "${file}" | head -n 1 | cut -f2- -d: | tr -d " ")
+		version_number=$(echo "${version_old}" | grep -Eo '[0-9]+$')
+		version_number=$(("${version_number}" + 1))
+		version_split=$(echo "${version_old}" | grep -o '.*[.]')
+		version_new="${version_split}${version_number}"
+		sed -i "0,/.*Version.*/s/.*Version.*/  Version: ${version_new}/" "${file}"
+	elif [[ ${automated_versioning:-} == "true" && ${type} == "newmeta" ]]; then
+		version_old=$(grep -o '# @version.*' "${file}" | head -n 1 | cut -f2- -d: | tr -d " " | tr -d "@")
+		version_number=$(echo "${version_old}" | grep -Eo '[0-9]+$')
+		version_number=$(("${version_number}" + 1))
+		version_split=$(echo "${version_old}" | grep -o '.*[.]')
+		version_new="${version_split}${version_number}"
+		sed -i "0,/.*version.*/s/.*version.*/# @version: ${version_new}/" "${file}"
+	elif [[ ${automated_versioning:-} == "true" && ${type} == "oldmeta" ]]; then
+		version_old=$(grep -o '# File Version.*' "${file}" | head -n 1 | cut -f2- -d: | tr -d " ")
+		version_number=$(echo "${version_old}" | grep -Eo '[0-9]+$')
+		version_number=$(("${version_number}" + 1))
+		version_split=$(echo "${version_old}" | grep -o '.*[.]')
+		version_new="${version_split}${version_number}"
+		sed -i "0,/.*File Version.*/s/.*File Version.*/# File Version: ${version_new}/" "${file}"
+	fi
+	printf "%s\n" "${filename} version increased from ${version_old} to ${version_new}"
+}
+
+################################################################################
+# @description: automated documentation for files
+# @noargs
+################################################################################
+save::documentation() {
+	if [[ ${automated_documentation:-} == "true" ]]; then
+		if [[ $(head -n1 "${file}") =~ bash ]]; then
+			declare docs
+			docs="docs${file//${workspace//\//\\/}/}"
+			docs="${docs//src\//}"
+			declare markdown="${workspace}/${docs}.md"
+			mkdir -p "${docs//${filename}/}"
+			rm -f "${markdown}"
+			[[ -s ${file} ]] && awk -f "${workspace}/developer_resources/doc.awk" <"${file}" >>"${markdown}"
+		fi
+	fi
+}
+
+################################################################################
+# @description: automated changelog
+# @noargs
+################################################################################
+save::changelog() {
+	# TODO: add changelog automation
+	:
+}
+
+################################################################################
+# @description: calls functions in required order
+################################################################################
+load::variables "$@"
+parse::meta_data
+save::versioning
+save::documentation
+#save::changelog
