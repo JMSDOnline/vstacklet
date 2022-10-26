@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1142
+# vstacklet-server-stack.sh - v3.1.1147
 
 
 ### vstacklet::environment::init()
@@ -7,15 +7,15 @@ setup the environment and set variables
 
 ### vstacklet::args::process()
 
-process the arguments passed to the script
+process the options and values passed to the script
 
 #### arguments:
 
--  $1 - the argument to process
--  $2 - the value of the argument
+-  $2 - the value of the option/flag
 
-#### parameters:
+#### options:
 
+-  $1 - the option/flag to process
 -  `--help` - show help
 -  `--version` - show version
 -  `--non-interactive` - run in non-interactive mode
@@ -71,52 +71,63 @@ check if the log file exists and create it if it doesn't
 
 *function has no arguments*
 
-*function has no parameters*
+*function has no options*
 
 ### vstacklet::bashrc::set()
 
 set ~/.bashrc and ~/.profile for vstacklet
 
-*function has no parameters*
+*function has no options*
 
 ### vstacklet::hostname::set()
 
 set system hostname
 
-#### parameters:
+#### arguments:
+
+-  $2 - [hostname]
+
+#### options:
 
 -  $1 - -hn | --hostname
--  $2 - [hostname]
 
 #### examples:
 
 ```
- ./vstacklet.sh -hn myhostname (or) ./vstacklet.sh --hostname myhostname
+ ./vstacklet.sh -hn myhostname 
+ ./vstacklet.sh --hostname myhostname
 ```
 
 ### vstacklet::webroot::set()
 
 setting main web root directory
 
-#### parameters:
+#### arguments:
+
+-  $2 - [web_root_directory]
+
+#### options:
 
 -  $1 - -wr | --web_root
--  $2 - [web_root_directory]
 
 #### examples:
 
 ```
- ./vstacklet.sh -wr /var/www/mydirectory (or) ./vstacklet.sh --web_root /srv/www/mydirectory
+ ./vstacklet.sh -wr /var/www/mydirectory
+ ./vstacklet.sh --web_root /srv/www/mydirectory
 ```
 
 ### vstacklet::ssh::set()
 
 set ssh port to custom port (if nothing is set, default port is 22)
 
-#### parameters:
+#### arguments:
+
+-  $2 - [port]
+
+#### options:
 
 -  $1 - -ssh | --ssh_port
--  $2 - [port]
 
 #### examples:
 
@@ -133,13 +144,13 @@ need port 1900. In most cases, this is a junk port.
 
 *function has no arguments*
 
-*function has no parameters*
+*function has no options*
 
 ### vstacklet::update::packages()
 
 This function updates the package list and upgrades the system.
 
-*function has no parameters*
+*function has no options*
 
 ### vstacklet::locale::set()
 
@@ -153,7 +164,7 @@ the required common property packages for the vStacklet software.
 
 *function has no arguments*
 
-*function has no parameters*
+*function has no options*
 
 ### vstacklet::packages::depends()
 
@@ -162,7 +173,7 @@ for the vStacklet software.
 
 *function has no arguments*
 
-*function has no parameters*
+*function has no options*
 
 ### vstacklet::packages::keys()
 
@@ -171,7 +182,7 @@ and sources for the vStacklet software.
 
 *function has no arguments*
 
-*function has no parameters*
+*function has no options*
 
 ### vstacklet::apt::update()
 
@@ -179,16 +190,19 @@ update apt sources and packages - this is a wrapper for apt-get update
 
 *function has no arguments*
 
-*function has no parameters*
+*function has no options*
 
 ### vstacklet::php::install()
 
 install php and php modules (optional) (default: not installed)
 
-#### parameters:
+#### arguments:
+
+-  $2 - `[version]` - `7.4` | `8.1`
+
+#### options:
 
 -  $1 - `-php | --php`
--  $2 - `[version]` - `7.4` | `8.1`
 
 #### examples:
 
@@ -201,7 +215,7 @@ install php and php modules (optional) (default: not installed)
 
 install nginx (optional) (default: not installed)
 
-#### parameters:
+#### options:
 
 -  $1 - `-nginx | --nginx`
 
@@ -216,7 +230,7 @@ install nginx (optional) (default: not installed)
 
 install hhvm (optional) (default: not installed)
 
-#### parameters:
+#### options:
 
 -  $1 - `-hhvm | --hhvm`
 
@@ -233,13 +247,13 @@ adjust permissions for web root
 
 *function has no arguments*
 
-*function has no parameters*
+*function has no options*
 
 ### vstacklet::varnish::install()
 
 install varnish (optional)
 
-#### parameters:
+#### options:
 
 -  $1 - `-varnish | --varnish`
 -  $2 - `-varnishP | --varnish_port`
@@ -256,7 +270,7 @@ install varnish (optional)
 
 install ioncube (optional)
 
-#### parameters:
+#### options:
 
 -  $1 - -ioncube | --ioncube
 

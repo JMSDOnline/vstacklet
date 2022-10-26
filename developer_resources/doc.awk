@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: doc.awk
-# @version: 1.0.84
+# @version: 1.0.87
 # @description: automated documentation
 # @project_name: vstacklet
 #
@@ -39,6 +39,10 @@ BEGIN {
     styles["argN", "to"] = "**\\1** (\\2):"
     styles["arg@", "from"] = "^\\$@ (\\S+)"
     styles["arg@", "to"] = "**...** (\\1):"
+	styles["optionN", "from"] = "^(\\$[0-9]) (\\S+)"
+    styles["optionN", "to"] = "**\\1** (\\2):"
+    styles["option@", "from"] = "^\\$@ (\\S+)"
+    styles["option@", "to"] = "**...** (\\1):"
 	styles["paramN", "from"] = "^(\\$[0-9]) (\\S+)"
     styles["paramN", "to"] = "**\\1** (\\2):"
     styles["param@", "from"] = "^\\$@ (\\S+)"
@@ -73,6 +77,7 @@ function render(type, text) {
 function reset() {
     has_example = 0
     has_args = 0
+	has_options = 0
 	has_params = 0
     has_exitcode = 0
     has_stdout = 0
@@ -80,6 +85,7 @@ function reset() {
     content_desc = ""
     content_example  = ""
     content_args = ""
+	content_options = ""
 	content_params = ""
     content_exitcode = ""
     content_seealso = ""
@@ -177,6 +183,23 @@ in_example {
     content_args = content_args "\n" render("i", "function has no arguments") "\n"
 }
 
+/^[[:space:]]*# @option/ {
+	if (!has_options) {
+		has_options = 1
+
+		content_options = content_options "\n" render("h4", "options:") "\n\n"
+	}
+
+	sub(/^[[:space:]]*# @option:/, "")
+	$0 = render("optionN", $0)
+	$0 = render("option@", $0)
+	content_options = content_options render("li", $0) "\n"
+}
+
+/^[[:space:]]*# @nooptions/ {
+	content_options = content_options "\n" render("i", "function has no options") "\n"
+}
+
 /^[[:space:]]*# @param/ {
 	if (!has_params) {
 		has_params = 1
@@ -216,7 +239,7 @@ in_example {
 }
 
 {
-    docblock = content_desc content_args content_params content_exitcode content_stdout content_example content_seealso
+    docblock = content_desc content_args content_options content_params content_exitcode content_stdout content_example content_seealso
 }
 
 /^[ \t]*(function([ \t])+)?([a-zA-Z0-9_:-]+)([ \t]*)(\(([ \t]*)\))?[ \t]*\{/ && docblock != "" && !in_example {
