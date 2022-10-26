@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1044
+# vstacklet-server-stack.sh - v3.1.1045
 
 
 ### vstacklet::environment::init()
@@ -11,9 +11,9 @@ process the arguments passed to the script
 
 #### arguments:
 
--  --help|-h|-? show help
--  --version: show version
--  --non-interactive: run in non-interactive mode
+-  `--help`: show help
+-  `--version`: show version
+-  `--non-interactive`: run in non-interactive mode
 -   -e|--email: email address to use for the Let's Encrypt SSL certificate
 -   -p|--password: password to use for the MySQL root user
 -  -ftp|--ftp_port: port to use for the FTP server
