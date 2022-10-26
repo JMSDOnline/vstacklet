@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: doc.awk
-# @version: 1.0.31
+# @version: 1.0.82
 # @description: automated documentation
 # @project_name: vstacklet
 #
@@ -134,17 +134,17 @@ in_description {
 
 in_example {
     #if (! /^[[:space:]]*# [ ]{3}/) {
-	if (/^[^[[:space:]]*#]|^[[:space:]]*# @[^example]|^[[:space:]]*[^#]/) {
+	if (/^[^[[:space:]]*#]|^[[:space:]]*# @[^example]|^[[:space:]]*[^#]|^[[:space:]]*# [ ]{3}/) {
 		if (!match(content_example, /\n$/)) {
             content_example = content_example "\n" render("/code") "\n"
         }
         in_example = 0
-
-        #content_example = content_example "\n" render("/code") "\n"
     } else {
-        sub(/^[[:space:]]*#[ ]{3}/, "")
-		sub(/^[[:space:]]*# /, "")
-        #sub(/^[[:space:]]*#$/, "")
+        sub(/^[[:space:]]*# @example:/, "")
+		sub(/^[[:space:]]*#/, "")
+        sub(/^[[:space:]]*#$/, "")
+		sub(/#$/, "")
+		sub(/#/, "")
 
         content_example = content_example "\n" $0
     }
@@ -154,6 +154,9 @@ in_example {
     in_example = 1
     content_example = content_example "\n" render("h4", "examples:") "\n"
 	sub(/^[[:space:]]*# @example:/, "")
+	sub(/^[[:space:]]*# /, "")
+	sub(/^[[:space:]]*#$/, "")
+	sub(/^*#/, "")
     content_example = content_example "\n" render("code", "\n"$0, "bash")
 }
 

@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1078
+# vstacklet-server-stack.sh - v3.1.1142
 
 
 ### vstacklet::environment::init()
@@ -69,9 +69,9 @@ prints the intro message
 
 check if the log file exists and create it if it doesn't
 
-#### arguments:
+*function has no arguments*
 
-- # @args: $1 - log file
+*function has no parameters*
 
 ### vstacklet::bashrc::set()
 
@@ -121,8 +121,8 @@ set ssh port to custom port (if nothing is set, default port is 22)
 #### examples:
 
 ```
- ./vstacklet.sh -ssh 2222 (or) ./vstacklet.sh --ssh_port 2222
-##################################################################################
+ ./vstacklet.sh -ssh 2222
+ ./vstacklet.sh --ssh_port 2222
 ```
 
 ### vstacklet::block::ssdp()
@@ -194,7 +194,7 @@ install php and php modules (optional) (default: not installed)
 
 ```
  ./vstacklet.sh -php 8.1
-./vstacklet.sh --php 7.4
+ ./vstacklet.sh --php 7.4
 ```
 
 ### vstacklet::nginx::install()
@@ -209,8 +209,7 @@ install nginx (optional) (default: not installed)
 
 ```
  ./vstacklet.sh -nginx
-./vstacklet.sh --nginx
-##################################################################################
+ ./vstacklet.sh --nginx
 ```
 
 ### vstacklet::hhvm::install()
@@ -225,7 +224,7 @@ install hhvm (optional) (default: not installed)
 
 ```
  ./vstacklet.sh -hhvm 
-./vstacklet.sh --hhvm
+ ./vstacklet.sh --hhvm
 ```
 
 ### vstacklet::permissions::adjust()
@@ -250,7 +249,7 @@ install varnish (optional)
 
 ```
  ./vstacklet.sh -varnish -varnishP 6081 -http 80
-./vstacklet.sh --varnish --varnish_port 6081 --http_port 80
+ ./vstacklet.sh --varnish --varnish_port 6081 --http_port 80
 ```
 
 ### vstacklet::ioncube::install()
@@ -265,7 +264,7 @@ install ioncube (optional)
 
 ```
  ./vstacklet.sh -ioncube
-(or) ./vstacklet.sh --ioncube
+ ./vstacklet.sh --ioncube
 ```
 
 
