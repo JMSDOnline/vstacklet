@@ -1,9 +1,11 @@
-# vstacklet-server-stack.sh - v3.1.1150
+# vstacklet-server-stack.sh - v3.1.1156
 
 
 ### vstacklet::environment::init()
 
 setup the environment and set variables
+
+---
 
 ### vstacklet::args::process()
 
@@ -49,21 +51,31 @@ process the options and values passed to the script
  ./vstacklet.sh "-e" "your@email.com" "-php" "8.1" "-nginx" "-mdb" "-pma" "-sendmail" "-wr" "[directory_name]"
 ```
 
+---
+
 ### vstacklet::environment::functions()
 
 stage various functions for the setup environment
+
+---
 
 ### vstacklet::environment::checkroot()
 
 check if the user is root
 
+---
+
 ### vstacklet::environment::checkdistro()
 
 check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
 
+---
+
 ### vstacklet::intro()
 
 prints the intro message
+
+---
 
 ### vstacklet::log::check()
 
@@ -73,11 +85,17 @@ check if the log file exists and create it if it doesn't
 
 *function has no arguments*
 
+---
+
 ### vstacklet::bashrc::set()
 
 set ~/.bashrc and ~/.profile for vstacklet
 
 *function has no options*
+
+*function has no arguments*
+
+---
 
 ### vstacklet::hostname::set()
 
@@ -89,7 +107,7 @@ set system hostname
 
 #### arguments:
 
--  $2 - [hostname]
+-  $2 - [hostname] - the hostname to set for the system (optional) 
 
 #### examples:
 
@@ -97,6 +115,8 @@ set system hostname
  ./vstacklet.sh -hn myhostname 
  ./vstacklet.sh --hostname myhostname
 ```
+
+---
 
 ### vstacklet::webroot::set()
 
@@ -117,6 +137,8 @@ setting main web root directory
  ./vstacklet.sh --web_root /srv/www/mydirectory
 ```
 
+---
+
 ### vstacklet::ssh::set()
 
 set ssh port to custom port (if nothing is set, default port is 22)
@@ -127,7 +149,7 @@ set ssh port to custom port (if nothing is set, default port is 22)
 
 #### arguments:
 
--  $2 - [port]
+-  $2 - [port] (default: 22) 
 
 #### examples:
 
@@ -135,6 +157,8 @@ set ssh port to custom port (if nothing is set, default port is 22)
  ./vstacklet.sh -ssh 2222
  ./vstacklet.sh --ssh_port 2222
 ```
+
+---
 
 ### vstacklet::block::ssdp()
 
@@ -146,16 +170,22 @@ need port 1900. In most cases, this is a junk port.
 
 *function has no arguments*
 
+---
+
 ### vstacklet::update::packages()
 
 This function updates the package list and upgrades the system.
 
 *function has no options*
 
+---
+
 ### vstacklet::locale::set()
 
 This function sets the locale to en_US.UTF-8
 and sets the timezone to UTC.
+
+---
 
 ### vstacklet::packages::softcommon()
 
@@ -166,6 +196,8 @@ the required common property packages for the vStacklet software.
 
 *function has no arguments*
 
+---
+
 ### vstacklet::packages::depends()
 
 This function installs the required software packages
@@ -174,6 +206,8 @@ for the vStacklet software.
 *function has no options*
 
 *function has no arguments*
+
+---
 
 ### vstacklet::packages::keys()
 
@@ -184,6 +218,8 @@ and sources for the vStacklet software.
 
 *function has no arguments*
 
+---
+
 ### vstacklet::apt::update()
 
 update apt sources and packages - this is a wrapper for apt-get update
@@ -191,6 +227,8 @@ update apt sources and packages - this is a wrapper for apt-get update
 *function has no options*
 
 *function has no arguments*
+
+---
 
 ### vstacklet::php::install()
 
@@ -211,6 +249,8 @@ install php and php modules (optional) (default: not installed)
  ./vstacklet.sh --php 7.4
 ```
 
+---
+
 ### vstacklet::nginx::install()
 
 install nginx (optional) (default: not installed)
@@ -225,6 +265,8 @@ install nginx (optional) (default: not installed)
  ./vstacklet.sh -nginx
  ./vstacklet.sh --nginx
 ```
+
+---
 
 ### vstacklet::hhvm::install()
 
@@ -241,6 +283,8 @@ install hhvm (optional) (default: not installed)
  ./vstacklet.sh --hhvm
 ```
 
+---
+
 ### vstacklet::permissions::adjust()
 
 adjust permissions for web root
@@ -248,6 +292,8 @@ adjust permissions for web root
 *function has no options*
 
 *function has no arguments*
+
+---
 
 ### vstacklet::varnish::install()
 
@@ -266,6 +312,8 @@ install varnish (optional)
  ./vstacklet.sh --varnish --varnish_port 6081 --http_port 80
 ```
 
+---
+
 ### vstacklet::ioncube::install()
 
 install ioncube (optional)
@@ -280,6 +328,8 @@ install ioncube (optional)
  ./vstacklet.sh -ioncube
  ./vstacklet.sh --ioncube
 ```
+
+---
 
 ### vstacklet::mariadb::install()
 
@@ -305,5 +355,7 @@ install mariadb (optional)
  ./vstacklet.sh -mariadb -mariadbP 3306 -mariadbU root -mariadbPw password
  ./vstacklet.sh --mariadb --mariadb_port 3306 --mariadb_user root --mariadb_password password
 ```
+
+---
 
 

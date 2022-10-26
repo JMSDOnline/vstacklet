@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: doc.awk
-# @version: 1.0.88
+# @version: 1.0.95
 # @description: automated documentation
 # @project_name: vstacklet
 #
@@ -32,6 +32,8 @@ BEGIN {
     styles["h4", "to"] = "#### &"
     styles["h5", "from"] = ".*"
     styles["h5", "to"] = "##### &"
+	styles["hr", "from"] = ".*"
+	styles["hr", "to"] = "---"
     styles["code", "from"] = ".*"
     styles["code", "to"] = "```&"
     styles["/code", "to"] = "```"
@@ -81,6 +83,7 @@ function reset() {
 	has_params = 0
     has_exitcode = 0
     has_stdout = 0
+	has_break = 0
 
     content_desc = ""
     content_example  = ""
@@ -90,6 +93,7 @@ function reset() {
     content_exitcode = ""
     content_seealso = ""
     content_stdout = ""
+	content_break = ""
 }
 
 /^[[:space:]]*# @internal/ {
@@ -238,8 +242,14 @@ in_example {
     content_stdout = content_stdout "\n\n" render("li", $0) "\n"
 }
 
+/^[[:space:]]*# @break/ {
+    has_break = 1
+    sub(/^[[:space:]]*# @break/, "")
+    content_break = content_break "\n" render("hr", $0) "\n"
+}
+
 {
-    docblock = content_desc content_options content_args content_params content_exitcode content_stdout content_example content_seealso
+    docblock = content_desc content_options content_args content_params content_exitcode content_stdout content_example content_seealso content_break
 }
 
 /^[ \t]*(function([ \t])+)?([a-zA-Z0-9_:-]+)([ \t]*)(\(([ \t]*)\))?[ \t]*\{/ && docblock != "" && !in_example {
