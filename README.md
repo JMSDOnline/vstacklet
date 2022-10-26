@@ -1,51 +1,57 @@
-VStacklet - A Buff LEMP Stack Kit
+<div align="center">
+
+vStacklet - A Buff LEMP Stack Kit
 ===============================
 
-<center>
-| ![VStacklet - A Buff LEMP Stack Kit](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-lemp-kit.png "vstacklet") |
+| ![vStacklet - A Buff LEMP Stack Kit](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-lemp-kit.png "vstacklet") |
 | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **VStacklet - A Buff LEMP Stack Kit**                                                                                               |
+| **vStacklet - A Buff LEMP Stack Kit**                                                                                               |
 
 ## Script status
 
-  Version: v3.1.1.481
-  Build: 481
+  Version: v3.1.1.484
+  Build: 484
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 [![Ubuntu 16.04 Failing](https://img.shields.io/badge/Ubuntu%2016.04-failing-brightred.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 [![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-brightred.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 
-</center>
+</div>
+
 --------
 
 > ### HEADS UP!
-VStacklet for Ubuntu 16.04 has been deprecated. This is due to 20.04 LTS now becoming more common place with at least 90% of the providers on the market. Additionally, SSL creation and install in the script has been disabled until I have LetsEncrypt fully integrated.
+vStacklet for Ubuntu 16.04 has been deprecated. This is due to 20.04 LTS now becoming more common place with at least 90% of the providers on the market. Additionally, SSL creation and install in the script has been disabled until I have LetsEncrypt fully integrated.
 
-Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 18.04/20.04 and Debian 9/10/11 servers.
+What is vStacklet?
+--------
 
-Components include a recent mainline version of Nginx (1.11.3 (Wily)) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.2 (drop-in replacement for MySQL), PHP7.0, PHP5.6 or HHVM **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
+vStacklet is a kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 18.04/20.04 and Debian 9/10/11 servers.
+
+Components include a recent mainline version of Nginx (mainline (1.23.x)) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 7.2.x, and MariaDB 10.7.x (drop-in replacement for MySQL), PHP8.1, PHP7.4 or HHVM 4.x **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
 
 Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
-> Please note: that if you are going to use php 7 that ioncube are currently not supported. Additionally, Lets Encrypt will be the standard SSL installer in the coming versions.
+> Lets Encrypt will be the standard SSL installer in the coming versions.
 
 
 Script Features
 --------
   * Quiet installer - no more long scrolling text vomit, just see what's important; when it's presented.
-  * Script writes output to /root/vstacklet.`###`.log for additional observations.
+  * Script writes output to `/var/log/vstacklet.###.log` for additional observations.
   * Color Coding for emphasis on install processes.
-  * Defaults are set to (Y) - just hit enter if you accept.
+  * Easy optional parameters make it a set it and forget it script.
   * Varnish Cache on port 80 with Nginx port 8080 SSL termination on 443.
-  * Users choice of php5.6, php7.0 or HHVM
+  * Users choice of php8.1, php7.4 or HHVM
   * No Apache - Full throttle!
   * Fast and Lightweight install.
   * Full Kit functionality - backup scripts included.
+  * Dynamic rollback built-in should the install fail. All dependencies and directories placed by vStacklet are removed on the rollback.
   * Actively maintained w/ updates added when stable.
   * HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="http://h2.nix-admin.com/" target="_blank">HTTP/2 Checker</a>
   * Everything you need to get that Nginx + Varnish server up and running!
 
-Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 10:12 installing everything. No Sendmail or Cert script installs at 04:22. This time assumes you are sitting attentively with the script running. There are a limited number of interactions to be made with the script and most of the softwares installed I have automated and logged, however, I feel it is important to have some sort of interaction... at the very least so you are familiar with what is being installed along with the options to tell it to go to hell.
+Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 10:12 installing everything. No Sendmail or Cert script installs at 04:22. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue.
 
 ![preview 1](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-script-preview1.png "vstacklet preview 1")
 
@@ -53,17 +59,16 @@ Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode
 --------
 
 __VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments.
-  *
-  * Adds repositories for the latest stable versions of MariaDB, mainline (1.10.x) versions of Nginx, and Varnish 4.x.
+  * Adds repositories for the latest stable versions of MariaDB (10.7.x), mainline (1.23.x) versions of Nginx, and Varnish 7.2.x.
   * Installs and configures Nginx, Varnish and MariaDB.
-  * Installs PHP-FPM for PHP5 _or_ PHP7.
+  * Installs PHP-FPM for PHP7.4 _or_ PHP8.1.
   * Installs HHVM [_optional_].
   * Enables OPCode Cache and fine-tuning [_optional_]
   * Installs & Enables Memcached Cache and fine-tuning [_optional_]
   * Installs and Enables IonCube Loader [_optional_]
   * Installs and Auto-Configures phpMyAdmin - MySQL & phpMyAdmin credentials are stored in /root/.my.cnf
-  * MariaDB 10.2 can easily switched to 5.5+ or substituted for PostgreSQL.
-  * Installs and Adjusts CSF (Config Server Firewall) - prepares ports used for VStacklet as well as informing your entered email for security alerts.
+  * MariaDB 10.7 can easily switched to 5.5+ or substituted for PostgreSQL.
+  * Installs and Adjusts CSF (Config Server Firewall) - prepares ports used for vStacklet as well as informing your entered email for security alerts.
   * Installs and Enables (PHP) Sendmail
   * Supports IPv6 by default.
   * Optional self-signed SSL cert configuration. [*wip*]
@@ -71,7 +76,6 @@ __VStacklet__ - (Full Kit) Installs and configures LEMP stack with support for W
 
 __VS-Backup__ - Installs scripts to help manage and automate server/site backups
 Updated: ~~(_coming soon as a single script_)~~ Added as standalone and included in full kit.
-  *
   * Backup your files in key locations (ex: /srv/www /etc /root)
   * Backup your databases
   * Package files & databases to one archive
@@ -84,6 +88,8 @@ Getting Started
 ----------------
 _You should read these scripts before running them so you know what they're
 doing._ Changes may be necessary to meet your needs.
+
+**You can review the setup script documentation [here](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)**
 
 __Setup__ should be run as __root__ on a fresh __Ubuntu__ or __Debian__ installation.
 __Stack__ should be run on a server without any existing LEMP or LAMP components.
