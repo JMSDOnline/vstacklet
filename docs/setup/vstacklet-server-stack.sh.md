@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1157
+# vstacklet-server-stack.sh - v3.1.1169
 
 
 ### vstacklet::environment::init()
@@ -17,23 +17,26 @@ process the options and values passed to the script
 -  `--help` - show help
 -  `--version` - show version
 -  `--non-interactive` - run in non-interactive mode
--   `-e | --email` - mail address to use for the Let's Encrypt SSL certificate
--   `-p | --password` - password to use for the MySQL root user
+-  `-e | --email` - mail address to use for the Let's Encrypt SSL certificate
+-  `-p | --password` - password to use for the MySQL root user
 -  `-ftp | --ftp_port` - port to use for the FTP server
 -  `-ssh | --ssh_port` - port to use for the SSH server
 -  `-http | --http_port` - port to use for the HTTP server
 -  `-https | --https_port` - port to use for the HTTPS server
--  `-mysql | --mysql_port` - port to use for the MySQL server
--  `-varnishP | --varnish_port` - port to use for the Varnish server
--  `-hn | --hostname` - hostname to use for the server
--  `-dmn | --domain` - domain name to use for the server
+-  `-h | --hostname` - hostname to use for the server
+-  `-d | --domain` - domain name to use for the server
 -  `-php | --php` - PHP version to install (7.4, 8.1)
 -  `-mc | --memcached` - install Memcached
+-  `-hhvm | --hhvm` - install HHVM
 -  `-nginx | --nginx` - install Nginx
 -  `-varnish | --varnish` - install Varnish
--  `-hhvm | --hhvm` - install HHVM
--  `-mdb | --mariadb` - install MariaDB
--  `-rdb | --redis` - install Redis
+-  `-varnishP | --varnish_port` - port to use for the Varnish server
+-  `-mariadb | --mariadb` - install MariaDB
+-  `-mariadbP | --mariadb_port` - port to use for the MariaDB server
+-  `-mariadbU | --mariadb_user` - user to use for the MariaDB server
+-  `-mariadbPw | --mariadb-password` - password to use for the MariaDB root user
+-  `-redis | --redis` - install Redis
+-  `-postgre | --postgre` - install PostgreSQL
 -  `-pma | --phpmyadmin` - install phpMyAdmin
 -  `-csf | --csf` - install CSF firewall
 -  `-sendmail | --sendmail` - install Sendmail
@@ -103,16 +106,16 @@ set system hostname
 
 #### options:
 
--  $1 - -hn | --hostname
+-  $1 - `-h | --hostname`
 
 #### arguments:
 
--  $2 - [hostname] - the hostname to set for the system (optional) 
+-  $2 - `[hostname]` - the hostname to set for the system (optional) 
 
 #### examples:
 
 ```
- ./vstacklet.sh -hn myhostname 
+ ./vstacklet.sh -h myhostname 
  ./vstacklet.sh --hostname myhostname
 ```
 
@@ -120,15 +123,19 @@ set system hostname
 
 ### vstacklet::webroot::set()
 
-setting main web root directory
+set main web root directory
+- if the directory already exists, it will be used.
+- if the directory does not exist, it will be created.
+- if `-wr | --web_root` is not set, the default directory will be used.
+  e.g. `/var/www/html/{public,logs,ssl}`
 
 #### options:
 
--  $1 - -wr | --web_root
+-  $1 - `-wr | --web_root` (optional) (takes one argument)
 
 #### arguments:
 
--  $2 - [web_root_directory]
+-  $2 - `[web_root_directory]` - (optional) (default: /var/www/html)
 
 #### examples:
 
@@ -145,11 +152,11 @@ set ssh port to custom port (if nothing is set, default port is 22)
 
 #### options:
 
--  $1 - -ssh | --ssh_port
+-  $1 - `-ssh | --ssh_port` (optional) (default: 22)
 
 #### arguments:
 
--  $2 - [port] (default: 22) 
+-  $2 - `[port]` (default: 22) - the port to set for ssh
 
 #### examples:
 
@@ -177,6 +184,8 @@ need port 1900. In most cases, this is a junk port.
 This function updates the package list and upgrades the system.
 
 *function has no options*
+
+*function has no arguments*
 
 ---
 
@@ -213,6 +222,12 @@ for the vStacklet software.
 
 This function sets the required software package keys
 and sources for the vStacklet software.
+keys and sources are set for the following software packages:
+- hhvm
+- nginx
+- varnish
+- php
+- mariadb
 
 *function has no options*
 
@@ -233,6 +248,25 @@ update apt sources and packages - this is a wrapper for apt-get update
 ### vstacklet::php::install()
 
 install php and php modules (optional) (default: not installed)
+versioning
+- php < "7.4" - not supported, deprecated
+- php = "7.4" - supported
+- php = "8.0" - superceded by php="8.1"
+- php = "8.1" - supported
+- chose either php or hhvm, not both
+php modules are installed based on the following variables:
+- `-php [php version]` (default: 8.1) - php version to install
+- php_modules are installed based on the php version and neccessity
+- the php_modules installed/enabled on vstacklet are:
+  - "opcache"
+  - "xml"
+  - "igbinary"
+  - "imagick"
+  - "intl"
+  - "mbstring"
+  - "gmp"
+  - "bcmath"
+  - "msgpack"
 
 #### options:
 
@@ -270,11 +304,11 @@ install nginx (optional) (default: not installed)
 
 ### vstacklet::hhvm::install()
 
-install hhvm (optional) (default: not installed)
+install hhvm
 
 #### options:
 
--  $1 - `-hhvm | --hhvm`
+-  $1 - `-hhvm | --hhvm` (optional) (takes no arguments)
 
 #### examples:
 
@@ -297,13 +331,13 @@ adjust permissions for web root
 
 ### vstacklet::varnish::install()
 
-install varnish (optional)
+install varnish and configure
 
 #### options:
 
--  $1 - `-varnish | --varnish`
--  $2 - `-varnishP | --varnish_port`
--  $3 - `-http | --http_port`
+-  $1 - `-varnish | --varnish` (optional) (takes no arguments)
+-  $2 - `-varnishP | --varnish_port` (optional) (takes one argument)
+-  $3 - `-http | --http_port` (optional) (takes one argument)
 
 #### examples:
 
@@ -333,21 +367,20 @@ install ioncube (optional)
 
 ### vstacklet::mariadb::install()
 
-install mariadb (optional)
+install mariadb and configure
 
 #### options:
 
--  $1 - -mariadb | --mariadb
--  $2 - -mariadbP | --mariadb_port
--  $3 - -mariadbU | --mariadb_user
--  $4 - -mariadbPw | --mariadb_password
+-  $1 - -mariadb | --mariadb (optional) (takes no arguments)
+-  $2 - -mariadbP | --mariadb_port (optional) (takes one argument)
+-  $3 - -mariadbU | --mariadb_user (optional) (takes one argument)
+-  $4 - -mariadbPw | --mariadb_password (optional) (takes one argument)
 
 #### arguments:
 
--  $1 - (optional) -mariadb | --mariadb (no argument)
--  $2 - (optional) [port]
--  $3 - (optional) [user]
--  $4 - (optional) [password]
+-  $1 - [port] (optional) (default: 3306)
+-  $2 - [user] (optional) (default: root)
+-  $3 - [password] (optional) (default: password auto-generated)
 
 #### examples:
 
