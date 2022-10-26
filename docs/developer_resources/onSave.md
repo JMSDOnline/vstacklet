@@ -1,4 +1,4 @@
-# on_save - v1.0.9
+# on_save - v1.0.20
 
 
 ### load::variables()
@@ -7,8 +7,8 @@ loads variables for save script
 
 #### arguments:
 
-- $1: file
-- $2: workspace
+-  $1 - file
+-  $2 - workspace
 
 ### parse::meta_data()
 

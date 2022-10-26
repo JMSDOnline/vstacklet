@@ -1,25 +1,27 @@
 VStacklet - A Buff LEMP Stack Kit
-==========
+===============================
 
+<center>
 | ![VStacklet - A Buff LEMP Stack Kit](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-lemp-kit.png "vstacklet") |
-|---|
-| **VStacklet - A Buff LEMP Stack Kit** |
+| ----------------------------------------------------------------------------------------------------------------------------------- |
+| **VStacklet - A Buff LEMP Stack Kit**                                                                                               |
 
-#### Script status
+## Script status
 
-  Version: v3.1.1.479
-  Build: 479
+  Version: v3.1.1.481
+  Build: 481
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
-[![Ubuntu 16.04 Failing](https://img.shields.io/badge/Ubuntu%2016.04-failing-brightred.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
-[![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-brightred.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
+[![Ubuntu 16.04 Failing](https://img.shields.io/badge/Ubuntu%2016.04-failing-brightred.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
+[![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-brightred.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 
+</center>
 --------
 
 > ### HEADS UP!
-VStacklet for Ubuntu 14.04 & 15.10 has been deprecated. This is due to 16.04 LTS now becoming more common place with at least 90% of the providers on the market. Additionally, SSL creation and install in the script has been disabled until I have LetsEncrypt fully integrated.
+VStacklet for Ubuntu 16.04 has been deprecated. This is due to 20.04 LTS now becoming more common place with at least 90% of the providers on the market. Additionally, SSL creation and install in the script has been disabled until I have LetsEncrypt fully integrated.
 
-Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04, 15.10 and 16.04 servers.
+Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 18.04/20.04 and Debian 9/10/11 servers.
 
 Components include a recent mainline version of Nginx (1.11.3 (Wily)) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.2 (drop-in replacement for MySQL), PHP7.0, PHP5.6 or HHVM **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
 
@@ -134,7 +136,7 @@ cd /etc/vstacklet/packages/backup && ./vstacklet-backup-standalone.sh
 ### The TO-DO List
 - [x] Enable OPCode Caching
 - [x] Enable Memcached Caching
-- [ ] Optional install of php5.6, php7.0 or HHVM [wip]
+- [ ] Optional install of php7.4, php8.1 or HHVM [wip]
 - [x] Sendmail
 - [x] IonCube Loader (w/ option prompt)
 - [x] Improve script structure
@@ -142,14 +144,14 @@ cd /etc/vstacklet/packages/backup && ./vstacklet-backup-standalone.sh
 - [x] phpMyAdmin (w/ option prompt)
 - [x] CSF (w/ option prompt)
 - [x] VS-Backup standalone kit (included in FULL Kit also)
-- [ ] Full support for Ubuntu 16.04 & Debian 8 [wip]
+- [ ] Full support for Ubuntu 18.04/20.04 & Debian 9/10/11 [wip]
 - [ ] Nginx + Page Speed building
-- [ ] Build SSL with LetsEncrypt
+- [ ] Build SSL with LetsEncrypt [wip]
 
 
 ### Additional Notes and honorable mentions
 
-This is a modification of it's original branch provided by <a href="https://github.com/jbradach/quick-lemp/" target="_blank">quick-lemp</a>. The scripts within VStacklet LEMP Kit come with heavy modifications to  the origianl quick-lemp script... in this regards, these two scripts are entirely separate and not similar to one another. Quick-LEMP is mentioned as it started the VStacklet Kit Project... what was to be a simply pull request to it's original owner, took on a new scope and thus simply became a new project. The changes include ushering in __CSF__, __Varnish__ as well as installing and configuring __Sendmail__ and __phpMyAdmin__ for ease of use.
+This is a modification of it's original branch provided by <a href="https://github.com/jbradach/quick-lemp/" target="_blank">quick-lemp</a>. The scripts within VStacklet LEMP Kit come with heavy modifications to  the origianl quick-lemp script... in this regards, these two scripts are entirely separate and not similar to one another. Quick-LEMP is mentioned as it started the VStacklet Kit Project... what was to be a simply pull request to it's original owner, took on a new scope and thus simply became a new project. The changes include ushering in __CSF__, __Varnish__ as well as installing and configuring __Sendmail__ and __phpMyAdmin__ for ease of use... and many other changes. The original quick-lemp script is still available and can be found at the link above. Although, it is no longer being maintained.
 
 Quick-Lemp is geared towards python based application installs and using default Boilerplate templates on Nginx/stable versions of no higher than 1.8. This limits the use of new functions and features in Nginx, nothing wrong with that, but some of us are sticklers for a recent version.
 

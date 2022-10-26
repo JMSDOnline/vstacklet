@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: doc.awk
-# @version: 1.0.82
+# @version: 1.0.84
 # @description: automated documentation
 # @project_name: vstacklet
 #
