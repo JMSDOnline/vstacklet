@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: doc.awk
-# @version: 1.0.87
+# @version: 1.0.88
 # @description: automated documentation
 # @project_name: vstacklet
 #
@@ -239,7 +239,7 @@ in_example {
 }
 
 {
-    docblock = content_desc content_args content_options content_params content_exitcode content_stdout content_example content_seealso
+    docblock = content_desc content_options content_args content_params content_exitcode content_stdout content_example content_seealso
 }
 
 /^[ \t]*(function([ \t])+)?([a-zA-Z0-9_:-]+)([ \t]*)(\(([ \t]*)\))?[ \t]*\{/ && docblock != "" && !in_example {
