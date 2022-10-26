@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1170
+# vstacklet-server-stack.sh - v3.1.1171
 
 
 ### vstacklet::environment::init()
@@ -103,6 +103,12 @@ set ~/.bashrc and ~/.profile for vstacklet
 ### vstacklet::hostname::set()
 
 set system hostname
+- hostname must be a valid hostname.
+  - It can contain only letters, numbers, and hyphens.
+  - It must start with a letter and end with a letter or number.
+  - It must not contain consecutive hyphens.
+  - If hostname is not provided, it will be set to the domain name if provided.
+  - If domain name is not provided, it will be set to the server hostname.
 
 #### options:
 
