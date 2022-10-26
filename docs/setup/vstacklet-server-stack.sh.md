@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1002
+# vstacklet-server-stack.sh - v3.1.1044
 
 
 ### vstacklet::environment::init()
@@ -11,7 +11,32 @@ process the arguments passed to the script
 
 #### arguments:
 
-- # @args:
+-  --help|-h|-? show help
+-  --version: show version
+-  --non-interactive: run in non-interactive mode
+-   -e|--email: email address to use for the Let's Encrypt SSL certificate
+-   -p|--password: password to use for the MySQL root user
+-  -ftp|--ftp_port: port to use for the FTP server
+-  -ssh|--ssh_port: port to use for the SSH server
+-  -http|--http_port: port to use for the HTTP server
+-  -https|--https_port: port to use for the HTTPS server
+-  -mysql|--mysql_port: port to use for the MySQL server
+-  -varnishP|--varnish_port: port to use for the Varnish server
+-  -hn|--hostname: hostname to use for the server
+-  -dmn|--domain: domain name to use for the server
+-  -php|--php: PHP version to install (7.4, 8.1)
+-  -mc|--memcached: install Memcached
+-  -nginx|--nginx: install Nginx
+-  -varnish|--varnish: install Varnish
+-  -hhvm|--hhvm: install HHVM
+-  -mdb|--mariadb: install MariaDB
+-  -rdb|--redis: install Redis
+-  -pma|--phpmyadmin: install phpMyAdmin
+-  -csf|--csf: install CSF firewall
+-  -sendmail|--sendmail: install Sendmail
+-  -wr|--web_root: the web root directory to use for the server
+-  -wp|--wordpress: install WordPress
+-  --reboot: reboot the server after the installation
 
 #### example:
 
