@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1001
+# vstacklet-server-stack.sh - v3.1.1002
 
 
 ### vstacklet::environment::init()
@@ -137,6 +137,14 @@ and sources for the vStacklet software.
 
 ```
 # @example: ./vstacklet.sh -varnish -varnishP 6081 -http 80
+```
+
+### vstacklet::ioncube::install()
+
+#### example:
+
+```
+# @example: ./vstacklet.sh -ioncube
 ```
 
 
