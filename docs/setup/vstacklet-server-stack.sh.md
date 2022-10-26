@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1156
+# vstacklet-server-stack.sh - v3.1.1157
 
 
 ### vstacklet::environment::init()
@@ -18,28 +18,28 @@ process the options and values passed to the script
 -  `--version` - show version
 -  `--non-interactive` - run in non-interactive mode
 -   `-e | --email` - mail address to use for the Let's Encrypt SSL certificate
--   `-p | --password` - assword to use for the MySQL root user
--  `-ftp | --ftp_port` - ort to use for the FTP server
--  `-ssh | --ssh_port` - ort to use for the SSH server
--  `-http | --http_port` - ort to use for the HTTP server
--  `-https | --https_port` - ort to use for the HTTPS server
--  `-mysql | --mysql_port` - ort to use for the MySQL server
--  `-varnishP | --varnish_port` - ort to use for the Varnish server
--  `-hn | --hostname` - ostname to use for the server
--  `-dmn | --domain` - omain name to use for the server
--  `-php | --php` - HP version to install (7.4, 8.1)
--  `-mc | --memcached` - nstall Memcached
--  `-nginx | --nginx` - nstall Nginx
--  `-varnish | --varnish` - nstall Varnish
--  `-hhvm | --hhvm` - nstall HHVM
--  `-mdb | --mariadb` - nstall MariaDB
--  `-rdb | --redis` - nstall Redis
--  `-pma | --phpmyadmin` - nstall phpMyAdmin
--  `-csf | --csf` - nstall CSF firewall
--  `-sendmail | --sendmail` - nstall Sendmail
--  `-wr | --web_root` - he web root directory to use for the server
--  `-wp | --wordpress` - nstall WordPress
--  `--reboot` - eboot the server after the installation
+-   `-p | --password` - password to use for the MySQL root user
+-  `-ftp | --ftp_port` - port to use for the FTP server
+-  `-ssh | --ssh_port` - port to use for the SSH server
+-  `-http | --http_port` - port to use for the HTTP server
+-  `-https | --https_port` - port to use for the HTTPS server
+-  `-mysql | --mysql_port` - port to use for the MySQL server
+-  `-varnishP | --varnish_port` - port to use for the Varnish server
+-  `-hn | --hostname` - hostname to use for the server
+-  `-dmn | --domain` - domain name to use for the server
+-  `-php | --php` - PHP version to install (7.4, 8.1)
+-  `-mc | --memcached` - install Memcached
+-  `-nginx | --nginx` - install Nginx
+-  `-varnish | --varnish` - install Varnish
+-  `-hhvm | --hhvm` - install HHVM
+-  `-mdb | --mariadb` - install MariaDB
+-  `-rdb | --redis` - install Redis
+-  `-pma | --phpmyadmin` - install phpMyAdmin
+-  `-csf | --csf` - install CSF firewall
+-  `-sendmail | --sendmail` - install Sendmail
+-  `-wr | --web_root` - the web root directory to use for the server
+-  `-wp | --wordpress` - install WordPress
+-  `--reboot` - reboot the server after the installation
 
 #### arguments:
 
