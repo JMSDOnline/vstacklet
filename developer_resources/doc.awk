@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: doc.awk
-# @version: 1.0.176
+# @version: 1.0.203
 # @project_name: mflibs
 # @description: auto generated markdown file
 #
@@ -156,7 +156,7 @@ in_example {
         content_args = content_args "\n" render("h4", "arguments:") "\n\n"
     }
 
-    sub(/^[[:space:]]*# @arg /, "")
+    sub(/^[[:space:]]*# @arg:/, "")
     $0 = render("argN", $0)
     $0 = render("arg@", $0)
     content_args = content_args render("li", $0) "\n"
