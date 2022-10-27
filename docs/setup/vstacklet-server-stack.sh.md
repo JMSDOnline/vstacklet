@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1217
+# vstacklet-server-stack.sh - v3.1.1219
 
 
 ### vstacklet::environment::init()
@@ -420,19 +420,23 @@ install phpmyadmin and configure.
   - mariadb
   - mysql
 - phpMyAdmin requires php to run. You must select a php version from the list below.
-  - php7.4
-  - php8.1
+  - 8.1
+  - 7.4
+- phpMyAdmin requires a web port to run. This argmuent is supplied by the `-http | --http_port` option.
 - phpMyAdmin will use the following options to configure itself:
   - web server: nginx, varnish
-    - usage: `-nginx | --nginx` || `-varnish | --varnish`
+    - Nginx usage: `-nginx | --nginx`
+    - Varnish usage: `-varnish | --varnish`
   - database server: mariadb, mysql
     - mariaDB usage: `-mariadbU [user] | --mariadb_user [user]` & `-mariadbPw [password] | --mariadb_password [password]`
     - mysql usage: `-mysqlU [user] | --mysql_user [user]` & `-mysqlPw [password] | --mysql_password [password]`
+    - note: if no user or password is provided, the default user and password will be used. (root, auto-generated password)
   - php version: hhvm, php7.4, php8.1
     - PHP usage: `-php [version] | --php [version]`
     - HHVM usage: `-hhvm | --hhvm`
   - port: http
     - usage: `-http [port] | --http [port]`
+    - note: if no port is provided, the default port will be used. (80)
 
 #### examples:
 

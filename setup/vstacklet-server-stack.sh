@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1217
+# @version: 3.1.1219
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or
@@ -1231,19 +1231,23 @@ vstacklet::mariadb::install() {
 #   - mariadb
 #   - mysql
 # - phpMyAdmin requires php to run. You must select a php version from the list below.
-#   - php7.4
-#   - php8.1
+#   - 8.1
+#   - 7.4
+# - phpMyAdmin requires a web port to run. This argmuent is supplied by the `-http | --http_port` option.
 # - phpMyAdmin will use the following options to configure itself:
 #   - web server: nginx, varnish
-#     - usage: `-nginx | --nginx` || `-varnish | --varnish`
+#     - Nginx usage: `-nginx | --nginx`
+#     - Varnish usage: `-varnish | --varnish`
 #   - database server: mariadb, mysql
 #     - mariaDB usage: `-mariadbU [user] | --mariadb_user [user]` & `-mariadbPw [password] | --mariadb_password [password]`
 #     - mysql usage: `-mysqlU [user] | --mysql_user [user]` & `-mysqlPw [password] | --mysql_password [password]`
+#     - note: if no user or password is provided, the default user and password will be used. (root, auto-generated password)
 #   - php version: hhvm, php7.4, php8.1
 #     - PHP usage: `-php [version] | --php [version]`
 #     - HHVM usage: `-hhvm | --hhvm`
 #   - port: http
 #     - usage: `-http [port] | --http [port]`
+#     - note: if no port is provided, the default port will be used. (80)
 # @example: ./vstacklet.sh -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
 # ./vstacklet.sh --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
 # ./vstacklet.sh -phpmyadmin -varnish -mysqlU root -mysqlPw password -hhvm -http 80
