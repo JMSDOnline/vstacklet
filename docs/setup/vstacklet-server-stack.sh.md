@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1171
+# vstacklet-server-stack.sh - v3.1.1173
 
 
 ### vstacklet::environment::init()
@@ -228,12 +228,12 @@ for the vStacklet software.
 
 This function sets the required software package keys
 and sources for the vStacklet software.
-keys and sources are set for the following software packages:
-- hhvm
-- nginx
-- varnish
-- php
-- mariadb
+- keys and sources are set for the following software packages:
+  - hhvm (only if option `-hhvm|--hhvm` is set)
+  - nginx (only if option `-nginx|--nginx` is set)
+  - varnish (only if option `-varnish|--varnish` is set)
+  - php (only if option `-php|--php` is set)
+  - mariadb (only if option `-mariadb|--mariadb` is set)
 
 *function has no options*
 
@@ -260,9 +260,9 @@ versioning
 - php = "8.0" - superceded by php="8.1"
 - php = "8.1" - supported
 - chose either php or hhvm, not both
-php modules are installed based on the following variables:
-- `-php [php version]` (default: 8.1) - php version to install
-- php_modules are installed based on the php version and neccessity
+- php modules are installed based on the following variables:
+  - `-php [php version]` (default: 8.1) - php version to install
+  - php_modules are installed based on the php version and neccessity
 - the php_modules installed/enabled on vstacklet are:
   - "opcache"
   - "xml"
