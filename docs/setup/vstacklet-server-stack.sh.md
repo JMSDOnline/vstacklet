@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1189
+# vstacklet-server-stack.sh - v3.1.1205
 
 
 ### vstacklet::environment::init()
@@ -51,8 +51,8 @@ process the options and values passed to the script
 
 ```
  ./vstacklet.sh --help
- ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -h "yourhostname" -d "yourdomain.com" -php 8.1 -mc -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
- ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -h "yourhostname" -d "yourdomain.com" -hhvm -mc -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -sendmail -wr "/var/www/html" -wp --reboot
+ ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -h "yourhostname" -d "yourdomain.com" -php 8.1 -mc -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
+ ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -h "yourhostname" -d "yourdomain.com" -hhvm -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -sendmail -wr "/var/www/html" -wp --reboot
 ```
 
 ---
@@ -117,12 +117,12 @@ set system hostname
 
 #### arguments:
 
--  $2 - `[hostname]` - the hostname to set for the system (optional) 
+-  $2 - `[hostname]` - the hostname to set for the system (optional)
 
 #### examples:
 
 ```
- ./vstacklet.sh -h myhostname 
+ ./vstacklet.sh -h myhostname
  ./vstacklet.sh --hostname myhostname
 ```
 
@@ -320,7 +320,7 @@ install hhvm
 #### examples:
 
 ```
- ./vstacklet.sh -hhvm 
+ ./vstacklet.sh -hhvm
  ./vstacklet.sh --hhvm
 ```
 
@@ -406,6 +406,32 @@ install mariadb and configure
 ```
  ./vstacklet.sh -mariadb -mariadbP 3306 -mariadbU root -mariadbPw password
  ./vstacklet.sh --mariadb --mariadb_port 3306 --mariadb_user root --mariadb_password password
+```
+
+---
+
+### vstacklet::phpmyadmin::install()
+
+install phpmyadmin and configure
+
+#### options:
+
+-  $1 - `-phpmyadmin | --phpmyadmin` (optional) (takes no arguments)
+-  $2 - `-phpmyadminP | --phpmyadmin_port` (optional) (takes one argument)
+-  $3 - `-phpmyadminU | --phpmyadmin_user` (optional) (takes one argument)
+-  $4 - `-phpmyadminPw | --phpmyadmin_password` (optional) (takes one argument)
+
+#### arguments:
+
+-  $2 - `[port]` (optional) (default: 8080)
+-  $3 - `[user]` (optional) (default: root)
+-  $4 - `[password]` (optional) (default: password auto-generated)
+
+#### examples:
+
+```
+ ./vstacklet.sh -phpmyadmin -phpmyadminP 8080 -phpmyadminU root -phpmyadminPw password
+ ./vstacklet.sh --phpmyadmin --phpmyadmin_port 8080 --phpmyadmin_user root --phpmyadmin_password password
 ```
 
 ---

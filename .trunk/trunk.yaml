@@ -1,27 +1,23 @@
 version: 0.1
-actions:
+cli:
+  version: 1.0.1
+plugins:
+  sources:
+    - id: trunk
+      ref: v0.0.5
+      uri: https://github.com/trunk-io/plugins
+lint:
   enabled:
-    - trunk-cache-prune
-    - trunk-upgrade-available
+    - git-diff-check
+    - gitleaks@8.15.0
+    - markdownlint@0.32.2
+    - shellcheck@0.8.0
+    - prettier@2.7.1
+    - shfmt@3.5.0
 runtimes:
   enabled:
     - go@1.18.3
     - node@16.14.2
-plugins:
-  sources:
-    - id: trunk
-      ref: v0.0.4
-      uri: https://github.com/trunk-io/plugins
-cli:
-  version: 0.18.1-beta
-lint:
+actions:
   enabled:
-    - dotenv-linter@3.2.0
-    - git-diff-check@SYSTEM
-    - svgo@2.8.0
-    - taplo@release-taplo-cli-0.7.0
-    - gitleaks@8.13.0
-    - markdownlint@0.32.2
-    - prettier@2.7.1
-    - shellcheck@0.8.0
-    - shfmt@3.5.0
+    - trunk-upgrade-available

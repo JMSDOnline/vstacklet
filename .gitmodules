@@ -1,7 +1,7 @@
-[submodule "setup"]
-  path = setup
-  url = https://github.com/JMSDOnline/vstacklet_setup.git
-  branch = development
+#[submodule "setup"]
+#  path = setup
+#  url = https://github.com/JMSDOnline/vstacklet_setup.git
+#  branch = development
 [submodule "php7"]
   path = php7
   url = https://github.com/JMSDOnline/vstacklet_php7_base.git
