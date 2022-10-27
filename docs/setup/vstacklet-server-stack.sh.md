@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1205
+# vstacklet-server-stack.sh - v3.1.1217
 
 
 ### vstacklet::environment::init()
@@ -412,26 +412,35 @@ install mariadb and configure
 
 ### vstacklet::phpmyadmin::install()
 
-install phpmyadmin and configure
-
-#### options:
-
--  $1 - `-phpmyadmin | --phpmyadmin` (optional) (takes no arguments)
--  $2 - `-phpmyadminP | --phpmyadmin_port` (optional) (takes one argument)
--  $3 - `-phpmyadminU | --phpmyadmin_user` (optional) (takes one argument)
--  $4 - `-phpmyadminPw | --phpmyadmin_password` (optional) (takes one argument)
-
-#### arguments:
-
--  $2 - `[port]` (optional) (default: 8080)
--  $3 - `[user]` (optional) (default: root)
--  $4 - `[password]` (optional) (default: password auto-generated)
+install phpmyadmin and configure.
+- phpMyAdmin requires a web server to run. You must select a web server from the list below.
+  - nginx
+  - varnish
+- phpMyAdmin requires a database server to run. You must select a database server from the list below.
+  - mariadb
+  - mysql
+- phpMyAdmin requires php to run. You must select a php version from the list below.
+  - php7.4
+  - php8.1
+- phpMyAdmin will use the following options to configure itself:
+  - web server: nginx, varnish
+    - usage: `-nginx | --nginx` || `-varnish | --varnish`
+  - database server: mariadb, mysql
+    - mariaDB usage: `-mariadbU [user] | --mariadb_user [user]` & `-mariadbPw [password] | --mariadb_password [password]`
+    - mysql usage: `-mysqlU [user] | --mysql_user [user]` & `-mysqlPw [password] | --mysql_password [password]`
+  - php version: hhvm, php7.4, php8.1
+    - PHP usage: `-php [version] | --php [version]`
+    - HHVM usage: `-hhvm | --hhvm`
+  - port: http
+    - usage: `-http [port] | --http [port]`
 
 #### examples:
 
 ```
- ./vstacklet.sh -phpmyadmin -phpmyadminP 8080 -phpmyadminU root -phpmyadminPw password
- ./vstacklet.sh --phpmyadmin --phpmyadmin_port 8080 --phpmyadmin_user root --phpmyadmin_password password
+ ./vstacklet.sh -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
+ ./vstacklet.sh --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
+ ./vstacklet.sh -phpmyadmin -varnish -mysqlU root -mysqlPw password -hhvm -http 80
+ ./vstacklet.sh --phpmyadmin --varnish --mysql_user root --mysql_password password --hhvm --http 80
 ```
 
 ---

@@ -2,9 +2,9 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1202
-# @description: Lightweight script to quickly install a LEMP stack with Nginx, 
-# Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail 
+# @version: 3.1.1217
+# @description: Lightweight script to quickly install a LEMP stack with Nginx,
+# Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or
 # Debian 9/10/11 server for website-based server applications.
 # @project_name: vstacklet
@@ -75,6 +75,7 @@ vstacklet::environment::init() {
 	normal=$(tput sgr0)
 	title=${standout}
 	repo_title=${black}${on_green}
+	message_title=${bold}${green}
 }
 
 ##################################################################################
@@ -112,7 +113,7 @@ vstacklet::environment::init() {
 # @option: `-mariadbP | --mariadb_port` - port to use for the MariaDB server
 # @option: `-mariadbU | --mariadb_user` - user to use for the MariaDB server
 # @option: `-mariadbPw | --mariadb-password` - password to use for the MariaDB root user
-# 
+#
 # @option: `-redis | --redis` - install Redis
 # @option: `-postgre | --postgre` - install PostgreSQL
 #
@@ -172,13 +173,6 @@ vstacklet::args::process() {
 		-hhvm | --hhvm)
 			declare -gi hhvm="1"
 			shift
-			;;
-		-h* | --hostname*)
-			declare -g hostname="${2}"
-			shift
-			shift
-			[[ -n ${hostname} && $(echo "${hostname}" | grep -P '(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)') == "" ]] && vstacklet::clean::rollback 5
-			[[ -z ${hostname} ]] && declare -g hostname && hostname=$(echo "${server_hostname}" | cut -d. -f1)
 			;;
 		-mariadb | --mariadb)
 			declare -gi mariadb="1"
@@ -247,7 +241,7 @@ vstacklet::args::process() {
 			declare -gi php="${2}"
 			shift
 			shift
-			[[ -n ${php} && ${php} != "7" && ${php} != "8" && ${php} != "7.4" && ${php} != "8.1"  ]] && _error "Invalid PHP version. Please enter either 7 (7.4), or 8 (8.4)." && vstacklet::clean::rollback 10
+			[[ -n ${php} && ${php} != "7" && ${php} != "8" && ${php} != "7.4" && ${php} != "8.1" ]] && _error "Invalid PHP version. Please enter either 7 (7.4), or 8 (8.4)." && vstacklet::clean::rollback 10
 			[[ -n ${php} && ${php} -lt 1 || ${php} -gt 9 ]] && _error "Invalid PHP version. Please enter a number between 1 and 9." && vstacklet::clean::rollback 10
 			[[ ${php} == *"7"* ]] && declare -gi php="7.4"
 			[[ ${php} == *"8"* ]] && declare -gi php="8.1"
@@ -272,6 +266,13 @@ vstacklet::args::process() {
 			[[ -n ${http_port} && ${http_port} != ?(-)+([0-9]) ]] && _error "The HTTP port must be a number." && vstacklet::clean::rollback 12
 			[[ -n ${http_port} && ${http_port} -lt 1 || ${http_port} -gt 65535 ]] && _error "Invalid HTTP port number. Please enter a number between 1 and 65535." && vstacklet::clean::rollback 12
 			[[ -z ${http_port} ]] && declare -gi http_port="80"
+			;;
+		-h* | --hostname*)
+			declare -g hostname="${2}"
+			shift
+			shift
+			[[ -n ${hostname} && $(echo "${hostname}" | grep -P '(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)') == "" ]] && vstacklet::clean::rollback 5
+			[[ -z ${hostname} ]] && declare -g hostname && hostname=$(echo "${server_hostname}" | cut -d. -f1)
 			;;
 		-redis | --redis)
 			declare -gi redis="1"
@@ -494,8 +495,8 @@ vstacklet::bashrc::set() {
 #   - If hostname is not provided, it will be set to the domain name if provided.
 #   - If domain name is not provided, it will be set to the server hostname.
 # @option: $1 - `-h | --hostname` (optional) (takes one argument)
-# @arg: $2 - `[hostname]` - the hostname to set for the system (optional) 
-# @example: ./vstacklet.sh -h myhostname 
+# @arg: $2 - `[hostname]` - the hostname to set for the system (optional)
+# @example: ./vstacklet.sh -h myhostname
 # ./vstacklet.sh --hostname myhostname
 # @break
 ##################################################################################
@@ -997,7 +998,7 @@ vstacklet::nginx::install() {
 # @name: vstacklet::hhvm::install (13)
 # @description: install hhvm
 # @option: $1 - `-hhvm | --hhvm` (optional) (takes no arguments)
-# @example: ./vstacklet.sh -hhvm 
+# @example: ./vstacklet.sh -hhvm
 # ./vstacklet.sh --hhvm
 # @note: chose either php or hhvm, not both
 # @break
@@ -1073,10 +1074,7 @@ vstacklet::varnish::install() {
 		echo -n "Installing and Adjusting ${magenta}varnish${normal} ... "
 		(
 			apt-get -y install varnish
-		) >>"${vslog}" 2>&1 || {
-			_warn "Failed to install varnish"
-			exit 1
-		}
+		) >>"${vslog}" 2>&1 || { _warn "Failed to install varnish" && exit 1; }
 		cd /etc/varnish || _error "/etc/varnish does not exist" && exit 1
 		mv default.vcl default.vcl.ORIG
 		# import varnish config files from vStacklet
@@ -1091,10 +1089,7 @@ vstacklet::varnish::install() {
 		sed -i "s|6081|${http_port}|g" /lib/systemd/system/varnish.service
 		(
 			systemctl daemon-reload
-		) >>"${vslog}" 2>&1 || {
-			_warn "Failed to reload systemctl service daemon"
-			exit 1
-		}
+		) >>"${vslog}" 2>&1 || { _warn "Failed to reload systemctl service daemon" && exit 1; }
 		cd "${HOME}" || _error "Failed to change directory to ${HOME}" && exit 1
 		echo "${OK}"
 	fi
@@ -1135,10 +1130,7 @@ vstacklet::ioncube::install() {
 		(
 			apt-get -y install php${php}-dev git pkg-config build-essential libmemcached-dev
 			apt-get -y install php-memcached memcached
-		) >>"${vslog}" 2>&1 || {
-			_warn "Failed to install php-memcached and memcached"
-			exit 1
-		}
+		) >>"${vslog}" 2>&1 || { _warn "Failed to install php-memcached and memcached" && exit 1; }
 		# install ioncube loader for php 7.4
 		if [[ ${php} == "7.4" ]]; then
 			(
@@ -1153,10 +1145,7 @@ vstacklet::ioncube::install() {
 				phpenmod -v 7.4 ioncube
 				systemctl restart php7.4-fpm
 				systemctl restart apache2
-			) >>"${vslog}" 2>&1 || {
-				_warn "Failed to install ioncube loader for php 7.4"
-				exit 1
-			}
+			) >>"${vslog}" 2>&1 || { _warn "Failed to install ioncube loader for php 7.4" && exit 1; }
 		fi
 		# install ioncube loader for php 8.1
 		if [[ ${php} == "8.1" ]]; then
@@ -1167,17 +1156,11 @@ vstacklet::ioncube::install() {
 				cd ioncube || _error "Failed to change directory to /tmp/ioncube" && exit 1
 				cp -f ioncube_loader_lin_8.1.so /usr/lib/php/20210902/ || _error "Failed to copy ioncube_loader_lin_8.1.so to /usr/lib/php/20210902/" && exit 1
 				echo "zend_extension = /usr/lib/php/20210902/ioncube_loader_lin_8.1.so" >/etc/php/8.1/mods-available/ioncube.ini
-				{ echo "zend_extension = /usr/lib/php/20210902/ioncube_loader_lin_8.1.so" >> "$(php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||")"; } || {
-					_warn "Failed to add ioncube loader to php.ini"
-					exit 1
-				}
+				{ echo "zend_extension = /usr/lib/php/20210902/ioncube_loader_lin_8.1.so" >>"$(php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||")"; } || { _warn "Failed to add ioncube loader to php.ini" && exit 1; }
 				ln -sf /etc/php/8.1/mods-available/ioncube.ini /etc/php/8.1/cli/conf.d/20-ioncube.ini
 				ln -sf /etc/php/8.1/mods-available/ioncube.ini /etc/php/8.1/fpm/conf.d/20-ioncube.ini
 				phpenmod -v 8.1 ioncube
-			) >>"${vslog}" 2>&1 || {
-				_warn "Failed to install ioncube loader for php 8.1"
-				exit 1
-			}
+			) >>"${vslog}" 2>&1 || { _warn "Failed to install ioncube loader for php 8.1" && exit 1; }
 		fi
 		echo "${OK}"
 	fi
@@ -1205,32 +1188,17 @@ vstacklet::mariadb::install() {
 		echo -n "${green}Installing MariaDB${normal} ... "
 		(
 			DEBIAN_FRONTEND=noninteractive apt-get --allow-unauthenticated -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install mariadb-server mariadb-client
-		) >>"${vslog}" 2>&1 || {
-			_warn "Failed to install MariaDB"
-			exit 1
-		}
+		) >>"${vslog}" 2>&1 || { _warn "Failed to install MariaDB" && exit 1; }
 		# configure mariadb
 		echo -n "${green}Configuring MariaDB${normal} ... "
 		# set mariadb root password
-		mysqladmin -u root password "${mariadb_password}" >>"${vslog}" 2>&1 || {
-			_warn "Failed to set MariaDB root password"
-			exit 1
-		}
+		mysqladmin -u root password "${mariadb_password}" >>"${vslog}" 2>&1 || { _warn "Failed to set MariaDB root password" && exit 1; }
 		# create mariadb user
-		mysql -u root -p"${mariadb_password}" -e "CREATE USER '${mariadb_user}'@'localhost' IDENTIFIED BY '${mariadb_password}';" >>"${vslog}" 2>&1 || {
-			_warn "Failed to create MariaDB user"
-			exit 1
-		}
+		mysql -u root -p"${mariadb_password}" -e "CREATE USER '${mariadb_user}'@'localhost' IDENTIFIED BY '${mariadb_password}';" >>"${vslog}" 2>&1 || { _warn "Failed to create MariaDB user" && exit 1; }
 		# grant privileges to mariadb user
-		mysql -u root -p"${mariadb_password}" -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user}'@'localhost' WITH GRANT OPTION;" >>"${vslog}" 2>&1 || {
-			_warn "Failed to grant privileges to MariaDB user"
-			exit 1
-		}
+		mysql -u root -p"${mariadb_password}" -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user}'@'localhost' WITH GRANT OPTION;" >>"${vslog}" 2>&1 || { _warn "Failed to grant privileges to MariaDB user" && exit 1; }
 		# flush privileges
-		mysql -u root -p"${mariadb_password}" -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || {
-			_warn "Failed to flush privileges"
-			exit 1
-		}
+		mysql -u root -p"${mariadb_password}" -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || { _warn "Failed to flush privileges" && exit 1; }
 		# set mariadb client and server configuration
 		{
 			echo -e "[client]"
@@ -1241,10 +1209,7 @@ vstacklet::mariadb::install() {
 			echo -e "socket = /var/run/mysqld/mysqld.sock"
 			echo -e "bind-address = 127.0.0.1"
 
-		} >/etc/mysql/conf.d/vstacklet.cnf || {
-			_warn "Failed to set MariaDB client and server configuration" 
-			vstacklet::clean::rollback 
-		} 
+		} >/etc/mysql/conf.d/vstacklet.cnf || { _warn "Failed to set MariaDB client and server configuration" && vstacklet::clean::rollback; }
 		echo "configuration file saved to /etc/mysql/conf.d/vstacklet.cnf"
 		echo "mariaDB client and server configuration set to:"
 		cat /etc/mysql/conf.d/vstacklet.cnf
@@ -1258,21 +1223,37 @@ vstacklet::mariadb::install() {
 
 ##################################################################################
 # @name: vstacklet::phpmyadmin::install (18)
-# @description: install phpmyadmin and configure
-# @option: $1 - `-phpmyadmin | --phpmyadmin` (optional) (takes no arguments)
-# @option: $2 - `-phpmyadminP | --phpmyadmin_port` (optional) (takes one argument)
-# @option: $3 - `-phpmyadminU | --phpmyadmin_user` (optional) (takes one argument)
-# @option: $4 - `-phpmyadminPw | --phpmyadmin_password` (optional) (takes one argument)
-# @arg: $2 - `[port]` (optional) (default: 8080)
-# @arg: $3 - `[user]` (optional) (default: root)
-# @arg: $4 - `[password]` (optional) (default: password auto-generated)
-# @example: ./vstacklet.sh -phpmyadmin -phpmyadminP 8080 -phpmyadminU root -phpmyadminPw password
-# ./vstacklet.sh --phpmyadmin --phpmyadmin_port 8080 --phpmyadmin_user root --phpmyadmin_password password
+# @description: install phpmyadmin and configure.
+# - phpMyAdmin requires a web server to run. You must select a web server from the list below.
+#   - nginx
+#   - varnish
+# - phpMyAdmin requires a database server to run. You must select a database server from the list below.
+#   - mariadb
+#   - mysql
+# - phpMyAdmin requires php to run. You must select a php version from the list below.
+#   - php7.4
+#   - php8.1
+# - phpMyAdmin will use the following options to configure itself:
+#   - web server: nginx, varnish
+#     - usage: `-nginx | --nginx` || `-varnish | --varnish`
+#   - database server: mariadb, mysql
+#     - mariaDB usage: `-mariadbU [user] | --mariadb_user [user]` & `-mariadbPw [password] | --mariadb_password [password]`
+#     - mysql usage: `-mysqlU [user] | --mysql_user [user]` & `-mysqlPw [password] | --mysql_password [password]`
+#   - php version: hhvm, php7.4, php8.1
+#     - PHP usage: `-php [version] | --php [version]`
+#     - HHVM usage: `-hhvm | --hhvm`
+#   - port: http
+#     - usage: `-http [port] | --http [port]`
+# @example: ./vstacklet.sh -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
+# ./vstacklet.sh --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
+# ./vstacklet.sh -phpmyadmin -varnish -mysqlU root -mysqlPw password -hhvm -http 80
+# ./vstacklet.sh --phpmyadmin --varnish --mysql_user root --mysql_password password --hhvm --http 80
 # @break
 ##################################################################################
 vstacklet::phpmyadmin::install() {
-	if [[ -n ${phpmyadmin} && -n ${mariadb} || ${mysql} ]]; then
-		declare pma_version=$(curl -s https://www.phpmyadmin.net/home_page/version.json | jq -r '.version')
+	if [[ -n ${phpmyadmin} && -n ${mariadb} || -n ${mysql} && -n ${nginx} || -n ${varnish} && -n ${php} || -n ${hhvm} ]]; then
+		declare pma_version
+		pma_version=$(curl -s https://www.phpmyadmin.net/home_page/version.json | jq -r '.version')
 		[[ -n ${http_port} ]] && phpmyadmin_port=${http_port}
 		[[ -z ${http_port} ]] && phpmyadmin_port=80
 		[[ -n ${mariadb} || -n ${mysql} && -z ${mariadb_user} || -z ${mysql_user} ]] && phpmyadmin_user="root"
@@ -1283,46 +1264,19 @@ vstacklet::phpmyadmin::install() {
 		echo -n "${green}Installing phpMyAdmin${normal} ... "
 		(
 			DEBIAN_FRONTEND=noninteractive apt-get --allow-unauthenticated -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install phpmyadmin
-		) >>"${vslog}" 2>&1 || {
-			_warn "Failed to install phpMyAdmin"
-			exit 1
-		}
-		cd /usr/share || {
-			_warn "Failed to change directory to /usr/share"
-			exit 1
-		}
-		rm -rf phpmyadmin || {
-			_warn "Failed to remove phpmyadmin"
-			exit 1
-		}
-		wget https://files.phpmyadmin.net/phpMyAdmin/${pma_version}/phpMyAdmin-${pma_version}-all-languages.tar.gz >>"${vslog}" 2>&1 || {
-			_warn "Failed to download phpMyAdmin"
-			exit 1
-		}
-		tar -xzf phpMyAdmin-${pma_version}-all-languages.tar.gz >>"${vslog}" 2>&1 || {
-			_warn "Failed to extract phpMyAdmin"
-			exit 1
-		}
-		mv phpMyAdmin-${pma_version}-all-languages phpmyadmin || {
-			_warn "Failed to rename phpMyAdmin"
-			exit 1
-		}
-		rm -rf phpMyAdmin-${pma_version}-all-languages.tar.gz || {
-			_warn "Failed to remove phpMyAdmin"
-			exit 1
-		}
-		mkdir -p /var/lib/phpmyadmin/tmp || {
-			_warn "Failed to create directory /var/lib/phpmyadmin/tmp"
-			exit 1
-		}
-		[[ -n ${web_root} ]] && ln -sf /usr/share/phpmyadmin "${web_root}/public" || {
-			_warn "Failed to create symlink to phpmyadmin"
-			exit 1
-		}
-		[[ -z ${web_root} ]] && ln -sf /usr/share/phpmyadmin /var/www/html/public || {
-			_warn "Failed to create symlink to phpmyadmin"
-			exit 1
-		}
+		) >>"${vslog}" 2>&1 || { _warn "Failed to install phpMyAdmin" && exit 1; }
+		cd /usr/share || { _warn "Failed to change directory to /usr/share" && exit 1; }
+		rm -rf phpmyadmin || { _warn "Failed to remove phpmyadmin" && exit 1; }
+		wget "https://files.phpmyadmin.net/phpMyAdmin/${pma_version}/phpMyAdmin-${pma_version}-all-languages.tar.gz" >>"${vslog}" 2>&1 || { _warn "Failed to download phpMyAdmin" && exit 1; }
+		tar -xzf "phpMyAdmin-${pma_version}-all-languages.tar.gz" >>"${vslog}" 2>&1 || { _warn "Failed to extract phpMyAdmin" && exit 1; }
+		mv "phpMyAdmin-${pma_version}-all-languages" phpmyadmin || { _warn "Failed to rename phpMyAdmin" && exit 1; }
+		rm -rf "phpMyAdmin-${pma_version}-all-languages.tar.gz" || { _warn "Failed to remove phpMyAdmin" && exit 1; }
+		# trunk-ignore(shellcheck/SC2015)
+		mkdir -p /usr/share/phpmyadmin/tmp && chown -R www-data:www-data /usr/share/phpmyadmin/tmp || { _warn "Failed to create directory /usr/share/phpmyadmin/tmp" && exit 1; }
+		# trunk-ignore(shellcheck/SC2015)
+		[[ -n ${web_root} ]] && ln -sf /usr/share/phpmyadmin "${web_root}/public" || { _warn "Failed to create symlink to phpmyadmin" && exit 1; }
+		# trunk-ignore(shellcheck/SC2015)
+		[[ -z ${web_root} ]] && ln -sf /usr/share/phpmyadmin /var/www/html/public || { _warn "Failed to create symlink to phpmyadmin" && exit 1; }
 		# configure phpmyadmin
 		echo -n "${green}Configuring phpMyAdmin${normal} ... "
 		# set phpmyadmin configuration
@@ -1350,9 +1304,8 @@ vstacklet::phpmyadmin::install() {
 			echo -e "\$cfg['UploadDir'] = '';"
 			echo -e "\$cfg['SaveDir'] = '';"
 			echo -e "?>"
-		} >/etc/phpmyadmin/config.inc.php || { 
-			_warn "Failed to set phpMyAdmin configuration" 
-			vstacklet::clean::rollback 
+		} >/etc/phpmyadmin/config.inc.php || {
+			_warn "Failed to set phpMyAdmin configuration" && vstacklet::clean::rollback
 		}
 		echo "configuration file saved to /etc/phpmyadmin/config.inc.php"
 		echo "Access phpMyAdmin at http://${phpmyadmin_domain}:${phpmyadmin_port}/phpmyadmin"
@@ -1361,106 +1314,9 @@ vstacklet::phpmyadmin::install() {
 		echo "phpmyadmin port: ${phpmyadmin_port}"
 		echo
 		echo "${OK}"
-		else
+	else
 		_warn "phpMyAdmin requires MariaDB or MySQL" && vstacklet::clean::rollback
 	fi
-}
-
-
-function _phpmyadmin() {
-	if [[ ${phpmyadmin} == "yes" ]]; then
-		# generate random passwords for the MySql root user
-		pmapass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15)
-		mysqlpass=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15)
-		pma_bf=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 31)
-		mysqladmin -u root -h localhost password "${mysqlpass}"
-		echo -n "${bold}Installing MySQL with user:${normal} ${bold}${green}root${normal}${bold} / passwd:${normal} ${bold}${green}${mysqlpass}${normal} ... "
-		apt-get -y install debconf-utils >>"${OUTTO}" 2>&1
-		export DEBIAN_FRONTEND=noninteractive
-		# silently configure given options and install
-		echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
-		echo "phpmyadmin phpmyadmin/mysql/admin-pass password ${mysqlpass}" | debconf-set-selections
-		echo "phpmyadmin phpmyadmin/mysql/app-pass password ${pmapass}" | debconf-set-selections
-		echo "phpmyadmin phpmyadmin/app-password-confirm password ${pmapass}" | debconf-set-selections
-		echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
-		apt-get -y install phpmyadmin >>"${OUTTO}" 2>&1
-		cd /usr/share || _error "unable to move to /usr/share"
-		rm -rf phpmyadmin
-		PMA_VERSION=$(curl -i -s https://www.phpmyadmin.net/downloads/ | grep -Eo "phpMyAdmin-.*" | grep -Eo "[0-9.]+" | head -n1)
-		wget -q -P /usr/share/ "https://files.phpmyadmin.net/phpMyAdmin/${PMA_VERSION}/phpMyAdmin-${PMA_VERSION}-all-languages.zip"
-		unzip "phpMyAdmin-${PMA_VERSION}-all-languages.zip" >/dev/null 2>&1
-		cp -r "phpMyAdmin-${PMA_VERSION}-all-languages" phpmyadmin
-		rm -rf "phpMyAdmin-${PMA_VERSION}-all-languages"*
-		cd /usr/share/phpmyadmin || _error "unable to move to /usr/share/phpmyadmin"
-		cp config.sample.inc.php config.inc.php
-		sed -i "s/\$cfg\['blowfish_secret'\] = .*;/\$cfg\['blowfish_secret'\] = '${pma_bf}';/g" /usr/share/phpmyadmin/config.inc.php
-		mkdir tmp && chown -R www-data:www-data /usr/share/phpmyadmin/tmp
-		if [[ ${sitename} == "yes" ]]; then
-			# create a sym-link to live directory.
-			ln -sf /usr/share/phpmyadmin "/srv/www/${site_path}/public"
-		else
-			# create a sym-link to live directory.
-			ln -sf /usr/share/phpmyadmin "/srv/www/${hostname1}/public/phpmyadmin"
-		fi
-		echo "${OK}"
-		# show phpmyadmin creds
-		{
-			echo "[client]"
-			echo "user=root"
-			echo "password=${mysqlpass}"
-			echo ""
-			echo "[mysql]"
-			echo "user=root"
-			echo "password=${mysqlpass}"
-			echo ""
-			echo "[mysqldump]"
-			echo "user=root"
-			echo "password=${mysqlpass}"
-			echo ""
-			echo "[mysqldiff]"
-			echo "user=root"
-			echo "password=${mysqlpass}"
-			echo ""
-			echo "[phpmyadmin]"
-			echo "pmadbuser=phpmyadmin"
-			echo "pmadbpass=${pmapass}"
-			echo ""
-			echo "-------------------------------------------------------------"
-			echo "  Access phpMyAdmin at: "
-			echo "  http://${server_ip}:8080/phpmyadmin/"
-			echo "-------------------------------------------------------------"
-			echo
-		} >>~/.my.cnf
-		# closing statement
-		echo
-		echo "${bold}Below are your phpMyAdmin and MySQL details.${normal}"
-		echo "${bold}Details are logged in the${normal} ${bold}${green}/root/.my.cnf${normal} ${bold}file.${normal}"
-		echo "Best practice is to copy this file locally then rm ~/.my.cnf"
-		echo
-		# show contents of .my.cnf file
-		cat ~/.my.cnf
-		echo
-	fi
-}
-
-function _nophpmyadmin() {
-	if [[ ${phpmyadmin} == "no" ]]; then
-		echo "${cyan}Skipping phpMyAdmin Installation...${normal}"
-	fi
-}
-
-# install and adjust config server firewall function (15)
-function _askcsf() {
-	echo -n "${bold}${yellow}Do you want to install CSF (Config Server Firewall)?${normal} (${bold}${green}Y${normal}/n): "
-	read -r responce
-	case ${responce} in
-	[yY] | [yY][Ee][Ss] | "") csf=yes ;;
-	[nN] | [nN][Oo]) csf=no ;;
-	*)
-		echo "Invalid input..."
-		_askcsf
-		;;
-	esac
 }
 
 function _csf() {
