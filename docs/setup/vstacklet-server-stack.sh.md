@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1173
+# vstacklet-server-stack.sh - v3.1.1189
 
 
 ### vstacklet::environment::init()
@@ -18,7 +18,6 @@ process the options and values passed to the script
 -  `--version` - show version
 -  `--non-interactive` - run in non-interactive mode
 -  `-e | --email` - mail address to use for the Let's Encrypt SSL certificate
--  `-p | --password` - password to use for the MySQL root user
 -  `-ftp | --ftp_port` - port to use for the FTP server
 -  `-ssh | --ssh_port` - port to use for the SSH server
 -  `-http | --http_port` - port to use for the HTTP server
@@ -51,7 +50,9 @@ process the options and values passed to the script
 #### examples:
 
 ```
- ./vstacklet.sh "-e" "your@email.com" "-php" "8.1" "-nginx" "-mdb" "-pma" "-sendmail" "-wr" "[directory_name]"
+ ./vstacklet.sh --help
+ ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -h "yourhostname" -d "yourdomain.com" -php 8.1 -mc -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
+ ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -h "yourhostname" -d "yourdomain.com" -hhvm -mc -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -sendmail -wr "/var/www/html" -wp --reboot
 ```
 
 ---
@@ -344,12 +345,20 @@ install varnish and configure
 -  $1 - `-varnish | --varnish` (optional) (takes no arguments)
 -  $2 - `-varnishP | --varnish_port` (optional) (takes one argument)
 -  $3 - `-http | --http_port` (optional) (takes one argument)
+-  $4 - `-https | --https_port` (optional) (takes one argument)
+
+#### arguments:
+
+-  $2 - `[varnish_port_number]` (optional) (default: 6081)
+-  $3 - `[http_port_number]` (optional) (default: 80)
+-  $4 - `[https_port_number]` (optional) (default: 443)
 
 #### examples:
 
 ```
  ./vstacklet.sh -varnish -varnishP 6081 -http 80
  ./vstacklet.sh --varnish --varnish_port 6081 --http_port 80
+ ./vstacklet.sh -varnish -varnishP 6081 -http 80 -https 443
 ```
 
 ---
@@ -357,6 +366,8 @@ install varnish and configure
 ### vstacklet::ioncube::install()
 
 install ioncube (optional)
+- the ioncube loader will be available for the php version specified
+from the `-php | --php` option.
 
 #### options:
 
@@ -365,8 +376,10 @@ install ioncube (optional)
 #### examples:
 
 ```
- ./vstacklet.sh -ioncube
- ./vstacklet.sh --ioncube
+ ./vstacklet.sh -ioncube -php 8.1
+ ./vstacklet.sh --ioncube --php 8.1
+ ./vstacklet.sh -ioncube -php 7.4
+ ./vstacklet.sh --ioncube --php 7.4
 ```
 
 ---
@@ -377,16 +390,16 @@ install mariadb and configure
 
 #### options:
 
--  $1 - -mariadb | --mariadb (optional) (takes no arguments)
--  $2 - -mariadbP | --mariadb_port (optional) (takes one argument)
--  $3 - -mariadbU | --mariadb_user (optional) (takes one argument)
--  $4 - -mariadbPw | --mariadb_password (optional) (takes one argument)
+-  $1 - `-mariadb | --mariadb` (optional) (takes no arguments)
+-  $2 - `-mariadbP | --mariadb_port` (optional) (takes one argument)
+-  $3 - `-mariadbU | --mariadb_user` (optional) (takes one argument)
+-  $4 - `-mariadbPw | --mariadb_password` (optional) (takes one argument)
 
 #### arguments:
 
--  $1 - [port] (optional) (default: 3306)
--  $2 - [user] (optional) (default: root)
--  $3 - [password] (optional) (default: password auto-generated)
+-  $2 - `[port]` (optional) (default: 3306)
+-  $3 - `[user]` (optional) (default: root)
+-  $4 - `[password]` (optional) (default: password auto-generated)
 
 #### examples:
 
