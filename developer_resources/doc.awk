@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: doc.awk
-# @version: 1.0.95
+# @version: 1.0.122
 # @description: automated documentation
 # @project_name: vstacklet
 #
@@ -85,6 +85,7 @@ function reset() {
     has_stdout = 0
 	has_break = 0
 
+	content_brief = ""
     content_desc = ""
     content_example  = ""
     content_args = ""
@@ -110,11 +111,34 @@ function reset() {
     filedoc = filedoc "v"$0 "\n"
 }
 
-
+#/^[[:space:]]*# @brief/ {
+#    sub(/^[[:space:]]*# @brief:/, "")
+#    sub(/^[[:space:]]*# /, "")
+#    sub(/^[[:space:]]*#$/, "")
+#    filedoc = filedoc "\n" $0 "\n"
+#}
 
 /^[[:space:]]*# @brief:/ {
-    sub(/^[[:space:]]*# @brief: /, "")
-    filedoc = filedoc $0 "\n"
+    in_brief = 1
+
+    reset()
+
+    docblock = ""
+}
+
+in_brief {
+    if (/^[^[[:space:]]*#]|^[[:space:]]*# @[^b]|^[[:space:]]*[^#]/) {
+        if (!match(content_brief, /\n$/)) {
+            content_brief = content_brief "\n"
+        }
+        in_brief = 0
+    } else {
+        sub(/^[[:space:]]*# @brief: /, "\n""---""\n""\n")
+        sub(/^[[:space:]]*# /, "")
+        sub(/^[[:space:]]*#$/, "\n""---""\n")
+		filedoc = filedoc "\n" $0
+        content_brief = content_brief "\n" $0
+    }
 }
 
 
@@ -249,7 +273,7 @@ in_example {
 }
 
 {
-    docblock = content_desc content_options content_args content_params content_exitcode content_stdout content_example content_seealso content_break
+    docblock = content_brief content_desc content_options content_args content_params content_exitcode content_stdout content_example content_seealso content_break
 }
 
 /^[ \t]*(function([ \t])+)?([a-zA-Z0-9_:-]+)([ \t]*)(\(([ \t]*)\))?[ \t]*\{/ && docblock != "" && !in_example {
@@ -270,7 +294,7 @@ in_example {
 
 END {
     if (filedoc != "") {
-        print filedoc 
+        print filedoc "\n"
     }
     print doc "\n"
 }

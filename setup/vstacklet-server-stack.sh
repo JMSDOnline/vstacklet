@@ -1,13 +1,32 @@
 #!/bin/bash
-################################################################################
+##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1219
+# @version: 3.1.1316
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
-# and more on a fresh Ubuntu 18.04/20.04 or
-# Debian 9/10/11 server for website-based server applications.
+# and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
+# website-based server applications.
+#
 # @project_name: vstacklet
+#
+# @brief: This script is designed to be run on a fresh Ubuntu 18.04/20.04 or
+# Debian 9/10/11 server. I have done my best to keep it tidy and with as much
+# error checking as possible. Couple this with loads of comments and you should
+# have a pretty good idea of what is going on. If you have any questions,
+# comments, or suggestions, please feel free to open an issue on GitHub.
+#
+# ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
+# GITHUB: https://github.com/JMSDOnline/vstacklet
+#
+# vStacklet will install and configure the following:
+# - NGinx 1.23.+ (HTTP Server)
+# - PHP 7.4 (FPM) with common extensions
+# - PHP 8.1 (FPM) with common extensions
+# - MariaDB 10.6.+ (MySQL Database)
+# - Varnish 7.2.+ (HTTP Cache)
+# - CSF 14.+ (Config Server Firewall)
+# - and more!
 #
 # @save_tasks:
 #  automated_versioning: true
@@ -24,23 +43,11 @@
 # Copyright (C) 2016-2022, Jason Matthews
 # All rights reserved.
 # <END METADATA>
-################################################################################
+##################################################################################
 # shellcheck disable=1091,2068,2312
-# This script is designed to be run on a fresh Ubuntu 18.04/20.04 or
-# Debian 9/10/11 server.
-# It will install and configure the following:
-#   - Nginx
-#   - PHP 7.4 (FPM) with common extensions
-#   - PHP 8.1 (FPM) with common extensions
-#   - MariaDB 10.7
-#   - Varnish
-#   - CSF Firewall
-#   - and more...
-################################################################################
-
 ##################################################################################
 # @name: vstacklet::environment::init
-# @description: setup the environment and set variables
+# @description: Setup the environment and set variables.
 # @note: This function is required for the installation of
 # the vStacklet software.
 # @break
@@ -80,10 +87,10 @@ vstacklet::environment::init() {
 
 ##################################################################################
 # @name: vstacklet::args::process
-# @description: process the options and values passed to the script
+# @description: Process the options and values passed to the script.
 # @option: $1 - the option/flag to process
 # @arg: $2 - the value of the option/flag
-# @note: This function is required for the installation of
+# @script-note: This function is required for the installation of
 # the vStacklet software.
 ##################################################################################
 # @option: `--help` - show help
@@ -283,6 +290,7 @@ vstacklet::args::process() {
 			shift
 			[[ -z ${email} ]] && _error "An email is needed to register the server aliases.
 Please set an email with ' -e your@email.com '" && vstacklet::clean::rollback 13
+			[[ -n ${csf} ]] && declare -gi sendmail_skip="1"
 			;;
 		-ssh* | --ssh_port*)
 			declare -gi ssh_port="${2}"
@@ -326,8 +334,8 @@ Please set an email with ' -e your@email.com '" && vstacklet::clean::rollback 13
 
 ##################################################################################
 # @name: vstacklet::environment::functions
-# @description: stage various functions for the setup environment
-# @note: This function is required for the installation of
+# @description: Stage various functions for the setup environment.
+# @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
 ##################################################################################
@@ -368,8 +376,8 @@ vstacklet::environment::functions() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkroot
-# @description: check if the user is root
-# @note: This function is required for the installation of
+# @description: Check if the user is root.
+# @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
 ##################################################################################
@@ -388,8 +396,8 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkdistro
-# @description: check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
-# @note: This function is required for the installation of
+# @description: Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
+# @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
 ##################################################################################
@@ -403,8 +411,8 @@ vstacklet::environment::checkdistro() {
 
 ##################################################################################
 # @name: vstacklet::intro (1)
-# @description: prints the intro message
-# @note: This function is required for the installation of
+# @description: Prints the intro message
+# @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
 ##################################################################################
@@ -428,10 +436,10 @@ vstacklet::intro() {
 
 ##################################################################################
 # @name: vstacklet::log::check (2)
-# @description: check if the log file exists and create it if it doesn't
+# @description: Check if the log file exists and create it if it doesn't.
 # @noargs:
 # @nooptions:
-# @note: This function is required for the installation of
+# @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
 ##################################################################################
@@ -464,11 +472,11 @@ vstacklet::ask::continue() {
 
 ##################################################################################
 # @name: vstacklet::bashrc::set (4)
-# @description: set ~/.bashrc and ~/.profile for vstacklet
+# @description: Set ~/.bashrc and ~/.profile for vstacklet.
 # @nooptions:
 # @noargs:
 # @return: none
-# @note: This function is required for the installation of
+# @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
 ##################################################################################
@@ -487,7 +495,8 @@ vstacklet::bashrc::set() {
 
 ##################################################################################
 # @name: vstacklet::hostname::set (5)
-# @description: set system hostname
+# @description: Set system hostname.
+# notes:
 # - hostname must be a valid hostname.
 #   - It can contain only letters, numbers, and hyphens.
 #   - It must start with a letter and end with a letter or number.
@@ -517,9 +526,15 @@ vstacklet::hostname::set() {
 
 ##################################################################################
 # @name: vstacklet::webroot::set (6)
-# @description: set main web root directory
+# @description: Set main web root directory.
+# notes:
 # - if the directory already exists, it will be used.
 # - if the directory does not exist, it will be created.
+# - the addition of subdirectories will be handled by the vStacklet software.
+#   the subdirectories created in the web root directory will be:
+#   - ~/public
+#   - ~/logs
+#   - ~/ssl
 # - if `-wr | --web_root` is not set, the default directory will be used.
 #   e.g. `/var/www/html/{public,logs,ssl}`
 # @option: $1 - `-wr | --web_root` (optional) (takes one argument)
@@ -549,7 +564,7 @@ vstacklet::webroot::set() {
 
 ##################################################################################
 # @name: vstacklet::ssh::set (7)
-# @description: set ssh port to custom port (if nothing is set, default port is 22)
+# @description: Set ssh port to custom port (if nothing is set, default port is 22)
 # @option: $1 - `-ssh | --ssh_port` (optional) (takes one argument)
 # @arg: $2 - `[port]` (default: 22) - the port to set for ssh
 # @return: none
@@ -569,13 +584,13 @@ vstacklet::ssh::set() {
 
 ##################################################################################
 # @name: vstacklet::block::ssdp (13)
-# @description: blocks an insecure port 1900 that may lead to
+# @description: Blocks an insecure port 1900 that may lead to
 # DDoS masked attacks. Only remove this function if you absolutely
 # need port 1900. In most cases, this is a junk port.
 # @noargs:
 # @nooptions:
 # @return: none
-# @note: This function is required for the installation of
+# @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
 ##################################################################################
@@ -594,7 +609,7 @@ vstacklet::block::ssdp() {
 # @noargs:
 # @nooptions:
 # @return: none
-# @note: This function is required for the installation of
+# @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
 ##################################################################################
@@ -696,10 +711,10 @@ EOF
 # @name: vstacklet::locale::set (5) ? vstacklet::locale::set::en_US.UTF-8 (15)
 # @description: This function sets the locale to en_US.UTF-8
 # and sets the timezone to UTC.
-# @note: This function is required for the installation of
+# @script-note: This function is required for the installation of
 # the vStacklet software.
-# @wip: This function is still a work in progress. It is planned
-# to add additional parameters to select the timezone and locale.
+# todo: This function is still a work in progress.
+# It is plannedto add additional parameters to select the timezone and locale.
 # @break
 ##################################################################################
 vstacklet::locale::set() {
@@ -728,7 +743,7 @@ vstacklet::locale::set() {
 # @nooptions:
 # @noargs:
 # @return: none
-# @note: This function is required for the installation of
+# @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
 ##################################################################################
@@ -745,7 +760,7 @@ vstacklet::packages::softcommon() {
 # @nooptions:
 # @noargs:
 # @return: none
-# @note: This function is required for the installation of
+# @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
 ##################################################################################
@@ -759,18 +774,21 @@ vstacklet::packages::depends() {
 # @name: vstacklet::packages::keys (8)
 # @description: This function sets the required software package keys
 # and sources for the vStacklet software.
+# notes:
 # - keys and sources are set for the following software packages:
 #   - hhvm (only if option `-hhvm|--hhvm` is set)
 #   - nginx (only if option `-nginx|--nginx` is set)
 #   - varnish (only if option `-varnish|--varnish` is set)
 #   - php (only if option `-php|--php` is set)
 #   - mariadb (only if option `-mariadb|--mariadb` is set)
+#   - redis (only if option `-redis|--redis` is set)
+#   - postgresql (only if option `-postgre|--postgresql` is set)
+# - apt-key is being deprecated, using gpg instead
 # @nooptions:
 # @noargs:
 # @return: none
-# @note: This function is required for the installation of
+# @script-note: This function is required for the installation of
 # the vStacklet software.
-# @note: apt-key is being deprecated, use gpg instead
 # @break
 ##################################################################################
 vstacklet::packages::keys() {
@@ -801,8 +819,8 @@ vstacklet::packages::keys() {
 		# mariadb
 		wget -qO- https://mariadb.org/mariadb_release_signing_key.asc | gpg --dearmor >/etc/apt/trusted.gpg.d/mariadb.gpg
 		cat >/etc/apt/sources.list.d/mariadb.list <<EOF
-deb [arch=amd64,i386,arm64,ppc64el] http://mirrors.syringanetworks.net/mariadb/repo/10.7/${distro} ${codename} main
-deb-src http://mirrors.syringanetworks.net/mariadb/repo/10.7/${distro}/ ${codename} main
+deb [arch=amd64,i386,arm64,ppc64el] http://mirrors.syringanetworks.net/mariadb/repo/10.6/${distro} ${codename} main
+deb-src http://mirrors.syringanetworks.net/mariadb/repo/10.6/${distro}/ ${codename} main
 EOF
 	fi
 	# Remove excess sources known to
@@ -813,7 +831,7 @@ EOF
 
 ##################################################################################
 # @name: vstacklet::apt::update (9)
-# @description: update apt sources and packages - this is a wrapper for apt-get update
+# @description: Update apt sources and packages - this is a wrapper for apt-get update
 # @nooptions:
 # @noargs:
 # @return: none
@@ -848,12 +866,13 @@ vstacklet::apt::update() {
 
 ##################################################################################
 # @name: vstacklet::php::install (11)
-# @description: install php and php modules (optional) (default: not installed)
-# versioning
-# - php < "7.4" - not supported, deprecated
-# - php = "7.4" - supported
-# - php = "8.0" - superceded by php="8.1"
-# - php = "8.1" - supported
+# @description: Install PHP and PHP modules.
+# notes:
+# - versioning:
+#   - php < "7.4" - not supported, deprecated
+#   - php = "7.4" - supported
+#   - php = "8.0" - superceded by php="8.1"
+#   - php = "8.1" - supported
 # - chose either php or hhvm, not both
 # - php modules are installed based on the following variables:
 #   - `-php [php version]` (default: 8.1) - php version to install
@@ -877,6 +896,10 @@ vstacklet::apt::update() {
 ##################################################################################
 vstacklet::php::install() {
 	if [[ -n ${php} && ${php_set} == "1" ]]; then
+		# check for hhvm
+		[[ -n ${hhvm} ]] && _error "PHP and HHVM cannot be installed at the same time. Please choose one or the other." && vstacklet::rollback::cleanup
+		# check for nginx \\ to maintain modularity, nginx is not required for PHP
+		#[[ -z ${nginx} ]] && _error "PHP requires nginx. Please install nginx." && vstacklet::rollback::cleanup
 		# php version sanity check
 		[[ ${php} == *"8"* ]] && php="8.1"
 		[[ ${php} == *"7"* ]] && php="7.4"
@@ -926,7 +949,7 @@ vstacklet::php::install() {
 
 ##################################################################################
 # @name: vstacklet::nginx::install (12)
-# @description: install nginx (optional) (default: not installed)
+# @description: Install NGinx and configure.
 # @option: $1 - `-nginx | --nginx` (optional) (takes no arguments)
 # @example: ./vstacklet.sh -nginx
 # ./vstacklet.sh --nginx
@@ -996,15 +1019,21 @@ vstacklet::nginx::install() {
 
 ##################################################################################
 # @name: vstacklet::hhvm::install (13)
-# @description: install hhvm
+# @description: Install HHVM and configure.
+# notes:
+# - HHVM is not compatible with PHP, so choose one or the other.
 # @option: $1 - `-hhvm | --hhvm` (optional) (takes no arguments)
 # @example: ./vstacklet.sh -hhvm
 # ./vstacklet.sh --hhvm
-# @note: chose either php or hhvm, not both
 # @break
 ##################################################################################
 vstacklet::hhvm::install() {
-	if [[ -n ${hhvm} ]]; then
+	if [[ -n ${hhvm} && -z ${php} ]]; then
+		# check for php
+		[[ -n ${php} ]] && _error "HHVM and PHP cannot be installed at the same time. Please choose one or the other." && vstacklet::rollback::cleanup
+		# check for nginx \\ to maintain modularity, nginx is not required for HHVM
+		#[[ -z ${nginx} ]] && _error "HHVM requires nginx. Please install nginx." && vstacklet::rollback::cleanup
+		# install hhvm
 		echo -n "Installing and Adjusting ${magenta}hhvm${normal} ... "
 		(
 			apt-get -y install hhvm
@@ -1023,25 +1052,35 @@ vstacklet::hhvm::install() {
 
 ##################################################################################
 # @name: vstacklet::permissions::adjust (14)
-# @description: adjust permissions for web root
+# @description: Adjust permissions for the web root.
+# notes:
+# - Permissions are adjusted based the following variables:
+#  - adjustments are made to the assigned web root on the `-wr | --web-root`
+#    option
+#  - adjustments are made to the default web root of `/var/www/html`
+#   if the `-wr | --web-root` option is not used
+# - permissions are adjusted to the following:
+#  - `www-data:www-data` (user:group)
+#  - `755` (directory)
+#  - `644` (file)
+#  - `g+rw` (group read/write)
+#  - `g+s` (group sticky)
 # @nooptions:
 # @noargs:
 # @return: none
-# @note: This function is required for the installation of
-# the vStacklet software.
-# @note: permissions are adjusted based on the following variables:
-# @note: -wr | --web_root
 # @break
 ##################################################################################
 vstacklet::permissions::adjust() {
 	if [[ -n ${web_root} ]]; then
 		chown -R www-data:www-data "${web_root}"
 		chmod -R 755 "${web_root}"
+		sh -c 'find "${web_root}" -type f -print0 | sudo xargs -0 chmod 644'
 		chmod -R g+rw "${web_root}"
 		sh -c 'find "${web_root}" -type d -print0 | sudo xargs -0 chmod g+s'
 	else
 		chown -R www-data:www-data /var/www/html
 		chmod -R 755 /var/www/html
+		sh -c 'find /var/www/html -type f -print0 | sudo xargs -0 chmod 644'
 		chmod -R g+rw /var/www/html
 		sh -c 'find /var/www/html -type d -print0 | sudo xargs -0 chmod g+s'
 	fi
@@ -1050,7 +1089,7 @@ vstacklet::permissions::adjust() {
 
 ##################################################################################
 # @name: vstacklet::varnish::install (15)
-# @description: install varnish and configure
+# @description: Install Varnish and configure.
 # @option: $1 - `-varnish | --varnish` (optional) (takes no arguments)
 # @option: $2 - `-varnishP | --varnish_port` (optional) (takes one argument)
 # @option: $3 - `-http | --http_port` (optional) (takes one argument)
@@ -1062,11 +1101,12 @@ vstacklet::permissions::adjust() {
 # ./vstacklet.sh --varnish --varnish_port 6081 --http_port 80
 # ./vstacklet.sh -varnish -varnishP 6081 -http 80 -https 443
 # @null
-# @note: varnish is installed based on the following variables:
-# - -varnish (optional) (default: nginx)
-# - -varnishP|--varnish_port (optional) (default: 6081)
-# - -http|--http_port (optional) (default: 80)
-# @note: chose either varnish or nginx, not both
+# @script-note: varnish is installed based on the following variables:
+# - `-varnish` (optional) (default: nginx)
+# - `-varnishP|--varnish_port` (optional) (default: 6081)
+# - `-http|--http_port` (optional) (default: 80)
+# - if you are not familiar with Varnish, please read the following:
+#   - https://www.varnish-cache.org/
 # @break
 ##################################################################################
 vstacklet::varnish::install() {
@@ -1114,9 +1154,10 @@ vstacklet::varnish::install() {
 
 ##################################################################################
 # @name: vstacklet::ioncube::install (16)
-# @description: install ioncube (optional)
+# @description: Install ioncube loader.
+# notes:
 # - the ioncube loader will be available for the php version specified
-# from the `-php | --php` option.
+#   from the `-php | --php` option.
 # @option: $1 - `-ioncube | --ioncube` (optional) (takes no arguments)
 # @example: ./vstacklet.sh -ioncube -php 8.1
 # ./vstacklet.sh --ioncube --php 8.1
@@ -1168,7 +1209,10 @@ vstacklet::ioncube::install() {
 
 ##################################################################################
 # @name: vstacklet::mariadb::install (17)
-# @description: install mariadb and configure
+# @description: Install mariaDB and configure.
+# notes:
+# - if `-mysql | --mysql` is specified, then mariadb will not be installed. choose either mariadb or mysql.
+# - actual mariadb version installed is 10.6.+ LTS.
 # @option: $1 - `-mariadb | --mariadb` (optional) (takes no arguments)
 # @option: $2 - `-mariadbP | --mariadb_port` (optional) (takes one argument)
 # @option: $3 - `-mariadbU | --mariadb_user` (optional) (takes one argument)
@@ -1181,10 +1225,10 @@ vstacklet::ioncube::install() {
 # @break
 ##################################################################################
 vstacklet::mariadb::install() {
-	if [[ -n ${mariadb} ]]; then
-		[[ -z ${mariadb_port} ]] && mariadb_port=3306
-		[[ -z ${mariadb_user} ]] && mariadb_user="root"
-		[[ -z ${mariadb_password} ]] && mariadb_password=$(openssl rand -base64 12)
+	if [[ -n ${mariadb} && -z ${mysql} ]]; then
+		[[ -z ${mariadb_port} ]] && declare mariadb_port="3306"
+		[[ -z ${mariadb_user} ]] && declare mariadb_user="root"
+		[[ -z ${mariadb_password} ]] && declare mariadb_password && mariadb_password="$(perl -e 'print map +(A..Z,a..z,0..9)[rand 62], 0..15')"
 		echo -n "${green}Installing MariaDB${normal} ... "
 		(
 			DEBIAN_FRONTEND=noninteractive apt-get --allow-unauthenticated -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install mariadb-server mariadb-client
@@ -1222,8 +1266,71 @@ vstacklet::mariadb::install() {
 }
 
 ##################################################################################
-# @name: vstacklet::phpmyadmin::install (18)
-# @description: install phpmyadmin and configure.
+# @name: vstacklet::mysql::install (18)
+# @description: Install mySQL and configure.
+# notes:
+# - if `-mariadb | --mariadb` is specified, then mysql will not be installed. choose either mysql or mariadb.
+# - apt-deb mysql version is 0.8.24-1_all.deb
+# - actual mysql version installed is 8.0.+
+# @option: $1 - `-mysql | --mysql` (optional) (takes no arguments)
+# @option: $2 - `-mysqlP | --mysql_port` (optional) (takes one argument)
+# @option: $3 - `-mysqlU | --mysql_user` (optional) (takes one argument)
+# @option: $4 - `-mysqlPw | --mysql_password` (optional) (takes one argument)
+# @arg: $2 - `[mysql_port]` (optional) (default: 3306)
+# @arg: $3 - `[mysql_user]` (optional) (default: root)
+# @arg: $4 - `[mysql_password]` (optional) (default: password auto-generated)
+# @example: ./vstacklet.sh -mysql -mysqlP 3306 -mysqlU root -mysqlPw password
+# ./vstacklet.sh --mysql --mysql_port 3306 --mysql_user root --mysql_password password
+# @break
+##################################################################################
+vstacklet::mysql::install() {
+	if [[ -n ${mysql} && -z ${mariadb} ]]; then
+		mysql_deb_version="mysql-apt-config_0.8.24-1_all.deb"
+		[[ -z ${mysql_port} ]] && declare mysql_port="3306"
+		[[ -z ${mysql_user} ]] && declare mysql_user="root"
+		[[ -z ${mysql_password} ]] && declare mysql_password && mysql_password="$(perl -e 'print map +(A..Z,a..z,0..9)[rand 62], 0..15')"
+		echo -n "${green}Installing MySQL${normal} ... "
+		wget -qO - "https://dev.mysql.com/get/mysql-apt-config_${mysql_deb_version}_all.deb" -O "/tmp/mysql-apt-config_${mysql_deb_version}_all.deb" >>"${vslog}" 2>&1 || { _warn "Failed to download mysql-apt-config_${mysql_deb_version}_all.deb" && vstacklet::clean::rollback; }
+		(
+			DEBIAN_FRONTEND=noninteractive dpkg -i "/tmp/mysql-apt-config_${mysql_deb_version}_all.deb"
+			DEBIAN_FRONTEND=noninteractive apt-get update
+			DEBIAN_FRONTEND=noninteractive apt-get --allow-unauthenticated -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install mysql-server mysql-client
+		) >>"${vslog}" 2>&1 || { _warn "Failed to install MySQL" && vstacklet::clean::rollback; }
+		# configure mysql
+		echo -n "${green}Configuring MySQL${normal} ... "
+		# set mysql root password
+		mysqladmin -u root password "${mysql_password}" >>"${vslog}" 2>&1 || { _warn "Failed to set MySQL root password" && exit 1; }
+		# create mysql user
+		mysql -u root -p"${mysql_password}" -e "CREATE USER '${mysql_user}'@'localhost' IDENTIFIED BY '${mysql_password}';" >>"${vslog}" 2>&1 || { _warn "Failed to create MySQL user" && exit 1; }
+		# grant privileges to mysql user
+		mysql -u root -p"${mysql_password}" -e "GRANT ALL PRIVILEGES ON *.* TO '${mysql_user}'@'localhost' WITH GRANT OPTION;" >>"${vslog}" 2>&1 || { _warn "Failed to grant privileges to MySQL user" && exit 1; }
+		# flush privileges
+		mysql -u root -p"${mysql_password}" -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || { _warn "Failed to flush privileges" && exit 1; }
+		# set mysql client and server configuration
+		{
+			echo -e "[client]"
+			echo -e "port = ${mysql_port}"
+			echo -e "socket = /var/run/mysqld/mysqld.sock"
+			echo -e "[mysqld]"
+			echo -e "port = ${mysql_port}"
+			echo -e "socket = /var/run/mysql/mysql.sock"
+			echo -e "bind-address = 127.0.0.1"
+		} >/etc/mysql/conf.d/vstacklet.cnf || { _warn "Failed to set MySQL client and server configuration" && vstacklet::clean::rollback; }
+		echo "configuration file saved to /etc/mysql/conf.d/vstacklet.cnf"
+		echo "mysql client and server configuration set to:"
+		cat /etc/mysql/conf.d/vstacklet.cnf
+		echo "mysql root password: ${mysql_password}"
+		echo "mysql user: ${mysql_user}"
+		echo "mysql port: ${mysql_port}"
+		echo
+		echo "${OK}"
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::phpmyadmin::install (19)
+# @description: Install phpMyAdmin and configure.
+# notes:
 # - phpMyAdmin requires a web server to run. You must select a web server from the list below.
 #   - nginx
 #   - varnish
@@ -1248,6 +1355,8 @@ vstacklet::mariadb::install() {
 #   - port: http
 #     - usage: `-http [port] | --http [port]`
 #     - note: if no port is provided, the default port will be used. (80)
+# @option: $1 - `-phpmyadmin | --phpmyadmin` (optional) (takes no arguments) (default: not installed)
+# @arg: `-phpmyadmin | --phpmyadmin` does not take any arguments. However, it requires the options as expressed above.
 # @example: ./vstacklet.sh -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
 # ./vstacklet.sh --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
 # ./vstacklet.sh -phpmyadmin -varnish -mysqlU root -mysqlPw password -hhvm -http 80
@@ -1258,12 +1367,12 @@ vstacklet::phpmyadmin::install() {
 	if [[ -n ${phpmyadmin} && -n ${mariadb} || -n ${mysql} && -n ${nginx} || -n ${varnish} && -n ${php} || -n ${hhvm} ]]; then
 		declare pma_version
 		pma_version=$(curl -s https://www.phpmyadmin.net/home_page/version.json | jq -r '.version')
-		[[ -n ${http_port} ]] && phpmyadmin_port=${http_port}
-		[[ -z ${http_port} ]] && phpmyadmin_port=80
+		[[ -n ${http_port} ]] && phpmyadmin_port="${http_port}"
+		[[ -z ${http_port} ]] && phpmyadmin_port="80"
 		[[ -n ${mariadb} || -n ${mysql} && -z ${mariadb_user} || -z ${mysql_user} ]] && phpmyadmin_user="root"
 		[[ -n ${mariadb} || -n ${mysql} && -z ${mariadb_password} || -z ${mysql_password} ]] && phpmyadmin_password=$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15)
-		[[ -n ${domain} ]] && phpmyadmin_domain=${domain}
-		[[ -z ${domain} ]] && phpmyadmin_domain=${server_ip}
+		[[ -n ${domain} ]] && phpmyadmin_domain="${domain}"
+		[[ -z ${domain} ]] && phpmyadmin_domain="${server_ip}"
 		pma_bf=$(perl -le 'print map { (a..z,A..Z,0..9)[rand 62] } 0..31')
 		echo -n "${green}Installing phpMyAdmin${normal} ... "
 		(
@@ -1292,7 +1401,7 @@ vstacklet::phpmyadmin::install() {
 			echo -e "\$i++;"
 			echo -e "\$cfg['Servers'][\$i]['verbose'] = 'localhost';"
 			echo -e "\$cfg['Servers'][\$i]['host'] = 'localhost';"
-			echo -e "\$cfg['Servers'][\$i]['port'] = '${mariadb_port}';"
+			echo -e "\$cfg['Servers'][\$i]['port'] = '${phpmyadmin_port}';"
 			echo -e "\$cfg['Servers'][\$i]['socket'] = '';"
 			echo -e "\$cfg['Servers'][\$i]['connect_type'] = 'tcp';"
 			echo -e "\$cfg['Servers'][\$i]['extension'] = 'mysqli';"
@@ -1323,190 +1432,169 @@ vstacklet::phpmyadmin::install() {
 	fi
 }
 
-function _csf() {
-	if [[ ${csf} == "yes" ]]; then
-		echo -n "${green}Installing and Adjusting CSF${normal} ... "
-		cd || _error "could not change directory to ${HOME}"
-		apt-get -y install e2fsprogs >/dev/null 2>&1
-		wget https://download.configserver.com/csf.tgz
-		#wget http://www.configserver.com/free/csf.tgz >/dev/null 2>&1;
-		tar -xzf csf.tgz >/dev/null 2>&1
-		ufw disable >>"${OUTTO}" 2>&1
-		cd csf || _error "could not change directory to ${HOME}/csf" && exit 1
-		sh install.sh >>"${OUTTO}" 2>&1
-		perl /usr/local/csf/bin/csftest.pl >>"${OUTTO}" 2>&1
-		# modify csf blocklists - essentially like CloudFlare, but on your machine
-		sed -i.bak -e "s/#SPAMDROP|86400|0|/SPAMDROP|86400|100|/g" \
-			-e "s/#SPAMEDROP|86400|0|/SPAMEDROP|86400|100|/g" \
-			-e "s/#DSHIELD|86400|0|/DSHIELD|86400|100|/g" \
-			-e "s/#TOR|86400|0|/TOR|86400|100|/g" \
-			-e "s/#ALTTOR|86400|0|/ALTTOR|86400|100|/g" \
-			-e "s/#BOGON|86400|0|/BOGON|86400|100|/g" \
-			-e "s/#HONEYPOT|86400|0|/HONEYPOT|86400|100|/g" \
-			-e "s/#CIARMY|86400|0|/CIARMY|86400|100|/g" \
-			-e "s/#BFB|86400|0|/BFB|86400|100|/g" \
-			-e "s/#OPENBL|86400|0|/OPENBL|86400|100|/g" \
-			-e "s/#AUTOSHUN|86400|0|/AUTOSHUN|86400|100|/g" \
-			-e "s/#MAXMIND|86400|0|/MAXMIND|86400|100|/g" \
-			-e "s/#BDE|3600|0|/BDE|3600|100|/g" \
-			-e "s/#BDEALL|86400|0|/BDEALL|86400|100|/g" /etc/csf/csf.blocklists
-		# modify csf ignore - ignore nginx, varnish & mysql
-		{
-			echo
-			echo "[ VStacklet Additions - ignore nginx, varnish & mysql ]"
-			echo "nginx"
-			echo "varnishd"
-			echo "mysqld"
-			echo "rsyslogd"
-			echo "systemd-timesyncd"
-			echo "systemd-resolved"
-		} >>/etc/csf/csf.ignore
-		# modify csf allow - allow ssh, http, https, mysql, phpmyadmin, varnish
-		{
-			echo
-			echo "[ VStacklet Additions - allow ssh, http, https, mysql, phpmyadmin, varnish ]"
-			echo "22"
-			echo "80"
-			echo "443"
-			echo "3306"
-			echo "8080"
-			echo "6081"
-		} >>/etc/csf/csf.allow
-		# modify csf conf - make suitable changes for non-cpanel environment
-		sed -i.bak -e 's/TESTING = "1"/TESTING = "0"/g' \
-			-e 's/RESTRICT_SYSLOG = "0"/RESTRICT_SYSLOG = "3"/g' \
-			-e 's/TCP_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,2077,2078,2082,2083,2086,2087,2095,2096"/TCP_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,8080"/g' \
-			-e 's/TCP_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,2086,2087,2089,2703"/TCP_OUT = "20,21,22,25,37,43,53,80,110,113,443,465,587,873,993,995,8080"/g' \
-			-e 's/TCP6_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,2077,2078,2082,2083,2086,2087,2095,2096"/TCP6_IN = "20,21,22,25,53,80,110,143,443,465,587,993,995,8080"/g' \
-			-e 's/TCP6_OUT = "20,21,22,25,37,43,53,80,110,113,443,587,873,993,995,2086,2087,2089,2703"/TCP6_OUT = "20,21,22,25,37,43,53,80,110,113,443,465,587,873,993,995,8080"/g' \
-			-e 's/DENY_TEMP_IP_LIMIT = "100"/DENY_TEMP_IP_LIMIT = "1000"/g' \
-			-e 's/SMTP_ALLOWUSER = "cpanel"/SMTP_ALLOWUSER = "root"/g' \
-			-e 's/PT_USERMEM = "200"/PT_USERMEM = "500"/g' \
-			-e 's/PT_USERTIME = "1800"/PT_USERTIME = "7200"/g' /etc/csf/csf.conf
-		echo "${OK}"
-		# install sendmail as it's binary is required by CSF
-		echo "${green}Installing Sendmail${normal} ... "
-		apt-get -y install sendmail >>"${OUTTO}" 2>&1 || _error "could not install sendmail" && exit 1
-		export DEBIAN_FRONTEND=noninteractive /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1 || _error "could not configure sendmail" && exit 1
-		# add administrator email
-		echo "${magenta}${bold}Add an Administrator Email Below for Aliases Inclusion${normal}"
-		read -rp "${bold}Email: ${normal}" admin_email
-		echo "${bold}The email ${green}${bold}${admin_email}${normal} ${bold}is now the forwarding address for root mail${normal}"
-		echo -n "${green}finalizing sendmail installation${normal} ... "
-		# install aliases
-		echo -e "mailer-daemon: postmaster
-postmaster: root
-nobody: root
-hostmaster: root
-usenet: root
-news: root
-webmaster: root
-www: root
-ftp: root
-abuse: root
-        root: ${admin_email}" >/etc/aliases
-		newaliases >>"${OUTTO}" 2>&1 || _error "could not issue 'newaliases' command" && exit 1
-		echo "${OK}"
+##################################################################################
+# @name: vstacklet::csf::install (20)
+# @description: Install CSF firewall.
+# notes:
+# - https://configserver.com/cp/csf.html
+# - installing CSF will also install LFD (Linux Firewall Daemon)
+# - CSF will be configured to allow SSH, FTP, HTTP, HTTPS, MySQL, Redis,
+#   Postgres, and Varnish
+# - CSF will be configured to block all other ports
+# - CSF requires sendmail to be installed. if the `-sendmail` option is not
+#   specified, sendmail will automatically be installed and configured to use the
+#   specified email address from the `-email` option.
+# - As expressed above, CSF will also require the `-email` option to be
+#   specified.
+# - if your domain is routed through Cloudflare, you will need to add use the
+#   `-cloudflare` option to allow Cloudflare IPs through CSF.
+# @option: $1 - `-csf | --csf` (optional) (takes no argument)
+# @arg: `-csf | --csf` does not take any arguments. However, it requires the options as expressed above.
+# @example: ./vstacklet.sh -csf -e "your@email.com" -cloudflare -sendmail
+# ./vstacklet.sh --csf --email "your@email.com" --cloudflare --sendmail
+# @break
+##################################################################################
+vstacklet::csf::install() {
+	# check if csf is installed
+	if [[ -f /etc/csf/csf.conf ]]; then
+		_warn "CSF appears to be installed already. Skipping CSF installation" && return 0
 	fi
-}
-
-function _nocsf() {
-	if [[ ${csf} == "no" ]]; then
-		echo "${cyan}Skipping Config Server Firewall Installation${normal} ... "
-	fi
-}
-
-# if you're using cloudlfare as a protection and/or cdn - this next bit is important
-function _askcloudflare() {
-	echo -n "${bold}${yellow}Would you like to whitelist CloudFlare IPs?${normal} (${bold}${green}Y${normal}/n): "
-	read -r responce
-	case ${responce} in
-	[yY] | [yY][Ee][Ss] | "") cloudflare=yes ;;
-	[nN] | [nN][Oo]) cloudflare=no ;;
-	*)
-		echo "Invalid input..."
-		_askcloudflare
-		;;
-	esac
-}
-
-function _cloudflare() {
-	if [[ ${cloudflare} == "yes" ]]; then
-		echo -n "${green}Whitelisting Cloudflare IPs-v4 and -v6${normal} ... "
-		echo -e "# BEGIN CLOUDFLARE WHITELIST
-# ips-v4
-103.21.244.0/22
-103.22.200.0/22
-103.31.4.0/22
-104.16.0.0/12
-108.162.192.0/18
-131.0.72.0/22
-141.101.64.0/18
-162.158.0.0/15
-172.64.0.0/13
-173.245.48.0/20
-188.114.96.0/20
-190.93.240.0/20
-197.234.240.0/22
-198.41.128.0/17
-199.27.128.0/21
-# ips-v6
-2400:cb00::/32
-2405:8100::/32
-2405:b500::/32
-2606:4700::/32
-2803:f800::/32
-# END CLOUDFLARE WHITELIST
-        " >>/etc/csf/csf.allow
-		echo "${OK}"
-	fi
-}
-
-# install sendmail function (16)
-function _asksendmail() {
-	echo -n "${bold}${yellow}Do you want to install Sendmail?${normal} (${bold}${green}Y${normal}/n): "
-	read -r responce
-	case ${responce} in
-	[yY] | [yY][Ee][Ss] | "") sendmail=yes ;;
-	[nN] | [nN][Oo]) sendmail=no ;;
-	*)
-		echo "Invalid input..."
-		_asksendmail
-		;;
-	esac
-}
-
-function _sendmail() {
-	if [[ ${sendmail} == "yes" ]]; then
-		echo "${green}Installing Sendmail ... ${normal}"
-		apt-get -y install sendmail >>"${OUTTO}" 2>&1 || _error "could not install sendmail" && exit 1
-		export DEBIAN_FRONTEND=noninteractive | /usr/sbin/sendmailconfig >>"${OUTTO}" 2>&1
-		# add administrator email
-		echo "${magenta}Add an Administrator Email Below for Aliases Inclusion${normal}"
-		read -rp "${bold}Email: ${normal}" admin_email
+	_info "Installing CSF (ConfigServer Security & Firewall) firewall"
+	echo -n "${green}Installing required apt packages for CSF${normal} ... "
+	# e2fsprogs libwww-perl liblwp-protocol-https-perl libgd-graph-perl
+	(
+		DEBIAN_FRONTEND=noninteractive apt-get --allow-unauthenticated -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install e2fsprogs libwww-perl liblwp-protocol-https-perl libgd-graph-perl
+	) >>"${vslog}" 2>&1 || { _error "Failed to install CSF" && exit 1; }
+	# install csf
+	wget -O - https://download.configserver.com/csf.tgz | tar -xz -C /usr/local/src >>"${vslog}" 2>&1 || { _error "Failed to download CSF" && exit 1; }
+	(
+		cd /usr/local/src/csf || _error "Failed to change directory to /usr/local/src/csf" && exit 1
+		sh install.sh >>"${vslog}" 2>&1 || { _error "Failed to install CSF" && exit 1; }
+	) >>"${vslog}" 2>&1 || { _error "Failed to install CSF" && exit 1; }
+	# configure csf
+	echo -n "${green}Configuring CSF${normal} ... "
+	perl /usr/local/csf/bin/csftest.pl >>"${vslog}" 2>&1 || { _error "Failed to configure CSF" && exit 1; }
+	# modify csf blocklists - essentiallly like Cloudflare, but for CSF
+	# https://www.configserver.com/cp/csf.html#blocklists
+	sed -i.bak -e 's/^SPAMDROP|86400|0|/SPAMDROP|86400|100|/g' -e 's/^SPAMEDROP|86400|0|/SPAMEDROP|86400|100|/g' -e 's/^DSHIELD|86400|0|/DSHIELD|86400|100|/g' -e 's/^TOR|86400|0|/TOR|86400|100|/g' -e 's/^ALTTOR|86400|0|/ALTTOR|86400|100|/g' -e 's/^BOGON|86400|0|/BOGON|86400|100|/g' -e 's/^HONEYPOT|86400|0|/HONEYPOT|86400|100|/g' -e 's/^CIARMY|86400|0|/CIARMY|86400|100|/g' -e 's/^BFB|86400|0|/BFB|86400|100|/g' -e 's/^OPENBL|86400|0|/OPENBL|86400|100|/g' -e 's/^AUTOSHUN|86400|0|/AUTOSHUN|86400|100|/g' -e 's/^MAXMIND|86400|0|/MAXMIND|86400|100|/g' -e 's/^BDE|3600|0|/BDE|3600|100|/g' -e 's/^BDEALL|86400|0|/BDEALL|86400|100|/g' /etc/csf/csf.blocklists >>"${vslog}" 2>&1 || { _error "Failed to modify CSF blocklists" && exit 1; }
+	# modify csf.ignore - ignore nginx, varnish, mysql, redis, postgresql, and phpmyadmin
+	{
 		echo
-		echo "${bold}The email ${green}${bold}${admin_email}${normal} ${bold}is now the forwarding address for root mail${normal}"
-		echo -n "${green}finalizing sendmail installation${normal} ... "
-		# install aliases
-		echo -e "mailer-daemon: postmaster
-postmaster: root
-nobody: root
-hostmaster: root
-usenet: root
-news: root
-webmaster: root
-www: root
-ftp: root
-abuse: root
-        root: ${admin_email}" >/etc/aliases
-		newaliases >>"${OUTTO}" 2>&1 || _error "could not issue 'newaliases' command" && exit 1
+		echo "[ vStacklet Additions ]"
+		[[ -n ${nginx} ]] && echo "nginx"
+		[[ -n ${varnish} ]] && echo "varnish" && echo "varnishd"
+		[[ -n ${mysql} ]] && echo "mysql" && echo "mysqld"
+		[[ -n ${redis} ]] && echo "redis" && echo "redis-server"
+		[[ -n ${postgre} ]] && echo "postgres" && echo "postgresql"
+		[[ -n ${phpmyadmin} ]] && echo "phpmyadmin"
+		echo "rsyslog"
+		echo "rsyslogd"
+		echo "systemd-timesyncd"
+		echo "systemd-resolved"
+	} >>/etc/csf/csf.ignore || { _error "Failed to modify CSF ignore list" && exit 1; }
+	# modify csf.allow - allow ssh, http, https, mysql, mariadb, postgresql, redis, and varnish
+	{
+		echo
+		echo "[ vStacklet Additions ]"
+		echo "${ssh_port}"
+		echo "${ftp_port}"
+		echo "${http_port}"
+		echo "${https_port}"
+		[[ -n ${mysql_port} ]] && echo "${mysql_port}"
+		[[ -n ${mariadb_port} ]] && echo "${mariadb_port}"
+		[[ -n ${postgresql_port} ]] && echo "${postgresql_port}"
+		[[ -n ${redis_port} ]] && echo "${redis_port}"
+		[[ -n ${varnish_port} ]] && echo "${varnish_port}"
+	} >>/etc/csf/csf.allow || { _error "Failed to modify CSF allow list" && exit 1; }
+	# modify csf.conf - this is to be further refined
+	sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"1\"/g" -e "s/^TCP_IN = \"20,21,22,25,53,80,110,143,443,465,587,993,995,3306,8443\"/TCP_IN = \"${ssh_port},${ftp_port},${http_port},${https_port},${mysql_port},${mariadb_port},${postgresql_port},${redis_port},${varnish_port}\"/g" -e "s/^TCP_OUT = \"20,21,22,25,53,80,110,143,443,465,587,993,995,3306,8443\"/TCP_OUT = \"${ssh_port},${ftp_port},${http_port},${https_port},${mysql_port},${mariadb_port},${postgresql_port},${redis_port},${varnish_port}\"/g" -e "s/^TCP6_IN = \"20,2122,25,53,80,110,143,443,465,587,993,995,3306,8443\"/TCP6_IN = \"${ssh_port},${ftp_port},${http_port},${https_port},${mysql_port},${mariadb_port},${postgresql_port},${redis_port},${varnish_port}\"/g" -e "s/^TCP6_OUT = \"20,2122,25,53,80,110,143,443,465,587,993,995,3306,8443\"/TCP6_OUT = \"${ssh_port},${ftp_port},${http_port},${https_port},${mysql_port},${mariadb_port},${postgresql_port},${redis_port},${varnish_port}\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || { _error "Failed to modify CSF configuration" && exit 1; }
+	[[ -z ${sendmail} || ${sendmail_skip} -eq 1 ]] && vstacklet::sendmail::install
+	echo "${OK}"
+}
+
+##################################################################################
+# @name: vstacklet::sendmail::install (21)
+# @description: Install and configure sendmail. This is a required component for
+# CSF to function properly.
+# notes:
+# - The `-e | --email` option is required for this function to run properly.
+#   the email address provided will be used to configure sendmail.
+# - If installing CSF, this function will be called automatically. As such, it
+#   is not necessary to call this function manually with the `-csf | --csf` option.
+# @param: $1 - sendmail_skip installation (this is siliently passed if `-csf` is used)
+# @option: $1 - `-sendmail | --sendmail` (optional) (takes no arguments)
+# @noargs
+# @example: ./vstacklet.sh -sendmail -e "your@email.com"
+# ./vstacklet.sh --sendmail --email "your@email.com"
+# @break
+##################################################################################
+vstacklet::sendmail::install() {
+	[[ -z ${email} ]] && { _error "The email address is required for sendmail" && exit 1; }
+	if [[ -n ${sendmail} || -n ${csf} && -z ${sendmail_skip} ]]; then
+		_info "Installing sendmail..."
+		(
+			export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true DEBCONF_NOWARNINGS=yes && apt-get -y install sendmail sendmail-bin sendmail-cf mailutils >>"${vslog}" 2>&1
+		) || { _error "Failed to install sendmail" && vstacklet::rollback::clean; }
+		echo "${green}Configuring sendmail...${normal}"
+		# modify aliases
+		sed -i.bak -e "s/^root:.*$/root: ${email}/g" /etc/aliases >>"${vslog}" 2>&1 || { _error "Failed to modify sendmail aliases" && vstacklet::rollback::clean; }
+		# modify sendmail.cf
+		sed -i.bak -e "s/^DS.*$/DS${email}/g" -e "s/^O DaemonPortOptions=Addr=${sendmail_port}, Name=MTA-v4/O DaemonPortOptions=Addr=${sendmail_port}, Name=MTA-v4, Family=inet/g" -e "s/^O PrivacyOptions=authwarnings,novrfy,noexpnO PrivacyOptions=authwarnings,novrfy,noexpn/O PrivacyOptions=authwarnings,novrfy,noexpn,restrictqrun/g" -e "s/^O AuthInfo=.*/O AuthInfo=${email}:*:${email}/g" -e "s/^O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4/O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4, Family=inet/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || { _error "Failed to modify sendmail configuration" && vstacklet::rollback::clean; }
+		# modify main.cf
+		sed -i.bak -e "s/^#myhostname = host.domain.tld/myhostname = ${server_hostname}/g" -e "s/^#mydomain = domain.tld/mydomain = ${domain}/g" -e "s/^#myorigin = \$mydomain/myorigin = \$mydomain/g" -e "s/^#mydestination = \$myhostname, localhost.\$mydomain, localhost/mydestination = \$myhostname, localhost.\$mydomain, localhost/g" -e "s/^#relayhost =/relayhost = ${server_ip}:${sendmail_port}/g" /etc/postfix/main.cf >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
+		# modify master.cf
+		sed -i.bak -e "s/^#submission/submission/g" -e "s/^#  -o syslog_name=postfix\/submission/  -o syslog_name=postfix\/submission/g" -e "s/^#  -o smtpd_tls_security_level=encrypt/  -o smtpd_tls_security_level=encrypt/g" -e "s/^#  -o smtpd_sasl_auth_enable=yes/  -o smtpd_sasl_auth_enable=yes/g" -e "s/^#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/g" -e "s/^#  -o milter_macro_daemon_name=ORIGINATING/  -o milter_macro_daemon_name=ORIGINATING/g" /etc/postfix/master.cf >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
+		# modify sasl_passwd
+		echo "[${server_ip}]:${sendmail_port} ${email}:${email}" >/etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
+		# modify sasl_passwd.db
+		postmap /etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
+		# modify smtpd.conf
+		sed -i.bak -e "s/^#submission/submission/g" -e "s/^#  -o syslog_name=postfix\/submission/  -o syslog_name=postfix\/submission/g" -e "s/^#  -o smtpd_tls_security_level=encrypt/  -o smtpd_tls_security_level=encrypt/g" -e "s/^#  -o smtpd_sasl_auth_enable=yes/  -o smtpd_sasl_auth_enable=yes/g" -e "s/^#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/g" -e "s/^#  -o milter_macro_daemon_name=ORIGINATING/  -o milter_macro_daemon_name=ORIGINATING/g" /etc/postfix/master.cf >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
+		newaliases >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
+		# restart sendmail
+		service sendmail restart >>"${vslog}" 2>&1 || { _error "Failed to restart sendmail" && vstacklet::rollback::clean; }
 		echo "${OK}"
 	fi
 }
 
-function _nosendmail() {
-	if [[ ${sendmail} == "no" ]]; then
-		echo "${cyan}Skipping Sendmail Installation...${normal}"
+##################################################################################
+# @name: vstacklet::cloudflare::csf
+# @description: Configure Cloudflare IP addresses in CSF. This is to be used
+# when Cloudflare is used as a CDN. This will allow CSF to
+# recognize Cloudflare IPs as trusted.
+# notes:
+# - This function is only called under the following conditions:
+#   - the option for `-csf` is used
+#   - the option for `-cloudflare` is used directly
+# - This function is only utilized if the option for `-csf` is used.
+# - This function adds the Cloudflare IP addresses to the CSF allow list. This
+#   is done to ensure that the server can be accessed by Cloudflare. The list
+#   is located in /etc/csf/csf.allow.
+# @option: $1 - `-cloudflare | --cloudflare` (optional)
+# @noargs
+# @example: ./vstacklet.sh -cloudflare -csf -e "your@email.com"
+# @break
+##################################################################################
+vstacklet::cloudflare::csf() {
+	# check if the user has selected to use Cloudflare
+	if [[ -n ${cloudflare} ]]; then
+		# check if the user has selected to use CSF
+		if [[ -n ${csf} ]]; then
+			# check if the csf.allow file exists
+			if [[ -f "/etc/csf/csf.allow" ]]; then
+				# add Cloudflare IP addresses to the allow list
+				{
+					echo "Adding Cloudflare IP addresses to the allow list..."
+					echo "# Cloudflare IP addresses"
+					echo "https://www.cloudflare.com/ips-v4"
+					echo "https://www.cloudflare.com/ips-v6"
+					echo "# End Cloudflare IP addresses"
+				} >>/etc/csf/csf.allow
+				echo "${OK}"
+			else
+				_error "The csf.allow file does not exist" && vstacklet::rollback::clean
+			fi
+		fi
 	fi
 }
 
@@ -1573,20 +1661,6 @@ function _security() {
 	echo "${OK}"
 }
 
-# create self-signed certificate function (19)
-function _askcert() {
-	echo -n "${bold}${yellow}Do you want to generate an SSL cert and configure HTTPS?${normal} (${bold}${green}Y${normal}/n): "
-	read -r responce
-	case ${responce} in
-	[yY] | [yY][Ee][Ss] | "") cert=yes ;;
-	[nN] | [nN][Oo]) cert=no ;;
-	*)
-		echo "${bold}${red}Invalid input...${normal}"
-		_askcert
-		;;
-	esac
-}
-
 function _cert() {
 	if [[ ${cert} == "yes" ]]; then
 		if [[ ${sitename} == "yes" ]]; then
@@ -1622,15 +1696,6 @@ function _cert() {
 	fi
 }
 
-function _nocert() {
-	#  if [[ ${cert} == "no" ]]; then
-	if [[ ${sitename} == "yes" ]]; then
-		sed -i "s/sitename/${site_path}/g" "/etc/nginx/conf.d/${site_path}.conf"
-	else
-		sed -i "s/sitename/${hostname1}/g" "/etc/nginx/conf.d/${hostname1}.conf"
-	fi
-}
-
 # finalize and restart services function (20)
 function _services() {
 	service apache2 stop >>"${OUTTO}" 2>&1
@@ -1650,7 +1715,11 @@ function _services() {
 }
 
 # function to show finished data (21)
-function _finished() {
+
+vstacklet::setup::finished() {
+	[[ -n ${http} ]] && web_port="${http}"
+	[[ -n ${https} ]] && web_port="${https}"
+	[[ -z ${domain} ]] && domain="${server_ip}"
 	echo
 	echo
 	echo
@@ -1676,9 +1745,9 @@ function _finished() {
 	echo '           _______________||______`--------------- '
 	echo
 	echo
-	echo "${black}${on_green}    [vstacklet] Varnish LEMP Stack Installation Completed    ${normal}"
+	echo "${black}${on_green}    vStacklet Installation Completed    ${normal}"
 	echo
-	echo "${bold}Visit ${green}http://${server_ip}:8080/checkinfo.php${normal} ${bold}to verify your install. ${normal}"
+	echo "${bold}Visit ${green}http://${domain}:${web_port}/checkinfo.php${normal} ${bold}to verify your install. ${normal}"
 	echo "${bold}Remember to remove the checkinfo.php file after verification. ${normal}"
 	echo
 	echo

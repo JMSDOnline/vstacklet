@@ -1,15 +1,43 @@
-# vstacklet-server-stack.sh - v3.1.1219
+# vstacklet-server-stack.sh - v3.1.1316
+
+
+---
+
+This script is designed to be run on a fresh Ubuntu 18.04/20.04 or
+Debian 9/10/11 server. I have done my best to keep it tidy and with as much
+error checking as possible. Couple this with loads of comments and you should
+have a pretty good idea of what is going on. If you have any questions,
+comments, or suggestions, please feel free to open an issue on GitHub.
+
+---
+
+ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
+GITHUB: https://github.com/JMSDOnline/vstacklet
+
+---
+
+vStacklet will install and configure the following:
+- NGinx 1.23.+ (HTTP Server)
+- PHP 7.4 (FPM) with common extensions
+- PHP 8.1 (FPM) with common extensions
+- MariaDB 10.6.+ (MySQL Database)
+- Varnish 7.2.+ (HTTP Cache)
+- CSF 14.+ (Config Server Firewall)
+- and more!
+
+---
+
 
 
 ### vstacklet::environment::init()
 
-setup the environment and set variables
+Setup the environment and set variables.
 
 ---
 
 ### vstacklet::args::process()
 
-process the options and values passed to the script
+Process the options and values passed to the script.
 
 #### options:
 
@@ -59,31 +87,31 @@ process the options and values passed to the script
 
 ### vstacklet::environment::functions()
 
-stage various functions for the setup environment
+Stage various functions for the setup environment.
 
 ---
 
 ### vstacklet::environment::checkroot()
 
-check if the user is root
+Check if the user is root.
 
 ---
 
 ### vstacklet::environment::checkdistro()
 
-check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
+Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
 
 ---
 
 ### vstacklet::intro()
 
-prints the intro message
+Prints the intro message
 
 ---
 
 ### vstacklet::log::check()
 
-check if the log file exists and create it if it doesn't
+Check if the log file exists and create it if it doesn't.
 
 *function has no options*
 
@@ -93,7 +121,7 @@ check if the log file exists and create it if it doesn't
 
 ### vstacklet::bashrc::set()
 
-set ~/.bashrc and ~/.profile for vstacklet
+Set ~/.bashrc and ~/.profile for vstacklet.
 
 *function has no options*
 
@@ -103,7 +131,8 @@ set ~/.bashrc and ~/.profile for vstacklet
 
 ### vstacklet::hostname::set()
 
-set system hostname
+Set system hostname.
+notes:
 - hostname must be a valid hostname.
   - It can contain only letters, numbers, and hyphens.
   - It must start with a letter and end with a letter or number.
@@ -130,9 +159,15 @@ set system hostname
 
 ### vstacklet::webroot::set()
 
-set main web root directory
+Set main web root directory.
+notes:
 - if the directory already exists, it will be used.
 - if the directory does not exist, it will be created.
+- the addition of subdirectories will be handled by the vStacklet software.
+  the subdirectories created in the web root directory will be:
+  - ~/public
+  - ~/logs
+  - ~/ssl
 - if `-wr | --web_root` is not set, the default directory will be used.
   e.g. `/var/www/html/{public,logs,ssl}`
 
@@ -155,7 +190,7 @@ set main web root directory
 
 ### vstacklet::ssh::set()
 
-set ssh port to custom port (if nothing is set, default port is 22)
+Set ssh port to custom port (if nothing is set, default port is 22)
 
 #### options:
 
@@ -176,7 +211,7 @@ set ssh port to custom port (if nothing is set, default port is 22)
 
 ### vstacklet::block::ssdp()
 
-blocks an insecure port 1900 that may lead to
+Blocks an insecure port 1900 that may lead to
 DDoS masked attacks. Only remove this function if you absolutely
 need port 1900. In most cases, this is a junk port.
 
@@ -229,12 +264,16 @@ for the vStacklet software.
 
 This function sets the required software package keys
 and sources for the vStacklet software.
+notes:
 - keys and sources are set for the following software packages:
   - hhvm (only if option `-hhvm|--hhvm` is set)
   - nginx (only if option `-nginx|--nginx` is set)
   - varnish (only if option `-varnish|--varnish` is set)
   - php (only if option `-php|--php` is set)
   - mariadb (only if option `-mariadb|--mariadb` is set)
+  - redis (only if option `-redis|--redis` is set)
+  - postgresql (only if option `-postgre|--postgresql` is set)
+- apt-key is being deprecated, using gpg instead
 
 *function has no options*
 
@@ -244,7 +283,7 @@ and sources for the vStacklet software.
 
 ### vstacklet::apt::update()
 
-update apt sources and packages - this is a wrapper for apt-get update
+Update apt sources and packages - this is a wrapper for apt-get update
 
 *function has no options*
 
@@ -254,12 +293,13 @@ update apt sources and packages - this is a wrapper for apt-get update
 
 ### vstacklet::php::install()
 
-install php and php modules (optional) (default: not installed)
-versioning
-- php < "7.4" - not supported, deprecated
-- php = "7.4" - supported
-- php = "8.0" - superceded by php="8.1"
-- php = "8.1" - supported
+Install PHP and PHP modules.
+notes:
+- versioning:
+  - php < "7.4" - not supported, deprecated
+  - php = "7.4" - supported
+  - php = "8.0" - superceded by php="8.1"
+  - php = "8.1" - supported
 - chose either php or hhvm, not both
 - php modules are installed based on the following variables:
   - `-php [php version]` (default: 8.1) - php version to install
@@ -294,7 +334,7 @@ versioning
 
 ### vstacklet::nginx::install()
 
-install nginx (optional) (default: not installed)
+Install NGinx and configure.
 
 #### options:
 
@@ -311,7 +351,9 @@ install nginx (optional) (default: not installed)
 
 ### vstacklet::hhvm::install()
 
-install hhvm
+Install HHVM and configure.
+notes:
+- HHVM is not compatible with PHP, so choose one or the other.
 
 #### options:
 
@@ -328,7 +370,19 @@ install hhvm
 
 ### vstacklet::permissions::adjust()
 
-adjust permissions for web root
+Adjust permissions for the web root.
+notes:
+- Permissions are adjusted based the following variables:
+ - adjustments are made to the assigned web root on the `-wr | --web-root`
+   option
+ - adjustments are made to the default web root of `/var/www/html`
+  if the `-wr | --web-root` option is not used
+- permissions are adjusted to the following:
+ - `www-data:www-data` (user:group)
+ - `755` (directory)
+ - `644` (file)
+ - `g+rw` (group read/write)
+ - `g+s` (group sticky)
 
 *function has no options*
 
@@ -338,7 +392,7 @@ adjust permissions for web root
 
 ### vstacklet::varnish::install()
 
-install varnish and configure
+Install Varnish and configure.
 
 #### options:
 
@@ -365,9 +419,10 @@ install varnish and configure
 
 ### vstacklet::ioncube::install()
 
-install ioncube (optional)
+Install ioncube loader.
+notes:
 - the ioncube loader will be available for the php version specified
-from the `-php | --php` option.
+  from the `-php | --php` option.
 
 #### options:
 
@@ -386,7 +441,10 @@ from the `-php | --php` option.
 
 ### vstacklet::mariadb::install()
 
-install mariadb and configure
+Install mariaDB and configure.
+notes:
+- if `-mysql | --mysql` is specified, then mariadb will not be installed. choose either mariadb or mysql.
+- actual mariadb version installed is 10.6.+ LTS.
 
 #### options:
 
@@ -410,9 +468,40 @@ install mariadb and configure
 
 ---
 
+### vstacklet::mysql::install()
+
+Install mySQL and configure.
+notes:
+- if `-mariadb | --mariadb` is specified, then mysql will not be installed. choose either mysql or mariadb.
+- apt-deb mysql version is 0.8.24-1_all.deb
+- actual mysql version installed is 8.0.+
+
+#### options:
+
+-  $1 - `-mysql | --mysql` (optional) (takes no arguments)
+-  $2 - `-mysqlP | --mysql_port` (optional) (takes one argument)
+-  $3 - `-mysqlU | --mysql_user` (optional) (takes one argument)
+-  $4 - `-mysqlPw | --mysql_password` (optional) (takes one argument)
+
+#### arguments:
+
+-  $2 - `[mysql_port]` (optional) (default: 3306)
+-  $3 - `[mysql_user]` (optional) (default: root)
+-  $4 - `[mysql_password]` (optional) (default: password auto-generated)
+
+#### examples:
+
+```
+ ./vstacklet.sh -mysql -mysqlP 3306 -mysqlU root -mysqlPw password
+ ./vstacklet.sh --mysql --mysql_port 3306 --mysql_user root --mysql_password password
+```
+
+---
+
 ### vstacklet::phpmyadmin::install()
 
-install phpmyadmin and configure.
+Install phpMyAdmin and configure.
+notes:
 - phpMyAdmin requires a web server to run. You must select a web server from the list below.
   - nginx
   - varnish
@@ -438,6 +527,14 @@ install phpmyadmin and configure.
     - usage: `-http [port] | --http [port]`
     - note: if no port is provided, the default port will be used. (80)
 
+#### options:
+
+-  $1 - `-phpmyadmin | --phpmyadmin` (optional) (takes no arguments) (default: not installed)
+
+#### arguments:
+
+-  `-phpmyadmin | --phpmyadmin` does not take any arguments. However, it requires the options as expressed above.
+
 #### examples:
 
 ```
@@ -445,6 +542,97 @@ install phpmyadmin and configure.
  ./vstacklet.sh --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
  ./vstacklet.sh -phpmyadmin -varnish -mysqlU root -mysqlPw password -hhvm -http 80
  ./vstacklet.sh --phpmyadmin --varnish --mysql_user root --mysql_password password --hhvm --http 80
+```
+
+---
+
+### vstacklet::csf::install()
+
+Install CSF firewall.
+notes:
+- https://configserver.com/cp/csf.html
+- installing CSF will also install LFD (Linux Firewall Daemon)
+- CSF will be configured to allow SSH, FTP, HTTP, HTTPS, MySQL, Redis,
+  Postgres, and Varnish
+- CSF will be configured to block all other ports
+- CSF requires sendmail to be installed. if the `-sendmail` option is not
+  specified, sendmail will automatically be installed and configured to use the
+  specified email address from the `-email` option.
+- As expressed above, CSF will also require the `-email` option to be
+  specified.
+- if your domain is routed through Cloudflare, you will need to add use the
+  `-cloudflare` option to allow Cloudflare IPs through CSF.
+
+#### options:
+
+-  $1 - `-csf | --csf` (optional) (takes no argument)
+
+#### arguments:
+
+-  `-csf | --csf` does not take any arguments. However, it requires the options as expressed above.
+
+#### examples:
+
+```
+ ./vstacklet.sh -csf -e "your@email.com" -cloudflare -sendmail
+ ./vstacklet.sh --csf --email "your@email.com" --cloudflare --sendmail
+```
+
+---
+
+### vstacklet::sendmail::install()
+
+Install and configure sendmail. This is a required component for
+CSF to function properly.
+notes:
+- The `-e | --email` option is required for this function to run properly.
+  the email address provided will be used to configure sendmail.
+- If installing CSF, this function will be called automatically. As such, it
+  is not necessary to call this function manually with the `-csf | --csf` option.
+
+#### options:
+
+-  $1 - `-sendmail | --sendmail` (optional) (takes no arguments)
+
+*function has no arguments*
+
+#### parameters:
+
+-  $1 - sendmail_skip installation (this is siliently passed if `-csf` is used)
+
+#### examples:
+
+```
+ ./vstacklet.sh -sendmail -e "your@email.com"
+ ./vstacklet.sh --sendmail --email "your@email.com"
+```
+
+---
+
+### vstacklet::cloudflare::csf()
+
+Configure Cloudflare IP addresses in CSF. This is to be used
+when Cloudflare is used as a CDN. This will allow CSF to
+recognize Cloudflare IPs as trusted.
+notes:
+- This function is only called under the following conditions:
+  - the option for `-csf` is used
+  - the option for `-cloudflare` is used directly
+- This function is only utilized if the option for `-csf` is used.
+- This function adds the Cloudflare IP addresses to the CSF allow list. This
+  is done to ensure that the server can be accessed by Cloudflare. The list
+  is located in /etc/csf/csf.allow.
+
+#### options:
+
+-  $1 - `-cloudflare | --cloudflare` (optional)
+
+*function has no arguments*
+
+#### examples:
+
+```
+ ./vstacklet.sh -cloudflare -csf -e "your@email.com"
 ```
 
 ---
