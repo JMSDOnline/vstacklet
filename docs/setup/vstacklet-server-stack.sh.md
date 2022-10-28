@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1353
+# vstacklet-server-stack.sh - v3.1.1366
 
 
 ---
@@ -11,12 +11,6 @@ comments, or suggestions, please feel free to open an issue on GitHub.
 
 ---
 
-Important Links:
-- :pencil: GITHUB REPO:   https://github.com/JMSDOnline/vstacklet
-- :bug: ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
-
----
-
 vStacklet will install and configure the following:
 - NGinx 1.23.+ (HTTP Server)
 - PHP 7.4 (FPM) with common extensions
@@ -25,6 +19,89 @@ vStacklet will install and configure the following:
 - Varnish 7.2.+ (HTTP Cache)
 - CSF 14.+ (Config Server Firewall)
 - and more!
+
+---
+
+Important Links:
+- :pencil: GITHUB REPO:   https://github.com/JMSDOnline/vstacklet
+- :bug: ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
+
+---
+
+:book: vStacklet Function Documentation:
+- [vstacklet::environment::init()](#vstackletenvironmentinit)
+- [vstacklet::args::process()](#vstackletargsprocess)
+  - [options](#options)
+  - [arguments](#arguments)
+  - [examples](#examples)
+- [vstacklet::environment::functions()](#vstackletenvironmentfunctions)
+- [vstacklet::environment::checkroot()](#vstackletenvironmentcheckroot)
+- [vstacklet::environment::checkdistro()](#vstackletenvironmentcheckdistro)
+- [vstacklet::intro()](#vstackletintro)
+- [vstacklet::log::check()](#vstackletlogcheck)
+- [vstacklet::bashrc::set()](#vstackletbashrcset)
+- [vstacklet::hostname::set()](#vstacklethostnameset)
+  - [options](#options-1)
+  - [arguments](#arguments-1)
+  - [examples](#examples-1)
+- [vstacklet::webroot::set()](#vstackletwebrootset)
+  - [options](#options-2)
+  - [arguments](#arguments-2)
+  - [examples](#examples-2)
+- [vstacklet::ssh::set()](#vstackletsshset)
+  - [options](#options-3)
+  - [arguments](#arguments-3)
+  - [examples](#examples-3)
+- [vstacklet::block::ssdp()](#vstackletblockssdp)
+- [vstacklet::update::packages()](#vstackletupdatepackages)
+- [vstacklet::locale::set()](#vstackletlocaleset)
+- [vstacklet::packages::softcommon()](#vstackletpackagessoftcommon)
+- [vstacklet::packages::depends()](#vstackletpackagesdepends)
+- [vstacklet::packages::keys()](#vstackletpackageskeys)
+- [vstacklet::apt::update()](#vstackletaptupdate)
+- [vstacklet::php::install()](#vstackletphpinstall)
+  - [options](#options-4)
+  - [arguments](#arguments-4)
+  - [examples](#examples-4)
+- [vstacklet::nginx::install()](#vstackletnginxinstall)
+  - [options](#options-5)
+  - [examples](#examples-5)
+- [vstacklet::hhvm::install()](#vstacklethhvminstall)
+  - [options](#options-6)
+  - [examples](#examples-6)
+- [vstacklet::permissions::adjust()](#vstackletpermissionsadjust)
+- [vstacklet::varnish::install()](#vstackletvarnishinstall)
+  - [options](#options-7)
+  - [arguments](#arguments-5)
+  - [examples](#examples-7)
+- [vstacklet::ioncube::install()](#vstackletioncubeinstall)
+  - [options](#options-8)
+  - [examples](#examples-8)
+- [vstacklet::mariadb::install()](#vstackletmariadbinstall)
+  - [options](#options-9)
+  - [arguments](#arguments-6)
+  - [examples](#examples-9)
+- [vstacklet::mysql::install()](#vstackletmysqlinstall)
+  - [options](#options10)
+  - [arguments](#arguments-7)
+  - [examples](#examples-10)
+- [vstacklet::phpmyadmin::install()](#vstackletphpmyadmininstall)
+  - [options](#options-11)
+  - [arguments](#arguments-8)
+  - [examples](#examples-11)
+- [vstacklet::csf::install()](#vstackletcsfinstall)
+  - [options](#options-12)
+  - [arguments](#arguments-9)
+  - [examples](#examples-12)
+- [vstacklet::sendmail::install()](#vstackletsendmailinstall)
+  - [options](#options-13)
+  - [parameters](#parameters)
+  - [examples](#examples-13)
+- [vstacklet::cloudflare::csf()](#vstackletcloudflarecsf)
+  - [options](#options-14)
+  - [examples](#examples-14)
+- [vstacklet::nginx::location()](#vstackletnginxlocation)
+- [vstacklet::nginx::security()](#vstackletnginxsecurity)
 
 ---
 

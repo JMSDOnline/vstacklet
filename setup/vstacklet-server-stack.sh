@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1353
+# @version: 3.1.1366
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -16,10 +16,6 @@
 # have a pretty good idea of what is going on. If you have any questions,
 # comments, or suggestions, please feel free to open an issue on GitHub.
 #
-# Important Links:
-# - :pencil: GITHUB REPO:   https://github.com/JMSDOnline/vstacklet
-# - :bug: ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
-#
 # vStacklet will install and configure the following:
 # - NGinx 1.23.+ (HTTP Server)
 # - PHP 7.4 (FPM) with common extensions
@@ -28,6 +24,85 @@
 # - Varnish 7.2.+ (HTTP Cache)
 # - CSF 14.+ (Config Server Firewall)
 # - and more!
+#
+# Important Links:
+# - :pencil: GITHUB REPO:   https://github.com/JMSDOnline/vstacklet
+# - :bug: ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
+#
+# :book: vStacklet Function Documentation:
+# - [vstacklet::environment::init()](#vstackletenvironmentinit)
+# - [vstacklet::args::process()](#vstackletargsprocess)
+#   - [options](#options)
+#   - [arguments](#arguments)
+#   - [examples](#examples)
+# - [vstacklet::environment::functions()](#vstackletenvironmentfunctions)
+# - [vstacklet::environment::checkroot()](#vstackletenvironmentcheckroot)
+# - [vstacklet::environment::checkdistro()](#vstackletenvironmentcheckdistro)
+# - [vstacklet::intro()](#vstackletintro)
+# - [vstacklet::log::check()](#vstackletlogcheck)
+# - [vstacklet::bashrc::set()](#vstackletbashrcset)
+# - [vstacklet::hostname::set()](#vstacklethostnameset)
+#   - [options](#options-1)
+#   - [arguments](#arguments-1)
+#   - [examples](#examples-1)
+# - [vstacklet::webroot::set()](#vstackletwebrootset)
+#   - [options](#options-2)
+#   - [arguments](#arguments-2)
+#   - [examples](#examples-2)
+# - [vstacklet::ssh::set()](#vstackletsshset)
+#   - [options](#options-3)
+#   - [arguments](#arguments-3)
+#   - [examples](#examples-3)
+# - [vstacklet::block::ssdp()](#vstackletblockssdp)
+# - [vstacklet::update::packages()](#vstackletupdatepackages)
+# - [vstacklet::locale::set()](#vstackletlocaleset)
+# - [vstacklet::packages::softcommon()](#vstackletpackagessoftcommon)
+# - [vstacklet::packages::depends()](#vstackletpackagesdepends)
+# - [vstacklet::packages::keys()](#vstackletpackageskeys)
+# - [vstacklet::apt::update()](#vstackletaptupdate)
+# - [vstacklet::php::install()](#vstackletphpinstall)
+#   - [options](#options-4)
+#   - [arguments](#arguments-4)
+#   - [examples](#examples-4)
+# - [vstacklet::nginx::install()](#vstackletnginxinstall)
+#   - [options](#options-5)
+#   - [examples](#examples-5)
+# - [vstacklet::hhvm::install()](#vstacklethhvminstall)
+#   - [options](#options-6)
+#   - [examples](#examples-6)
+# - [vstacklet::permissions::adjust()](#vstackletpermissionsadjust)
+# - [vstacklet::varnish::install()](#vstackletvarnishinstall)
+#   - [options](#options-7)
+#   - [arguments](#arguments-5)
+#   - [examples](#examples-7)
+# - [vstacklet::ioncube::install()](#vstackletioncubeinstall)
+#   - [options](#options-8)
+#   - [examples](#examples-8)
+# - [vstacklet::mariadb::install()](#vstackletmariadbinstall)
+#   - [options](#options-9)
+#   - [arguments](#arguments-6)
+#   - [examples](#examples-9)
+# - [vstacklet::mysql::install()](#vstackletmysqlinstall)
+#   - [options](#options10)
+#   - [arguments](#arguments-7)
+#   - [examples](#examples-10)
+# - [vstacklet::phpmyadmin::install()](#vstackletphpmyadmininstall)
+#   - [options](#options-11)
+#   - [arguments](#arguments-8)
+#   - [examples](#examples-11)
+# - [vstacklet::csf::install()](#vstackletcsfinstall)
+#   - [options](#options-12)
+#   - [arguments](#arguments-9)
+#   - [examples](#examples-12)
+# - [vstacklet::sendmail::install()](#vstackletsendmailinstall)
+#   - [options](#options-13)
+#   - [parameters](#parameters)
+#   - [examples](#examples-13)
+# - [vstacklet::cloudflare::csf()](#vstackletcloudflarecsf)
+#   - [options](#options-14)
+#   - [examples](#examples-14)
+# - [vstacklet::nginx::location()](#vstackletnginxlocation)
+# - [vstacklet::nginx::security()](#vstackletnginxsecurity)
 #
 # @save_tasks:
 #  automated_versioning: true
@@ -155,6 +230,7 @@ vstacklet::args::process() {
 			script::help::print
 			;;
 		-csf | --csf)
+			declare -gi sendmail_skip="1"
 			declare -gi csf="1"
 			shift
 			[[ -z ${email} ]] && _error "Please provide an email address to use for the sendmail alias required by CSF." && exit 1
@@ -292,7 +368,6 @@ vstacklet::args::process() {
 			shift
 			[[ -z ${email} ]] && _error "An email is needed to register the server aliases.
 Please set an email with ' -e your@email.com '" && vstacklet::clean::rollback 13
-			[[ -n ${csf} ]] && declare -gi sendmail_skip="1"
 			;;
 		-sendmailP | --sendmail_port)
 			declare -gi sendmail_port="${2}"
@@ -1563,7 +1638,7 @@ vstacklet::csf::install() {
 ##################################################################################
 vstacklet::sendmail::install() {
 	[[ -z ${email} ]] && { _error "The email address is required for sendmail" && exit 1; }
-	if [[ -n ${sendmail} || -n ${csf} && -z ${sendmail_skip} ]]; then
+	if [[ -n ${sendmail} || -z ${sendmail_skip} ]]; then
 		_info "Installing sendmail..."
 		(
 			export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true DEBCONF_NOWARNINGS=yes && apt-get -y install sendmail sendmail-bin sendmail-cf mailutils >>"${vslog}" 2>&1
@@ -1573,23 +1648,23 @@ vstacklet::sendmail::install() {
 		sed -i.bak -e "s/^root:.*$/root: ${email}/g" /etc/aliases >>"${vslog}" 2>&1 || { _error "Failed to modify sendmail aliases" && vstacklet::rollback::clean; }
 		# modify /etc/mail/sendmail.cf
 		sed -i.bak -e "s/^DS.*$/DS${email}/g" \
-		-e "s/^O DaemonPortOptions=Addr=${sendmail_port}, Name=MTA-v4/O DaemonPortOptions=Addr=${sendmail_port}, Name=MTA-v4, Family=inet/g" \
-		-e "s/^O PrivacyOptions=authwarnings,novrfy,noexpnO PrivacyOptions=authwarnings,novrfy,noexpn/O PrivacyOptions=authwarnings,novrfy,noexpn,restrictqrun/g" \
-		-e "s/^O AuthInfo=.*/O AuthInfo=${email}:*:${email}/g" \
-		-e "s/^O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4/O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4, Family=inet/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || { _error "Failed to modify sendmail configuration" && vstacklet::rollback::clean; }
+			-e "s/^O DaemonPortOptions=Addr=${sendmail_port}, Name=MTA-v4/O DaemonPortOptions=Addr=${sendmail_port}, Name=MTA-v4, Family=inet/g" \
+			-e "s/^O PrivacyOptions=authwarnings,novrfy,noexpnO PrivacyOptions=authwarnings,novrfy,noexpn/O PrivacyOptions=authwarnings,novrfy,noexpn,restrictqrun/g" \
+			-e "s/^O AuthInfo=.*/O AuthInfo=${email}:*:${email}/g" \
+			-e "s/^O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4/O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4, Family=inet/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || { _error "Failed to modify sendmail configuration" && vstacklet::rollback::clean; }
 		# modify /etc/postfix/main.cf
 		sed -i.bak -e "s/^#myhostname = host.domain.tld/myhostname = ${server_hostname}/g" \
-		-e "s/^#mydomain = domain.tld/mydomain = ${domain}/g" \
-		-e "s/^#myorigin = \$mydomain/myorigin = \$mydomain/g" \
-		-e "s/^#mydestination = \$myhostname, localhost.\$mydomain, localhost/mydestination = \$myhostname, localhost.\$mydomain, localhost/g" \
-		-e "s/^#relayhost =/relayhost = ${server_ip}:${sendmail_port}/g" /etc/postfix/main.cf >>"${vslog}" 2>&1 || { _error "Failed to modify postfix main configuration" && vstacklet::rollback::clean; }
+			-e "s/^#mydomain = domain.tld/mydomain = ${domain}/g" \
+			-e "s/^#myorigin = \$mydomain/myorigin = \$mydomain/g" \
+			-e "s/^#mydestination = \$myhostname, localhost.\$mydomain, localhost/mydestination = \$myhostname, localhost.\$mydomain, localhost/g" \
+			-e "s/^#relayhost =/relayhost = ${server_ip}:${sendmail_port}/g" /etc/postfix/main.cf >>"${vslog}" 2>&1 || { _error "Failed to modify postfix main configuration" && vstacklet::rollback::clean; }
 		# modify /etc/postfix/master.cf
 		sed -i.bak -e "s/^#submission/submission/g" \
-		-e "s/^#  -o syslog_name=postfix\/submission/  -o syslog_name=postfix\/submission/g" \
-		-e "s/^#  -o smtpd_tls_security_level=encrypt/  -o smtpd_tls_security_level=encrypt/g" \
-		-e "s/^#  -o smtpd_sasl_auth_enable=yes/  -o smtpd_sasl_auth_enable=yes/g" \
-		-e "s/^#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/g" \
-		-e "s/^#  -o milter_macro_daemon_name=ORIGINATING/  -o milter_macro_daemon_name=ORIGINATING/g" /etc/postfix/master.cf >>"${vslog}" 2>&1 || { _error "Failed to modify postfix master configuration" && vstacklet::rollback::clean; }
+			-e "s/^#  -o syslog_name=postfix\/submission/  -o syslog_name=postfix\/submission/g" \
+			-e "s/^#  -o smtpd_tls_security_level=encrypt/  -o smtpd_tls_security_level=encrypt/g" \
+			-e "s/^#  -o smtpd_sasl_auth_enable=yes/  -o smtpd_sasl_auth_enable=yes/g" \
+			-e "s/^#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/g" \
+			-e "s/^#  -o milter_macro_daemon_name=ORIGINATING/  -o milter_macro_daemon_name=ORIGINATING/g" /etc/postfix/master.cf >>"${vslog}" 2>&1 || { _error "Failed to modify postfix master configuration" && vstacklet::rollback::clean; }
 		# modify /etc/postfix/sasl_passwd
 		echo "[${server_ip}]:${sendmail_port} ${email}:${email}" >/etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
 		# modify /etc/postfix/sasl_passwd
@@ -1628,13 +1703,15 @@ vstacklet::cloudflare::csf() {
 		# check if the csf.allow file exists
 		[[ ! -f "/etc/csf/csf.allow" ]] || { _error "CSF allow file does not exist." && vstacklet::rollback::clean; }
 		# add Cloudflare IP addresses to the allow list
+		echo "Adding Cloudflare IP addresses to the allow list..."
 		{
-			echo "Adding Cloudflare IP addresses to the allow list..."
 			echo "# Cloudflare IP addresses"
-			echo "https://www.cloudflare.com/ips-v4"
-			echo "https://www.cloudflare.com/ips-v6"
+			# trunk-ignore(shellcheck/SC2005)
+			echo "$(curl -s https://www.cloudflare.com/ips-v4)"
+			# trunk-ignore(shellcheck/SC2005)
+			echo "$(curl -s https://www.cloudflare.com/ips-v6)"
 			echo "# End Cloudflare IP addresses"
-		} >>/etc/csf/csf.allow
+		} >>/tmp/csf.allow
 		echo "${OK}"
 	fi
 }
