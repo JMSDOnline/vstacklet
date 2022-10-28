@@ -5,25 +5,29 @@ VStacklet - A Buff LEMP Stack Kit
 |---|
 | **VStacklet - A Buff LEMP Stack Kit** |
 
+## Overview
+
+vStacklet is a kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04, 15.10 and 16.04 servers.
+
+Components include a recent mainline version of Nginx (1.11.3 (Wily)) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.2 (drop-in replacement for MySQL), PHP7.0, PHP5.6 or HHVM **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
+
+Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
+
+---
+
+> ### HEADS UP!
+> It's long overdue. vStacklet is currently being completely refactored and rewritten on the `development` branch. The `master` branch is currently stable(ish - with a little elbow grease) and will be updated with the new features as they are completed. The `development` branch will be merged into `master` when it is stable. If you want to help out, please do so on the `development` branch. No matter what, feel free to follow along and give feedback. Current development script documentation is [here](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md).Thanks! :smile:
+
+> Lets Encrypt will be the standard SSL installer in the coming versions.
+
+---
+
 #### Script status
 
 [![Version 3.1.0-production](https://img.shields.io/badge/version-3.1.0-674172.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 [![Ubuntu 16.04 Failing](https://img.shields.io/badge/Ubuntu%2016.04-failing-brightred.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
 [![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-brightred.svg?style=flat-square)](https://jmsolodesigns.com/code-projects/vstacklet/varnish-lemp-stack)
-
---------
-
-> ### HEADS UP!
-VStacklet for Ubuntu 14.04 & 15.10 has been deprecated. This is due to 16.04 LTS now becoming more common place with at least 90% of the providers on the market. Additionally, SSL creation and install in the script has been disabled until I have LetsEncrypt fully integrated.
-
-Kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 14.04, 15.04, 15.10 and 16.04 servers.
-
-Components include a recent mainline version of Nginx (1.11.3 (Wily)) using configurations from the HTML 5 Boilerplate team (_and modified/customized for use with mainline_), Varnish 4.1, and MariaDB 10.2 (drop-in replacement for MySQL), PHP7.0, PHP5.6 or HHVM **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall) and more to be added soon. (see [To-Do List](#the-to-do-list))
-
-Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
-
-> Please note: that if you are going to use php 7 that ioncube are currently not supported. Additionally, Lets Encrypt will be the standard SSL installer in the coming versions.
 
 
 Script Features
