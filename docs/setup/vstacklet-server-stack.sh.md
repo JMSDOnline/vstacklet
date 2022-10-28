@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1326
+# vstacklet-server-stack.sh - v3.1.1327
 
 
 ---
@@ -12,8 +12,8 @@ comments, or suggestions, please feel free to open an issue on GitHub.
 ---
 
 Important Links:
-- :code: GITHUB REPO:   https://github.com/JMSDOnline/vstacklet
-- :bugs: ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
+- :pencil: GITHUB REPO:   https://github.com/JMSDOnline/vstacklet
+- :bug: ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
 
 ---
 
