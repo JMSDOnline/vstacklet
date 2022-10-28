@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1366
+# @version: 3.1.1371
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -798,10 +798,14 @@ EOF
 # @name: vstacklet::locale::set (5) ? vstacklet::locale::set::en_US.UTF-8 (15)
 # @description: This function sets the locale to en_US.UTF-8
 # and sets the timezone to UTC.
+#
+# todo: This function is still a work in progress.
+# - [ ] implement arguments to set the locale
+# - [ ] implement arguments to set the timezone (or a seperate function)
+# @noargs
+# @nooptions
 # @script-note: This function is required for the installation of
 # the vStacklet software.
-# todo: This function is still a work in progress.
-# It is plannedto add additional parameters to select the timezone and locale.
 # @break
 ##################################################################################
 vstacklet::locale::set() {
@@ -1634,6 +1638,7 @@ vstacklet::csf::install() {
 # @noargs
 # @example: ./vstacklet.sh -sendmail -e "your@email.com"
 # ./vstacklet.sh --sendmail --email "your@email.com"
+# ./vstacklet.sh -csf -e "your@email.com"
 # @break
 ##################################################################################
 vstacklet::sendmail::install() {
@@ -1684,8 +1689,8 @@ vstacklet::sendmail::install() {
 #
 # notes:
 # - This function is only called under the following conditions:
-#   - the option for `-csf` is used (required)
-#   - the option for `-cloudflare` is used directly
+#   - the option `-csf` is used (required)
+#   - the option `-cloudflare` is used directly
 # - This function is only utilized if the option for `-csf` is used.
 # - This function adds the Cloudflare IP addresses to the CSF allow list. This
 #   is done to ensure that the server can be accessed by Cloudflare. The list

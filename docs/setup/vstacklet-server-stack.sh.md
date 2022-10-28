@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1366
+# vstacklet-server-stack.sh - v3.1.1371
 
 
 ---
@@ -316,6 +316,14 @@ This function updates the package list and upgrades the system.
 
 This function sets the locale to en_US.UTF-8
 and sets the timezone to UTC.
+
+todo: This function is still a work in progress.
+- [ ] implement arguments to set the locale
+- [ ] implement arguments to set the timezone (or a seperate function)
+
+*function has no options*
+
+*function has no arguments*
 
 ---
 
@@ -696,6 +704,7 @@ notes:
 ```
  ./vstacklet.sh -sendmail -e "your@email.com"
  ./vstacklet.sh --sendmail --email "your@email.com"
+ ./vstacklet.sh -csf -e "your@email.com"
 ```
 
 ---
@@ -708,8 +717,8 @@ recognize Cloudflare IPs as trusted.
 
 notes:
 - This function is only called under the following conditions:
-  - the option for `-csf` is used (required)
-  - the option for `-cloudflare` is used directly
+  - the option `-csf` is used (required)
+  - the option `-cloudflare` is used directly
 - This function is only utilized if the option for `-csf` is used.
 - This function adds the Cloudflare IP addresses to the CSF allow list. This
   is done to ensure that the server can be accessed by Cloudflare. The list
