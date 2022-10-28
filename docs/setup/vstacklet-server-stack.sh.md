@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1371
+# vstacklet-server-stack.sh - v3.1.1375
 
 
 ---
@@ -599,6 +599,8 @@ notes:
 Install phpMyAdmin and configure.
 
 notes:
+- phpMyAdmin no longer supports HHVM due to the project now just focusing on
+  their own Hack language rather than PHP compatibility.
 - phpMyAdmin requires a web server to run. You must select a web server from the list below.
   - nginx
   - varnish
@@ -617,9 +619,8 @@ notes:
     - mariaDB usage: `-mariadbU [user] | --mariadb_user [user]` & `-mariadbPw [password] | --mariadb_password [password]`
     - mysql usage: `-mysqlU [user] | --mysql_user [user]` & `-mysqlPw [password] | --mysql_password [password]`
     - note: if no user or password is provided, the default user and password will be used. (root, auto-generated password)
-  - php version: hhvm, php7.4, php8.1
+  - php version: php7.4, php8.1
     - PHP usage: `-php [version] | --php [version]`
-    - HHVM usage: `-hhvm | --hhvm`
   - port: http
     - usage: `-http [port] | --http [port]`
     - note: if no port is provided, the default port will be used. (80)
@@ -637,8 +638,8 @@ notes:
 ```
  ./vstacklet.sh -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
  ./vstacklet.sh --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
- ./vstacklet.sh -phpmyadmin -varnish -mysqlU root -mysqlPw password -hhvm -http 80
- ./vstacklet.sh --phpmyadmin --varnish --mysql_user root --mysql_password password --hhvm --http 80
+ ./vstacklet.sh -phpmyadmin -varnish -mysqlU root -mysqlPw password -php 7.4 -http 80
+ ./vstacklet.sh --phpmyadmin --varnish --mysql_user root --mysql_password password --php 7.4 --http 80
 ```
 
 ---

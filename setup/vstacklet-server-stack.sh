@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1371
+# @version: 3.1.1375
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1430,6 +1430,8 @@ vstacklet::mysql::install() {
 # @description: Install phpMyAdmin and configure.
 #
 # notes:
+# - phpMyAdmin no longer supports HHVM due to the project now just focusing on
+#   their own Hack language rather than PHP compatibility.
 # - phpMyAdmin requires a web server to run. You must select a web server from the list below.
 #   - nginx
 #   - varnish
@@ -1448,9 +1450,8 @@ vstacklet::mysql::install() {
 #     - mariaDB usage: `-mariadbU [user] | --mariadb_user [user]` & `-mariadbPw [password] | --mariadb_password [password]`
 #     - mysql usage: `-mysqlU [user] | --mysql_user [user]` & `-mysqlPw [password] | --mysql_password [password]`
 #     - note: if no user or password is provided, the default user and password will be used. (root, auto-generated password)
-#   - php version: hhvm, php7.4, php8.1
+#   - php version: php7.4, php8.1
 #     - PHP usage: `-php [version] | --php [version]`
-#     - HHVM usage: `-hhvm | --hhvm`
 #   - port: http
 #     - usage: `-http [port] | --http [port]`
 #     - note: if no port is provided, the default port will be used. (80)
@@ -1458,16 +1459,18 @@ vstacklet::mysql::install() {
 # @arg: `-phpmyadmin | --phpmyadmin` does not take any arguments. However, it requires the options as expressed above.
 # @example: ./vstacklet.sh -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
 # ./vstacklet.sh --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
-# ./vstacklet.sh -phpmyadmin -varnish -mysqlU root -mysqlPw password -hhvm -http 80
-# ./vstacklet.sh --phpmyadmin --varnish --mysql_user root --mysql_password password --hhvm --http 80
+# ./vstacklet.sh -phpmyadmin -varnish -mysqlU root -mysqlPw password -php 7.4 -http 80
+# ./vstacklet.sh --phpmyadmin --varnish --mysql_user root --mysql_password password --php 7.4 --http 80
 # @break
 ##################################################################################
 vstacklet::phpmyadmin::install() {
 	# If you prefer a more modular installation, you can comment out the following 3 lines.
 	[[ -z ${mariadb} || -z ${mysql} ]] && { _warn "You must install a database server before installing phpMyAdmin" && vstacklet::rollback::cleanup; }
 	[[ -z ${nginx} && -z ${varnish} ]] && { _warn "You must install a web server before installing phpMyAdmin" && vstacklet::rollback::cleanup; }
-	[[ -z ${php} && -z ${hhvm} ]] && { _warn "You must install php or hhvm before installing phpMyAdmin" && vstacklet::rollback::cleanup; }
-	if [[ -n ${phpmyadmin} && -n ${mariadb} || -n ${mysql} || -n ${nginx} || -n ${varnish} && -n ${php} || -n ${hhvm} ]]; then
+	[[ -z ${php} ]] && { _warn "You must install php before installing phpMyAdmin" && vstacklet::rollback::cleanup; }
+	# check if hhvm is selected and throw error if it is
+	[[ -n ${hhvm} ]] && { _warn "phpMyAdmin does not support HHVM" && vstacklet::rollback::cleanup; }
+	if [[ -n ${phpmyadmin} && -n ${mariadb} || -n ${mysql} || -n ${nginx} || -n ${varnish} && -n ${php} ]]; then
 		declare pma_version
 		pma_version=$(curl -s https://www.phpmyadmin.net/home_page/version.json | jq -r '.version')
 		[[ -n ${http_port} ]] && phpmyadmin_port="${http_port}"
