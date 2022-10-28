@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1375
+# vstacklet-server-stack.sh - v3.1.1391
 
 
 ---
@@ -154,6 +154,34 @@ Process the options and values passed to the script.
 
 -  $2 - the value of the option/flag
 
+#### return codes:
+
+- 1 - Please provide a valid email address to use for the sendmail alias required by CSF.
+- 2 - Please provide a valid domain name.
+- 3 - Please provide a valid port number for the FTP server.
+- 4 - Invalid FTP port number. Please enter a number between 1 and 65535.
+- 5 - The MariaDB password must be at least 8 characters long.
+- 6 - Please provide a valid port number for the MariaDB server.
+- 7 - Invalid MariaDB port number. Please enter a number between 1 and 65535.
+- 8 - The MySQL password must be at least 8 characters long.
+- 9 - The MySQL port must be a number.
+- 10 - Invalid MySQL port number. Please enter a number between 1 and 65535.
+- 11 - Invalid PHP version. Please enter either 7 (7.4), or 8 (8.1).
+- 13 - The HTTPS port must be a number.
+- 14 - Invalid HTTPS port number. Please enter a number between 1 and 65535.
+- 15 - The HTTP port must be a number.
+- 16 - Invalid HTTP port number. Please enter a number between 1 and 65535.
+- 17 - Invalid hostname. Please enter a valid hostname.
+- 18 - An email is needed to register the server aliases. Please set an email with ' -e your@email.com '
+- 19 - The Sendmail port must be a number.
+- 20 - Invalid Sendmail port number. Please enter a number between 1 and 65535.
+- 21 - The SSH port must be a number.
+- 22 - Invalid SSH port number. Please enter a number between 1 and 65535.
+- 23 - The Varnish port must be a number.
+- 24 - Invalid Varnish port number. Please enter a number between 1 and 65535.
+- 25 - Invalid web root. Please enter a valid path. (e.g. /var/www/html)
+- 26 - Invalid option(s): ${invalid_option[*]}
+
 #### examples:
 
 ```
@@ -170,15 +198,15 @@ Stage various functions for the setup environment.
 
 ---
 
-### vstacklet::environment::checkroot()
-
-Check if the user is root.
-
----
-
 ### vstacklet::environment::checkdistro()
 
 Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
+
+---
+
+### vstacklet::environment::checkroot()
+
+Check if the user is root.
 
 ---
 
@@ -786,5 +814,11 @@ notes:
 *function has no arguments*
 
 ---
+
+### vstacklet::clean::rollback()
+
+rollback on error
+
+*function has no arguments*
 
 
