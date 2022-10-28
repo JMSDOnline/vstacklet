@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1327
+# vstacklet-server-stack.sh - v3.1.1353
 
 
 ---
@@ -68,6 +68,7 @@ Process the options and values passed to the script.
 -  `-pma | --phpmyadmin` - install phpMyAdmin
 -  `-csf | --csf` - install CSF firewall
 -  `-sendmail | --sendmail` - install Sendmail
+-  `-sendmailP | --sendmail_port` - port to use for the Sendmail server
 -  `-wr | --web_root` - the web root directory to use for the server
 -  `-wp | --wordpress` - install WordPress
 -  `--reboot` - reboot the server after the installation
@@ -133,6 +134,7 @@ Set ~/.bashrc and ~/.profile for vstacklet.
 ### vstacklet::hostname::set()
 
 Set system hostname.
+
 notes:
 - hostname must be a valid hostname.
   - It can contain only letters, numbers, and hyphens.
@@ -161,6 +163,7 @@ notes:
 ### vstacklet::webroot::set()
 
 Set main web root directory.
+
 notes:
 - if the directory already exists, it will be used.
 - if the directory does not exist, it will be created.
@@ -265,6 +268,7 @@ for the vStacklet software.
 
 This function sets the required software package keys
 and sources for the vStacklet software.
+
 notes:
 - keys and sources are set for the following software packages:
   - hhvm (only if option `-hhvm|--hhvm` is set)
@@ -295,6 +299,7 @@ Update apt sources and packages - this is a wrapper for apt-get update
 ### vstacklet::php::install()
 
 Install PHP and PHP modules.
+
 notes:
 - versioning:
   - php < "7.4" - not supported, deprecated
@@ -353,6 +358,7 @@ Install NGinx and configure.
 ### vstacklet::hhvm::install()
 
 Install HHVM and configure.
+
 notes:
 - HHVM is not compatible with PHP, so choose one or the other.
 
@@ -372,18 +378,19 @@ notes:
 ### vstacklet::permissions::adjust()
 
 Adjust permissions for the web root.
+
 notes:
 - Permissions are adjusted based the following variables:
- - adjustments are made to the assigned web root on the `-wr | --web-root`
+  - adjustments are made to the assigned web root on the `-wr | --web-root`
    option
- - adjustments are made to the default web root of `/var/www/html`
+  - adjustments are made to the default web root of `/var/www/html`
   if the `-wr | --web-root` option is not used
 - permissions are adjusted to the following:
- - `www-data:www-data` (user:group)
- - `755` (directory)
- - `644` (file)
- - `g+rw` (group read/write)
- - `g+s` (group sticky)
+  - `www-data:www-data` (user:group)
+  - `755` (directory)
+  - `644` (file)
+  - `g+rw` (group read/write)
+  - `g+s` (group sticky)
 
 *function has no options*
 
@@ -421,6 +428,7 @@ Install Varnish and configure.
 ### vstacklet::ioncube::install()
 
 Install ioncube loader.
+
 notes:
 - the ioncube loader will be available for the php version specified
   from the `-php | --php` option.
@@ -443,6 +451,7 @@ notes:
 ### vstacklet::mariadb::install()
 
 Install mariaDB and configure.
+
 notes:
 - if `-mysql | --mysql` is specified, then mariadb will not be installed. choose either mariadb or mysql.
 - actual mariadb version installed is 10.6.+ LTS.
@@ -472,6 +481,7 @@ notes:
 ### vstacklet::mysql::install()
 
 Install mySQL and configure.
+
 notes:
 - if `-mariadb | --mariadb` is specified, then mysql will not be installed. choose either mysql or mariadb.
 - apt-deb mysql version is 0.8.24-1_all.deb
@@ -502,6 +512,7 @@ notes:
 ### vstacklet::phpmyadmin::install()
 
 Install phpMyAdmin and configure.
+
 notes:
 - phpMyAdmin requires a web server to run. You must select a web server from the list below.
   - nginx
@@ -550,6 +561,7 @@ notes:
 ### vstacklet::csf::install()
 
 Install CSF firewall.
+
 notes:
 - https://configserver.com/cp/csf.html
 - installing CSF will also install LFD (Linux Firewall Daemon)
@@ -585,6 +597,7 @@ notes:
 
 Install and configure sendmail. This is a required component for
 CSF to function properly.
+
 notes:
 - The `-e | --email` option is required for this function to run properly.
   the email address provided will be used to configure sendmail.
@@ -615,9 +628,10 @@ notes:
 Configure Cloudflare IP addresses in CSF. This is to be used
 when Cloudflare is used as a CDN. This will allow CSF to
 recognize Cloudflare IPs as trusted.
+
 notes:
 - This function is only called under the following conditions:
-  - the option for `-csf` is used
+  - the option for `-csf` is used (required)
   - the option for `-cloudflare` is used directly
 - This function is only utilized if the option for `-csf` is used.
 - This function adds the Cloudflare IP addresses to the CSF allow list. This
@@ -635,6 +649,54 @@ notes:
 ```
  ./vstacklet.sh -cloudflare -csf -e "your@email.com"
 ```
+
+---
+
+### vstacklet::nginx::location()
+
+The following security & enhancements cover basic
+security measures to protect against common exploits.
+Enhancements covered are adding cache busting, cross domain
+font support, expires tags and protecting system files.
+
+notes:
+- You can find the included files at the following directory:
+  - /etc/nginx/server.configs/location/
+- Not all profiles are included, review your [-d | -h].conf
+  for additions made by the script & adjust accordingly.
+- This function is only called under the following conditions:
+  - the option for `-nginx` is used (required)
+- The following profiles are included:
+  - cache-busting.conf
+  - cross-domain-fonts.conf
+  - expires.conf
+  - protect-system-files.conf
+  - letsencrypt.conf
+
+*function has no arguments*
+
+---
+
+### vstacklet::nginx::security()
+
+The following security & enhancements cover basic
+security measures to protect against common exploits.
+Security measures covered are adding bad bot blocking, file injection,
+and php eastereggs.
+
+notes:
+- You can find the included files at the following directory:
+  - /etc/nginx/server.configs/directives/
+- Not all profiles are included, review your [-d | -h].conf
+  for additions made by the script & adjust accordingly.
+- This function is only called under the following conditions:
+  - the option for `-nginx` is used (required)
+- The following profiles are included:
+  - bad-bots.conf
+  - file-injection.conf
+  - php-easter-eggs.conf
+
+*function has no arguments*
 
 ---
 

@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1327
+# @version: 3.1.1353
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -128,6 +128,7 @@ vstacklet::environment::init() {
 # @option: `-pma | --phpmyadmin` - install phpMyAdmin
 # @option: `-csf | --csf` - install CSF firewall
 # @option: `-sendmail | --sendmail` - install Sendmail
+# @option: `-sendmailP | --sendmail_port` - port to use for the Sendmail server
 #
 # @option: `-wr | --web_root` - the web root directory to use for the server
 # @option: `-wp | --wordpress` - install WordPress
@@ -292,6 +293,14 @@ vstacklet::args::process() {
 			[[ -z ${email} ]] && _error "An email is needed to register the server aliases.
 Please set an email with ' -e your@email.com '" && vstacklet::clean::rollback 13
 			[[ -n ${csf} ]] && declare -gi sendmail_skip="1"
+			;;
+		-sendmailP | --sendmail_port)
+			declare -gi sendmail_port="${2}"
+			shift
+			shift
+			[[ -n ${sendmail_port} && ${sendmail_port} != ?(-)+([0-9]) ]] && _error "The Sendmail port must be a number." && vstacklet::clean::rollback 14
+			[[ -n ${sendmail_port} && ${sendmail_port} -lt 1 || ${sendmail_port} -gt 65535 ]] && _error "Invalid Sendmail port number. Please enter a number between 1 and 65535." && vstacklet::clean::rollback 14
+			[[ -z ${sendmail_port} ]] && declare -gi sendmail_port="25"
 			;;
 		-ssh* | --ssh_port*)
 			declare -gi ssh_port="${2}"
@@ -497,6 +506,7 @@ vstacklet::bashrc::set() {
 ##################################################################################
 # @name: vstacklet::hostname::set (5)
 # @description: Set system hostname.
+#
 # notes:
 # - hostname must be a valid hostname.
 #   - It can contain only letters, numbers, and hyphens.
@@ -528,6 +538,7 @@ vstacklet::hostname::set() {
 ##################################################################################
 # @name: vstacklet::webroot::set (6)
 # @description: Set main web root directory.
+#
 # notes:
 # - if the directory already exists, it will be used.
 # - if the directory does not exist, it will be created.
@@ -775,6 +786,7 @@ vstacklet::packages::depends() {
 # @name: vstacklet::packages::keys (8)
 # @description: This function sets the required software package keys
 # and sources for the vStacklet software.
+#
 # notes:
 # - keys and sources are set for the following software packages:
 #   - hhvm (only if option `-hhvm|--hhvm` is set)
@@ -868,6 +880,7 @@ vstacklet::apt::update() {
 ##################################################################################
 # @name: vstacklet::php::install (11)
 # @description: Install PHP and PHP modules.
+#
 # notes:
 # - versioning:
 #   - php < "7.4" - not supported, deprecated
@@ -1021,6 +1034,7 @@ vstacklet::nginx::install() {
 ##################################################################################
 # @name: vstacklet::hhvm::install (13)
 # @description: Install HHVM and configure.
+#
 # notes:
 # - HHVM is not compatible with PHP, so choose one or the other.
 # @option: $1 - `-hhvm | --hhvm` (optional) (takes no arguments)
@@ -1054,18 +1068,19 @@ vstacklet::hhvm::install() {
 ##################################################################################
 # @name: vstacklet::permissions::adjust (14)
 # @description: Adjust permissions for the web root.
+#
 # notes:
 # - Permissions are adjusted based the following variables:
-#  - adjustments are made to the assigned web root on the `-wr | --web-root`
+#   - adjustments are made to the assigned web root on the `-wr | --web-root`
 #    option
-#  - adjustments are made to the default web root of `/var/www/html`
+#   - adjustments are made to the default web root of `/var/www/html`
 #   if the `-wr | --web-root` option is not used
 # - permissions are adjusted to the following:
-#  - `www-data:www-data` (user:group)
-#  - `755` (directory)
-#  - `644` (file)
-#  - `g+rw` (group read/write)
-#  - `g+s` (group sticky)
+#   - `www-data:www-data` (user:group)
+#   - `755` (directory)
+#   - `644` (file)
+#   - `g+rw` (group read/write)
+#   - `g+s` (group sticky)
 # @nooptions:
 # @noargs:
 # @return: none
@@ -1156,6 +1171,7 @@ vstacklet::varnish::install() {
 ##################################################################################
 # @name: vstacklet::ioncube::install (16)
 # @description: Install ioncube loader.
+#
 # notes:
 # - the ioncube loader will be available for the php version specified
 #   from the `-php | --php` option.
@@ -1211,6 +1227,7 @@ vstacklet::ioncube::install() {
 ##################################################################################
 # @name: vstacklet::mariadb::install (17)
 # @description: Install mariaDB and configure.
+#
 # notes:
 # - if `-mysql | --mysql` is specified, then mariadb will not be installed. choose either mariadb or mysql.
 # - actual mariadb version installed is 10.6.+ LTS.
@@ -1269,6 +1286,7 @@ vstacklet::mariadb::install() {
 ##################################################################################
 # @name: vstacklet::mysql::install (18)
 # @description: Install mySQL and configure.
+#
 # notes:
 # - if `-mariadb | --mariadb` is specified, then mysql will not be installed. choose either mysql or mariadb.
 # - apt-deb mysql version is 0.8.24-1_all.deb
@@ -1331,6 +1349,7 @@ vstacklet::mysql::install() {
 ##################################################################################
 # @name: vstacklet::phpmyadmin::install (19)
 # @description: Install phpMyAdmin and configure.
+#
 # notes:
 # - phpMyAdmin requires a web server to run. You must select a web server from the list below.
 #   - nginx
@@ -1365,7 +1384,11 @@ vstacklet::mysql::install() {
 # @break
 ##################################################################################
 vstacklet::phpmyadmin::install() {
-	if [[ -n ${phpmyadmin} && -n ${mariadb} || -n ${mysql} && -n ${nginx} || -n ${varnish} && -n ${php} || -n ${hhvm} ]]; then
+	# If you prefer a more modular installation, you can comment out the following 3 lines.
+	[[ -z ${mariadb} || -z ${mysql} ]] && { _warn "You must install a database server before installing phpMyAdmin" && vstacklet::rollback::cleanup; }
+	[[ -z ${nginx} && -z ${varnish} ]] && { _warn "You must install a web server before installing phpMyAdmin" && vstacklet::rollback::cleanup; }
+	[[ -z ${php} && -z ${hhvm} ]] && { _warn "You must install php or hhvm before installing phpMyAdmin" && vstacklet::rollback::cleanup; }
+	if [[ -n ${phpmyadmin} && -n ${mariadb} || -n ${mysql} || -n ${nginx} || -n ${varnish} && -n ${php} || -n ${hhvm} ]]; then
 		declare pma_version
 		pma_version=$(curl -s https://www.phpmyadmin.net/home_page/version.json | jq -r '.version')
 		[[ -n ${http_port} ]] && phpmyadmin_port="${http_port}"
@@ -1436,6 +1459,7 @@ vstacklet::phpmyadmin::install() {
 ##################################################################################
 # @name: vstacklet::csf::install (20)
 # @description: Install CSF firewall.
+#
 # notes:
 # - https://configserver.com/cp/csf.html
 # - installing CSF will also install LFD (Linux Firewall Daemon)
@@ -1501,14 +1525,21 @@ vstacklet::csf::install() {
 		echo "${ftp_port}"
 		echo "${http_port}"
 		echo "${https_port}"
-		[[ -n ${mysql_port} ]] && echo "${mysql_port}"
-		[[ -n ${mariadb_port} ]] && echo "${mariadb_port}"
-		[[ -n ${postgresql_port} ]] && echo "${postgresql_port}"
-		[[ -n ${redis_port} ]] && echo "${redis_port}"
-		[[ -n ${varnish_port} ]] && echo "${varnish_port}"
+		[[ -n ${mysql_port} ]] && echo "${mysql_port}" && declare -g mysql_port="${mysql_port}"
+		[[ -n ${mariadb_port} ]] && echo "${mariadb_port}" && declare -g mariadb_port="${mariadb_port}"
+		[[ -n ${postgre_port} ]] && echo "${postgre_port}" && declare -g postgre_port="${postgre_port}"
+		[[ -n ${redis_port} ]] && echo "${redis_port}" && declare -g redis_port="${redis_port}"
+		[[ -n ${varnish_port} ]] && echo "${varnish_port}" && declare -g varnish_port="${varnish_port}"
+		[[ -n ${sendmail_port} ]] && echo "${sendmail_port}" && declare -g sendmail_port="${sendmail_port}"
 	} >>/etc/csf/csf.allow || { _error "Failed to modify CSF allow list" && exit 1; }
+	declare -a csf_allow_ports=("${ssh_port}" "${ftp_port}" "${http_port}" "${https_port}" "${mysql_port}" "${mariadb_port}" "${postgre_port}" "${redis_port}" "${varnish_port}" "${sendmail_port}")
+	# modify csf.conf - allow ssh, ftp, http, https, mysql, mariadb, postgresql, redis, sendmail, and varnish
+	for p in "${csf_allow_ports[@]}"; do
+		sed -i.bak -e "s/^TCP_IN = \"\$TCP_IN\"/TCP_IN = \"\$TCP_IN ${p}\"/g" -e "s/^TCP6_IN = \"\$TCP6_IN\"/TCP6_IN = \"\$TCP6_IN ${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || { _error "Failed to modify TCP_IN in CSF allow list" && exit 1; }
+		sed -i.bak -e "s/^TCP_OUT = \"\$TCP_OUT\"/TCP_OUT = \"\$TCP_OUT ${p}\"/g" -e "s/^TCP6_OUT = \"\$TCP6_OUT\"/TCP6_OUT = \"\$TCP6_OUT ${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || { _error "Failed to modify TCP_OUT in CSF allow list" && exit 1; }
+	done
 	# modify csf.conf - this is to be further refined
-	sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"1\"/g" -e "s/^TCP_IN = \"20,21,22,25,53,80,110,143,443,465,587,993,995,3306,8443\"/TCP_IN = \"${ssh_port},${ftp_port},${http_port},${https_port},${mysql_port},${mariadb_port},${postgresql_port},${redis_port},${varnish_port}\"/g" -e "s/^TCP_OUT = \"20,21,22,25,53,80,110,143,443,465,587,993,995,3306,8443\"/TCP_OUT = \"${ssh_port},${ftp_port},${http_port},${https_port},${mysql_port},${mariadb_port},${postgresql_port},${redis_port},${varnish_port}\"/g" -e "s/^TCP6_IN = \"20,2122,25,53,80,110,143,443,465,587,993,995,3306,8443\"/TCP6_IN = \"${ssh_port},${ftp_port},${http_port},${https_port},${mysql_port},${mariadb_port},${postgresql_port},${redis_port},${varnish_port}\"/g" -e "s/^TCP6_OUT = \"20,2122,25,53,80,110,143,443,465,587,993,995,3306,8443\"/TCP6_OUT = \"${ssh_port},${ftp_port},${http_port},${https_port},${mysql_port},${mariadb_port},${postgresql_port},${redis_port},${varnish_port}\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || { _error "Failed to modify CSF configuration" && exit 1; }
+	sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"1\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || { _error "Failed to modify CSF configuration" && exit 1; }
 	[[ -z ${sendmail} || ${sendmail_skip} -eq 1 ]] && vstacklet::sendmail::install
 	echo "${OK}"
 }
@@ -1517,6 +1548,7 @@ vstacklet::csf::install() {
 # @name: vstacklet::sendmail::install (21)
 # @description: Install and configure sendmail. This is a required component for
 # CSF to function properly.
+#
 # notes:
 # - The `-e | --email` option is required for this function to run properly.
 #   the email address provided will be used to configure sendmail.
@@ -1539,18 +1571,29 @@ vstacklet::sendmail::install() {
 		echo "${green}Configuring sendmail...${normal}"
 		# modify aliases
 		sed -i.bak -e "s/^root:.*$/root: ${email}/g" /etc/aliases >>"${vslog}" 2>&1 || { _error "Failed to modify sendmail aliases" && vstacklet::rollback::clean; }
-		# modify sendmail.cf
-		sed -i.bak -e "s/^DS.*$/DS${email}/g" -e "s/^O DaemonPortOptions=Addr=${sendmail_port}, Name=MTA-v4/O DaemonPortOptions=Addr=${sendmail_port}, Name=MTA-v4, Family=inet/g" -e "s/^O PrivacyOptions=authwarnings,novrfy,noexpnO PrivacyOptions=authwarnings,novrfy,noexpn/O PrivacyOptions=authwarnings,novrfy,noexpn,restrictqrun/g" -e "s/^O AuthInfo=.*/O AuthInfo=${email}:*:${email}/g" -e "s/^O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4/O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4, Family=inet/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || { _error "Failed to modify sendmail configuration" && vstacklet::rollback::clean; }
-		# modify main.cf
-		sed -i.bak -e "s/^#myhostname = host.domain.tld/myhostname = ${server_hostname}/g" -e "s/^#mydomain = domain.tld/mydomain = ${domain}/g" -e "s/^#myorigin = \$mydomain/myorigin = \$mydomain/g" -e "s/^#mydestination = \$myhostname, localhost.\$mydomain, localhost/mydestination = \$myhostname, localhost.\$mydomain, localhost/g" -e "s/^#relayhost =/relayhost = ${server_ip}:${sendmail_port}/g" /etc/postfix/main.cf >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
-		# modify master.cf
-		sed -i.bak -e "s/^#submission/submission/g" -e "s/^#  -o syslog_name=postfix\/submission/  -o syslog_name=postfix\/submission/g" -e "s/^#  -o smtpd_tls_security_level=encrypt/  -o smtpd_tls_security_level=encrypt/g" -e "s/^#  -o smtpd_sasl_auth_enable=yes/  -o smtpd_sasl_auth_enable=yes/g" -e "s/^#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/g" -e "s/^#  -o milter_macro_daemon_name=ORIGINATING/  -o milter_macro_daemon_name=ORIGINATING/g" /etc/postfix/master.cf >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
-		# modify sasl_passwd
+		# modify /etc/mail/sendmail.cf
+		sed -i.bak -e "s/^DS.*$/DS${email}/g" \
+		-e "s/^O DaemonPortOptions=Addr=${sendmail_port}, Name=MTA-v4/O DaemonPortOptions=Addr=${sendmail_port}, Name=MTA-v4, Family=inet/g" \
+		-e "s/^O PrivacyOptions=authwarnings,novrfy,noexpnO PrivacyOptions=authwarnings,novrfy,noexpn/O PrivacyOptions=authwarnings,novrfy,noexpn,restrictqrun/g" \
+		-e "s/^O AuthInfo=.*/O AuthInfo=${email}:*:${email}/g" \
+		-e "s/^O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4/O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4, Family=inet/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || { _error "Failed to modify sendmail configuration" && vstacklet::rollback::clean; }
+		# modify /etc/postfix/main.cf
+		sed -i.bak -e "s/^#myhostname = host.domain.tld/myhostname = ${server_hostname}/g" \
+		-e "s/^#mydomain = domain.tld/mydomain = ${domain}/g" \
+		-e "s/^#myorigin = \$mydomain/myorigin = \$mydomain/g" \
+		-e "s/^#mydestination = \$myhostname, localhost.\$mydomain, localhost/mydestination = \$myhostname, localhost.\$mydomain, localhost/g" \
+		-e "s/^#relayhost =/relayhost = ${server_ip}:${sendmail_port}/g" /etc/postfix/main.cf >>"${vslog}" 2>&1 || { _error "Failed to modify postfix main configuration" && vstacklet::rollback::clean; }
+		# modify /etc/postfix/master.cf
+		sed -i.bak -e "s/^#submission/submission/g" \
+		-e "s/^#  -o syslog_name=postfix\/submission/  -o syslog_name=postfix\/submission/g" \
+		-e "s/^#  -o smtpd_tls_security_level=encrypt/  -o smtpd_tls_security_level=encrypt/g" \
+		-e "s/^#  -o smtpd_sasl_auth_enable=yes/  -o smtpd_sasl_auth_enable=yes/g" \
+		-e "s/^#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/g" \
+		-e "s/^#  -o milter_macro_daemon_name=ORIGINATING/  -o milter_macro_daemon_name=ORIGINATING/g" /etc/postfix/master.cf >>"${vslog}" 2>&1 || { _error "Failed to modify postfix master configuration" && vstacklet::rollback::clean; }
+		# modify /etc/postfix/sasl_passwd
 		echo "[${server_ip}]:${sendmail_port} ${email}:${email}" >/etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
-		# modify sasl_passwd.db
+		# modify /etc/postfix/sasl_passwd
 		postmap /etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
-		# modify smtpd.conf
-		sed -i.bak -e "s/^#submission/submission/g" -e "s/^#  -o syslog_name=postfix\/submission/  -o syslog_name=postfix\/submission/g" -e "s/^#  -o smtpd_tls_security_level=encrypt/  -o smtpd_tls_security_level=encrypt/g" -e "s/^#  -o smtpd_sasl_auth_enable=yes/  -o smtpd_sasl_auth_enable=yes/g" -e "s/^#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/g" -e "s/^#  -o milter_macro_daemon_name=ORIGINATING/  -o milter_macro_daemon_name=ORIGINATING/g" /etc/postfix/master.cf >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
 		newaliases >>"${vslog}" 2>&1 || { _error "Failed to modify postfix configuration" && vstacklet::rollback::clean; }
 		# restart sendmail
 		service sendmail restart >>"${vslog}" 2>&1 || { _error "Failed to restart sendmail" && vstacklet::rollback::clean; }
@@ -1563,9 +1606,10 @@ vstacklet::sendmail::install() {
 # @description: Configure Cloudflare IP addresses in CSF. This is to be used
 # when Cloudflare is used as a CDN. This will allow CSF to
 # recognize Cloudflare IPs as trusted.
+#
 # notes:
 # - This function is only called under the following conditions:
-#   - the option for `-csf` is used
+#   - the option for `-csf` is used (required)
 #   - the option for `-cloudflare` is used directly
 # - This function is only utilized if the option for `-csf` is used.
 # - This function adds the Cloudflare IP addresses to the CSF allow list. This
@@ -1577,87 +1621,112 @@ vstacklet::sendmail::install() {
 # @break
 ##################################################################################
 vstacklet::cloudflare::csf() {
-	# check if the user has selected to use Cloudflare
+	# check if CSF has been selected
+	[[ -z ${csf} ]] && _error "CSF is not enabled with the -csf option." && vstacklet::rollback::clean
+	# check if Cloudflare has been selected
 	if [[ -n ${cloudflare} ]]; then
-		# check if the user has selected to use CSF
-		if [[ -n ${csf} ]]; then
-			# check if the csf.allow file exists
-			if [[ -f "/etc/csf/csf.allow" ]]; then
-				# add Cloudflare IP addresses to the allow list
-				{
-					echo "Adding Cloudflare IP addresses to the allow list..."
-					echo "# Cloudflare IP addresses"
-					echo "https://www.cloudflare.com/ips-v4"
-					echo "https://www.cloudflare.com/ips-v6"
-					echo "# End Cloudflare IP addresses"
-				} >>/etc/csf/csf.allow
-				echo "${OK}"
-			else
-				_error "The csf.allow file does not exist" && vstacklet::rollback::clean
-			fi
-		fi
+		# check if the csf.allow file exists
+		[[ ! -f "/etc/csf/csf.allow" ]] || { _error "CSF allow file does not exist." && vstacklet::rollback::clean; }
+		# add Cloudflare IP addresses to the allow list
+		{
+			echo "Adding Cloudflare IP addresses to the allow list..."
+			echo "# Cloudflare IP addresses"
+			echo "https://www.cloudflare.com/ips-v4"
+			echo "https://www.cloudflare.com/ips-v6"
+			echo "# End Cloudflare IP addresses"
+		} >>/etc/csf/csf.allow
+		echo "${OK}"
 	fi
 }
 
 #################################################################
-# The following security & enhancements cover basic security
-# measures to protect against common exploits.
+# @name: vstacklet::nginx::location
+# @description: The following security & enhancements cover basic
+# security measures to protect against common exploits.
 # Enhancements covered are adding cache busting, cross domain
 # font support, expires tags and protecting system files.
 #
-# You can find the included files at the following directory...
-# /etc/nginx/server.configs/
-#
-# Not all profiles are included, review your $sitename.conf
-# for additions made by the script & adjust accordingly.
+# notes:
+# - You can find the included files at the following directory:
+#   - /etc/nginx/server.configs/location/
+# - Not all profiles are included, review your [-d | -h].conf
+#   for additions made by the script & adjust accordingly.
+# - This function is only called under the following conditions:
+#   - the option for `-nginx` is used (required)
+# - The following profiles are included:
+#   - cache-busting.conf
+#   - cross-domain-fonts.conf
+#   - expires.conf
+#   - protect-system-files.conf
+#   - letsencrypt.conf
+# @nooptons
+# @noargs
+# @break
 #################################################################
-
-# Round 1 - Location
-# enhance configuration function (17)
-function _locenhance() {
-	if [[ ${sitename} == "yes" ]]; then
-		locconf1="include server.configs\/location\/cache-busting.conf;"
-		sed -i "s/locconf1/${locconf1}/g" "/etc/nginx/conf.d/${site_path}.conf"
-		locconf2="include server.configs\/location\/cross-domain-fonts.conf;"
-		sed -i "s/locconf2/${locconf2}/g" "/etc/nginx/conf.d/${site_path}.conf"
-		locconf3="include server.configs\/location\/expires.conf;"
-		sed -i "s/locconf3/${locconf3}/g" "/etc/nginx/conf.d/${site_path}.conf"
-		locconf4="include server.configs\/location\/protect-system-files.conf;"
-		sed -i "s/locconf4/${locconf4}/g" "/etc/nginx/conf.d/${site_path}.conf"
-		locconf5="include server.configs\/location\/letsencrypt.conf;"
-		sed -i "s/locconf5/${locconf5}/g" "/etc/nginx/conf.d/${site_path}.conf"
+vstacklet::nginx::location() {
+	# Round 1 - Location
+	[[ -z ${nginx} ]] && _error "The -nginx|--nginx option is required" && vstacklet::rollback::clean
+	declare cache_busting="include server.configs\/location\/cache-busting.conf;"
+	declare cross_domain_fonts="include server.configs\/location\/cross-domain-fonts.conf;"
+	declare expires="include server.configs\/location\/expires.conf;"
+	declare protect_system_files="include server.configs\/location\/protect-system-files.conf;"
+	declare letsencrypt="include server.configs\/location\/letsencrypt.conf;"
+	declare -a locations=("${cache_busting}" "${cross_domain_fonts}" "${expires}" "${protect_system_files}" "${letsencrypt}")
+	entry="1"
+	if [[ -n ${domain} ]]; then
+		for i in "${locations[@]}"; do
+			sed -i "s/{{locconf${entry}}}/${i}/g" "/etc/nginx/conf.d/${domain}.conf" >>"${vslog}" 2>&1 || { _error "Failed to modify nginx configuration : ${i}" && vstacklet::rollback::clean; }
+			((entry++))
+		done
 	else
-		locconf1="include server.configs\/location\/cache-busting.conf;"
-		sed -i "s/locconf1/${locconf1}/g" "/etc/nginx/conf.d/${hostname1}.conf"
-		locconf2="include server.configs\/location\/cross-domain-fonts.conf;"
-		sed -i "s/locconf2/${locconf2}/g" "/etc/nginx/conf.d/${hostname1}.conf"
-		locconf3="include server.configs\/location\/expires.conf;"
-		sed -i "s/locconf3/${locconf3}/g" "/etc/nginx/conf.d/${hostname1}.conf"
-		locconf4="include server.configs\/location\/protect-system-files.conf;"
-		sed -i "s/locconf4/${locconf4}/g" "/etc/nginx/conf.d/${hostname1}.conf"
-		locconf5="include server.configs\/location\/letsencrypt.conf;"
-		sed -i "s/locconf5/${locconf5}/g" "/etc/nginx/conf.d/${hostname1}.conf"
+		for i in "${locations[@]}"; do
+			sed -i "s/{{locconf${entry}/${i}}}/g" "/etc/nginx/conf.d/${server_hostname}.conf" >>"${vslog}" 2>&1 || { _error "Failed to modify nginx configuration : ${i}" && vstacklet::rollback::clean; }
+			((entry++))
+		done
 	fi
 	echo "${OK}"
 }
 
-# Round 2 - Security
-# optimize security configuration function (18)
-function _security() {
-	if [[ ${sitename} == "yes" ]]; then
-		secconf1="include server.configs\/directives\/sec-bad-bots.conf;"
-		sed -i "s/secconf1/${secconf1}/g" "/etc/nginx/conf.d/${site_path}.conf"
-		secconf2="include server.configs\/directives\/sec-file-injection.conf;"
-		sed -i "s/secconf2/${secconf2}/g" "/etc/nginx/conf.d/${site_path}.conf"
-		secconf3="include server.configs\/directives\/sec-php-easter-eggs.conf;"
-		sed -i "s/secconf3/${secconf3}/g" "/etc/nginx/conf.d/${site_path}.conf"
+#################################################################
+# @name: vstacklet::nginx::security
+# @description: The following security & enhancements cover basic
+# security measures to protect against common exploits.
+# Security measures covered are adding bad bot blocking, file injection,
+# and php eastereggs.
+#
+# notes:
+# - You can find the included files at the following directory:
+#   - /etc/nginx/server.configs/directives/
+# - Not all profiles are included, review your [-d | -h].conf
+#   for additions made by the script & adjust accordingly.
+# - This function is only called under the following conditions:
+#   - the option for `-nginx` is used (required)
+# - The following profiles are included:
+#   - bad-bots.conf
+#   - file-injection.conf
+#   - php-easter-eggs.conf
+# @nooptons
+# @noargs
+# @break
+#################################################################
+vstacklet::nginx::security() {
+	# Round 2 - Security
+	[[ -z ${nginx} ]] && _error "The -nginx|--nginx option is required" && vstacklet::rollback::clean
+	declare bad_bots="include server.configs\/directives\/bad-bots.conf;"
+	declare file_injection="include server.configs\/directives\/file-injection.conf;"
+	declare php_easter_eggs="include server.configs\/directives\/php-easter-eggs.conf;"
+	declare -a security=("${bad_bots}" "${file_injection}" "${php_easter_eggs}")
+	entry="1"
+	if [[ -n ${domain} ]]; then
+		for i in "${security[@]}"; do
+			sed -i "s/{{secconf${entry}}}/${i}/g" "/etc/nginx/conf.d/${domain}.conf" >>"${vslog}" 2>&1 || { _error "Failed to modify nginx configuration : ${i}" && vstacklet::rollback::clean; }
+			((entry++))
+		done
 	else
-		secconf1="include server.configs\/directives\/sec-bad-bots.conf;"
-		sed -i "s/secconf1/${secconf1}/g" "/etc/nginx/conf.d/${hostname1}.conf"
-		secconf2="include server.configs\/directives\/sec-file-injection.conf;"
-		sed -i "s/secconf2/${secconf2}/g" "/etc/nginx/conf.d/${hostname1}.conf"
-		secconf3="include server.configs\/directives\/sec-php-easter-eggs.conf;"
-		sed -i "s/secconf3/${secconf3}/g" "/etc/nginx/conf.d/${hostname1}.conf"
+		for i in "${security[@]}"; do
+			sed -i "s/{{secconf${entry}}}/${i}/g" "/etc/nginx/conf.d/${server_hostname}.conf" >>"${vslog}" 2>&1 || { _error "Failed to modify nginx configuration : ${i}" && vstacklet::rollback::clean; }
+			((entry++))
+		done
 	fi
 	echo "${OK}"
 }
