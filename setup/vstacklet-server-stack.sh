@@ -17,8 +17,8 @@
 # comments, or suggestions, please feel free to open an issue on GitHub.
 #
 # Important Links:
-# - :code: GITHUB REPO:   https://github.com/JMSDOnline/vstacklet
-# - :bugs: ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
+# - :pencil: GITHUB REPO:   https://github.com/JMSDOnline/vstacklet
+# - :bug: ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
 #
 # vStacklet will install and configure the following:
 # - NGinx 1.23.+ (HTTP Server)
