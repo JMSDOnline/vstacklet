@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1316
+# @version: 3.1.1326
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -16,8 +16,9 @@
 # have a pretty good idea of what is going on. If you have any questions,
 # comments, or suggestions, please feel free to open an issue on GitHub.
 #
-# ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
-# GITHUB: https://github.com/JMSDOnline/vstacklet
+# Important Links:
+# - :code: GITHUB REPO:   https://github.com/JMSDOnline/vstacklet
+# - :bugs: ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
 #
 # vStacklet will install and configure the following:
 # - NGinx 1.23.+ (HTTP Server)
