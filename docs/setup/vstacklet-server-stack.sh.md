@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1487
+# vstacklet-server-stack.sh - v3.1.1488
 
 
 ---
@@ -236,6 +236,8 @@ updates server via apt-get
 
 *function has no arguments*
 
+---
+
 ### vstacklet::dependencies::install()
 
 installs dependencies for vStacklet software
@@ -247,6 +249,8 @@ installs dependencies for vStacklet software
 #### return codes:
 
 - 28 - failed to install dependencies - [${install}]
+
+---
 
 ### vstacklet::intro()
 

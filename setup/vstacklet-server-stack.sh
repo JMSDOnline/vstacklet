@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1487
+# @version: 3.1.1488
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -602,6 +602,7 @@ vstacklet::environment::functions() {
 # @description: updates server via apt-get
 # @nooptions
 # @noargs
+# @break
 ##################################################################################
 vstacklet::apt::update() {
 	vstacklet::log "running apt update ... "
@@ -615,6 +616,7 @@ vstacklet::apt::update() {
 # @nooptions
 # @noargs
 # @return_code: 28 - failed to install dependencies - [${install}]
+# @break
 ##################################################################################
 vstacklet::dependencies::install() {
 	vstacklet::log "checking for initial script dependencies ... "
