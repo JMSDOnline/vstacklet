@@ -1,11 +1,11 @@
-#[submodule "php7"]
+[submodule "php7"]
   path = php7
   url = https://github.com/JMSDOnline/vstacklet_php7_base.git
   branch = development
-[submodule "php5"]
-  path = php5
-  url = https://github.com/JMSDOnline/vstacklet_php5_base.git
-  branch = development
+#[submodule "php5"] (deprecated)
+#  path = php5
+#  url = https://github.com/JMSDOnline/vstacklet_php5_base.git
+#  branch = development
 [submodule "hhvm"]
   path = hhvm
   url = https://github.com/JMSDOnline/vstacklet_hhvm_base.git
@@ -23,5 +23,5 @@
   url = https://github.com/JMSDOnline/vstacklet_packages.git
   branch = development
 [submodule "php8"]
-	path = php8
-	url = https://github.com/JMSDOnline/vstacklet_php8_base.git
+  path = php8
+  url = https://github.com/JMSDOnline/vstacklet_php8_base.git
