@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1391
+# vstacklet-server-stack.sh - v3.1.1487
 
 
 ---
@@ -113,6 +113,36 @@ Setup the environment and set variables.
 
 ---
 
+### vstacklet::log::check()
+
+Check if the log file exists and create it if it doesn't.
+
+*function has no options*
+
+*function has no arguments*
+
+---
+
+### vstacklet::environment::checkroot()
+
+Check if the user is root.
+
+#### return codes:
+
+- 1 = You must be root to run this script.
+
+---
+
+### vstacklet::environment::checkdistro()
+
+Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
+
+#### return codes:
+
+- 2 = This script only supports Ubuntu 18.04/20.04 | Debian 9/10/11
+
+---
+
 ### vstacklet::args::process()
 
 Process the options and values passed to the script.
@@ -156,31 +186,31 @@ Process the options and values passed to the script.
 
 #### return codes:
 
-- 1 - Please provide a valid email address to use for the sendmail alias required by CSF.
-- 2 - Please provide a valid domain name.
-- 3 - Please provide a valid port number for the FTP server.
-- 4 - Invalid FTP port number. Please enter a number between 1 and 65535.
-- 5 - The MariaDB password must be at least 8 characters long.
-- 6 - Please provide a valid port number for the MariaDB server.
-- 7 - Invalid MariaDB port number. Please enter a number between 1 and 65535.
-- 8 - The MySQL password must be at least 8 characters long.
-- 9 - The MySQL port must be a number.
-- 10 - Invalid MySQL port number. Please enter a number between 1 and 65535.
-- 11 - Invalid PHP version. Please enter either 7 (7.4), or 8 (8.1).
-- 13 - The HTTPS port must be a number.
-- 14 - Invalid HTTPS port number. Please enter a number between 1 and 65535.
-- 15 - The HTTP port must be a number.
-- 16 - Invalid HTTP port number. Please enter a number between 1 and 65535.
-- 17 - Invalid hostname. Please enter a valid hostname.
-- 18 - An email is needed to register the server aliases. Please set an email with ' -e your@email.com '
-- 19 - The Sendmail port must be a number.
-- 20 - Invalid Sendmail port number. Please enter a number between 1 and 65535.
-- 21 - The SSH port must be a number.
-- 22 - Invalid SSH port number. Please enter a number between 1 and 65535.
-- 23 - The Varnish port must be a number.
-- 24 - Invalid Varnish port number. Please enter a number between 1 and 65535.
-- 25 - Invalid web root. Please enter a valid path. (e.g. /var/www/html)
-- 26 - Invalid option(s): ${invalid_option[*]}
+- 3 - Please provide a valid email address to use. (required for -csf, -sendmail, and -cloudflare)
+- 4 - Please provide a valid domain name.
+- 5 - Please provide a valid port number for the FTP server.
+- 6 - Invalid FTP port number. Please enter a number between 1 and 65535.
+- 7 - The MariaDB password must be at least 8 characters long.
+- 8 - Please provide a valid port number for the MariaDB server.
+- 9 - Invalid MariaDB port number. Please enter a number between 1 and 65535.
+- 10 - The MySQL password must be at least 8 characters long.
+- 11 - The MySQL port must be a number.
+- 12 - Invalid MySQL port number. Please enter a number between 1 and 65535.
+- 13 - Invalid PHP version. Please enter either 7 (7.4), or 8 (8.1).
+- 14 - The HTTPS port must be a number.
+- 15 - Invalid HTTPS port number. Please enter a number between 1 and 65535.
+- 16 - The HTTP port must be a number.
+- 17 - Invalid HTTP port number. Please enter a number between 1 and 65535.
+- 18 - Invalid hostname. Please enter a valid hostname.
+- 19 - An email is needed to register the server aliases. Please set an email with ' -e your@email.com '
+- 20 - The Sendmail port must be a number.
+- 21 - Invalid Sendmail port number. Please enter a number between 1 and 65535.
+- 22 - The SSH port must be a number.
+- 23 - Invalid SSH port number. Please enter a number between 1 and 65535.
+- 24 - The Varnish port must be a number.
+- 25 - Invalid Varnish port number. Please enter a number between 1 and 65535.
+- 26 - Invalid web root. Please enter a valid path. (e.g. /var/www/html)
+- 27 - Invalid option(s): ${invalid_option[*]}
 
 #### examples:
 
@@ -198,17 +228,25 @@ Stage various functions for the setup environment.
 
 ---
 
-### vstacklet::environment::checkdistro()
+### vstacklet::apt::update()
 
-Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
+updates server via apt-get
 
----
+*function has no options*
 
-### vstacklet::environment::checkroot()
+*function has no arguments*
 
-Check if the user is root.
+### vstacklet::dependencies::install()
 
----
+installs dependencies for vStacklet software
+
+*function has no options*
+
+*function has no arguments*
+
+#### return codes:
+
+- 28 - failed to install dependencies - [${install}]
 
 ### vstacklet::intro()
 
@@ -216,13 +254,43 @@ Prints the intro message
 
 ---
 
-### vstacklet::log::check()
+### vstacklet::dependencies::array()
 
-Check if the log file exists and create it if it doesn't.
+Handles various dependencies for the vStacklet software.
 
 *function has no options*
 
 *function has no arguments*
+
+---
+
+### vstacklet::log::dependencies()
+
+logs dependencies to file
+
+*function has no arguments*
+
+### vstacklet::base::dependencies()
+
+Handles base dependencies for the vStacklet software.
+
+#### return codes:
+
+- 29 - failed to install base dependencies - [${install}]
+
+---
+
+### vstacklet::sources::install()
+
+installs required sources for vStacklet software
+
+*function has no options*
+
+*function has no arguments*
+
+#### return codes:
+
+- 30 - failed to install source dependencies - [${depend}]
 
 ---
 
@@ -309,6 +377,11 @@ Set ssh port to custom port (if nothing is set, default port is 22)
 
 -  $2 - `[port]` (default: 22) - the port to set for ssh
 
+#### return codes:
+
+- 32 - failed to set ssh port
+- 33 - failed to restart ssh service
+
 #### examples:
 
 ```
@@ -328,48 +401,16 @@ need port 1900. In most cases, this is a junk port.
 
 *function has no arguments*
 
+#### return codes:
+
+- 34 - failed to block ssdp port
+- 35 - failed to save iptables rules
+
 ---
 
-### vstacklet::update::packages()
+### vstacklet::sources::update()
 
 This function updates the package list and upgrades the system.
-
-*function has no options*
-
-*function has no arguments*
-
----
-
-### vstacklet::locale::set()
-
-This function sets the locale to en_US.UTF-8
-and sets the timezone to UTC.
-
-todo: This function is still a work in progress.
-- [ ] implement arguments to set the locale
-- [ ] implement arguments to set the timezone (or a seperate function)
-
-*function has no options*
-
-*function has no arguments*
-
----
-
-### vstacklet::packages::softcommon()
-
-This function updates the system packages and installs
-the required common property packages for the vStacklet software.
-
-*function has no options*
-
-*function has no arguments*
-
----
-
-### vstacklet::packages::depends()
-
-This function installs the required software packages
-for the vStacklet software.
 
 *function has no options*
 
@@ -407,6 +448,30 @@ Update apt sources and packages - this is a wrapper for apt-get update
 
 *function has no arguments*
 
+#### return codes:
+
+- 36 - apt-get update failed
+- 37 - apt-get upgrade failed
+
+---
+
+### vstacklet::locale::set()
+
+This function sets the locale to en_US.UTF-8
+and sets the timezone to UTC.
+
+todo: This function is still a work in progress.
+- [ ] implement arguments to set the locale
+- [ ] implement arguments to set the timezone (or a seperate function)
+
+*function has no options*
+
+*function has no arguments*
+
+#### return codes:
+
+- 38 - locale-gen failed
+
 ---
 
 ### vstacklet::php::install()
@@ -442,28 +507,18 @@ notes:
 
 -  $2 - `[version]` - `7.4` | `8.1`
 
+#### return codes:
+
+- 39 - php and hhvm cannot be installed at the same time, please choose one
+- 40 - failed to install php dependencies
+- 41 - failed to install php memcached extension
+- 42 - failed to install php redis extension
+
 #### examples:
 
 ```
  ./vstacklet.sh -php 8.1
  ./vstacklet.sh --php 7.4
-```
-
----
-
-### vstacklet::nginx::install()
-
-Install NGinx and configure.
-
-#### options:
-
--  $1 - `-nginx | --nginx` (optional) (takes no arguments)
-
-#### examples:
-
-```
- ./vstacklet.sh -nginx
- ./vstacklet.sh --nginx
 ```
 
 ---
@@ -479,11 +534,110 @@ notes:
 
 -  $1 - `-hhvm | --hhvm` (optional) (takes no arguments)
 
+#### return codes:
+
+- 43 - hhvm and php cannot be installed at the same time, please choose one
+- 44 - failed to install hhvm dependencies
+- 45 - failed to install hhvm
+- 46 - failed to update php alternatives
+
 #### examples:
 
 ```
  ./vstacklet.sh -hhvm
  ./vstacklet.sh --hhvm
+```
+
+---
+
+### vstacklet::nginx::install()
+
+Install NGinx and configure.
+
+notes:
+- The following profiles are included:
+  - Location profiles
+    - cache-busting
+    - cross-domain-fonts
+    - expires
+    - protect-system-files
+    - letsencrypt
+  - Security profiles
+    - ssl
+    - cloudflare-real-ip
+    - common-exploit-prevention
+    - mime-type-security
+    - reflected-xss-prevention
+    - sec-bad-bots
+    - sec-file-injection
+    - sec-php-easter-eggs
+    - server-security-options
+    - socket-settings
+- These config can be found at /etc/nginx/server.configs/
+
+#### options:
+
+-  $1 - `-nginx | --nginx` (optional) (takes no arguments)
+
+#### return codes:
+
+- 47 - failed to install nginx dependencies
+- 48 - missing required option for nginx configuration - ${e}
+- 49 - failed to edit nginx configuration
+- 50 - failed to enable nginx configuration
+- 51 - failed to generate dhparam file
+- 52 - failed to stage checkinfo.php verification file
+
+#### examples:
+
+```
+ ./vstacklet.sh -nginx
+ ./vstacklet.sh --nginx
+ ./vstacklet.sh -nginx -php 8.1 -varnish -varnishP 80 -http 8080 -https 443
+ ./vstacklet.sh --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
+```
+
+---
+
+### vstacklet::varnish::install()
+
+Install Varnish and configure.
+
+notes:
+- varnish is installed based on the following variables:
+  - `-varnish` (optional)
+  - `-varnishP|--varnish_port` (optional) (default: 6081)
+  - `-http|--http_port` (optional) (default: 80)
+ - if you are not familiar with Varnish, please read the following:
+  - https://www.varnish-cache.org/
+
+#### options:
+
+-  $1 - `-varnish | --varnish` (optional) (takes no arguments)
+-  $2 - `-varnishP | --varnish_port` (optional) (takes one argument)
+-  $3 - `-http | --http_port` (optional) (takes one argument)
+-  $4 - `-https | --https_port` (optional) (takes one argument)
+
+#### arguments:
+
+-  $2 - `[varnish_port_number]` (optional) (default: 6081)
+-  $3 - `[http_port_number]` (optional) (default: 80)
+-  $4 - `[https_port_number]` (optional) (default: 443)
+
+#### return codes:
+
+- 53 - failed to install varnish package
+- 54 - could not switch to /etc/varnish directory
+- 55 - failed to reload the systemd daemon
+- 56 - failed to switch to ~/
+
+#### examples:
+
+```
+ ./vstacklet.sh -varnish -varnishP 6081 -http 80
+ ./vstacklet.sh --varnish --varnish_port 6081 --http_port 80
+ ./vstacklet.sh -varnish -varnishP 6081 -http 80 -https 443
+ ./vstacklet.sh -varnish -varnishP 80 -nginx -http 8080 --https_port 443
 ```
 
 ---
@@ -511,33 +665,6 @@ notes:
 
 ---
 
-### vstacklet::varnish::install()
-
-Install Varnish and configure.
-
-#### options:
-
--  $1 - `-varnish | --varnish` (optional) (takes no arguments)
--  $2 - `-varnishP | --varnish_port` (optional) (takes one argument)
--  $3 - `-http | --http_port` (optional) (takes one argument)
--  $4 - `-https | --https_port` (optional) (takes one argument)
-
-#### arguments:
-
--  $2 - `[varnish_port_number]` (optional) (default: 6081)
--  $3 - `[http_port_number]` (optional) (default: 80)
--  $4 - `[https_port_number]` (optional) (default: 443)
-
-#### examples:
-
-```
- ./vstacklet.sh -varnish -varnishP 6081 -http 80
- ./vstacklet.sh --varnish --varnish_port 6081 --http_port 80
- ./vstacklet.sh -varnish -varnishP 6081 -http 80 -https 443
-```
-
----
-
 ### vstacklet::ioncube::install()
 
 Install ioncube loader.
@@ -549,6 +676,15 @@ notes:
 #### options:
 
 -  $1 - `-ioncube | --ioncube` (optional) (takes no arguments)
+
+#### return codes:
+
+- 57 - failed to switch to /tmp directory
+- 58 - failed to download ioncube loader
+- 59 - failed to extract ioncube loader
+- 60 - failed to switch to /tmp/ioncube directory
+- 61 - failed to copy ioncube loader to /usr/lib/php/ directory
+- 62 - failed to enable ioncube loader php extension
 
 #### examples:
 
@@ -582,11 +718,27 @@ notes:
 -  $3 - `[user]` (optional) (default: root)
 -  $4 - `[password]` (optional) (default: password auto-generated)
 
+#### return codes:
+
+- 63 - failed to install mariadb
+- 64 - failed to initialize mariadb secure installation
+- 65 - failed to create mariadb root user
+- 66 - failed to create mariadb root user password
+- 67 - failed to create mariadb root user host
+- 68 - failed to flush privileges
+- 69 - failed to set mariadb client and server configuration
+
 #### examples:
 
 ```
  ./vstacklet.sh -mariadb -mariadbP 3306 -mariadbU root -mariadbPw password
  ./vstacklet.sh --mariadb --mariadb_port 3306 --mariadb_user root --mariadb_password password
+ ./vstacklet.sh -mariadb -mariadbP 3306 -mariadbU root
+ ./vstacklet.sh --mariadb --mariadb_port 3306 --mariadb_user root
+ ./vstacklet.sh -mariadb -mariadbP 3306
+ ./vstacklet.sh --mariadb --mariadb_port 3306
+ ./vstacklet.sh -mariadb
+ ./vstacklet.sh --mariadb
 ```
 
 ---
@@ -612,6 +764,17 @@ notes:
 -  $2 - `[mysql_port]` (optional) (default: 3306)
 -  $3 - `[mysql_user]` (optional) (default: root)
 -  $4 - `[mysql_password]` (optional) (default: password auto-generated)
+
+#### return codes:
+
+- 70 - failed to get mysql deb package
+- 71 - failed to install mysql deb package
+- 72 - failed to install mysql dependencies
+- 73 - failed to set mysql root password
+- 74 - failed to create mysql user
+- 75 - failed to grant mysql user privileges
+- 76 - failed to flush mysql privileges
+- 77 - failed to set mysql client and server configuration
 
 #### examples:
 
@@ -666,8 +829,6 @@ notes:
 ```
  ./vstacklet.sh -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
  ./vstacklet.sh --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
- ./vstacklet.sh -phpmyadmin -varnish -mysqlU root -mysqlPw password -php 7.4 -http 80
- ./vstacklet.sh --phpmyadmin --varnish --mysql_user root --mysql_password password --php 7.4 --http 80
 ```
 
 ---
@@ -698,6 +859,20 @@ notes:
 
 -  `-csf | --csf` does not take any arguments. However, it requires the options as expressed above.
 
+#### return codes:
+
+- 94 - CSF firewall dependencies failed to install
+- 95 - CSF firewall failed to download
+- 96 - failed to switch to /usr/local/src/csf directory
+- 97 - CSF firewall failed to install
+- 98 - CSF firewall failed to configure
+- 99 - failed to modify CSF blocklist
+- 100 - failed to modify CSF ignore list
+- 101 - failed to modify CSF allow list
+- 102 - failed to modify CSF allow ports (inbound)
+- 103 - failed to modify CSF allow ports (outbound)
+- 104 - failed to modify CSF configuration file (csf.conf)
+
 #### examples:
 
 ```
@@ -727,6 +902,18 @@ notes:
 #### parameters:
 
 -  $1 - sendmail_skip installation (this is siliently passed if `-csf` is used)
+
+#### return codes:
+
+- 105 - an email address was not provided. this is required for sendmail
+- 106 - sendmail dependencies failed to install.
+- 107 - failed to edit aliases file.
+- 108 - failed to edit sendmail.cf file.
+- 109 - failed to edit main.cf file.
+- 110 - failed to edit master.cf file.
+- 111 - failed to create sasl_passwd file.
+- 112 - postmap failed.
+- 113 - failed to source new aliases.
 
 #### examples:
 
@@ -759,6 +946,11 @@ notes:
 
 *function has no arguments*
 
+#### return codes:
+
+- 114 - csf has not been enabled ( -csf ). this is a component of the
+- 115 - csf allow file does not exist.
+
 #### examples:
 
 ```
@@ -767,49 +959,74 @@ notes:
 
 ---
 
-### vstacklet::nginx::location()
+### vstacklet::domain::ssl()
 
-The following security & enhancements cover basic
-security measures to protect against common exploits.
-Enhancements covered are adding cache busting, cross domain
-font support, expires tags and protecting system files.
+The following function installs the SSL certificate
+for the domain.
 
 notes:
-- You can find the included files at the following directory:
-  - /etc/nginx/server.configs/location/
-- Not all profiles are included, review your [-d | -h].conf
-  for additions made by the script & adjust accordingly.
 - This function is only called under the following conditions:
-  - the option for `-nginx` is used (required)
-- The following profiles are included:
-  - cache-busting.conf
-  - cross-domain-fonts.conf
-  - expires.conf
-  - protect-system-files.conf
-  - letsencrypt.conf
+  - the option for `-domain` is used (optional)
+- The following options are required for this function:
+  - `-domain` or `--domain`
+  - `-email` or `--email`
+  - `-nginx` or `--nginx`
+
+#### options:
+
+-  $1 - `-domain | --domain` - The domain to install the
+
+#### arguments:
+
+- # @args: $1 - `[domain]` (required)
+
+#### return codes:
+
+- 116 - the -nginx|--nginx option is required.
+- 117 - the -e|--email option is required.
+- 118 - failed to change directory to /root.
+- 119 - failed to create directory ${webroot}/.well-known/acme-challenge.
+- 120 - failed to clone acme.sh.
+- 121 - failed to change directory to /root/acme.sh.
+- 122 - failed to install acme.sh.
+- 123 - missing required option(s) - ${e[@]}
+- 124 - failed to edit /etc/nginx/sites-available/${domain}.conf.
+- 125 - failed to reload nginx.
+- 126 - failed to register the account with Let's Encrypt.
+- 127 - failed to set the default CA to Let's Encrypt.
+- 128 - failed to issue the certificate.
+- 129 - failed to install the certificate.
+
+#### examples:
+
+```
+ ./vstacklet.sh -nginx -domain example.com -e "your@email.com"
+ ./vstacklet.sh --nginx --domain example.com --email "your@email.com"
+```
+
+---
+
+### vstacklet::clean::complete()
+
+Cleans up the system after a successful installation. This
+  function is called after the installation is complete. It removes the
+  temporary files and directories created during the installation process.
+  This function will also enable and start services that were installed.
+
+*function has no options*
 
 *function has no arguments*
 
 ---
 
-### vstacklet::nginx::security()
+### vstacklet::message::complete()
 
-The following security & enhancements cover basic
-security measures to protect against common exploits.
-Security measures covered are adding bad bot blocking, file injection,
-and php eastereggs.
+Outputs success message on completion of setup. This function
+  is called after the installation is complete. It outputs a success message
+  to the user and provides them with the necessary information to access their
+  new server.
 
-notes:
-- You can find the included files at the following directory:
-  - /etc/nginx/server.configs/directives/
-- Not all profiles are included, review your [-d | -h].conf
-  for additions made by the script & adjust accordingly.
-- This function is only called under the following conditions:
-  - the option for `-nginx` is used (required)
-- The following profiles are included:
-  - bad-bots.conf
-  - file-injection.conf
-  - php-easter-eggs.conf
+*function has no options*
 
 *function has no arguments*
 
@@ -817,8 +1034,18 @@ notes:
 
 ### vstacklet::clean::rollback()
 
-rollback on error
+This function is called when a rollback is required. It will
+  remove the temporary files and directories created during the installation
+  process. It will also remove the log file created during the installation
+  process.
+
+notes:
+  - this function is currently a work in progress
+
+*function has no options*
 
 *function has no arguments*
+
+---
 
 
