@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1488
+# @version: 3.1.1489
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1741,22 +1741,22 @@ vstacklet::mysql::install() {
 # @example: ./vstacklet.sh -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
 # ./vstacklet.sh --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
 # @null
-# @ return_code: 78 - a database server was not selected
-# @ return_code: 79 - a web server was not selected
-# @ return_code: 80 - a php version was not selected
-# @ return_code: 81 - phpMyAdmin does not support HHVM
-# @ return_code: 82 - failed to install dependencies
-# @ return_code: 83 - failed to switch to /usr/share directory
-# @ return_code: 84 - failed to remove existing phpMyAdmin directory
-# @ return_code: 85 - failed to download phpMyAdmin
-# @ return_code: 86 - failed to extract phpMyAdmin
-# @ return_code: 87 - failed to move phpMyAdmin to /usr/share directory
-# @ return_code: 88 - failed to remove phpMyAdmin archive
-# @ return_code: 89 - failed to set ownership of phpMyAdmin directory
-# @ return_code: 90 - failed to set permissions of phpMyAdmin directory
-# @ return_code: 91 - failed to create /usr/share/phpmyadmin/tmp directory
-# @ return_code: 92 - failed to set symlink of phpMyAdmin
-# @ return_code: 93 - failed to create phpMyAdmin configuration file
+# @return_code: 78 - a database server was not selected
+# @return_code: 79 - a web server was not selected
+# @return_code: 80 - a php version was not selected
+# @return_code: 81 - phpMyAdmin does not support HHVM
+# @return_code: 82 - failed to install dependencies
+# @return_code: 83 - failed to switch to /usr/share directory
+# @return_code: 84 - failed to remove existing phpMyAdmin directory
+# @return_code: 85 - failed to download phpMyAdmin
+# @return_code: 86 - failed to extract phpMyAdmin
+# @return_code: 87 - failed to move phpMyAdmin to /usr/share directory
+# @return_code: 88 - failed to remove phpMyAdmin archive
+# @return_code: 89 - failed to set ownership of phpMyAdmin directory
+# @return_code: 90 - failed to set permissions of phpMyAdmin directory
+# @return_code: 91 - failed to create /usr/share/phpmyadmin/tmp directory
+# @return_code: 92 - failed to set symlink of phpMyAdmin
+# @return_code: 93 - failed to create phpMyAdmin configuration file
 # @break
 ##################################################################################
 vstacklet::phpmyadmin::install() {

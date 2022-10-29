@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1488
+# vstacklet-server-stack.sh - v3.1.1489
 
 
 ---
@@ -827,6 +827,25 @@ notes:
 #### arguments:
 
 -  `-phpmyadmin | --phpmyadmin` does not take any arguments. However, it requires the options as expressed above.
+
+#### return codes:
+
+- 78 - a database server was not selected
+- 79 - a web server was not selected
+- 80 - a php version was not selected
+- 81 - phpMyAdmin does not support HHVM
+- 82 - failed to install dependencies
+- 83 - failed to switch to /usr/share directory
+- 84 - failed to remove existing phpMyAdmin directory
+- 85 - failed to download phpMyAdmin
+- 86 - failed to extract phpMyAdmin
+- 87 - failed to move phpMyAdmin to /usr/share directory
+- 88 - failed to remove phpMyAdmin archive
+- 89 - failed to set ownership of phpMyAdmin directory
+- 90 - failed to set permissions of phpMyAdmin directory
+- 91 - failed to create /usr/share/phpmyadmin/tmp directory
+- 92 - failed to set symlink of phpMyAdmin
+- 93 - failed to create phpMyAdmin configuration file
 
 #### examples:
 
