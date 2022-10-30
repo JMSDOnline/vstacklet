@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1523
+# @version: 3.1.1526
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2171,9 +2171,9 @@ vstacklet::csf::install() {
 		echo "[ vStacklet Additions ]"
 		[[ -n ${nginx} ]] && echo "nginx"
 		[[ -n ${varnish} ]] && echo "varnish" && echo "varnishd"
-		[[ -n ${mysql} ]] && echo "mysql" && echo "mysqld"
+		[[ -n ${mysql} || ${mariadb} ]] && echo "mysql" && echo "mysqld"
 		[[ -n ${redis} ]] && echo "redis" && echo "redis-server"
-		[[ -n ${postgre} ]] && echo "postgres" && echo "postgresql"
+		[[ -n ${postgresql} ]] && echo "postgre" && echo "postgresql"
 		[[ -n ${phpmyadmin} ]] && echo "phpmyadmin"
 		echo "rsyslog"
 		echo "rsyslogd"
@@ -2188,8 +2188,6 @@ vstacklet::csf::install() {
 		echo "${ftp_port:-21}"
 		echo "${http_port:-80}"
 		echo "${https_port:-443}"
-		[[ -n ${nginx} ]] && echo "${nginx_port:-80}"
-		[[ -n ${nginx} ]] && echo "${nginx_ssl_port:-443}"
 		[[ -n ${mysql_port} ]] && echo "${mysql_port:-3306}"
 		[[ -n ${mariadb_port} ]] && echo "${mariadb_port:-3306}"
 		[[ -n ${postgresql_port} ]] && echo "${postgresql_port:-5432}"
