@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1527
+# vstacklet-server-stack.sh - v3.1.1547
 
 
 ---
@@ -55,9 +55,9 @@ Important Links:
 - [vstacklet::block::ssdp()](#vstackletblockssdp)
 - [vstacklet::update::packages()](#vstackletupdatepackages)
 - [vstacklet::locale::set()](#vstackletlocaleset)
-- [vstacklet::packages::softcommon()](#vstackletpackagessoftcommon)
-- [vstacklet::packages::depends()](#vstackletpackagesdepends)
-- [vstacklet::packages::keys()](#vstackletpackageskeys)
+- [vstacklet::package::softcommon()](#vstackletpackagessoftcommon)
+- [vstacklet::package::depends()](#vstackletpackagesdepends)
+- [vstacklet::package::keys()](#vstackletpackageskeys)
 - [vstacklet::apt::update()](#vstackletaptupdate)
 - [vstacklet::php::install()](#vstackletphpinstall)
   - [options](#options-4)
@@ -113,36 +113,6 @@ Setup the environment and set variables.
 
 ---
 
-### vstacklet::log::check()
-
-Check if the log file exists and create it if it doesn't.
-
-*function has no options*
-
-*function has no arguments*
-
----
-
-### vstacklet::environment::checkroot()
-
-Check if the user is root.
-
-#### return codes:
-
-- 1 = You must be root to run this script.
-
----
-
-### vstacklet::environment::checkdistro()
-
-Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
-
-#### return codes:
-
-- 2 = This script only supports Ubuntu 18.04/20.04 | Debian 9/10/11
-
----
-
 ### vstacklet::args::process()
 
 Process the options and values passed to the script.
@@ -174,6 +144,7 @@ Process the options and values passed to the script.
 -  `-postgre | --postgre` - install PostgreSQL
 -  `-pma | --phpmyadmin` - install phpMyAdmin
 -  `-csf | --csf` - install CSF firewall
+-  `-csfCf | --csf_cloudflare` - enable Cloudflare support in CSF
 -  `-sendmail | --sendmail` - install Sendmail
 -  `-sendmailP | --sendmail_port` - port to use for the Sendmail server
 -  `-wr | --web_root` - the web root directory to use for the server
@@ -186,7 +157,7 @@ Process the options and values passed to the script.
 
 #### return codes:
 
-- 3 - Please provide a valid email address to use. (required for -csf, -sendmail, and -cloudflare)
+- 3 - Please provide a valid email address to use. (required for -csf, -sendmail, and -csfCf)
 - 4 - Please provide a valid domain name.
 - 5 - Please provide a valid port number for the FTP server.
 - 6 - Invalid FTP port number. Please enter a number between 1 and 65535.
@@ -216,8 +187,8 @@ Process the options and values passed to the script.
 
 ```
  ./vstacklet.sh --help
- ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -d "yourdomain.com" -php 8.1 -mc -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
- ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -d "yourdomain.com" -hhvm -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -sendmail -wr "/var/www/html" -wp --reboot
+ ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -mc -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
+ ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -d "yourdomain.com" -hhvm -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
 ```
 
 ---
@@ -225,6 +196,16 @@ Process the options and values passed to the script.
 ### vstacklet::environment::functions()
 
 Stage various functions for the setup environment.
+
+---
+
+### vstacklet::log::check()
+
+Check if the log file exists and create it if it doesn't.
+
+*function has no options*
+
+*function has no arguments*
 
 ---
 
@@ -252,6 +233,26 @@ installs dependencies for vStacklet software
 
 ---
 
+### vstacklet::environment::checkroot()
+
+Check if the user is root.
+
+#### return codes:
+
+- 1 = You must be root to run this script.
+
+---
+
+### vstacklet::environment::checkdistro()
+
+Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
+
+#### return codes:
+
+- 2 = This script only supports Ubuntu 18.04/20.04 | Debian 9/10/11
+
+---
+
 ### vstacklet::intro()
 
 Prints the intro message
@@ -268,12 +269,6 @@ Handles various dependencies for the vStacklet software.
 
 ---
 
-### vstacklet::log::dependencies()
-
-logs dependencies to file
-
-*function has no arguments*
-
 ### vstacklet::base::dependencies()
 
 Handles base dependencies for the vStacklet software.
@@ -284,7 +279,7 @@ Handles base dependencies for the vStacklet software.
 
 ---
 
-### vstacklet::sources::install()
+### vstacklet::source::dependencies()
 
 installs required sources for vStacklet software
 
@@ -384,13 +379,39 @@ Set ssh port to custom port (if nothing is set, default port is 22)
 #### return codes:
 
 - 32 - failed to set ssh port
-- 33 - failed to restart ssh service
+- 33 - failed to restart ssh daemon service
 
 #### examples:
 
 ```
  ./vstacklet.sh -ssh 2222
  ./vstacklet.sh --ssh_port 2222
+```
+
+---
+
+### vstacklet::ftp::set()
+
+Set ftp port to custom port (if nothing is set, default port is 21)
+
+#### options:
+
+-  $1 - `-ftp | --ftp_port` (optional) (takes one argument)
+
+#### arguments:
+
+-  $2 - `[port]` (default: 21) - the port to set for ftp
+
+#### return codes:
+
+- 34 - failed to set ftp port
+- 35 - failed to restart ftp service
+
+#### examples:
+
+```
+ ./vstacklet.sh -ftp 2121
+ ./vstacklet.sh --ftp_port 2121
 ```
 
 ---
@@ -422,7 +443,7 @@ This function updates the package list and upgrades the system.
 
 ---
 
-### vstacklet::packages::keys()
+### vstacklet::gpg::keys()
 
 This function sets the required software package keys
 and sources for the vStacklet software.
@@ -441,21 +462,6 @@ notes:
 *function has no options*
 
 *function has no arguments*
-
----
-
-### vstacklet::apt::update()
-
-Update apt sources and packages - this is a wrapper for apt-get update
-
-*function has no options*
-
-*function has no arguments*
-
-#### return codes:
-
-- 36 - apt-get update failed
-- 37 - apt-get upgrade failed
 
 ---
 
@@ -540,8 +546,8 @@ notes:
 - HHVM is not compatible with PHP, so choose one or the other. HHVM is
   not a drop-in replacement for PHP, so you will need to rewrite your
   PHP code to work with HHVM accordingly. HHVM is a dialect of PHP, not PHP itself.
-- unless you are familiar with HHVM, it is recommended to use PHP. there
-  may be numerous issues when using with `--wordpress` (e.g. plugins, themes, etc.)
+- unless you are familiar with HHVM, it is recommended to use `-php "8.1"` or `-php "7.4"` instead.
+- there may be numerous issues when using with `--wordpress` (e.g. plugins, themes, etc.)
 - phpMyAdmin is not compatible with HHVM, so if you choose HHVM,
   you will not be able to install phpMyAdmin.
 
@@ -936,15 +942,15 @@ notes:
 - https://configserver.com/cp/csf.html
 - installing CSF will also install LFD (Linux Firewall Daemon)
 - CSF will be configured to allow SSH, FTP, HTTP, HTTPS, MySQL, Redis,
-  Postgres, and Varnish
-- CSF will be configured to block all other ports
+  Postgres, and Varnish.
+- CSF will be configured to block all other ports.
 - CSF requires sendmail to be installed. if the `-sendmail` option is not
-  specified, sendmail will automatically be installed and configured to use the
+  specified, sendmail will be automatically installed and configured to use the
   specified email address from the `-email` option.
-- As expressed above, CSF will also require the `-email` option to be
-  specified.
-- if your domain is routed through Cloudflare, you will need to add use the
-  `-cloudflare` option to allow Cloudflare IPs through CSF.
+- (`-e`|`--email` required) As expressed above, CSF will also require the `-email` option to be
+  specified. this is the email address that will be used to send CSF alerts.
+- if your domain is routing through Cloudflare, you will need to use the
+  `-csfCf | --csf_cloudflare` option in order to allow Cloudflare IPs through CSF.
 
 #### options:
 
@@ -971,8 +977,42 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -csf -e "your@email.com" -cloudflare -sendmail
- ./vstacklet.sh --csf --email "your@email.com" --cloudflare --sendmail
+ ./vstacklet.sh -csf -e "your@email.com" -csfCf -sendmail
+ ./vstacklet.sh --csf --email "your@email.com" --csf_cloudflare --sendmail
+```
+
+---
+
+### vstacklet::cloudflare::csf()
+
+Configure Cloudflare IP addresses in CSF. This is to be used
+when Cloudflare is used as a CDN. This will allow CSF to
+recognize Cloudflare IPs as trusted.
+
+notes:
+- This function is only called under the following conditions:
+  - the option `-csf` is used (required)
+  - the option `-csfCf` is used directly
+- This function is only utilized if the option for `-csf` is used.
+- This function adds the Cloudflare IP addresses to the CSF allow list. This
+  is done to ensure that the server can be accessed by Cloudflare. The list
+  is located in /etc/csf/csf.allow.
+
+#### options:
+
+-  $1 - `-csfCf | --csf_cloudflare` (optional)
+
+*function has no arguments*
+
+#### return codes:
+
+- 128 - csf has not been enabled ( -csf ). this is a component of the
+- 129 - csf allow file does not exist.
+
+#### examples:
+
+```
+ ./vstacklet.sh -csfCf -csf -e "your@email.com"
 ```
 
 ---
@@ -1016,40 +1056,6 @@ notes:
  ./vstacklet.sh -sendmail -e "your@email.com"
  ./vstacklet.sh --sendmail --email "your@email.com"
  ./vstacklet.sh -csf -e "your@email.com"
-```
-
----
-
-### vstacklet::cloudflare::csf()
-
-Configure Cloudflare IP addresses in CSF. This is to be used
-when Cloudflare is used as a CDN. This will allow CSF to
-recognize Cloudflare IPs as trusted.
-
-notes:
-- This function is only called under the following conditions:
-  - the option `-csf` is used (required)
-  - the option `-cloudflare` is used directly
-- This function is only utilized if the option for `-csf` is used.
-- This function adds the Cloudflare IP addresses to the CSF allow list. This
-  is done to ensure that the server can be accessed by Cloudflare. The list
-  is located in /etc/csf/csf.allow.
-
-#### options:
-
--  $1 - `-cloudflare | --cloudflare` (optional)
-
-*function has no arguments*
-
-#### return codes:
-
-- 128 - csf has not been enabled ( -csf ). this is a component of the
-- 129 - csf allow file does not exist.
-
-#### examples:
-
-```
- ./vstacklet.sh -cloudflare -csf -e "your@email.com"
 ```
 
 ---
@@ -1120,7 +1126,7 @@ notes:
   - the option for `-domain` is used (optional)
 - The following options are required for this function:
   - `-domain` or `--domain`
-  - `-email` or `--email`
+  - `-e` or `--email`
   - `-nginx` or `--nginx`
 
 #### options:

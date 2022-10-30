@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1527
+# @version: 3.1.1547
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -56,9 +56,9 @@
 # - [vstacklet::block::ssdp()](#vstackletblockssdp)
 # - [vstacklet::update::packages()](#vstackletupdatepackages)
 # - [vstacklet::locale::set()](#vstackletlocaleset)
-# - [vstacklet::packages::softcommon()](#vstackletpackagessoftcommon)
-# - [vstacklet::packages::depends()](#vstackletpackagesdepends)
-# - [vstacklet::packages::keys()](#vstackletpackageskeys)
+# - [vstacklet::package::softcommon()](#vstackletpackagessoftcommon)
+# - [vstacklet::package::depends()](#vstackletpackagesdepends)
+# - [vstacklet::package::keys()](#vstackletpackageskeys)
 # - [vstacklet::apt::update()](#vstackletaptupdate)
 # - [vstacklet::php::install()](#vstackletphpinstall)
 #   - [options](#options-4)
@@ -152,71 +152,7 @@ vstacklet::environment::init() {
 }
 
 ##################################################################################
-# @name: vstacklet::log::check (3)
-# @description: Check if the log file exists and create it if it doesn't.
-# @noargs:
-# @nooptions:
-# @script-note: This function is required for the installation of
-# the vStacklet software.
-# @break
-##################################################################################
-vstacklet::log::check() {
-	vstacklet::shell::text::white "checking log file ... "
-	declare -g log_file vslog
-	log_file="/var/log/vstacklet/vstacklet.${PPID}.log"
-	if [[ ! -d /var/log/vstacklet ]]; then
-		mkdir -p /var/log/vstacklet
-	fi
-	rm -f /var/log/vstacklet/vstacklet.*.log
-	if [[ ! -f ${log_file} ]]; then
-		touch "${log_file}"
-		vslog="/var/log/vstacklet/vstacklet.${PPID}.log"
-		vstacklet::shell::text::yellow "output is being sent to /var/log/vstacklet/vstacklet.${PPID}.log"
-	fi
-	vstacklet::log() {
-		if [[ -z ${verbosity} ]]; then
-			($1 >>"${log_file}" 2>&1)
-		else
-			$1 |& tee -a "${log_file}"
-		fi
-	}
-}
-
-##################################################################################
-# @name: vstacklet::environment::checkroot (4)
-# @description: Check if the user is root.
-# @script-note: This function is required for the installation of
-# the vStacklet software.
-# @return_code: 1 = You must be root to run this script.
-# @break
-##################################################################################
-vstacklet::environment::checkroot() {
-	[[ $(whoami) != "root" ]] && vstacklet::clean::rollback 1
-}
-
-##################################################################################
-# @name: vstacklet::environment::checkdistro (5)
-# @description: Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
-# @script-note: This function is required for the installation of
-# the vStacklet software.
-# @return_code: 2 = This script only supports Ubuntu 18.04/20.04 | Debian 9/10/11
-# @break
-##################################################################################
-vstacklet::environment::checkdistro() {
-	declare -g codename distro
-	declare -a allowed_codename=("bionic" "focal" "stretch" "buster" "bullseye")
-	codename=$(lsb_release -cs)
-	distro=$(lsb_release -is)
-	if ! vstacklet::array::contains "${codename}" "supported distro" ${allowed_codename[@]}; then
-		declare allowed_codename_string="${allowed_codename[*]}"
-		vstacklet::shell::text::yellow::sl "supported distros: "
-		vstacklet::shell::text::white "${allowed_codename_string//${IFS:0:1}/, }"
-		vstacklet::clean::rollback 2
-	fi
-}
-
-##################################################################################
-# @name: vstacklet::args::process (6)
+# @name: vstacklet::args::process (8)
 # @description: Process the options and values passed to the script.
 # @option: $1 - the option/flag to process
 # @arg: $2 - the value of the option/flag
@@ -256,6 +192,7 @@ vstacklet::environment::checkdistro() {
 #
 # @option: `-pma | --phpmyadmin` - install phpMyAdmin
 # @option: `-csf | --csf` - install CSF firewall
+# @option: `-csfCf | --csf_cloudflare` - enable Cloudflare support in CSF
 # @option: `-sendmail | --sendmail` - install Sendmail
 # @option: `-sendmailP | --sendmail_port` - port to use for the Sendmail server
 #
@@ -265,10 +202,10 @@ vstacklet::environment::checkdistro() {
 # @option: `--reboot` - reboot the server after the installation
 ##################################################################################
 # @example: ./vstacklet.sh --help
-# @example: ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -d "yourdomain.com" -php 8.1 -mc -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
-# @example: ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -d "yourdomain.com" -hhvm -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -sendmail -wr "/var/www/html" -wp --reboot
+# @example: ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -mc -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
+# @example: ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -d "yourdomain.com" -hhvm -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
 # @null
-# @return_code: 3 - Please provide a valid email address to use. (required for -csf, -sendmail, and -cloudflare)
+# @return_code: 3 - Please provide a valid email address to use. (required for -csf, -sendmail, and -csfCf)
 # @return_code: 4 - Please provide a valid domain name.
 # @return_code: 5 - Please provide a valid port number for the FTP server.
 # @return_code: 6 - Invalid FTP port number. Please enter a number between 1 and 65535.
@@ -298,7 +235,7 @@ vstacklet::environment::checkdistro() {
 vstacklet::args::process() {
 	while [[ $# -gt 0 ]]; do
 		case "${1}" in
-		# there may be options that can utilize passive builds, but for now, we'll just
+		# there may be options that can utilize active builds, but for now, we'll just
 		# assume that all options are passive builds triggered by the user (with the options/args set).
 		# `-wp | --wordpress` is the only exception, as it is an active build, and additional information
 		# is required to install WordPress. (e.g. the database name, user, and password)
@@ -318,6 +255,11 @@ vstacklet::args::process() {
 			declare -gi csf="1"
 			shift
 			[[ -z ${email} ]] && vstacklet::clean::rollback 3
+			;;
+		-csfCf | --csf_cloudflare)
+			declare -gi csf_cloudflare="1"
+			shift
+			[[ -z ${csf} ]] && vstacklet::clean::rollback 3
 			;;
 		-d* | --domain*)
 			declare -gi domain_ssl=1
@@ -609,6 +551,12 @@ vstacklet::environment::functions() {
 		shell_color=$(tput setaf 7)
 		vstacklet::shell::output "$@"
 	}
+	vstacklet::shell::text::error() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 1)
+		shell_icon="cross"
+		vstacklet::shell::output "$@"
+	}
 	vstacklet::shell::text::red() {
 		declare -g shell_color
 		shell_color=$(tput setaf 1)
@@ -629,6 +577,12 @@ vstacklet::environment::functions() {
 		shell_color=$(tput setaf 2)
 		vstacklet::shell::output "$@"
 	}
+	vstacklet::shell::text::warning() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 3)
+		shell_icon="warning"
+		vstacklet::shell::output "$@"
+	}
 	vstacklet::shell::text::yellow() {
 		declare -g shell_color
 		shell_color=$(tput setaf 3)
@@ -639,10 +593,57 @@ vstacklet::environment::functions() {
 		shell_color=$(tput setaf 3)
 		vstacklet::shell::output "$@"
 	}
+	vstacklet::shell::text::magenta() {
+		declare -g shell_color
+		shell_color=$(tput setaf 5)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::magenta::sl() {
+		declare -g shell_color shell_newline=0
+		shell_color=$(tput setaf 5)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::rollback() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 5)
+		shell_icon="cross"
+		vstacklet::shell::output "$@"
+	}
 }
 
 ##################################################################################
-# @name: vstacklet::apt::update (7)
+# @name: vstacklet::log::check (3)
+# @description: Check if the log file exists and create it if it doesn't.
+# @noargs:
+# @nooptions:
+# @script-note: This function is required for the installation of
+# the vStacklet software.
+# @break
+##################################################################################
+vstacklet::log::check() {
+	vstacklet::shell::text::white "checking log file ... "
+	declare -g log_file vslog
+	log_file="/var/log/vstacklet/vstacklet.${PPID}.log"
+	if [[ ! -d /var/log/vstacklet ]]; then
+		mkdir -p /var/log/vstacklet
+	fi
+	rm -f /var/log/vstacklet/vstacklet.*.log
+	if [[ ! -f ${log_file} ]]; then
+		touch "${log_file}"
+		vslog="/var/log/vstacklet/vstacklet.${PPID}.log"
+		vstacklet::shell::text::yellow "output is being sent to /var/log/vstacklet/vstacklet.${PPID}.log"
+	fi
+	vstacklet::log() {
+		if [[ -z ${verbosity} ]]; then
+			($1 >>"${log_file}" 2>&1)
+		else
+			$1 |& tee -a "${log_file}"
+		fi
+	}
+}
+
+##################################################################################
+# @name: vstacklet::apt::update (4)
 # @description: updates server via apt-get
 # @nooptions
 # @noargs
@@ -651,11 +652,15 @@ vstacklet::environment::functions() {
 vstacklet::apt::update() {
 	vstacklet::log "running apt update ... "
 	DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update >/dev/null 2>&1
-	[[ -n ${apt_upgrade} ]] && DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade >/dev/null 2>&1
+	if [[ -n ${apt_upgrade} ]]; then
+		DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade >/dev/null 2>&1
+		DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" autoremove >/dev/null 2>&1
+		DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" autoclean >/dev/null 2>&1
+	fi
 }
 
 ##################################################################################
-# @name: vstacklet::dependencies::install (8)
+# @name: vstacklet::dependencies::install (5)
 # @description: installs dependencies for vStacklet software
 # @nooptions
 # @noargs
@@ -683,6 +688,39 @@ vstacklet::dependencies::install() {
 		vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::clean::rollback 28
 		install_list+=("${install}")
 	done
+}
+
+##################################################################################
+# @name: vstacklet::environment::checkroot (6)
+# @description: Check if the user is root.
+# @script-note: This function is required for the installation of
+# the vStacklet software.
+# @return_code: 1 = You must be root to run this script.
+# @break
+##################################################################################
+vstacklet::environment::checkroot() {
+	[[ $(whoami) != "root" ]] && vstacklet::clean::rollback 1
+}
+
+##################################################################################
+# @name: vstacklet::environment::checkdistro (7)
+# @description: Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
+# @script-note: This function is required for the installation of
+# the vStacklet software.
+# @return_code: 2 = This script only supports Ubuntu 18.04/20.04 | Debian 9/10/11
+# @break
+##################################################################################
+vstacklet::environment::checkdistro() {
+	declare -g codename distro
+	declare -a allowed_codename=("bionic" "focal" "stretch" "buster" "bullseye")
+	codename=$(lsb_release -cs)
+	distro=$(lsb_release -is)
+	if ! vstacklet::array::contains "${codename}" "supported distro" ${allowed_codename[@]}; then
+		declare allowed_codename_string="${allowed_codename[*]}"
+		vstacklet::shell::text::yellow::sl "supported distros: "
+		vstacklet::shell::text::white "${allowed_codename_string//${IFS:0:1}/, }"
+		vstacklet::clean::rollback 2
+	fi
 }
 
 ##################################################################################
@@ -753,6 +791,7 @@ vstacklet::dependencies::array() {
 	[[ ${php} == *"8"* ]] && declare php="8.1"
 	[[ -z ${php} ]] && declare php="8.1"
 	declare -ga php_dependencies=("php${php}-fpm" "php${php}-zip" "php${php}-cgi" "php${php}-cli" "php${php}-common" "php${php}-curl" "php${php}-dev" "php${php}-gd" "php${php}-bcmath" "php${php}-gmp" "php${php}-imap" "php${php}-intl" "php${php}-ldap" "php${php}-mbstring" "php${php}-mysql" "php${php}-opcache" "php${php}-pspell" "php${php}-readline" "php${php}-soap" "php${php}-xml" "php${php}-imagick" "php${php}-msgpack" "php${php}-igbinary" "libmcrypt-dev" "mcrypt" "libmemcached-dev" "php-memcached")
+	[[ -n ${redis} ]] && php_dependencies+=("php${php}-redis")
 	# install hhvm dependencies
 	declare -ga hhvm_dependencies=("hhvm")
 	# install nginx dependencies
@@ -773,18 +812,6 @@ vstacklet::dependencies::array() {
 	declare -ga csf_dependencies=("e2fsprogs" "libwww-perl" "liblwp-protocol-https-perl" "libgd-graph-perl")
 	# install sendmail dependencies
 	declare -ga sendmail_dependencies=("sendmail" "sendmail-bin" "sendmail-cf" "mailutils" "libsasl2-modules")
-}
-
-################################################################################
-# @description: logs dependencies to file
-# @noargs
-################################################################################
-vstacklet::log::dependencies() {
-	vstacklet::shell::text::white "saving installed dependencies..."
-	declare -a logged_dependencies=("${base_dependencies[@]}" "${php_dependencies[@]}" "${nginx_dependencies[@]}" "${varnish_dependencies[@]}" "${mariadb_dependencies[@]}" "${mysql_dependencies[@]}" "${phpmyadmin_dependencies[@]}" "${sendmail_dependencies[@]}" "${csf_dependencies[@]}" "${script_dependencies[@]}" "${source_dependencies[@]}")
-	for depend in "${logged_dependencies[@]}"; do
-		echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
-	done
 }
 
 ################################################################################
@@ -813,18 +840,21 @@ vstacklet::base::dependencies() {
 		install_list+=("${install}")
 	done
 	[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+	for depend in "${base_dependencies[@]}"; do
+		echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+	done
 	unset depend depend_list install
 }
 
 ##################################################################################
-# @name: vstacklet::sources::install (13)
+# @name: vstacklet::source::dependencies (13)
 # @description: installs required sources for vStacklet software
 # @nooptions
 # @noargs
 # @return_code: 30 - failed to install source dependencies - [${depend}]
 # @break
 ##################################################################################
-vstacklet::sources::install() {
+vstacklet::source::dependencies() {
 	vstacklet::shell::text::white "checking for required software sources ... "
 	declare -ga source_dependencies
 	declare -a depend_list
@@ -847,6 +877,10 @@ vstacklet::sources::install() {
 		install_list+=("${install}")
 	done
 	[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+	for depend in "${source_dependencies[@]}"; do
+		echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+	done
+	unset depend depend_list install
 }
 
 ##################################################################################
@@ -945,7 +979,7 @@ vstacklet::webroot::set() {
 # @example: ./vstacklet.sh -ssh 2222
 # ./vstacklet.sh --ssh_port 2222
 # @return_code: 32 - failed to set ssh port
-# @return_code: 33 - failed to restart ssh service
+# @return_code: 33 - failed to restart ssh daemon service
 # @break
 ##################################################################################
 vstacklet::ssh::set() {
@@ -958,7 +992,32 @@ vstacklet::ssh::set() {
 }
 
 ##################################################################################
-# @name: vstacklet::block::ssdp (18)
+# @name: vstacklet::ftp::set (18)
+# @description: Set ftp port to custom port (if nothing is set, default port is 21)
+# @option: $1 - `-ftp | --ftp_port` (optional) (takes one argument)
+# @arg: $2 - `[port]` (default: 21) - the port to set for ftp
+# @return: none
+# @example: ./vstacklet.sh -ftp 2121
+# ./vstacklet.sh --ftp_port 2121
+# @return_code: 34 - failed to set ftp port
+# @return_code: 35 - failed to restart ftp service
+# @break
+##################################################################################
+vstacklet::ftp::set() {
+	if [[ -n ${ftp_port} ]]; then
+		vstacklet::shell::text::white "setting ftp port to ${ssh_port:-21} ... "
+		cp -f /etc/vsftpd.conf "${vstacklet_base_path}/setup_temp/vsftpd.conf"
+		openssl req -config "${vstacklet_base_path}/setup/ssl/openssl.conf" -x509 -nodes -days 720 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem >/dev/null 2>&1
+		cp -f "${vstacklet_base_path}/setup/templates/vsftpd/vsftpd.conf" /etc/vsftpd.conf
+		sed -i.bak -e "s|{{ftp_port}}|${ftp_port:-21}|g" -e "s|{{server_ip}}|${server_ip}|g" /etc/vsftpd.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 34
+		vstacklet::log "systemctl restart vsftpd" || vstacklet::clean::rollback 35
+		vstacklet::log "iptables -I INPUT -p tcp --destination-port 10090:10100 -j ACCEPT"
+		echo "" >/etc/vsftpd.chroot_list
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::block::ssdp (19)
 # @description: Blocks an insecure port 1900 that may lead to
 # DDoS masked attacks. Only remove this function if you absolutely
 # need port 1900. In most cases, this is a junk port.
@@ -982,7 +1041,7 @@ vstacklet::block::ssdp() {
 }
 
 ##################################################################################
-# @name: vstacklet::update::packages (19)
+# @name: vstacklet::sources::update (20)
 # @description: This function updates the package list and upgrades the system.
 # @noargs:
 # @nooptions:
@@ -1053,7 +1112,7 @@ EOF
 }
 
 ##################################################################################
-# @name: vstacklet::packages::keys (20)
+# @name: vstacklet::gpg::keys (21)
 # @description: This function sets the required software package keys
 # and sources for the vStacklet software.
 #
@@ -1074,7 +1133,7 @@ EOF
 # the vStacklet software.
 # @break
 ##################################################################################
-vstacklet::packages::keys() {
+vstacklet::gpg::keys() {
 	# package and repo addition (c) _add signed keys_
 	vstacklet::shell::text::white "ddding signed keys and sources for required software packages ... "
 	mkdir -p /etc/apt/sources.list.d /etc/apt/keyrings
@@ -1122,27 +1181,6 @@ EOF
 	# Remove excess sources known to
 	# cause issues with conflicting package sources
 	[[ -f "/etc/apt/sources.list.d/proposed.list" ]] && mv -f /etc/apt/sources.list.d/proposed.list /etc/apt/sources.list.d/proposed.list.BAK
-}
-
-##################################################################################
-# @name: vstacklet::apt::update (21)
-# @description: Update apt sources and packages - this is a wrapper for apt-get update
-# @nooptions
-# @noargs
-# @script-note: This function is required for the installation of
-# the vStacklet software.
-# @return_code: 36 - apt-get update failed
-# @return_code: 37 - apt-get upgrade failed
-# @break
-##################################################################################
-vstacklet::apt::update() {
-	# package and repo addition (d) _update and upgrade_
-	vstacklet::shell::text::white "updating system ... "
-	vstacklet::log "apt-get update" || vstacklet::clean::rollback 36
-	vstacklet::log "apt-get -y upgrade" || vstacklet::clean::rollback 37
-	vstacklet::log "apt-get -y autoremove"
-	vstacklet::log "apt-get -y autoclean"
-
 }
 
 ##################################################################################
@@ -1243,15 +1281,10 @@ vstacklet::php::install() {
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+		for depend in "${php_dependencies[@]}"; do
+			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+		done
 		unset depend depend_list install
-		if [[ -n ${memcached} ]]; then
-			# memcached
-			vstacklet::log "apt-get -y install php${php}-memcached" || vstacklet::clean::rollback 41
-		fi
-		if [[ -n ${redis} ]]; then
-			# redis
-			vstacklet::log "apt-get -y install php${php}-redis" || vstacklet::clean::rollback 42
-		fi
 		# tweak php.ini
 		vstacklet::shell::text::white "tweaking php.ini ... "
 		declare -a php_files=("/etc/php/${php}/fpm/php.ini" "/etc/php/${php}/cli/php.ini")
@@ -1284,8 +1317,8 @@ vstacklet::php::install() {
 # - HHVM is not compatible with PHP, so choose one or the other. HHVM is
 #   not a drop-in replacement for PHP, so you will need to rewrite your
 #   PHP code to work with HHVM accordingly. HHVM is a dialect of PHP, not PHP itself.
-# - unless you are familiar with HHVM, it is recommended to use PHP. there
-#   may be numerous issues when using with `--wordpress` (e.g. plugins, themes, etc.)
+# - unless you are familiar with HHVM, it is recommended to use `-php "8.1"` or `-php "7.4"` instead.
+# - there may be numerous issues when using with `--wordpress` (e.g. plugins, themes, etc.)
 # - phpMyAdmin is not compatible with HHVM, so if you choose HHVM,
 #   you will not be able to install phpMyAdmin.
 # @option: $1 - `-hhvm | --hhvm` (optional) (takes no arguments)
@@ -1299,13 +1332,13 @@ vstacklet::php::install() {
 # @break
 ##################################################################################
 vstacklet::hhvm::install() {
+	# check for php
+	[[ -n ${php} ]] && vstacklet::clean::rollback 43
 	if [[ -n ${hhvm} && -z ${php} ]]; then
-		# check for php
-		[[ -n ${php} ]] && vstacklet::clean::rollback 43
 		# check for nginx \\ to maintain modularity, nginx is not required for HHVM
 		#[[ -z ${nginx} ]] && vstacklet::clean::rollback "hhvm requires nginx. please install with -nginx."
 		# install hhvm
-		vstacklet::shell::text::white "installing and configuring hhvm ... "
+		vstacklet::shell::text::white "installing and configuring HHVM ... "
 		# install php dependencies and php
 		for depend in "${hhvm_dependencies[@]}"; do
 			if [[ $(dpkg-query -W -f='${Status}' "${depend}" 2>/dev/null | grep -c "ok installed") != "1" ]]; then
@@ -1323,6 +1356,9 @@ vstacklet::hhvm::install() {
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+		for depend in "${hhvm_dependencies[@]}"; do
+			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+		done
 		unset depend depend_list install
 		# install hhvm
 		/usr/share/hhvm/install_fastcgi.sh >>"${vslog}" 2>&1 || vstacklet::clean::rollback 45
@@ -1374,16 +1410,14 @@ vstacklet::hhvm::install() {
 ##################################################################################
 vstacklet::nginx::install() {
 	if [[ -n ${nginx} ]]; then
-		[[ -z ${domain} && -n ${hostname} ]] && declare -g domain="${hostname}"
-		[[ -z ${domain} && -z ${hostname} ]] && declare -hn domain="vs-site1"
-		vstacklet::shell::text::white "installing and Adjusting NGinx ... "
+		vstacklet::shell::text::white "installing and configuring NGinx ... "
 		# install nginx dependencies
 		for depend in "${nginx_dependencies[@]}"; do
 			if [[ $(dpkg-query -W -f='${Status}' "${depend}" 2>/dev/null | grep -c "ok installed") != "1" ]]; then
 				depend_list+=("${depend}")
 			fi
 		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing nginx dependencies: "
+		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing NGinx dependencies: "
 		for install in "${depend_list[@]}"; do
 			if [[ ${install} == "${depend_list[0]}" ]]; then
 				vstacklet::shell::text::white::sl "${install} "
@@ -1394,6 +1428,9 @@ vstacklet::nginx::install() {
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+		for depend in "${nginx_dependencies[@]}"; do
+			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+		done
 		unset depend depend_list install
 		vstacklet::log "systemctl stop nginx"
 		mkdir -p "${vstacklet_base_path}/setup/nginx/temp"
@@ -1413,39 +1450,31 @@ vstacklet::nginx::install() {
 		sh -c 'find /etc/nginx/cache -type d -print0 | sudo xargs -0 chmod g+s'
 		# import nginx reverse config files from vStacklet
 		if [[ ${php} == *"8"* ]]; then
-			cp -f "${local_php8_dir}/nginx/conf.d/default.php8.conf" "/etc/nginx/sites-available/${domain}.conf"
+			cp -f "${local_php8_dir}/nginx/conf.d/default.php8.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
 		if [[ ${php} == *"7"* ]]; then
-			cp -f "${local_php7_dir}/nginx/conf.d/default.php7.conf" "/etc/nginx/sites-available/${domain}.conf"
+			cp -f "${local_php7_dir}/nginx/conf.d/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
 		if [[ -n ${hhvm} ]]; then
-			cp -f "${local_hhvm_dir}/nginx/conf.d/default.hhvm.conf" "/etc/nginx/sites-available/${domain}.conf"
+			cp -f "${local_hhvm_dir}/nginx/conf.d/default.hhvm.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
 		vstacklet::shell::text::white "configuring NGinx ... "
 		# post necessary edits to nginx config files
 		wr_sanitize=$(echo "${web_root:-/var/www/html}" | sed 's/\//\\\//g')
-		sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::rollback::clean 49
+		sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::rollback::clean 49
 		# enable site
-		ln -sf "/etc/nginx/sites-available/${domain}.conf" "/etc/nginx/sites-enabled/${domain}.conf" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 50
+		ln -sf "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "/etc/nginx/sites-enabled/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 50
 		# generate self-signed ssl cert and Diffie-Hellman parameters file
 		[[ ! -f /etc/ssl/certs/ssl-cert-snakeoil.pem ]] && openssl req -config "${vstacklet_base_path}/setup/templates/ssl/openssl.conf" -x509 -nodes -days 720 -newkey rsa:2048 -keyout /etc/ssl/private/ssl-cert-snakeoil.key -out /etc/ssl/certs/ssl-cert-snakeoil.pem >>"${vslog}" 2>&1
 		[[ ! -f /etc/nginx/ssl/dhparam.pem ]] && openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >>"${vslog}" 2>&1
 		openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >>"${vslog}" 2>&1 || vstacklet::rollback::clean 51
 		# stage checkinfo.php for verification
 		vstacklet::shell::text::yellow "staging checkinfo.php ... "
-		if [[ -n ${web_root} ]]; then
-			echo '<?php phpinfo(); ?>' >"${web_root}/public/checkinfo.php" || vstacklet::clean::rollback 52
-			chown -R www-data:www-data "${web_root}"
-			chmod -R 755 "${web_root}"
-			chmod -R g+rw "${web_root}"
-			sh -c 'find "${web_root}" -type d -print0 | sudo xargs -0 chmod g+s'
-		else
-			echo '<?php phpinfo(); ?>' >/var/www/html/public/checkinfo.php || vstacklet::clean::rollback 52
-			chown -R www-data:www-data /var/www/html
-			chmod -R 755 /var/www/html
-			chmod -R g+rw /var/www/html
-			sh -c 'find /var/www/html -type d -print0 | sudo xargs -0 chmod g+s'
-		fi
+		echo '<?php phpinfo(); ?>' >"${web_root:-/var/www/html}/public/checkinfo.php" || vstacklet::clean::rollback 52
+		chown -R www-data:www-data "${web_root:-/var/www/html}"
+		chmod -R 755 "${web_root:-/var/www/html}"
+		chmod -R g+rw "${web_root:-/var/www/html}"
+		sh -c "find ${web_root:-/var/www/html} -type d -print0 | sudo xargs -0 chmod g+s"
 	fi
 }
 
@@ -1480,14 +1509,14 @@ vstacklet::nginx::install() {
 ##################################################################################
 vstacklet::varnish::install() {
 	if [[ -n ${varnish} ]]; then
-		vstacklet::shell::text::white "installing and configuring varnish ... "
+		vstacklet::shell::text::white "installing and configuring Varnish ... "
 		# install varnish dependencies
 		for depend in "${varnish_dependencies[@]}"; do
 			if [[ $(dpkg-query -W -f='${Status}' "${depend}" 2>/dev/null | grep -c "ok installed") != "1" ]]; then
 				depend_list+=("${depend}")
 			fi
 		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing vanish dependencies: "
+		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing Varnish dependencies: "
 		for install in "${depend_list[@]}"; do
 			if [[ ${install} == "${depend_list[0]}" ]]; then
 				vstacklet::shell::text::white::sl "${install} "
@@ -1498,6 +1527,9 @@ vstacklet::varnish::install() {
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+		for depend in "${varnish_dependencies[@]}"; do
+			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+		done
 		unset depend depend_list install
 		cd /etc/varnish || vstacklet::clean::rollback 54
 		mv default.vcl default.vcl.ORIG
@@ -1652,6 +1684,9 @@ vstacklet::mariadb::install() {
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+		for depend in "${mariadb_dependencies[@]}"; do
+			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+		done
 		unset depend depend_list install
 		# configure mariadb
 		vstacklet::log "mysql_secure_installation" || vstacklet::clean::rollback 64
@@ -1691,7 +1726,7 @@ vstacklet::mariadb::install() {
 }
 
 ##################################################################################
-# @name: vstacklet::mysql::install - install and configure mysql (30)
+# @name: vstacklet::mysql::install (30)
 # @description: Install mySQL and configure.
 #
 # notes:
@@ -1746,6 +1781,9 @@ vstacklet::mysql::install() {
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+		for depend in "${mysql_dependencies[@]}"; do
+			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+		done
 		unset depend_list install_list
 		# configure mysql
 		vstacklet::log "mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::clean::rollback 73
@@ -1783,7 +1821,7 @@ vstacklet::mysql::install() {
 }
 
 ##################################################################################
-# @name: vstacklet::postgre::install - install and configure postgreSQL (31)
+# @name: vstacklet::postgre::install (31)
 # @description: Install and configure postgreSQL.
 # @option: $1 - `-postgre | --postgresql` (optional)
 # @arg: $2 - `[postgresql_port]` (optional) (default: 5432)
@@ -1819,6 +1857,9 @@ vstacklet::postgre::install() {
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+		for depend in "${postgresql_dependencies[@]}"; do
+			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+		done
 		unset depend_list install_list
 		# configure postgre
 		# @script-note: scrape the version from the output of `apt-cache policy postgresql`
@@ -1875,7 +1916,7 @@ vstacklet::postgre::install() {
 }
 
 ##################################################################################
-# @name: vstacklet::redis::install - Install and configure redis (32)
+# @name: vstacklet::redis::install (32)
 # @description: Install and configure redis.
 # @option: $1 - `-redis | --redis` (optional)
 # @option: $2 - `-redisP | --redis_port` (optional)
@@ -1897,7 +1938,7 @@ vstacklet::redis::install() {
 	if [[ -n ${redis} ]]; then
 		declare redis_autoPw
 		redis_autoPw="$(perl -e 'print map { (a..z,A..Z,0..9)[rand 62] } 0..15')"
-		vstacklet::shell::text::white "installing and configuring redis ... "
+		vstacklet::shell::text::white "installing and configuring Redis ... "
 		# install redis dependencies
 		declare -a depend_list install_list
 		for depend in "${redis_dependencies[@]}"; do
@@ -1905,7 +1946,7 @@ vstacklet::redis::install() {
 				depend_list+=("${depend}")
 			fi
 		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing redis dependencies: "
+		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing Redis dependencies: "
 		for install in "${depend_list[@]}"; do
 			if [[ ${install} == "${depend_list[0]}" ]]; then
 				vstacklet::shell::text::white::sl "${install} "
@@ -1917,6 +1958,9 @@ vstacklet::redis::install() {
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+		for depend in "${redis_dependencies[@]}"; do
+			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+		done
 		unset depend_list install_list
 		# configure redis
 		# set redis client and server configuration
@@ -1945,7 +1989,7 @@ vstacklet::redis::install() {
 }
 
 ##################################################################################
-# @name: vstacklet::phpmyadmin::install - Install and configure phpMyAdmin (33)
+# @name: vstacklet::phpmyadmin::install (33)
 # @description: Install phpMyAdmin and configure.
 #
 # notes:
@@ -2010,14 +2054,14 @@ vstacklet::phpmyadmin::install() {
 		pma_password="${mariadb_password:-${mysql_password:-$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15)}}"
 		pma_bf=$(perl -le 'print map { (a..z,A..Z,0..9)[rand 62] } 0..31')
 		# install phpmyadmin
-		vstacklet::shell::text::white "installing phpMyAdmin ... "
+		vstacklet::shell::text::white "installing and configuring phpMyAdmin ... "
 		# install phpmyadmin dependencies and phpmyadmin
 		for depend in "${phpmyadmin_dependencies[@]}"; do
 			if [[ $(dpkg-query -W -f='${Status}' "${depend}" 2>/dev/null | grep -c "ok installed") != "1" ]]; then
 				depend_list+=("${depend}")
 			fi
 		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing php dependencies: "
+		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing phpMyAdmin dependencies: "
 		for install in "${depend_list[@]}"; do
 			if [[ ${install} == "${depend_list[0]}" ]]; then
 				vstacklet::shell::text::white::sl "${install} "
@@ -2029,6 +2073,9 @@ vstacklet::phpmyadmin::install() {
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+		for depend in "${phpmyadmin_dependencies[@]}"; do
+			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+		done
 		unset depend depend_list install
 		cd /usr/share || vstacklet::clean::rollback 96
 		[[ -d phpmyadmin ]] && rm -rf phpmyadmin
@@ -2101,26 +2148,26 @@ vstacklet::phpmyadmin::install() {
 }
 
 ##################################################################################
-# @name: vstacklet::csf::install - Install and configure CSF firewall (34)
+# @name: vstacklet::csf::install (34)
 # @description: Install CSF firewall.
 #
 # notes:
 # - https://configserver.com/cp/csf.html
 # - installing CSF will also install LFD (Linux Firewall Daemon)
 # - CSF will be configured to allow SSH, FTP, HTTP, HTTPS, MySQL, Redis,
-#   Postgres, and Varnish
-# - CSF will be configured to block all other ports
+#   Postgres, and Varnish.
+# - CSF will be configured to block all other ports.
 # - CSF requires sendmail to be installed. if the `-sendmail` option is not
-#   specified, sendmail will automatically be installed and configured to use the
+#   specified, sendmail will be automatically installed and configured to use the
 #   specified email address from the `-email` option.
-# - As expressed above, CSF will also require the `-email` option to be
-#   specified.
-# - if your domain is routed through Cloudflare, you will need to add use the
-#   `-cloudflare` option to allow Cloudflare IPs through CSF.
+# - (`-e`|`--email` required) As expressed above, CSF will also require the `-email` option to be
+#   specified. this is the email address that will be used to send CSF alerts.
+# - if your domain is routing through Cloudflare, you will need to use the
+#   `-csfCf | --csf_cloudflare` option in order to allow Cloudflare IPs through CSF.
 # @option: $1 - `-csf | --csf` (optional) (takes no argument)
 # @arg: `-csf | --csf` does not take any arguments. However, it requires the options as expressed above.
-# @example: ./vstacklet.sh -csf -e "your@email.com" -cloudflare -sendmail
-# ./vstacklet.sh --csf --email "your@email.com" --cloudflare --sendmail
+# @example: ./vstacklet.sh -csf -e "your@email.com" -csfCf -sendmail
+# ./vstacklet.sh --csf --email "your@email.com" --csf_cloudflare --sendmail
 # @null
 # @return_code: 94 - CSF firewall dependencies failed to install
 # @return_code: 95 - CSF firewall failed to download
@@ -2139,7 +2186,7 @@ vstacklet::csf::install() {
 	# check if csf is installed
 	[[ -f /etc/csf/csf.conf ]] && vstacklet::shell::text::yellow "CSF is already installed. skipping ... " && return 0
 	# install csf
-	vstacklet::shell::text::white "installing CSF (ConfigServer Security & Firewall) firewall ... "
+	vstacklet::shell::text::white "installing and configuring CSF (ConfigServer Security & Firewall) firewall ... "
 	# install csf dependencies and csf
 	for depend in "${csf_dependencies[@]}"; do
 		if [[ $(dpkg-query -W -f='${Status}' "${depend}" 2>/dev/null | grep -c "ok installed") != "1" ]]; then
@@ -2158,6 +2205,9 @@ vstacklet::csf::install() {
 		install_list+=("${install}")
 	done
 	[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+	for depend in "${csf_dependencies[@]}"; do
+		echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+	done
 	unset depend depend_list install
 	# install csf
 	wget -O - https://download.configserver.com/csf.tgz | tar -xz -C /usr/local/src >>${vslog} 2>&1 || vstacklet::clean::rollback 109
@@ -2211,7 +2261,50 @@ vstacklet::csf::install() {
 }
 
 ##################################################################################
-# @name: vstacklet::sendmail::install - Install sendmail (35)
+# @name: vstacklet::cloudflare::csf (34.1)
+# @description: Configure Cloudflare IP addresses in CSF. This is to be used
+# when Cloudflare is used as a CDN. This will allow CSF to
+# recognize Cloudflare IPs as trusted.
+#
+# notes:
+# - This function is only called under the following conditions:
+#   - the option `-csf` is used (required)
+#   - the option `-csfCf` is used directly
+# - This function is only utilized if the option for `-csf` is used.
+# - This function adds the Cloudflare IP addresses to the CSF allow list. This
+#   is done to ensure that the server can be accessed by Cloudflare. The list
+#   is located in /etc/csf/csf.allow.
+# @option: $1 - `-csfCf | --csf_cloudflare` (optional)
+# @noargs
+# @example: ./vstacklet.sh -csfCf -csf -e "your@email.com"
+# @null
+# @return_code: 128 - csf has not been enabled ( -csf ). this is a component of the
+# cloudflare configuration for config server firewall.
+# @return_code: 129 - csf allow file does not exist.
+# @break
+##################################################################################
+vstacklet::cloudflare::csf() {
+	# check if CSF has been selected
+	[[ -z ${csf} ]] && vstacklet::clean::rollback 128
+	# check if Cloudflare has been selected
+	if [[ -n ${csf_cloudflare} ]]; then
+		# check if the csf.allow file exists
+		[[ ! -f "/etc/csf/csf.allow" ]] || vstacklet::rollback::clean 129
+		# add Cloudflare IP addresses to the allow list
+		_info "Adding Cloudflare IP addresses to the allow list ... "
+		{
+			echo "# Cloudflare IP addresses"
+			# trunk-ignore(shellcheck/SC2005)
+			echo "$(curl -s https://www.cloudflare.com/ips-v4)"
+			# trunk-ignore(shellcheck/SC2005)
+			echo "$(curl -s https://www.cloudflare.com/ips-v6)"
+			echo "# End Cloudflare IP addresses"
+		} >>/tmp/csf.allow
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::sendmail::install (35)
 # @description: Install and configure sendmail. This is a required component for
 # CSF to function properly.
 #
@@ -2243,7 +2336,7 @@ vstacklet::sendmail::install() {
 	[[ -z ${email} ]] && vstacklet::clean::rollback 119
 	if [[ -n ${sendmail} || -z ${sendmail_skip} ]]; then
 		# install sendmail
-		vstacklet::shell::text::white "installing sendmail ... "
+		vstacklet::shell::text::white "installing and configuring sendmail ... "
 		# install sendmail dependencies and sendmail
 		for depend in "${sendmail_dependencies[@]}"; do
 			if [[ $(dpkg-query -W -f='${Status}' "${depend}" 2>/dev/null | grep -c "ok installed") != "1" ]]; then
@@ -2262,6 +2355,9 @@ vstacklet::sendmail::install() {
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
+		for depend in "${sendmail_dependencies[@]}"; do
+			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
+		done
 		unset depend depend_list install
 		# configure sendmail
 		vstacklet::shell::text::white "configuring sendmail ... "
@@ -2295,50 +2391,7 @@ vstacklet::sendmail::install() {
 }
 
 ##################################################################################
-# @name: vstacklet::cloudflare::csf - Cloudflare CSF configuration (36)
-# @description: Configure Cloudflare IP addresses in CSF. This is to be used
-# when Cloudflare is used as a CDN. This will allow CSF to
-# recognize Cloudflare IPs as trusted.
-#
-# notes:
-# - This function is only called under the following conditions:
-#   - the option `-csf` is used (required)
-#   - the option `-cloudflare` is used directly
-# - This function is only utilized if the option for `-csf` is used.
-# - This function adds the Cloudflare IP addresses to the CSF allow list. This
-#   is done to ensure that the server can be accessed by Cloudflare. The list
-#   is located in /etc/csf/csf.allow.
-# @option: $1 - `-cloudflare | --cloudflare` (optional)
-# @noargs
-# @example: ./vstacklet.sh -cloudflare -csf -e "your@email.com"
-# @null
-# @return_code: 128 - csf has not been enabled ( -csf ). this is a component of the
-# cloudflare configuration for config server firewall.
-# @return_code: 129 - csf allow file does not exist.
-# @break
-##################################################################################
-vstacklet::cloudflare::csf() {
-	# check if CSF has been selected
-	[[ -z ${csf} ]] && vstacklet::clean::rollback 128
-	# check if Cloudflare has been selected
-	if [[ -n ${cloudflare} ]]; then
-		# check if the csf.allow file exists
-		[[ ! -f "/etc/csf/csf.allow" ]] || vstacklet::rollback::clean 129
-		# add Cloudflare IP addresses to the allow list
-		_info "Adding Cloudflare IP addresses to the allow list ... "
-		{
-			echo "# Cloudflare IP addresses"
-			# trunk-ignore(shellcheck/SC2005)
-			echo "$(curl -s https://www.cloudflare.com/ips-v4)"
-			# trunk-ignore(shellcheck/SC2005)
-			echo "$(curl -s https://www.cloudflare.com/ips-v6)"
-			echo "# End Cloudflare IP addresses"
-		} >>/tmp/csf.allow
-	fi
-}
-
-##################################################################################
-# @name: vstacklet::wordpress::install - Install WordPress (37)
+# @name: vstacklet::wordpress::install (36)
 # @description: Install WordPress. This will also configure WordPress to use
 # the database that was created during the installation process.
 #
@@ -2445,7 +2498,7 @@ vstacklet::wordpress::install() {
 }
 
 ##################################################################################
-# @name: vstacklet::domain::ssl (38)
+# @name: vstacklet::domain::ssl (37)
 # @description: The following function installs the SSL certificate
 #   for the domain.
 #
@@ -2454,7 +2507,7 @@ vstacklet::wordpress::install() {
 #   - the option for `-domain` is used (optional)
 # - The following options are required for this function:
 #   - `-domain` or `--domain`
-#   - `-email` or `--email`
+#   - `-e` or `--email`
 #   - `-nginx` or `--nginx`
 # @option: $1 - `-domain | --domain` - The domain to install the
 #   SSL certificate for.
@@ -2531,7 +2584,7 @@ vstacklet::domain::ssl() {
 }
 
 ################################################################################
-# @name: vstacklet::clean::complete - Cleanup on completion (39)
+# @name: vstacklet::clean::complete (38)
 # @description: Cleans up the system after a successful installation. This
 #   function is called after the installation is complete. It removes the
 #   temporary files and directories created during the installation process.
@@ -2551,6 +2604,7 @@ vstacklet::clean::complete() {
 	[[ -n ${hhvm} ]] && services+=("hhvm")
 	[[ -n ${mysql} ]] && services+=("mysql")
 	[[ -n ${mariadb} ]] && services+=("mariadb")
+	[[ -n ${postgresql} ]] && services+=("postgresql")
 	[[ -n ${sendmail} ]] && services+=("sendmail")
 	services+=("sshd")
 	rm -rf "${vstacklet_base_path}/setup_temp"
@@ -2570,7 +2624,7 @@ vstacklet::clean::complete() {
 }
 
 ################################################################################
-# @name: vstacklet::message::complete - vStacklet installation complete message (40)
+# @name: vstacklet::message::complete (39)
 # @description: Outputs success message on completion of setup. This function
 #   is called after the installation is complete. It outputs a success message
 #   to the user and provides them with the necessary information to access their
@@ -2621,7 +2675,7 @@ spinner() {
 }
 
 ################################################################################
-# @name: vstacklet::clean::rollback - vStacklet Rollback (41)
+# @name: vstacklet::clean::rollback - vStacklet Rollback (40/return_code)
 # @description: This function is called when a rollback is required. It will
 #   remove the temporary files and directories created during the installation
 #   process. It will also remove the log file created during the installation
@@ -2637,39 +2691,44 @@ vstacklet::clean::rollback() {
 	declare error
 	if [[ -n $1 ]]; then
 		case $1 in
-		1) error="Error: Please provide a valid email address to use for the sendmail alias required by CSF." ;;
-		2) error="Error: Please provide a valid domain name." ;;
-		3) error="Error: Please provide a valid port number for the FTP server." ;;
-		4) error="Error: Invalid FTP port number. Please enter a number between 1 and 65535." ;;
-		5) error="Error: The MariaDB password must be at least 8 characters long." ;;
-		6) error="Error: Please provide a valid port number for the MariaDB server." ;;
-		7) error="Error: Invalid MariaDB port number. Please enter a number between 1 and 65535." ;;
-		8) error="Error: The MySQL password must be at least 8 characters long." ;;
-		9) error="Error: Please provide a valid port number for the MySQL server." ;;
-		10) error="Error: Invalid MySQL port number. Please enter a number between 1 and 65535." ;;
-		11) error="Error: Invalid PHP version. Please enter either 7 (7.4) or 8 (8.1)." ;;
-		13) error="Error: The HTTPS port must be a number." ;;
-		14) error="Error: Invalid HTTPS port number. Please enter a number between 1 and 65535." ;;
-		15) error="Error: The HTTP port must be a number." ;;
-		16) error="Error: Invalid HTTP port number. Please enter a number between 1 and 65535." ;;
-		17) error="Error: Invalid hostname. Please enter a valid hostname." ;;
-		18) error="Error: An email is needed to register the server aliases. Please set an email with the -e option." ;;
-		19) error="Error: The Sendmail port must be a number." ;;
-		20) error="Error: Invalid Sendmail port number. Please enter a number between 1 and 65535." ;;
-		21) error="Error: The SSH port must be a number." ;;
-		22) error="Error: Invalid SSH port number. Please enter a number between 1 and 65535." ;;
-		23) error="Error: The Varnish port must be a number." ;;
-		24) error="Error: Invalid Varnish port number. Please enter a number between 1 and 65535." ;;
-		25) error="Error: Invalid web root. Please enter a valid path (e.g. /var/www/html)." ;;
-		26) error="Error: Invalid option(s). ${invalid_option[*]}" ;;
+		1) error="Please provide a valid email address to use for the sendmail alias required by CSF." ;;
+		2) error="Please provide a valid domain name." ;;
+		3) error="Please provide a valid port number for the FTP server." ;;
+		4) error="Invalid FTP port number. Please enter a number between 1 and 65535." ;;
+		5) error="The MariaDB password must be at least 8 characters long." ;;
+		6) error="Please provide a valid port number for the MariaDB server." ;;
+		7) error="Invalid MariaDB port number. Please enter a number between 1 and 65535." ;;
+		8) error="The MySQL password must be at least 8 characters long." ;;
+		9) error="Please provide a valid port number for the MySQL server." ;;
+		10) error="Invalid MySQL port number. Please enter a number between 1 and 65535." ;;
+		11) error="Invalid PHP version. Please enter either 7 (7.4) or 8 (8.1)." ;;
+		13) error="The HTTPS port must be a number." ;;
+		14) error="Invalid HTTPS port number. Please enter a number between 1 and 65535." ;;
+		15) error="The HTTP port must be a number." ;;
+		16) error="Invalid HTTP port number. Please enter a number between 1 and 65535." ;;
+		17) error="Invalid hostname. Please enter a valid hostname." ;;
+		18) error="An email is needed to register the server aliases. Please set an email with the -e option." ;;
+		19) error="The Sendmail port must be a number." ;;
+		20) error="Invalid Sendmail port number. Please enter a number between 1 and 65535." ;;
+		21) error="The SSH port must be a number." ;;
+		22) error="Invalid SSH port number. Please enter a number between 1 and 65535." ;;
+		23) error="The Varnish port must be a number." ;;
+		24) error="Invalid Varnish port number. Please enter a number between 1 and 65535." ;;
+		25) error="Invalid web root. Please enter a valid path (e.g. /var/www/html)." ;;
+		26) error="Invalid option(s). ${invalid_option[*]}" ;;
 
-		*) error="Error: Unknown error" ;;
+		*) error="Unknown error" ;;
 		esac
-		printf -- "\nerror %s: %s\n" "$1" "${error}"
+		vstacklet::shell::text::error "error: "
+		vstacklet::shell::text::white::sl "${error}"
+		#printf -- "\nerror %s: %s\n" "$1" "${error}"
 	else
-		printf -- "\ninstaller interrupted\n"
+		vstacklet::shell::text::warning "warning: "
+		vstacklet::shell::text::white::sl "installer has been interrupted"
+		#printf -- "\ninstaller interrupted\n"
 	fi
-	printf -- "%s\n" "rolling back setup..."
+	vstacklet::shell::text::rollback "rolling back setup ... "
+	#printf -- "%s\n" "rolling back setup..."
 	declare installed removed
 	[[ -n ${ssdp_block} ]] && iptables -D INPUT -p udp --dport 1900 -j DROP
 	[[ -f ${vstacklet_base_path}/setup_temp/sshd_config ]] && \cp -f "${vstacklet_base_path}/setup_temp/sshd_config" /etc/ssh/sshd_config && systemctl restart sshd.service
@@ -2701,7 +2760,52 @@ trap 'vstacklet::clean::rollback' SIGINT
 ################################################################################
 # @description: Calls functions in required order.
 ################################################################################
-vstacklet::environment::init
-vstacklet::environment::checkdistro
-vstacklet::environment::checkroot
+# the following functions are called in the order they are listed and
+# are use for post-installation setup.
+################################################################################
+vstacklet::environment::init        #(1)
+vstacklet::environment::functions   #(2)
+vstacklet::log::check               #(3)
+vstacklet::apt::update              #(4)
+vstacklet::dependencies::install    #(5)
+vstacklet::environment::checkroot   #(6)
+vstacklet::environment::checkdistro #(7)
+################################################################################
+# the following functions are called during installation and are processed
+# by way of the options and arguments provided.
+################################################################################
 vstacklet::args::process "$@"
+vstacklet::intro                #(9)
+vstacklet::ask::continue        #(10)
+vstacklet::dependencies::array  #(11)
+vstacklet::base::dependencies   #(12)
+vstacklet::source::dependencies #(13)
+vstacklet::bashrc::set          #(14)
+vstacklet::hostname::set        #(15)
+vstacklet::webroot::set         #(16)
+vstacklet::ssh:set              #(17)
+vstacklet::ftp::set             #(18)
+vstacklet::block::ssdp          #(19)
+vstacklet::sources::update      #(20)
+vstacklet::gpg::keys            #(21)
+vstacklet::apt::update          #(4)
+vstacklet::locale::set          #(22)
+vstacklet::php::install         #(23)
+vstacklet::hhvm::install        #(24)
+vstacklet::nginx::install       #(25)
+vstacklet::varnish::install     #(26)
+vstacklet::permissions::adjust  #(27)
+vstacklet::ioncube::install     #(28)
+vstacklet::mariadb::install     #(29)
+vstacklet::mysql::install       #(30)
+vstacklet::postgre::install     #(31)
+vstacklet::redis::install       #(32)
+vstacklet::phpmyadmin::install  #(33)
+vstacklet::csf::install         #(34)
+vstacklet::cloudflare::csf      #(34.1)
+vstacklet::sendmail::install    #(35)
+vstacklet::wordpress::install   #(36)
+vstacklet::domain::ssl          #(37)
+vstacklet::clean::complete      #(38)
+vstacklet::message::complete    #(39)
+################################################################################
