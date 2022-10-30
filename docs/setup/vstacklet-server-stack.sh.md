@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1522
+# vstacklet-server-stack.sh - v3.1.1523
 
 
 ---
@@ -534,7 +534,7 @@ Install HHVM and configure.
 notes:
 - not familiar with HHMV?
   - https://docs.hhvm.com/hhvm/FAQ/faq
-  - https://docs.hhvm.com/hhvm/advanced-usage/ini-settings
+  - https://docs.hhvm.com/hhvm/configuration/INI-settings
 - this is a very basic install, it is recommended to use the official HHVM
   documentation to configure HHVM
 - HHVM is not compatible with PHP, so choose one or the other.
