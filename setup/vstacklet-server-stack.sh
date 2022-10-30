@@ -2350,19 +2350,19 @@ vstacklet::cloudflare::csf() {
 #   - wordpress database user
 #   - wordpress database password
 # - this function requires the following options to be used:
-#   - database: `-mariadb | --mariadb`, `-mysql | --mysql`, or `-postgresql | --postgresql`
+#   - database: `-mariadb | --mariadb`, `-mysql | --mysql`, or `-postgresql | --postgresql` (only one can be used)
 #   - webserver: `-nginx | --nginx` or `-varnish | --varnish` (both can be used)
-#   - php: `-php | --php`
+#   - php: `-php | --php` or `-hhvm | --hhvm` (only one can be used)
 # - this function will optionally use the following options:
 #   - web root: `-wr | --web_root` (default: /var/www/html)
 #
 # @option: $1 - `-wordpress | --wordpress` (optional)
 # @noargs
-# @example: ./vstacklet.sh -wordpress -mariadb -nginx -php "8.1"
-# ./vstacklet.sh -wordpress -mysql -nginx -php "8.1"
-# ./vstacklet.sh -wordpress -postgresql -nginx -php "8.1"
-#./vstacklet.sh -wordpress -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
-# ./vstacklet.sh --wordpress --mariadb --nginx --php "8.1" --varnish --varnish_port 80 --http 8080 --https 443
+# @example: ./vstacklet.sh -wp -mariadb -nginx -php "8.1" -wr "/var/www/html"
+# ./vstacklet.sh -wp -mysql -nginx -php "8.1"
+# ./vstacklet.sh -wp -postgresql -nginx -php "8.1"
+#./vstacklet.sh -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
+# ./vstacklet.sh -wp -mariadb -nginx -hhvm -wr "/var/www/html"
 # @null
 # @return_code: 130 - wordpress requires a database to be installed.
 # @return_code: 131 - wordpress requires a webserver to be installed.
