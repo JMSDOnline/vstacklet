@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1517
+# vstacklet-server-stack.sh - v3.1.1518
 
 
 ---
@@ -1061,6 +1061,8 @@ these options are:
   - database: `-mariadb | --mariadb`, `-mysql | --mysql`, or `-postgresql | --postgresql`
   - webserver: `-nginx | --nginx` or `-varnish | --varnish` (both can be used)
   - php: `-php | --php`
+- this function will optionally use the following options:
+  - web root: `-wr | --web_root` (default: /var/www/html)
 
 #### options:
 
