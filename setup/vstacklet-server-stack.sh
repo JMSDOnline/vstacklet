@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1521
+# @version: 3.1.1522
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1276,7 +1276,14 @@ vstacklet::php::install() {
 # @description: Install HHVM and configure.
 #
 # notes:
+# - not familiar with HHMV?
+#   - https://docs.hhvm.com/hhvm/FAQ/faq
+#   - https://docs.hhvm.com/hhvm/advanced-usage/ini-settings
+# - this is a very basic install, it is recommended to use the official HHVM
+#   documentation to configure HHVM
 # - HHVM is not compatible with PHP, so choose one or the other.
+# - phpMyAdmin is not compatible with HHVM, so if you choose HHVM,
+#   you will not be able to install phpMyAdmin.
 # @option: $1 - `-hhvm | --hhvm` (optional) (takes no arguments)
 # @example: ./vstacklet.sh -hhvm
 # ./vstacklet.sh --hhvm

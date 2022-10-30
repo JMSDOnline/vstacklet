@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1521
+# vstacklet-server-stack.sh - v3.1.1522
 
 
 ---
@@ -532,7 +532,14 @@ notes:
 Install HHVM and configure.
 
 notes:
+- not familiar with HHMV?
+  - https://docs.hhvm.com/hhvm/FAQ/faq
+  - https://docs.hhvm.com/hhvm/advanced-usage/ini-settings
+- this is a very basic install, it is recommended to use the official HHVM
+  documentation to configure HHVM
 - HHVM is not compatible with PHP, so choose one or the other.
+- phpMyAdmin is not compatible with HHVM, so if you choose HHVM,
+  you will not be able to install phpMyAdmin.
 
 #### options:
 
