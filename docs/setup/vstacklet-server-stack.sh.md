@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1490
+# vstacklet-server-stack.sh - v3.1.1517
 
 
 ---
@@ -158,7 +158,7 @@ Process the options and values passed to the script.
 -  `-ssh | --ssh_port` - port to use for the SSH server
 -  `-http | --http_port` - port to use for the HTTP server
 -  `-https | --https_port` - port to use for the HTTPS server
--  `-h | --hostname` - hostname to use for the server
+-  `-hn | --hostname` - hostname to use for the server
 -  `-d | --domain` - domain name to use for the server
 -  `-php | --php` - PHP version to install (7.4, 8.1)
 -  `-mc | --memcached` - install Memcached
@@ -216,8 +216,8 @@ Process the options and values passed to the script.
 
 ```
  ./vstacklet.sh --help
- ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -h "yourhostname" -d "yourdomain.com" -php 8.1 -mc -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
- ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -h "yourhostname" -d "yourdomain.com" -hhvm -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -sendmail -wr "/var/www/html" -wp --reboot
+ ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -d "yourdomain.com" -php 8.1 -mc -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
+ ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -d "yourdomain.com" -hhvm -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -sendmail -wr "/var/www/html" -wp --reboot
 ```
 
 ---
@@ -322,7 +322,7 @@ notes:
 
 #### options:
 
--  $1 - `-h | --hostname` (optional) (takes one argument)
+-  $1 - `-hn | --hostname` (optional) (takes one argument)
 
 #### arguments:
 
@@ -331,7 +331,7 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -h myhostname
+ ./vstacklet.sh -hn myhostname
  ./vstacklet.sh --hostname myhostname
 ```
 
@@ -789,6 +789,67 @@ notes:
 
 ---
 
+### vstacklet::postgre::install()
+
+Install and configure postgreSQL.
+
+#### options:
+
+-  $1 - `-postgre | --postgresql` (optional)
+
+#### arguments:
+
+-  $2 - `[postgresql_port]` (optional) (default: 5432)
+-  $3 - `[postgresql_user]` (optional) (default: root)
+-  $4 - `[postgresql_password]` (optional) (default: password auto-generated)
+
+#### return codes:
+
+- 78 - postgreSQL dependencies installation failed
+- 79 - failed to switch to /etc/postgresql/${postgre_version}/main
+
+#### examples:
+
+```
+ ./vstacklet.sh -postgre -postgreP 5432 -postgreU root -postgrePw password
+ ./vstacklet.sh --postgresql --postgresql_port 5432 --postgresql_user root --postgresql_password password
+```
+
+---
+
+### vstacklet::redis::install()
+
+Install and configure redis.
+
+#### options:
+
+-  $1 - `-redis | --redis` (optional)
+-  $2 - `-redisP | --redis_port` (optional)
+-  $3 - `-redisPw | --redis_password` (optional)
+
+#### arguments:
+
+-  $2 - `[redis_port]` (optional) (default: 6379)
+-  $3 - `[redis_password]` (optional) (default: password auto-generated)
+
+#### return codes:
+
+- 90 - failed to install redis deb package
+- 91 - failed to install redis dependencies
+- 92 - failed to set redis root password
+- 93 - failed to set redis client and server configuration
+
+#### examples:
+
+```
+ ./vstacklet.sh -redis -redisP 6379 -redisPw password
+ ./vstacklet.sh --redis --redis_port 6379 --redis_password password
+ ./vstacklet.sh -redis
+ ./vstacklet.sh --redis
+```
+
+---
+
 ### vstacklet::phpmyadmin::install()
 
 Install phpMyAdmin and configure.
@@ -928,7 +989,7 @@ notes:
 
 #### return codes:
 
-- 105 - an email address was not provided. this is required for sendmail
+- 119 - an email address was not provided. this is required for sendmail
 - 106 - sendmail dependencies failed to install.
 - 107 - failed to edit aliases file.
 - 108 - failed to edit sendmail.cf file.
@@ -971,8 +1032,8 @@ notes:
 
 #### return codes:
 
-- 114 - csf has not been enabled ( -csf ). this is a component of the
-- 115 - csf allow file does not exist.
+- 128 - csf has not been enabled ( -csf ). this is a component of the
+- 129 - csf allow file does not exist.
 
 #### examples:
 
@@ -982,10 +1043,56 @@ notes:
 
 ---
 
+### vstacklet::wordpress::install()
+
+Install WordPress. This will also configure WordPress to use
+the database that was created during the installation process.
+
+notes:
+- this function is only called under the following conditions:
+  - the option `-wordpress` is used directly
+- this function will install wordpress and configure the database.
+- wordpress is an active build option and requires active intput from the user (for now).
+these options are:
+  - wordpress database name
+  - wordpress database user
+  - wordpress database password
+- this function requires the following options to be used:
+  - database: `-mariadb | --mariadb`, `-mysql | --mysql`, or `-postgresql | --postgresql`
+  - webserver: `-nginx | --nginx` or `-varnish | --varnish` (both can be used)
+  - php: `-php | --php`
+
+#### options:
+
+-  $1 - `-wordpress | --wordpress` (optional)
+
+*function has no arguments*
+
+#### return codes:
+
+- 116 -
+- 117 -
+- 118 -
+- 119 -
+- 120 -
+- 121 -
+
+#### examples:
+
+```
+ ./vstacklet.sh -wordpress -mariadb -nginx -php "8.1"
+ ./vstacklet.sh -wordpress -mysql -nginx -php "8.1"
+ ./vstacklet.sh -wordpress -postgresql -nginx -php "8.1"
+./vstacklet.sh -wordpress -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
+ ./vstacklet.sh --wordpress --mariadb --nginx --php "8.1" --varnish --varnish_port 80 --http 8080 --https 443
+```
+
+---
+
 ### vstacklet::domain::ssl()
 
 The following function installs the SSL certificate
-for the domain.
+  for the domain.
 
 notes:
 - This function is only called under the following conditions:
@@ -1005,10 +1112,10 @@ notes:
 
 #### return codes:
 
-- 116 - the -nginx|--nginx option is required.
-- 117 - the -e|--email option is required.
+- 116 - the `-nginx|--nginx` option is required.
+- 117 - the `-e|--email` option is required.
 - 118 - failed to change directory to /root.
-- 119 - failed to create directory ${webroot}/.well-known/acme-challenge.
+- 119 - failed to create directory ${web_root}/.well-known/acme-challenge.
 - 120 - failed to clone acme.sh.
 - 121 - failed to change directory to /root/acme.sh.
 - 122 - failed to install acme.sh.
