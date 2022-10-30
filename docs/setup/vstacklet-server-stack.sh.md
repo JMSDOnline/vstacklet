@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1519
+# vstacklet-server-stack.sh - v3.1.1521
 
 
 ---
@@ -1053,7 +1053,7 @@ notes:
   - the option `-wordpress` is used directly
 - this function will install wordpress and configure the database.
 - wordpress is an active build option and requires active intput from the user (for now).
-these options are:
+these arguments are:
   - wordpress database name
   - wordpress database user
   - wordpress database password
@@ -1072,12 +1072,20 @@ these options are:
 
 #### return codes:
 
-- 116 -
-- 117 -
-- 118 -
-- 119 -
-- 120 -
-- 121 -
+- 130 - wordpress requires a database to be installed.
+- 131 - wordpress requires a webserver to be installed.
+- 132 - wordpress requires php to be installed.
+- 133 - failed to download wordpress.
+- 134 - failed to extract wordpress.
+- 135 - failed to move wordpress to the web root.
+- 136 - failed to create wordpress upload directory.
+- 137 - failed to create wordpress configuration file.
+- 138 - failed to modify wordpress configuration file.
+- 139 - failed to create wordpress database.
+- 140 - failed to create wordpress database user.
+- 141 - failed to grant privileges to wordpress database user.
+- 142 - failed to flush privileges.
+- 143 - failed to remove wordpress installation files.
 
 #### examples:
 
@@ -1114,20 +1122,20 @@ notes:
 
 #### return codes:
 
-- 116 - the `-nginx|--nginx` option is required.
-- 117 - the `-e|--email` option is required.
-- 118 - failed to change directory to /root.
-- 119 - failed to create directory ${web_root}/.well-known/acme-challenge.
-- 120 - failed to clone acme.sh.
-- 121 - failed to change directory to /root/acme.sh.
-- 122 - failed to install acme.sh.
-- 123 - missing required option(s) - ${e[@]}
-- 124 - failed to edit /etc/nginx/sites-available/${domain}.conf.
-- 125 - failed to reload nginx.
-- 126 - failed to register the account with Let's Encrypt.
-- 127 - failed to set the default CA to Let's Encrypt.
-- 128 - failed to issue the certificate.
-- 129 - failed to install the certificate.
+- 145 - the `-nginx|--nginx` option is required.
+- 146 - the `-e|--email` option is required.
+- 147 - failed to change directory to /root.
+- 148 - failed to create directory ${web_root}/.well-known/acme-challenge.
+- 149 - failed to clone acme.sh.
+- 150 - failed to change directory to /root/acme.sh.
+- 151 - failed to install acme.sh.
+- 152 - missing required option(s) - ${e[@]}
+- 153 - failed to edit /etc/nginx/sites-available/${domain}.conf.
+- 154 - failed to reload nginx.
+- 155 - failed to register the account with Let's Encrypt.
+- 156 - failed to set the default CA to Let's Encrypt.
+- 157 - failed to issue the certificate.
+- 158 - failed to install the certificate.
 
 #### examples:
 

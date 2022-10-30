@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1519
+# @version: 3.1.1521
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2338,7 +2338,7 @@ vstacklet::cloudflare::csf() {
 #   - the option `-wordpress` is used directly
 # - this function will install wordpress and configure the database.
 # - wordpress is an active build option and requires active intput from the user (for now).
-# these options are:
+# these arguments are:
 #   - wordpress database name
 #   - wordpress database user
 #   - wordpress database password
@@ -2357,12 +2357,20 @@ vstacklet::cloudflare::csf() {
 #./vstacklet.sh -wordpress -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
 # ./vstacklet.sh --wordpress --mariadb --nginx --php "8.1" --varnish --varnish_port 80 --http 8080 --https 443
 # @null
-# @return_code: 116 -
-# @return_code: 117 -
-# @return_code: 118 -
-# @return_code: 119 -
-# @return_code: 120 -
-# @return_code: 121 -
+# @return_code: 130 - wordpress requires a database to be installed.
+# @return_code: 131 - wordpress requires a webserver to be installed.
+# @return_code: 132 - wordpress requires php to be installed.
+# @return_code: 133 - failed to download wordpress.
+# @return_code: 134 - failed to extract wordpress.
+# @return_code: 135 - failed to move wordpress to the web root.
+# @return_code: 136 - failed to create wordpress upload directory.
+# @return_code: 137 - failed to create wordpress configuration file.
+# @return_code: 138 - failed to modify wordpress configuration file.
+# @return_code: 139 - failed to create wordpress database.
+# @return_code: 140 - failed to create wordpress database user.
+# @return_code: 141 - failed to grant privileges to wordpress database user.
+# @return_code: 142 - failed to flush privileges.
+# @return_code: 143 - failed to remove wordpress installation files.
 # @break
 ##################################################################################
 vstacklet::wordpress::install() {
@@ -2381,34 +2389,34 @@ vstacklet::wordpress::install() {
 		read -rp "WordPress database password: " wp_db_password
 		vstacklet::vstacklet::shell::text::white "installing and configuring WordPress ... "
 		# download WordPress
-		vstacklet::log "wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz" || vstacklet::rollback::clean 130
+		vstacklet::log "wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz" || vstacklet::rollback::clean 133
 		# extract WordPress
-		vstacklet::log "tar -xzf /tmp/wordpress.tar.gz -C /tmp" || vstacklet::rollback::clean 131
+		vstacklet::log "tar -xzf /tmp/wordpress.tar.gz -C /tmp" || vstacklet::rollback::clean 134
 		# move WordPress to the web root
-		mv /tmp/wordpress/* "${web_root:-/var/www/html}/public" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 132
+		mv /tmp/wordpress/* "${web_root:-/var/www/html}/public" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 135
 		# create the uploads directory
-		mkdir "${web_root:-/var/www/html}/public/wp-content/uploads" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 133
+		mkdir -p "${web_root:-/var/www/html}/public/wp-content/uploads" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 136
 		# set the correct permissions
 		vstacklet::permissions::adjust
 		# create the wp-config.php file
-		vstacklet::log "cp ${web_root:-/var/www/html}/public/wp-config-sample.php ${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::rollback::clean 134
+		vstacklet::log "cp -f ${web_root:-/var/www/html}/public/wp-config-sample.php ${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::rollback::clean 137
 		# modify the wp-config.php file
 		sed -i \
 			-e "s/database_name_here/${wp_db_name}/g" \
 			-e "s/username_here/${wp_db_user}/g" \
 			-e "s/password_here/${wp_db_password}/g" \
 			-e "s/utf8mb4/utf8/g" \
-			"${web_root:-/var/www/html}/public/wp-config.php" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 135
+			"${web_root:-/var/www/html}/public/wp-config.php" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 138
 		# create the database
-		vstacklet::log "mysql -u root -p${mariadb_password:-${mysql_password:-${postgresql_password}}} -e \"CREATE DATABASE ${wp_db_name};\"" || vstacklet::rollback::clean 136
+		vstacklet::log "mysql -u root -p${mariadb_password:-${mysql_password:-${postgresql_password}}} -e \"CREATE DATABASE ${wp_db_name};\"" || vstacklet::rollback::clean 139
 		# create the database user
-		vstacklet::log "mysql -u root -p${mariadb_password:-${mysql_password:-${postgresql_password}}} -e \"CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';\"" || vstacklet::rollback::clean 137
+		vstacklet::log "mysql -u root -p${mariadb_password:-${mysql_password:-${postgresql_password}}} -e \"CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';\"" || vstacklet::rollback::clean 140
 		# grant privileges to the database user
-		vstacklet::log "mysql -u root -p${mariadb_password:-${mysql_password:-${postgresql_password}}} -e \"GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';\"" || vstacklet::rollback::clean 138
+		vstacklet::log "mysql -u root -p${mariadb_password:-${mysql_password:-${postgresql_password}}} -e \"GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';\"" || vstacklet::rollback::clean 141
 		# flush privileges
-		vstacklet::log "mysql -u root -p${mariadb_password:-${mysql_password:-${postgresql_password}}} -e \"FLUSH PRIVILEGES;\"" || vstacklet::rollback::clean 139
+		vstacklet::log "mysql -u root -p${mariadb_password:-${mysql_password:-${postgresql_password}}} -e \"FLUSH PRIVILEGES;\"" || vstacklet::rollback::clean 142
 		# remove the WordPress installation files
-		vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::rollback::clean 140
+		vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::rollback::clean 143
 		# display the WordPress installation URL
 		vstacklet::shell::text::green "WordPress has been installed. see details below:"
 		vstacklet::shell::misc::nl
@@ -2445,25 +2453,25 @@ vstacklet::wordpress::install() {
 # @example: ./vstacklet.sh -nginx -domain example.com -e "your@email.com"
 # ./vstacklet.sh --nginx --domain example.com --email "your@email.com"
 # @null
-# @return_code: 116 - the `-nginx|--nginx` option is required.
-# @return_code: 117 - the `-e|--email` option is required.
-# @return_code: 118 - failed to change directory to /root.
-# @return_code: 119 - failed to create directory ${web_root}/.well-known/acme-challenge.
-# @return_code: 120 - failed to clone acme.sh.
-# @return_code: 121 - failed to change directory to /root/acme.sh.
-# @return_code: 122 - failed to install acme.sh.
-# @return_code: 123 - missing required option(s) - ${e[@]}
-# @return_code: 124 - failed to edit /etc/nginx/sites-available/${domain}.conf.
-# @return_code: 125 - failed to reload nginx.
-# @return_code: 126 - failed to register the account with Let's Encrypt.
-# @return_code: 127 - failed to set the default CA to Let's Encrypt.
-# @return_code: 128 - failed to issue the certificate.
-# @return_code: 129 - failed to install the certificate.
+# @return_code: 145 - the `-nginx|--nginx` option is required.
+# @return_code: 146 - the `-e|--email` option is required.
+# @return_code: 147 - failed to change directory to /root.
+# @return_code: 148 - failed to create directory ${web_root}/.well-known/acme-challenge.
+# @return_code: 149 - failed to clone acme.sh.
+# @return_code: 150 - failed to change directory to /root/acme.sh.
+# @return_code: 151 - failed to install acme.sh.
+# @return_code: 152 - missing required option(s) - ${e[@]}
+# @return_code: 153 - failed to edit /etc/nginx/sites-available/${domain}.conf.
+# @return_code: 154 - failed to reload nginx.
+# @return_code: 155 - failed to register the account with Let's Encrypt.
+# @return_code: 156 - failed to set the default CA to Let's Encrypt.
+# @return_code: 157 - failed to issue the certificate.
+# @return_code: 158 - failed to install the certificate.
 # @break
 ##################################################################################
 vstacklet::domain::ssl() {
-	[[ -z ${nginx} ]] && vstacklet::rollback::clean 116
-	[[ -z ${email} ]] && vstacklet::rollback::clean 117
+	[[ -z ${nginx} ]] && vstacklet::rollback::clean 145
+	[[ -z ${email} ]] && vstacklet::rollback::clean 146
 	if [[ -n ${domain_ssl} ]]; then
 		vstacklet::shell::text::white "installing SSL certificate for ${domain} ... "
 		# build acme.sh for Let's Encrypt SSL
