@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1526
+# vstacklet-server-stack.sh - v3.1.1527
 
 
 ---
@@ -537,7 +537,11 @@ notes:
   - https://docs.hhvm.com/hhvm/configuration/INI-settings
 - this is a very basic install, it is recommended to use the official HHVM
   documentation to configure HHVM
-- HHVM is not compatible with PHP, so choose one or the other.
+- HHVM is not compatible with PHP, so choose one or the other. HHVM is
+  not a drop-in replacement for PHP, so you will need to rewrite your
+  PHP code to work with HHVM accordingly. HHVM is a dialect of PHP, not PHP itself.
+- unless you are familiar with HHVM, it is recommended to use PHP. there
+  may be numerous issues when using with `--wordpress` (e.g. plugins, themes, etc.)
 - phpMyAdmin is not compatible with HHVM, so if you choose HHVM,
   you will not be able to install phpMyAdmin.
 
