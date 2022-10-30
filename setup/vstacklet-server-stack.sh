@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1518
+# @version: 3.1.1519
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2441,7 +2441,7 @@ vstacklet::wordpress::install() {
 #   - `-nginx` or `--nginx`
 # @option: $1 - `-domain | --domain` - The domain to install the
 #   SSL certificate for.
-# @args: $1 - `[domain]` (required)
+# @arg: $1 - `[domain]` (required)
 # @example: ./vstacklet.sh -nginx -domain example.com -e "your@email.com"
 # ./vstacklet.sh --nginx --domain example.com --email "your@email.com"
 # @null

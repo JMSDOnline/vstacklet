@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1518
+# vstacklet-server-stack.sh - v3.1.1519
 
 
 ---
@@ -1110,7 +1110,7 @@ notes:
 
 #### arguments:
 
-- # @args: $1 - `[domain]` (required)
+-  $1 - `[domain]` (required)
 
 #### return codes:
 
