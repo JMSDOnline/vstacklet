@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1589
+# @version: 3.1.1593
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -177,7 +177,7 @@
 ##################################################################################
 vstacklet::environment::init() {
 	shopt -s extglob
-	declare -g vstacklet_base_path server_ip server_hostname
+	declare -g vstacklet_base_path server_ip server_hostname local_setup_dir local_php8_dir local_php7_dir local_hhvm_dir local_varnish_dir
 	vstacklet_base_path="/etc/vstacklet"
 	server_ip=$(ip addr show | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | cut -d/ -f1 | head -n 1)
 	server_hostname=$(hostname -s)
@@ -953,12 +953,12 @@ vstacklet::source::dependencies() {
 ##################################################################################
 vstacklet::bashrc::set() {
 	vstacklet::shell::text::white "setting ~/.bashrc and ~/.profile for vstacklet ... "
-	\cp -f "${local_setup_dir}/templates/bashrc.template" /root/.bashrc
-	sed -i "s/HOSTNAME/${domain:-${hostname:-${server_hostname}}}/g" /root/.bashrc
-	profile="/root/.profile"
-	if [[ -f ${profile} ]]; then
-		\cp -f "${local_setup_dir}/templates/profile.template" /root/.profile
-	fi
+	bashrc_path="${HOME}/.bashrc"
+	profile_path="${HOME}/.profile"
+	[[ -f "${bashrc_path}" ]] && mv "${bashrc_path}" "${vstacklet_base_path}/config/system/bashrc"
+	[[ -f "${profile_path}" ]] && mv "${profile_path}" "${vstacklet_base_path}/config/system/profile"
+	\cp -f "${local_setup_dir}/templates/bashrc.template" "${bashrc_path}"
+	\cp -f "${local_setup_dir}/templates/profile.template" "${profile_path}"
 }
 
 ##################################################################################
