@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1594
+# @version: 3.1.1597
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1581,12 +1581,12 @@ vstacklet::varnish::install() {
 		cp -f "${local_varnish_dir}default.vcl" "/etc/varnish/default.vcl"
 		# adjust varnish config files
 		sed -i "s|{{server_ip}}|${server_ip}|g" /etc/varnish/default.vcl
-		sed -i "s|{{varnish_port}}|${varnish_port:-6081}|g" /etc/default/varnish
+		sed -i "s|6081|${varnish_port:-6081}|g" /etc/default/varnish
 		# adjust varnish service
 		cp -f /lib/systemd/system/varnishlog.service /etc/systemd/system/
 		cp -f /lib/systemd/system/varnish.service /etc/systemd/system/
-		sed -i "s|{{varnish_port}}|${varnish_port:-6081}|g" /etc/systemd/system/varnish.service
-		sed -i "s|{{varnish_port}}|${varnish_port:-6081}|g" /lib/systemd/system/varnish.service
+		sed -i "s|6081|${varnish_port:-6081}|g" /etc/systemd/system/varnish.service
+		sed -i "s|6081|${varnish_port:-6081}|g" /lib/systemd/system/varnish.service
 		vstacklet::log "systemctl daemon-reload" || vstacklet::clean::rollback 61
 		cd "${HOME}" || vstacklet::clean::rollback 62
 	fi
