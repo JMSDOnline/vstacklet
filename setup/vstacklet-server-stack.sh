@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1598
+# @version: 3.1.1604
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -661,6 +661,12 @@ vstacklet::environment::functions() {
 		declare -g shell_color shell_icon
 		shell_color=$(tput setaf 5)
 		shell_icon="cross"
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::icon::arrow::white() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 7)
+		shell_icon="arrow"
 		vstacklet::shell::output "$@"
 	}
 }
@@ -1748,7 +1754,7 @@ vstacklet::mariadb::install() {
 			echo -e "bind-address = 127.0.0.1"
 
 		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 75
-		vstacklet::shell::text::green::sl "mariaDB installed and configured. see details below:"
+		vstacklet::shell::text::green "mariaDB installed and configured. see details below:"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "mariaDB password: "
 		vstacklet::shell::text::green::sl "${mariadb_password:-${mariadb_autoPw}}"
@@ -2695,14 +2701,11 @@ vstacklet::message::complete() {
 		declare input
 		vstacklet::shell::text::white::sl "do you want to reboot (recommended)? "
 		vstacklet::shell::text::green::sl "[y]"
-		vstacklet::shell::text::white::sl "es "
-		vstacklet::shell::text::white "or [n]o:"
-		vstacklet::shell::icon::arrow::white
-		read -r input
-		case "${input,,}" in
-		[y] | [y][e][s] | "") reboot ;;
-		*) ;;
-		esac
+		vstacklet::shell::text::white::sl "es"
+		vstacklet::shell::text::white::sl " or "
+		vstacklet::shell::text::red::sl "[n]o:"
+		vstacklet::shell::icon::arrow::white read -r input
+		[[ ${input} =~ ^[Yy]$ ]] && vstacklet::shell::text::white "rebooting..." && reboot
 	fi
 	unset vstacklet_log_location
 }
@@ -2948,7 +2951,7 @@ vstacklet::clean::rollback() {
 	[[ -f ${vstacklet_base_path}/setup_temp/sshd_config ]] && \cp -f "${vstacklet_base_path}/setup_temp/sshd_config" /etc/ssh/sshd_config && vstacklet::log "systemctl restart sshd.service"
 	[[ -d ${web_root} ]] && rm -rf "${web_root}"/{public,logs,ssl}
 	[[ -L /usr/local/bin/vstacklet ]] && unlink "/usr/local/bin/vstacklet"
-	if [[ ${nginx} ]]; then
+	if [[ -n ${nginx} ]]; then
 		rm -rf "/etc/nginx" "/var/log/vstacklet" "/etc/nginx-pre-vstacklet" >/dev/null 2>&1
 	fi
 	rm -rf "/var/log/vstacklet"
