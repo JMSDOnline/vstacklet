@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1547
+# vstacklet-server-stack.sh - v3.1.1580
 
 
 ---
@@ -131,7 +131,6 @@ Process the options and values passed to the script.
 -  `-hn | --hostname` - hostname to use for the server
 -  `-d | --domain` - domain name to use for the server
 -  `-php | --php` - PHP version to install (7.4, 8.1)
--  `-mc | --memcached` - install Memcached
 -  `-hhvm | --hhvm` - install HHVM
 -  `-nginx | --nginx` - install Nginx
 -  `-varnish | --varnish` - install Varnish
@@ -157,31 +156,38 @@ Process the options and values passed to the script.
 
 #### return codes:
 
-- 3 - Please provide a valid email address to use. (required for -csf, -sendmail, and -csfCf)
-- 4 - Please provide a valid domain name.
-- 5 - Please provide a valid port number for the FTP server.
-- 6 - Invalid FTP port number. Please enter a number between 1 and 65535.
-- 7 - The MariaDB password must be at least 8 characters long.
-- 8 - Please provide a valid port number for the MariaDB server.
-- 9 - Invalid MariaDB port number. Please enter a number between 1 and 65535.
-- 10 - The MySQL password must be at least 8 characters long.
-- 11 - The MySQL port must be a number.
-- 12 - Invalid MySQL port number. Please enter a number between 1 and 65535.
-- 13 - Invalid PHP version. Please enter either 7 (7.4), or 8 (8.1).
-- 14 - The HTTPS port must be a number.
-- 15 - Invalid HTTPS port number. Please enter a number between 1 and 65535.
-- 16 - The HTTP port must be a number.
-- 17 - Invalid HTTP port number. Please enter a number between 1 and 65535.
-- 18 - Invalid hostname. Please enter a valid hostname.
-- 19 - An email is needed to register the server aliases. Please set an email with ' -e your@email.com '
-- 20 - The Sendmail port must be a number.
-- 21 - Invalid Sendmail port number. Please enter a number between 1 and 65535.
-- 22 - The SSH port must be a number.
-- 23 - Invalid SSH port number. Please enter a number between 1 and 65535.
-- 24 - The Varnish port must be a number.
-- 25 - Invalid Varnish port number. Please enter a number between 1 and 65535.
-- 26 - Invalid web root. Please enter a valid path. (e.g. /var/www/html)
-- 27 - Invalid option(s): ${invalid_option[*]}
+- 3 - please provide a valid email address. (required for -csf, -sendmail, and -csfCf)
+- 4 - `-csfCf` requires `-csf`.
+- 5 - please provide a valid domain name.
+- 6 - please provide a valid port number for the FTP server.
+- 7 - invalid FTP port number. please enter a number between 1 and 65535.
+- 8 - the MariaDB password must be at least 8 characters long.
+- 9 - please provide a valid port number for the MariaDB server.
+- 10 - invalid MariaDB port number. please enter a number between 1 and 65535.
+- 11 - the MySQL password must be at least 8 characters long.
+- 12 - the MySQL port must be a number.
+- 13 - invalid MySQL port number. please enter a number between 1 and 65535.
+- 14 - the postgreSQL password must be at least 8 characters long.
+- 15 - please provide a valid port number for the postgreSQL server.
+- 16 - invalid postgreSQL port number. please enter a number between 1 and 65535.
+- 17 - invalid PHP version. please enter either 7 (7.4), or 8 (8.1).
+- 18 - the HTTPS port must be a number.
+- 19 - invalid HTTPS port number. please enter a number between 1 and 65535.
+- 20 - the HTTP port must be a number.
+- 21 - invalid HTTP port number. please enter a number between 1 and 65535.
+- 22 - invalid hostname. please enter a valid hostname.
+- 23 - the Redis password must be at least 8 characters long.
+- 24 - please provide a valid port number for the Redis server.
+- 25 - invalid Redis port number. please enter a number between 1 and 65535.
+- 26 - an email is needed to register the server aliases. please set an email with `-e your@email.com`.
+- 27 - the Sendmail port must be a number.
+- 28 - invalid Sendmail port number. please enter a number between 1 and 65535.
+- 29 - the SSH port must be a number.
+- 30 - invalid SSH port number. please enter a number between 1 and 65535.
+- 31 - the Varnish port must be a number.
+- 32 - invalid Varnish port number. please enter a number between 1 and 65535.
+- 33 - invalid web root. please enter a valid path. (e.g. /var/www/html)
+- 34 - invalid option(s): ${invalid_option[*]}
 
 #### examples:
 
@@ -211,7 +217,7 @@ Check if the log file exists and create it if it doesn't.
 
 ### vstacklet::apt::update()
 
-updates server via apt-get
+updates server via apt-get.
 
 *function has no options*
 
@@ -229,7 +235,7 @@ installs dependencies for vStacklet software
 
 #### return codes:
 
-- 28 - failed to install dependencies - [${install}]
+- 35 - failed to install script dependencies.
 
 ---
 
@@ -239,7 +245,7 @@ Check if the user is root.
 
 #### return codes:
 
-- 1 = You must be root to run this script.
+- 1 = you must be root to run this script.
 
 ---
 
@@ -249,7 +255,7 @@ Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11
 
 #### return codes:
 
-- 2 = This script only supports Ubuntu 18.04/20.04 | Debian 9/10/11
+- 2 = this script only supports Ubuntu 18.04/20.04 | Debian 9/10/11
 
 ---
 
@@ -275,7 +281,7 @@ Handles base dependencies for the vStacklet software.
 
 #### return codes:
 
-- 29 - failed to install base dependencies - [${install}]
+- 36 - failed to install base dependencies.
 
 ---
 
@@ -289,7 +295,7 @@ installs required sources for vStacklet software
 
 #### return codes:
 
-- 30 - failed to install source dependencies - [${depend}]
+- 37 - failed to install source dependencies.
 
 ---
 
@@ -378,8 +384,8 @@ Set ssh port to custom port (if nothing is set, default port is 22)
 
 #### return codes:
 
-- 32 - failed to set ssh port
-- 33 - failed to restart ssh daemon service
+- 39 - failed to set SSH port.
+- 40 - failed to restart SSH daemon service.
 
 #### examples:
 
@@ -404,8 +410,8 @@ Set ftp port to custom port (if nothing is set, default port is 21)
 
 #### return codes:
 
-- 34 - failed to set ftp port
-- 35 - failed to restart ftp service
+- 41 - failed to set FTP port.
+- 42 - failed to restart FTP service.
 
 #### examples:
 
@@ -428,8 +434,8 @@ need port 1900. In most cases, this is a junk port.
 
 #### return codes:
 
-- 34 - failed to block ssdp port
-- 35 - failed to save iptables rules
+- 43 - failed to block SSDP port.
+- 44 - failed to save iptables rules.
 
 ---
 
@@ -446,7 +452,7 @@ This function updates the package list and upgrades the system.
 ### vstacklet::gpg::keys()
 
 This function sets the required software package keys
-and sources for the vStacklet software.
+required by added sources.
 
 notes:
 - keys and sources are set for the following software packages:
@@ -480,7 +486,7 @@ todo: This function is still a work in progress.
 
 #### return codes:
 
-- 38 - locale-gen failed
+- 45 - failed to set locale.
 
 ---
 
@@ -519,10 +525,10 @@ notes:
 
 #### return codes:
 
-- 39 - php and hhvm cannot be installed at the same time, please choose one
-- 40 - failed to install php dependencies
-- 41 - failed to install php memcached extension
-- 42 - failed to install php redis extension
+- 46 - php and hhvm cannot be installed at the same time, please choose one.
+- 47 - failed to install php dependencies.
+- 48 - failed to enable php memcached extension.
+- 49 - failed to enable php redis extension.
 
 #### examples:
 
@@ -557,10 +563,10 @@ notes:
 
 #### return codes:
 
-- 43 - hhvm and php cannot be installed at the same time, please choose one
-- 44 - failed to install hhvm dependencies
-- 45 - failed to install hhvm
-- 46 - failed to update php alternatives
+- 50 - HHVM and PHP cannot be installed at the same time, please choose one.
+- 51 - failed to install HHVM dependencies.
+- 52 - failed to install HHVM.
+- 53 - failed to update PHP alternatives.
 
 #### examples:
 
@@ -602,12 +608,11 @@ notes:
 
 #### return codes:
 
-- 47 - failed to install nginx dependencies
-- 48 - missing required option for nginx configuration - ${e}
-- 49 - failed to edit nginx configuration
-- 50 - failed to enable nginx configuration
-- 51 - failed to generate dhparam file
-- 52 - failed to stage checkinfo.php verification file
+- 54 - failed to install NGINX dependencies.
+- 55 - failed to edit NGINX configuration file.
+- 56 - failed to enable NGINX configuration file.
+- 57 - failed to generate dhparam file.
+- 58 - failed to stage checkinfo.php verification file.
 
 #### examples:
 
@@ -647,10 +652,10 @@ notes:
 
 #### return codes:
 
-- 53 - failed to install varnish package
-- 54 - could not switch to /etc/varnish directory
-- 55 - failed to reload the systemd daemon
-- 56 - failed to switch to ~/
+- 59 - failed to install Varnish dependencies.
+- 60 - could not switch to /etc/varnish directory.
+- 61 - failed to reload the systemd daemon.
+- 62 - failed to switch to ~/
 
 #### examples:
 
@@ -688,7 +693,7 @@ notes:
 
 ### vstacklet::ioncube::install()
 
-Install ioncube loader.
+Install ionCube loader.
 
 notes:
 - the ioncube loader will be available for the php version specified
@@ -700,12 +705,12 @@ notes:
 
 #### return codes:
 
-- 57 - failed to switch to /tmp directory
-- 58 - failed to download ioncube loader
-- 59 - failed to extract ioncube loader
-- 60 - failed to switch to /tmp/ioncube directory
-- 61 - failed to copy ioncube loader to /usr/lib/php/ directory
-- 62 - failed to enable ioncube loader php extension
+- 63 - failed to switch to /tmp directory.
+- 64 - failed to download ionCube loader.
+- 65 - failed to extract ionCube loader.
+- 66 - failed to switch to /tmp/ioncube directory.
+- 67 - failed to copy ionCube loader to /usr/lib/php/ directory.
+- 68 - failed to enable ionCube loader php extension.
 
 #### examples:
 
@@ -741,13 +746,13 @@ notes:
 
 #### return codes:
 
-- 63 - failed to install mariadb
-- 64 - failed to initialize mariadb secure installation
-- 65 - failed to create mariadb root user
-- 66 - failed to create mariadb root user password
-- 67 - failed to create mariadb root user host
-- 68 - failed to flush privileges
-- 69 - failed to set mariadb client and server configuration
+- 69 - failed to install MariaDB dependencies.
+- 70 - failed to initialize MariaDB secure installation.
+- 71 - failed to create MariaDB user.
+- 72 - failed to create MariaDB user password.
+- 73 - failed to create MariaDB user privileges.
+- 74 - failed to flush privileges.
+- 75 - failed to set MariaDB client and server configuration.
 
 #### examples:
 
@@ -788,14 +793,14 @@ notes:
 
 #### return codes:
 
-- 70 - failed to get mysql deb package
-- 71 - failed to install mysql deb package
-- 72 - failed to install mysql dependencies
-- 73 - failed to set mysql root password
-- 74 - failed to create mysql user
-- 75 - failed to grant mysql user privileges
-- 76 - failed to flush mysql privileges
-- 77 - failed to set mysql client and server configuration
+- 76 - failed to download MySQL deb package.
+- 77 - failed to install MySQL deb package.
+- 78 - failed to install MySQL dependencies.
+- 79 - failed to set MySQL password.
+- 80 - failed to create MySQL user.
+- 81 - failed to grant MySQL user privileges.
+- 82 - failed to flush MySQL privileges.
+- 83 - failed to set MySQL client and server configuration.
 
 #### examples:
 
@@ -808,7 +813,7 @@ notes:
 
 ### vstacklet::postgre::install()
 
-Install and configure postgreSQL.
+Install and configure PostgreSQL.
 
 #### options:
 
@@ -822,8 +827,13 @@ Install and configure postgreSQL.
 
 #### return codes:
 
-- 78 - postgreSQL dependencies installation failed
-- 79 - failed to switch to /etc/postgresql/${postgre_version}/main
+- 84 - failed to install PostgreSQL dependencies.
+- 85 - failed to switch to /etc/postgresql/${postgre_version}/main directory.
+- 86 - failed to set PostgreSQL password.
+- 87 - failed to create PostgreSQL user.
+- 88 - failed to grant PostgreSQL user privileges.
+- 89 - failed to edit /etc/postgresql/${postgre_version}/main/postgresql.conf file.
+- 90 - failed to edit /etc/postgresql/${postgre_version}/main/pg_hba.conf file.
 
 #### examples:
 
@@ -836,7 +846,7 @@ Install and configure postgreSQL.
 
 ### vstacklet::redis::install()
 
-Install and configure redis.
+Install and configure Redis.
 
 #### options:
 
@@ -851,10 +861,12 @@ Install and configure redis.
 
 #### return codes:
 
-- 90 - failed to install redis deb package
-- 91 - failed to install redis dependencies
-- 92 - failed to set redis root password
-- 93 - failed to set redis client and server configuration
+- 91 - failed to install Redis dependencies.
+- 92 - failed to backup the Redis configuration file.
+- 93 - failed to import the Redis configuration file.
+- 94 - failed to modify the Redis configuration file.
+- 95 - failed to restart the Redis service.
+- 96 - failed to set the Redis password.
 
 #### examples:
 
@@ -908,22 +920,22 @@ notes:
 
 #### return codes:
 
-- 78 - a database server was not selected
-- 79 - a web server was not selected
-- 80 - a php version was not selected
-- 81 - phpMyAdmin does not support HHVM
-- 82 - failed to install dependencies
-- 83 - failed to switch to /usr/share directory
-- 84 - failed to remove existing phpMyAdmin directory
-- 85 - failed to download phpMyAdmin
-- 86 - failed to extract phpMyAdmin
-- 87 - failed to move phpMyAdmin to /usr/share directory
-- 88 - failed to remove phpMyAdmin archive
-- 89 - failed to set ownership of phpMyAdmin directory
-- 90 - failed to set permissions of phpMyAdmin directory
-- 91 - failed to create /usr/share/phpmyadmin/tmp directory
-- 92 - failed to set symlink of phpMyAdmin
-- 93 - failed to create phpMyAdmin configuration file
+- 97 - a database server was not selected.
+- 98 - a web server was not selected.
+- 99 - a php version was not selected.
+- 100 - phpMyAdmin does not support HHVM.
+- 101 - failed to install phpMyAdmin dependencies.
+- 102 - failed to switch to /usr/share directory.
+- 103 - failed to remove existing phpMyAdmin directory.
+- 104 - failed to download phpMyAdmin.
+- 105 - failed to extract phpMyAdmin.
+- 106 - failed to move phpMyAdmin to /usr/share directory.
+- 107 - failed to remove phpMyAdmin .tar.gz file.
+- 108 - failed to set ownership of phpMyAdmin directory.
+- 109 - failed to set permissions of phpMyAdmin directory.
+- 110 - failed to create /usr/share/phpmyadmin/tmp directory.
+- 111 - failed to set symlink of ./phpmyadmin to ${web_root}/public/phpmyadmin.
+- 112 - failed to create phpMyAdmin configuration file.
 
 #### examples:
 
@@ -962,17 +974,17 @@ notes:
 
 #### return codes:
 
-- 94 - CSF firewall dependencies failed to install
-- 95 - CSF firewall failed to download
-- 96 - failed to switch to /usr/local/src/csf directory
-- 97 - CSF firewall failed to install
-- 98 - CSF firewall failed to configure
-- 99 - failed to modify CSF blocklist
-- 100 - failed to modify CSF ignore list
-- 101 - failed to modify CSF allow list
-- 102 - failed to modify CSF allow ports (inbound)
-- 103 - failed to modify CSF allow ports (outbound)
-- 104 - failed to modify CSF configuration file (csf.conf)
+- 113 - failed to install CSF firewall dependencies.
+- 114 - failed to download CSF firewall.
+- 115 - failed to switch to /usr/local/src/csf directory.
+- 116 - failed to install CSF firewall.
+- 117 - failed to initialize CSF firewall.
+- 118 - failed to modify CSF blocklist.
+- 119 - failed to modify CSF ignore list.
+- 120 - failed to modify CSF allow list.
+- 121 - failed to modify CSF allow ports (inbound).
+- 122 - failed to modify CSF allow ports (outbound).
+- 123 - failed to modify CSF configuration file (csf.conf).
 
 #### examples:
 
@@ -1006,8 +1018,8 @@ notes:
 
 #### return codes:
 
-- 128 - csf has not been enabled ( -csf ). this is a component of the
-- 129 - csf allow file does not exist.
+- 124 - CSF has not been enabled ' -csf ' (required). this is a component
+- 125 - CSF allow file does not exist.
 
 #### examples:
 
@@ -1040,15 +1052,15 @@ notes:
 
 #### return codes:
 
-- 119 - an email address was not provided. this is required for sendmail
-- 106 - sendmail dependencies failed to install.
-- 107 - failed to edit aliases file.
-- 108 - failed to edit sendmail.cf file.
-- 109 - failed to edit main.cf file.
-- 110 - failed to edit master.cf file.
-- 111 - failed to create sasl_passwd file.
-- 112 - postmap failed.
-- 113 - failed to source new aliases.
+- 126 - an email address was not provided ' -e "your@email.com" '.
+- 127 - failed to install sendmail dependencies.
+- 128 - failed to edit aliases file.
+- 129 - failed to edit sendmail.cf file.
+- 130 - failed to edit main.cf file.
+- 131 - failed to edit master.cf file.
+- 132 - failed to create sasl_passwd file.
+- 133 - postmap failed.
+- 134 - failed to source new aliases.
 
 #### examples:
 
@@ -1089,20 +1101,20 @@ these arguments are:
 
 #### return codes:
 
-- 130 - wordpress requires a database to be installed.
-- 131 - wordpress requires a webserver to be installed.
-- 132 - wordpress requires php to be installed.
-- 133 - failed to download wordpress.
-- 134 - failed to extract wordpress.
-- 135 - failed to move wordpress to the web root.
-- 136 - failed to create wordpress upload directory.
-- 137 - failed to create wordpress configuration file.
-- 138 - failed to modify wordpress configuration file.
-- 139 - failed to create wordpress database.
-- 140 - failed to create wordpress database user.
-- 141 - failed to grant privileges to wordpress database user.
-- 142 - failed to flush privileges.
-- 143 - failed to remove wordpress installation files.
+- 135 - WordPress requires a database to be installed.
+- 136 - WordPress requires a webserver to be installed.
+- 137 - WordPress requires a php version to be installed.
+- 138 - failed to download WordPress.
+- 139 - failed to extract WordPress.
+- 140 - failed to move WordPress to the web root.
+- 141 - failed to create WordPress upload directory.
+- 142 - failed to create WordPress configuration file.
+- 143 - failed to modify WordPress configuration file.
+- 144 - failed to create WordPress database.
+- 145 - failed to create WordPress database user.
+- 146 - failed to grant WordPress database user privileges.
+- 147 - failed to flush WordPress database privileges.
+- 148 - failed to remove WordPress installation files.
 
 #### examples:
 
@@ -1139,20 +1151,19 @@ notes:
 
 #### return codes:
 
-- 145 - the `-nginx|--nginx` option is required.
-- 146 - the `-e|--email` option is required.
-- 147 - failed to change directory to /root.
-- 148 - failed to create directory ${web_root}/.well-known/acme-challenge.
-- 149 - failed to clone acme.sh.
-- 150 - failed to change directory to /root/acme.sh.
-- 151 - failed to install acme.sh.
-- 152 - missing required option(s) - ${e[@]}
-- 153 - failed to edit /etc/nginx/sites-available/${domain}.conf.
-- 154 - failed to reload nginx.
-- 155 - failed to register the account with Let's Encrypt.
-- 156 - failed to set the default CA to Let's Encrypt.
-- 157 - failed to issue the certificate.
-- 158 - failed to install the certificate.
+- 149 - the `-nginx|--nginx` option is required.
+- 150 - the `-e|--email` option is required.
+- 151 - failed to change directory to /root.
+- 152 - failed to create directory ${web_root}/.well-known/acme-challenge.
+- 153 - failed to clone acme.sh.
+- 154 - failed to switch to /root/acme.sh directory.
+- 155 - failed to install acme.sh.
+- 156 - failed to reload nginx.
+- 157 - failed to register the account with Let's Encrypt.
+- 158 - failed to set the default CA to Let's Encrypt.
+- 159 - failed to issue the certificate.
+- 160 - failed to install the certificate.
+- 161 - failed to edit /etc/nginx/sites-available/${domain}.conf.
 
 #### examples:
 
