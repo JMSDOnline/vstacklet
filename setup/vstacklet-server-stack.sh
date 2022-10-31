@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1582
+# @version: 3.1.1583
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -668,8 +668,11 @@ vstacklet::environment::functions() {
 ##################################################################################
 # @name: vstacklet::log::check (3)
 # @description: Check if the log file exists and create it if it doesn't.
-# @noargs:
-# @nooptions:
+#
+# notes:
+# - the log file is located at /var/log/vstacklet/vstacklet.${PPID}.log
+# @noargs
+# @nooptions
 # @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
@@ -950,11 +953,7 @@ vstacklet::source::dependencies() {
 vstacklet::bashrc::set() {
 	vstacklet::shell::text::white "setting ~/.bashrc and ~/.profile for vstacklet ... "
 	\cp -f "${local_setup_dir}/templates/bashrc.template" /root/.bashrc
-	if [[ -n ${domain} ]]; then
-		sed -i "s/HOSTNAME/${domain}/g" /root/.bashrc
-	else
-		sed -i "s/HOSTNAME/${hostname}/g" /root/.bashrc
-	fi
+	sed -i "s/HOSTNAME/${domain:-${hostname:-${server_hostname}}}/g" /root/.bashrc
 	profile="/root/.profile"
 	if [[ -f ${profile} ]]; then
 		\cp -f "${local_setup_dir}/templates/profile.template" /root/.profile
@@ -981,18 +980,9 @@ vstacklet::bashrc::set() {
 # @break
 ##################################################################################
 vstacklet::hostname::set() {
-	if [[ -n ${hostname} && -z ${domain} ]]; then
-		vstacklet::shell::text::white "setting hostname to ${hostname} ... "
-		vstacklet::log "hostnamectl set-hostname ${hostname}" || vstacklet::clean::rollback 38
-	fi
-	if [[ -z ${hostname} && -n ${domain} ]]; then
-		vstacklet::shell::text::white "setting hostname name to ${domain} ... "
-		vstacklet::log "hostnamectl set-hostname ${domain}" || vstacklet::clean::rollback 38
-	fi
-	if [[ -z ${hostname} && -z ${domain} ]]; then
-		vstacklet::shell::text::white "setting hostname to ${server_hostname} ... "
-		vstacklet::log "hostnamectl set-hostname ${server_hostname}" || vstacklet::clean::rollback 38
-	fi
+	vstacklet::shell::text::white "setting hostname to ${domain:-${hostname:-${server_hostname}}}"
+	vstacklet::log "hostnamectl set-hostname ${domain:-${hostname:-${server_hostname}}}" || vstacklet::clean::rollback 38
+	hostnamectl set-hostname "${domain:-${hostname:-${server_hostname}}}" || vstacklet::clean::rollback 38
 }
 
 ##################################################################################
@@ -2737,10 +2727,14 @@ spinner() {
 
 ################################################################################
 # @name: vstacklet::clean::rollback - vStacklet Rollback (40/return_code)
-# @description: This function is called when a rollback is required. It will
-#   remove the temporary files and directories created during the installation
-#   process. It will also remove the log file created during the installation
+# @description: This function is called when a rollback is required. 
+#
+# notes:
+# - it will remove the temporary files and directories created during the installation
 #   process.
+# - it will remove the vStacklet log file.
+# - it will remove any dependencies installed during the installation process.
+#  (only dependencies installed by vStacklet will be removed)
 #
 # notes:
 #   - this function is currently a work in progress

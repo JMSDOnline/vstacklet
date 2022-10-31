@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1582
+# vstacklet-server-stack.sh - v3.1.1583
 
 
 ---
@@ -255,6 +255,9 @@ Stage various functions for the setup environment.
 ### vstacklet::log::check()
 
 Check if the log file exists and create it if it doesn't.
+
+notes:
+- the log file is located at /var/log/vstacklet/vstacklet.${PPID}.log
 
 *function has no options*
 
@@ -1249,10 +1252,14 @@ Outputs success message on completion of setup. This function
 
 ### vstacklet::clean::rollback()
 
-This function is called when a rollback is required. It will
-  remove the temporary files and directories created during the installation
-  process. It will also remove the log file created during the installation
+This function is called when a rollback is required. 
+
+notes:
+- it will remove the temporary files and directories created during the installation
   process.
+- it will remove the vStacklet log file.
+- it will remove any dependencies installed during the installation process.
+ (only dependencies installed by vStacklet will be removed)
 
 notes:
   - this function is currently a work in progress
