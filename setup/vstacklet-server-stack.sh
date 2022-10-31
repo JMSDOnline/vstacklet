@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1584
+# @version: 3.1.1588
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -248,8 +248,8 @@ vstacklet::environment::init() {
 # @option: `--reboot` - reboot the server after the installation
 ##################################################################################
 # @example: ./vstacklet.sh --help
-# @example: ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -mc -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
-# @example: ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -d "yourdomain.com" -hhvm -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
+# @example: ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
+# @example: ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
 # @null
 # @return_code: 3 - please provide a valid email address. (required for -csf, -sendmail, and -csfCf)
 # @return_code: 4 - `-csfCf` requires `-csf`.
@@ -714,6 +714,7 @@ vstacklet::apt::update() {
 		DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" autoremove >/dev/null 2>&1
 		DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" autoclean >/dev/null 2>&1
 	fi
+	unset apt_upgrade
 }
 
 ##################################################################################
@@ -1019,9 +1020,9 @@ vstacklet::webroot::set() {
 # @description: Set ssh port to custom port (if nothing is set, default port is 22)
 # @option: $1 - `-ssh | --ssh_port` (optional) (takes one argument)
 # @arg: $2 - `[port]` (default: 22) - the port to set for ssh
-# @return: none
 # @example: ./vstacklet.sh -ssh 2222
 # ./vstacklet.sh --ssh_port 2222
+# @null
 # @return_code: 39 - failed to set SSH port.
 # @return_code: 40 - failed to restart SSH daemon service.
 # @break
@@ -1040,9 +1041,9 @@ vstacklet::ssh::set() {
 # @description: Set ftp port to custom port (if nothing is set, default port is 21)
 # @option: $1 - `-ftp | --ftp_port` (optional) (takes one argument)
 # @arg: $2 - `[port]` (default: 21) - the port to set for ftp
-# @return: none
 # @example: ./vstacklet.sh -ftp 2121
 # ./vstacklet.sh --ftp_port 2121
+# @null
 # @return_code: 41 - failed to set FTP port.
 # @return_code: 42 - failed to restart FTP service.
 # @break
@@ -1087,9 +1088,8 @@ vstacklet::block::ssdp() {
 ##################################################################################
 # @name: vstacklet::sources::update (20)
 # @description: This function updates the package list and upgrades the system.
-# @noargs:
-# @nooptions:
-# @return: none
+# @noargs
+# @nooptions
 # @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
@@ -1152,7 +1152,6 @@ deb http://security.ubuntu.com/ubuntu ${codename}-security main restricted unive
 deb-src http://security.ubuntu.com/ubuntu ${codename}-security main restricted universe
 EOF
 	fi
-	declare -gi apt_upgrade="1"
 }
 
 ##################################################################################
@@ -1170,9 +1169,8 @@ EOF
 #   - redis (only if option `-redis|--redis` is set)
 #   - postgresql (only if option `-postgre|--postgresql` is set)
 # - apt-key is being deprecated, using gpg instead
-# @nooptions:
-# @noargs:
-# @return: none
+# @nooptions
+# @noargs
 # @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
@@ -1225,6 +1223,7 @@ EOF
 	# Remove excess sources known to
 	# cause issues with conflicting package sources
 	[[ -f "/etc/apt/sources.list.d/proposed.list" ]] && mv -f /etc/apt/sources.list.d/proposed.list /etc/apt/sources.list.d/proposed.list.BAK
+	declare -gi apt_upgrade="1"
 }
 
 ##################################################################################
