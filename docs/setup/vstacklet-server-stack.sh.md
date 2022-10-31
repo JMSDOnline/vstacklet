@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1583
+# vstacklet-server-stack.sh - v3.1.1584
 
 
 ---
@@ -1252,7 +1252,7 @@ Outputs success message on completion of setup. This function
 
 ### vstacklet::clean::rollback()
 
-This function is called when a rollback is required. 
+This function is called when a rollback is required.
 
 notes:
 - it will remove the temporary files and directories created during the installation

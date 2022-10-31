@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1583
+# @version: 3.1.1584
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2727,7 +2727,7 @@ spinner() {
 
 ################################################################################
 # @name: vstacklet::clean::rollback - vStacklet Rollback (40/return_code)
-# @description: This function is called when a rollback is required. 
+# @description: This function is called when a rollback is required.
 #
 # notes:
 # - it will remove the temporary files and directories created during the installation
