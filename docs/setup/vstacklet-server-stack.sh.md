@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1588
+# vstacklet-server-stack.sh - v3.1.1589
 
 
 ---
@@ -1193,7 +1193,7 @@ notes:
 
 #### options:
 
--  $1 - `-domain | --domain` - The domain to install the
+-  $1 - `-domain | --domain` - The domain to install the SSL certificate for.
 
 #### arguments:
 
