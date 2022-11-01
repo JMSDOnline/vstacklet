@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1620
+# @version: 3.1.1632
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -416,13 +416,13 @@ vstacklet::args::process() {
 			;;
 		-php* | --php*)
 			declare -gi php_set="1"
-			declare -gi php="${2}"
+			declare -g php="${2}"
 			shift
 			shift
-			[[ -n ${php} && ${php} != "7" && ${php} != "8" && ${php} != "7.4" && ${php} != "8.1" ]] && vstacklet::clean::rollback 17
-			[[ ${php} == *"7"* ]] && declare -gi php="7.4"
-			[[ ${php} == *"8"* ]] && declare -gi php="8.1"
-			[[ -z ${php} ]] && declare -gi php="8.1"
+			[[ -n ${php} && "${php}" != *"8"* || "${php}" != *"7"* ]] || vstacklet::clean::rollback 17
+			[[ "${php}" == *"7"* ]] && declare -g php="7.4"
+			[[ "${php}" == *"8"* ]] && declare -g php="8.1"
+			[[ -z ${php} ]] && declare -g php="8.1"
 			;;
 		-ioncube | --ioncube)
 			declare -gi ioncube="1"
@@ -553,12 +553,12 @@ vstacklet::environment::functions() {
 		for _element in "${_array[@]}"; do
 			if [[ ${_element} == "${_value}" ]]; then
 				_result=0
-				vstacklet::shell::text::green "[${_result}]: ${_named_array} array contains ${_value}"
+				vstacklet::shell::text::success "[${_result}]: ${_named_array} array contains ${_value}"
 				break
 			fi
 		done
-		[[ ${_result} == "1" ]] && vstacklet::shell::text::yellow "[${_result}]: ${_named_array} array does not contain ${_value}"
-		return "${_result}"
+		[[ ${_result} == "1" ]] && vstacklet::shell::text::error "[${_result}]: ${_named_array} array does not contain ${_value}" && exit 1
+		return "${_result}" # 0 if found, 1 if not found, 2 if missing arguments
 	}
 	vstacklet::shell::output() {
 		declare shell_reset
@@ -677,7 +677,7 @@ vstacklet::environment::functions() {
 	vstacklet::shell::text::rollback() {
 		declare -g shell_color shell_icon
 		shell_color=$(tput setaf 5)
-		shell_icon="cross"
+		shell_icon="rollback"
 		output_color=$(tput setaf 7)
 		vstacklet::shell::output "$@"
 	}
@@ -813,29 +813,30 @@ vstacklet::environment::checkdistro() {
 # @break
 ##################################################################################
 vstacklet::intro() {
-	echo
-	echo
-	echo "    vStacklet$ Webserver Installation Kit     "
-	echo
-	echo "                  Heads Up!                   "
-	echo "     VStacklet works with the following       "
-	echo "     Ubuntu 18.04/20.04 & Debian 9/10/11      "
-	echo
-	echo
-	vstacklet::shell::text::green "checking distribution ... "
-	vstacklet::distro::check
-	echo
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "Welcome to the vStacklet Server Stack Installation Utility."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "This script will install the vStacklet Server Stack on your server."
+	vstacklet::shell::text::white "The vStacklet Server Stack is a collection of software that will"
+	vstacklet::shell::text::white "allow you to run a LEMP stack server."
+	vstacklet::shell::text::white "Please ensure you have read the documentation before continuing."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "Documentation can be found at:"
+	vstacklet::shell::text::white "https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "checking distribution ... "
+	vstacklet::environment::checkdistro
+	vstacklet::shell::misc::nl
 	# shellcheck disable=SC2005
 	echo "$(lsb_release -a)"
-	echo
+	vstacklet::shell::misc::nl
 }
 
 # shall we continue? function (10)
 vstacklet::ask::continue() {
-	echo
-	echo "Press ENTER when you're ready to begin or Ctrl+Z to cancel"
-	read -r -s -n 1
-	echo
+	vstacklet::shell::text::white "Press any key to continue..."
+	read -r -n 1
+	vstacklet::shell::misc::nl
 }
 
 ################################################################################
@@ -2966,7 +2967,8 @@ vstacklet::clean::rollback() {
 	[[ -n ${ssdp_block} ]] && iptables -D INPUT -p udp --dport 1900 -j DROP
 	[[ -f ${vstacklet_base_path}/setup_temp/sshd_config ]] && \cp -f "${vstacklet_base_path}/setup_temp/sshd_config" /etc/ssh/sshd_config && vstacklet::log "systemctl restart sshd.service"
 	[[ -d ${web_root} ]] && rm -rf "${web_root}"/{public,logs,ssl}
-	[[ -L /usr/local/bin/vstacklet ]] && unlink "/usr/local/bin/vstacklet"
+	#[[ -f /usr/local/bin/vstacklet ]] && rm -f "/usr/local/bin/vstacklet"
+	[[ -f /usr/local/bin/vs-backup ]] && rm -f "/usr/local/bin/vs-backup"
 	if [[ -n ${nginx} ]]; then
 		rm -rf "/etc/nginx" "/var/log/vstacklet" "/etc/nginx-pre-vstacklet" >/dev/null 2>&1
 	fi
@@ -3011,7 +3013,7 @@ vstacklet::source::dependencies #(13)
 vstacklet::bashrc::set          #(14)
 vstacklet::hostname::set        #(15)
 vstacklet::webroot::set         #(16)
-vstacklet::ssh:set              #(17)
+vstacklet::ssh::set             #(17)
 vstacklet::ftp::set             #(18)
 vstacklet::block::ssdp          #(19)
 vstacklet::sources::update      #(20)

@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1040
+# @version: 3.1.1045
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -89,7 +89,7 @@ setup::download() {
 	# create vstacklet directories
 	mkdir -p "${vstacklet_base_path}/setup_temp"    # temporary setup directory - stores default files edited by vStacklet
 	mkdir -p "${vstacklet_base_path}/config/system" # system configuration directory - stores dependencies, keys, and other system files
-	local -r vstacklet_path="/opt/vstacklet/setup/vstacklet-server-stack.sh"
+	local -r vstacklet_server_stack_script="/opt/vstacklet/setup/vstacklet-server-stack.sh"
 	local -r vstacklet_git="https://github.com/JMSDOnline/vstacklet.git"
 	[[ ${whoami} != "root" ]] && { printf -- "%s\n" "Error: Install as root or via sudo." && exit 1; }
 	cd "${HOME}" || { printf -- "%s\n" "Error: Unable to move to ${HOME}" && exit 1; }
@@ -98,8 +98,6 @@ setup::download() {
 	DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to run apt-upgrade, please check your apt with 'apt -y update && apt -y upgrade'" && exit 1; }
 	# Install curl, sudo, wget, and git
 	apt-get -yqq install curl sudo wget git apt-transport-https lsb-release dnsutils openssl --allow-unauthenticated >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to install script dependencies" && exit 1; }
-	# Remove old install script
-	[[ -f ${vstacklet_path} ]] && rm -f "${vstacklet_path}"
 	# Adjust .bashrc TERM
 	if ! grep -q "export TERM=xterm" /root/.bashrc; then
 		echo -en "export TERM=xterm" >>"/root/.bashrc"
@@ -110,9 +108,11 @@ setup::download() {
 	# Download vStacklet
 	rm -rf /tmp/vstacklet
 	if [[ -d /opt/vstacklet/.git ]]; then
-		git clone --quiet --recurse-submodules --branch "development" "${vstacklet_git}" /tmp/vstacklet || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
+		git clone --quiet --recurse-submodules --branch "development" "${vstacklet_git}" /tmp/vstacklet || { printf -- "%s\n" "Error: Unable to update vStacklet from GitHub" && exit 1; }
 		cp -rf /tmp/vstacklet/* /opt/vstacklet || { printf -- "%s\n" "Error: Unable to copy vStacklet files to /opt/vstacklet" && exit 1; }
 	else
+		# Remove old install script
+		[[ -d ${vstacklet_base_path} ]] && rm -rf "${vstacklet_base_path}"
 		git clone --quiet --recurse-submodules --branch "development" "${vstacklet_git}" /opt/vstacklet || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
 	fi
 	# Make www-permissions.sh executable
@@ -121,10 +121,10 @@ setup::download() {
 	cp -f /opt/vstacklet/packages/backup/vs-backup /usr/local/bin/vs-backup || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
 	chmod +x /usr/local/bin/vs-backup || { printf -- "%s\n" "Error: Unable to chmod +x /usr/local/bin/vs-backup" && exit 1; }
 	# Make the installation script executable
-	cp -f "${vstacklet_path}" /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to copy vstacklet to /usr/local/bin" && exit 1; }
+	cp -f "${vstacklet_server_stack_script}" /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to copy vstacklet to /usr/local/bin" && exit 1; }
 	chmod +x /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to make the installation script executable." && exit 1; }
 	# Execute the installation script
-	[[ -f "${vstacklet_path}" ]] && /"${vstacklet_path}" "$@" && exit 0
+	[[ -f "/usr/local/bin/vstacklet" ]] && "/usr/local/bin/vstacklet" "$@" && exit 0
 }
 
 setup::download "$@"
