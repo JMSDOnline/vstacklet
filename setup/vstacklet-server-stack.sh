@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1663
+# @version: 3.1.1665
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -419,10 +419,13 @@ vstacklet::args::process() {
 			declare -g php="${2}"
 			shift
 			shift
+			[[ -z ${php} ]] && declare -g php="8.1"
 			[[ ${php} == *"7"* ]] && declare -g php="7.4"
 			[[ ${php} == *"8"* ]] && declare -g php="8.1"
-			[[ -n ${php} && ${php} != ?(-)+(["7.4-8.1"]) ]] && vstacklet::clean::rollback 17
-			[[ -z ${php} ]] && declare -g php="8.1"
+			declare -a allowed_php=("7.4" "8.1")
+			if ! vstacklet::array::contains "${php}" "supported php versions" ${allowed_php[@]}; then
+				vstacklet::clean::rollback 17
+			fi
 			;;
 		-ioncube | --ioncube)
 			declare -gi ioncube="1"
@@ -553,12 +556,12 @@ vstacklet::environment::functions() {
 		for _element in "${_array[@]}"; do
 			if [[ ${_element} == "${_value}" ]]; then
 				_result=0
-				vstacklet::shell::text::success "[${_result}]: ${_named_array} array contains ${_value}"
+				#vstacklet::shell::text::success "[${_result}]: ${_named_array} array contains ${_value}"
 				break
 			fi
 		done
-		[[ ${_result} == "1" ]] && vstacklet::shell::text::error "[${_result}]: ${_named_array} array does not contain ${_value}" && exit 1
-		return "${_result}" # 0 if found, 1 if not found, 2 if missing arguments
+		[[ ${_result} == "1" ]] && exit 1 #vstacklet::shell::text::error "[${_result}]: ${_named_array} array does not contain ${_value}" && exit 1
+		return "${_result}"               # 0 if found, 1 if not found, 2 if missing arguments
 	}
 	vstacklet::shell::output() {
 		declare shell_reset
