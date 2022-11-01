@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1053
+# @version: 3.1.1054
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html}.
 # Please ensure you have read the documentation before continuing.
@@ -126,17 +126,25 @@ vstacklet::environment::functions() {
 		esac
 		case "${shell_icon}" in
 		arrow) shell_icon="➜ ${shell_reset}" ;;
-		warning) shell_icon="⚠ ${shell_reset}" ;;
+		warning) shell_icon="⚠ warning: ${shell_reset}" && shell_warning="1" ;;
 		check) shell_icon="✓ ${shell_reset}" ;;
 		cross) shell_icon="✗ ${shell_reset}" ;;
-		error) shell_icon="✗ error: ${shell_reset}" ;;
+		success) shell_icon="✓ success: ${shell_reset}" && shell_success="1" ;;
+		error) shell_icon="✗ error: ${shell_reset}" && shell_error="1" ;;
+		rollback) shell_icon="⎌ rollback: ${shell_reset}" && shell_rollback="1" ;;
 		esac
-		if [[ ${shell_icon} == "✗ error: ${shell_reset}" ]]; then
+		if [[ ${shell_success} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_warning} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_error} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_rollback} == "1" ]]; then
 			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
 		else
 			printf -- "${shell_reset}${shell_color}${shell_icon}${shell_option}%s${shell_newline}${shell_reset}" "$@"
-			unset shell_color shell_newline shell_option shell_icon
 		fi
+		unset shell_color shell_newline shell_option shell_icon
 	}
 	vstacklet::shell::misc::nl() {
 		printf "\n"
@@ -161,7 +169,8 @@ vstacklet::environment::functions() {
 	vstacklet::shell::text::success() {
 		declare -g shell_color shell_icon
 		shell_color=$(tput setaf 2)
-		shell_icon="check"
+		shell_icon="success"
+		output_color=$(tput setaf 7)
 		vstacklet::shell::output "$@"
 	}
 	vstacklet::shell::text::green() {
