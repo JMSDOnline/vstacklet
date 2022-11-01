@@ -1,4 +1,4 @@
-# vstacklet.sh - v3.1.1032
+# vstacklet.sh - v3.1.1034
 
 
 ---
@@ -57,7 +57,7 @@ and process the given options/flags and arguments.
 #### examples:
 
 ```
- ./vstacklet.sh -e "your@email.com" -nginx -php "8.1" -mariadb -mariadbU mariadbuser -mariadbPw "mariadbpassword" -varnish -varnishP 80 -http 8080 -csf
+ vstacklet.sh -e "your@email.com" -nginx -php "8.1" -mariadb -mariadbU mariadbuser -mariadbPw "mariadbpassword" -varnish -varnishP 80 -http 8080 -csf
 ```
 
 ---

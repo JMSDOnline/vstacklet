@@ -1,4 +1,4 @@
-# www-permissions.sh - v3.1.1024
+# www-permissions.sh - v3.1.1036
 
 
 ---
@@ -26,7 +26,7 @@ This script will do the following:
 
 
 
-### vstacklet::www::args()
+### vstacklet::wwwperms::args()
 
 Process the options passed to the script. [see function](
 
@@ -43,23 +43,19 @@ script.
 
 ### vstacklet::environment::functions()
 
-Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L538-L671)
+Stage various functions for the setup environment. [see function]()
 
 ---
 
 ### vstacklet::environment::checkroot()
 
-Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L764-L766)
-
-#### return codes:
-
-- 1 = you must be root to run this script.
+Check if the user is root. [see function]()
 
 ---
 
 ### vstacklet::intro()
 
-Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L796-L820)
+Prints the intro message. [see function]()
 
 ---
 
@@ -69,19 +65,19 @@ Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [
 
 #### options:
 
--  ${www_user:-www-data} -wwwU | --www_user - The user to add to the www-data group. (default: www-data)
--  ${www_group:-www-data} -wwwG | --www_group - The group to create. (default: www-data) (optional)
+-  $1 --wwwU | --www_user - The user to add to the www-data group. (default: www-data)
+-  $2 -wwwG | --www_group - The group to create. (default: www-data) (optional)
 -  $3 -wwwR | --www_root - The root directory to set permissions for.
 -  $4 -wwwH | --www_help - Prints the help message.
--  $5 -wwwV | --www_version
+-  $5 -wwwV | --www_version - Prints the version number.
 
 #### arguments:
 
--  ${www_user:-www-data} - The username to add to the www-data group.
--  ${www_group:-www-data} - The groupname to add to the www-data group.
+-  $1 - The username to add to the www-data group.
+-  $2 - The groupname to add to the www-data group.
 -  $3 - The web root directory to set permissions for.
--  $4 - Prints the help message.
--  $5 - Prints the version number.
+-  $4 - (no args) - Prints the help message.
+-  $5 - (no args) - Prints the version number.
 
 ---
 

@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1615
+# @version: 3.1.1618
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -246,9 +246,9 @@ vstacklet::environment::init() {
 #
 # @option: `--reboot` - reboot the server after the installation
 ##################################################################################
-# @example: ./vstacklet.sh --help
-# @example: ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
-# @example: ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
+# @example: vstacklet --help
+# @example: vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
+# @example: vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
 # @null
 # @return_code: 3 - please provide a valid email address. (required for -csf, -sendmail, and -csfCf)
 # @return_code: 4 - `-csfCf` requires `-csf`.
@@ -997,8 +997,8 @@ vstacklet::bashrc::set() {
 #   - If domain name is not provided, it will be set to the server hostname.
 # @option: $1 - `-hn | --hostname` (optional) (takes one argument)
 # @arg: $2 - `[hostname]` - the hostname to set for the system (optional)
-# @example: ./vstacklet.sh -hn myhostname
-# ./vstacklet.sh --hostname myhostname
+# @example: vstacklet -hn myhostname
+# @example: vstacklet --hostname myhostname
 # @null
 # @return: 38 - failed to set hostname
 # @break
@@ -1025,8 +1025,8 @@ vstacklet::hostname::set() {
 #   e.g. `/var/www/html/{public,logs,ssl}`
 # @option: $1 - `-wr | --web_root` (optional) (takes one argument)
 # @arg: $2 - `[web_root_directory]` - (optional) (default: /var/www/html)
-# @example: ./vstacklet.sh -wr /var/www/mydirectory
-# ./vstacklet.sh --web_root /srv/www/mydirectory
+# @example: vstacklet -wr /var/www/mydirectory
+# @example: vstacklet --web_root /srv/www/mydirectory
 # @break
 ##################################################################################
 vstacklet::webroot::set() {
@@ -1043,8 +1043,8 @@ vstacklet::webroot::set() {
 # @description: Set ssh port to custom port (if nothing is set, default port is 22) [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1035-L1042)
 # @option: $1 - `-ssh | --ssh_port` (optional) (takes one argument)
 # @arg: $2 - `[port]` (default: 22) - the port to set for ssh
-# @example: ./vstacklet.sh -ssh 2222
-# ./vstacklet.sh --ssh_port 2222
+# @example: vstacklet -ssh 2222
+# @example: vstacklet --ssh_port 2222
 # @null
 # @return_code: 39 - failed to set SSH port.
 # @return_code: 40 - failed to restart SSH daemon service.
@@ -1064,8 +1064,8 @@ vstacklet::ssh::set() {
 # @description: Set ftp port to custom port (if nothing is set, default port is 21) [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1056-L1067)
 # @option: $1 - `-ftp | --ftp_port` (optional) (takes one argument)
 # @arg: $2 - `[port]` (default: 21) - the port to set for ftp
-# @example: ./vstacklet.sh -ftp 2121
-# ./vstacklet.sh --ftp_port 2121
+# @example: vstacklet -ftp 2121
+# @example: vstacklet --ftp_port 2121
 # @null
 # @return_code: 41 - failed to set FTP port.
 # @return_code: 42 - failed to restart FTP service.
@@ -1310,8 +1310,8 @@ vstacklet::locale::set() {
 #   - "msgpack"
 # @option: $1 - `-php | --php`
 # @arg: $2 - `[version]` - `7.4` | `8.1`
-# @example: ./vstacklet.sh -php 8.1
-# ./vstacklet.sh --php 7.4
+# @example: vstacklet -php 8.1
+# @example: vstacklet --php 7.4
 # @null
 # @return_code: 46 - php and hhvm cannot be installed at the same time, please choose one.
 # @return_code: 47 - failed to install php dependencies.
@@ -1390,8 +1390,8 @@ vstacklet::php::install() {
 # - phpMyAdmin is not compatible with HHVM, so if you choose HHVM,
 #   you will not be able to install phpMyAdmin.
 # @option: $1 - `-hhvm | --hhvm` (optional) (takes no arguments)
-# @example: ./vstacklet.sh -hhvm
-# ./vstacklet.sh --hhvm
+# @example: vstacklet -hhvm
+# @example: vstacklet --hhvm
 # @null
 # @return_code: 50 - HHVM and PHP cannot be installed at the same time, please choose one.
 # @return_code: 51 - failed to install HHVM dependencies.
@@ -1463,10 +1463,10 @@ vstacklet::hhvm::install() {
 #     - socket-settings
 # - These config can be found at /etc/nginx/server.configs/
 # @option: $1 - `-nginx | --nginx` (optional) (takes no arguments)
-# @example: ./vstacklet.sh -nginx
-# ./vstacklet.sh --nginx
-# ./vstacklet.sh -nginx -php 8.1 -varnish -varnishP 80 -http 8080 -https 443
-# ./vstacklet.sh --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
+# @example: vstacklet -nginx
+# @example: vstacklet --nginx
+# @example: vstacklet -nginx -php 8.1 -varnish -varnishP 80 -http 8080 -https 443
+# @example:vstacklet --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
 # @null
 # @return_code: 54 - failed to install NGINX dependencies.
 # @return_code: 55 - failed to edit NGINX configuration file.
@@ -1563,10 +1563,10 @@ vstacklet::nginx::install() {
 # @arg: $2 - `[varnish_port_number]` (optional) (default: 6081)
 # @arg: $3 - `[http_port_number]` (optional) (default: 80)
 # @arg: $4 - `[https_port_number]` (optional) (default: 443)
-# @example: ./vstacklet.sh -varnish -varnishP 6081 -http 80
-# ./vstacklet.sh --varnish --varnish_port 6081 --http_port 80
-# ./vstacklet.sh -varnish -varnishP 6081 -http 80 -https 443
-# ./vstacklet.sh -varnish -varnishP 80 -nginx -http 8080 --https_port 443
+# @example: vstacklet -varnish -varnishP 6081 -http 80
+# @example: vstacklet --varnish --varnish_port 6081 --http_port 80
+# @example: vstacklet -varnish -varnishP 6081 -http 80 -https 443
+# @example: vstacklet -varnish -varnishP 80 -nginx -http 8080 --https_port 443
 # @null
 # @return_code: 59 - failed to install Varnish dependencies.
 # @return_code: 60 - could not switch to /etc/varnish directory.
@@ -1652,10 +1652,10 @@ vstacklet::permissions::adjust() {
 # - the ioncube loader will be available for the php version specified
 #   from the `-php | --php` option.
 # @option: $1 - `-ioncube | --ioncube` (optional) (takes no arguments)
-# @example: ./vstacklet.sh -ioncube -php 8.1
-# ./vstacklet.sh --ioncube --php 8.1
-# ./vstacklet.sh -ioncube -php 7.4
-# ./vstacklet.sh --ioncube --php 7.4
+# @example: vstacklet -ioncube -php 8.1
+# @example: vstacklet --ioncube --php 8.1
+# @example: vstacklet -ioncube -php 7.4
+# @example: vstacklet --ioncube --php 7.4
 # @null
 # @return_code: 63 - failed to switch to /tmp directory.
 # @return_code: 64 - failed to download ionCube loader.
@@ -1709,14 +1709,14 @@ vstacklet::ioncube::install() {
 # @arg: $2 - `[port]` (optional) (default: 3306)
 # @arg: $3 - `[user]` (optional) (default: root)
 # @arg: $4 - `[password]` (optional) (default: password auto-generated)
-# @example: ./vstacklet.sh -mariadb -mariadbP 3306 -mariadbU root -mariadbPw password
-# ./vstacklet.sh --mariadb --mariadb_port 3306 --mariadb_user root --mariadb_password password
-# ./vstacklet.sh -mariadb -mariadbP 3306 -mariadbU root
-# ./vstacklet.sh --mariadb --mariadb_port 3306 --mariadb_user root
-# ./vstacklet.sh -mariadb -mariadbP 3306
-# ./vstacklet.sh --mariadb --mariadb_port 3306
-# ./vstacklet.sh -mariadb
-# ./vstacklet.sh --mariadb
+# @example: vstacklet -mariadb -mariadbP 3306 -mariadbU root -mariadbPw password
+# @example: vstacklet --mariadb --mariadb_port 3306 --mariadb_user root --mariadb_password password
+# @example: vstacklet -mariadb -mariadbP 3306 -mariadbU root
+# @example: vstacklet --mariadb --mariadb_port 3306 --mariadb_user root
+# @example: vstacklet -mariadb -mariadbP 3306
+# @example: vstacklet --mariadb --mariadb_port 3306
+# @example: vstacklet -mariadb
+# @example: vstacklet --mariadb
 # @null
 # @return_code: 69 - failed to install MariaDB dependencies.
 # @return_code: 70 - failed to initialize MariaDB secure installation.
@@ -1806,8 +1806,8 @@ vstacklet::mariadb::install() {
 # @arg: $2 - `[mysql_port]` (optional) (default: 3306)
 # @arg: $3 - `[mysql_user]` (optional) (default: root)
 # @arg: $4 - `[mysql_password]` (optional) (default: password auto-generated)
-# @example: ./vstacklet.sh -mysql -mysqlP 3306 -mysqlU root -mysqlPw password
-# ./vstacklet.sh --mysql --mysql_port 3306 --mysql_user root --mysql_password password
+# @example: vstacklet -mysql -mysqlP 3306 -mysqlU root -mysqlPw password
+# @example: vstacklet --mysql --mysql_port 3306 --mysql_user root --mysql_password password
 # @null
 # @return_code: 76 - failed to download MySQL deb package.
 # @return_code: 77 - failed to install MySQL deb package.
@@ -1893,8 +1893,8 @@ vstacklet::mysql::install() {
 # @arg: $2 - `[postgresql_port]` (optional) (default: 5432)
 # @arg: $3 - `[postgresql_user]` (optional) (default: root)
 # @arg: $4 - `[postgresql_password]` (optional) (default: password auto-generated)
-# @example: ./vstacklet.sh -postgre -postgreP 5432 -postgreU root -postgrePw password
-# @example: ./vstacklet.sh --postgresql --postgresql_port 5432 --postgresql_user root --postgresql_password password
+# @example: vstacklet -postgre -postgreP 5432 -postgreU root -postgrePw password
+# @example: vstacklet --postgresql --postgresql_port 5432 --postgresql_user root --postgresql_password password
 # @return_code: 84 - failed to install PostgreSQL dependencies.
 # @return_code: 85 - failed to switch to /etc/postgresql/${postgre_version}/main directory.
 # @return_code: 86 - failed to set PostgreSQL password.
@@ -1994,10 +1994,10 @@ vstacklet::postgre::install() {
 # @option: $3 - `-redisPw | --redis_password` (optional)
 # @arg: $2 - `[redis_port]` (optional) (default: 6379)
 # @arg: $3 - `[redis_password]` (optional) (default: password auto-generated)
-# @example: ./vstacklet.sh -redis -redisP 6379 -redisPw password
-# @example: ./vstacklet.sh --redis --redis_port 6379 --redis_password password
-# @example: ./vstacklet.sh -redis
-# @example: ./vstacklet.sh --redis
+# @example: vstacklet -redis -redisP 6379 -redisPw password
+# @example: vstacklet --redis --redis_port 6379 --redis_password password
+# @example: vstacklet -redis
+# @example: vstacklet --redis
 # @null
 # @return_code: 91 - failed to install Redis dependencies.
 # @return_code: 92 - failed to backup the Redis configuration file.
@@ -2093,8 +2093,8 @@ vstacklet::redis::install() {
 #     - note: if no port is provided, the default port will be used. (80)
 # @option: $1 - `-phpmyadmin | --phpmyadmin` (optional) (takes no arguments) (default: not installed)
 # @arg: `-phpmyadmin | --phpmyadmin` does not take any arguments. However, it requires the options as expressed above.
-# @example: ./vstacklet.sh -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
-# ./vstacklet.sh --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
+# @example: vstacklet -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
+# @example: vstacklet --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
 # @null
 # @return_code: 97 - a database server was not selected.
 # @return_code: 98 - a web server was not selected.
@@ -2236,8 +2236,8 @@ vstacklet::phpmyadmin::install() {
 #   `-csfCf | --csf_cloudflare` option in order to allow Cloudflare IPs through CSF.
 # @option: $1 - `-csf | --csf` (optional) (takes no argument)
 # @arg: `-csf | --csf` does not take any arguments. However, it requires the options as expressed above.
-# @example: ./vstacklet.sh -csf -e "your@email.com" -csfCf -sendmail
-# ./vstacklet.sh --csf --email "your@email.com" --csf_cloudflare --sendmail
+# @example: vstacklet -csf -e "your@email.com" -csfCf -sendmail
+# @example: vstacklet --csf --email "your@email.com" --csf_cloudflare --sendmail
 # @null
 # @return_code: 113 - failed to install CSF firewall dependencies.
 # @return_code: 114 - failed to download CSF firewall.
@@ -2346,7 +2346,7 @@ vstacklet::csf::install() {
 #   is located in /etc/csf/csf.allow.
 # @option: $1 - `-csfCf | --csf_cloudflare` (optional)
 # @noargs
-# @example: ./vstacklet.sh -csfCf -csf -e "your@email.com"
+# @example: vstacklet -csfCf -csf -e "your@email.com"
 # @null
 # @return_code: 124 - CSF has not been enabled ' -csf ' (required). this is a component
 # of CSF for cloudflare configuration.
@@ -2386,9 +2386,9 @@ vstacklet::cloudflare::csf() {
 # @param: $1 - sendmail_skip installation (this is siliently passed if `-csf` is used)
 # @option: $1 - `-sendmail | --sendmail` (optional) (takes no arguments)
 # @noargs
-# @example: ./vstacklet.sh -sendmail -e "your@email.com"
-# ./vstacklet.sh --sendmail --email "your@email.com"
-# ./vstacklet.sh -csf -e "your@email.com"
+# @example: vstacklet -sendmail -e "your@email.com"
+# @example: vstacklet --sendmail --email "your@email.com"
+# @example: vstacklet -csf -e "your@email.com"
 # @null
 # @return_code: 126 - an email address was not provided ' -e "your@email.com" '.
 # this is required for sendmail to be installed.
@@ -2483,11 +2483,11 @@ vstacklet::sendmail::install() {
 #
 # @option: $1 - `-wordpress | --wordpress` (optional)
 # @noargs
-# @example: ./vstacklet.sh -wp -mariadb -nginx -php "8.1" -wr "/var/www/html"
-# ./vstacklet.sh -wp -mysql -nginx -php "8.1"
-# ./vstacklet.sh -wp -postgresql -nginx -php "8.1"
-#./vstacklet.sh -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
-# ./vstacklet.sh -wp -mariadb -nginx -hhvm -wr "/var/www/html"
+# @example: vstacklet -wp -mariadb -nginx -php "8.1" -wr "/var/www/html"
+# @example: vstacklet -wp -mysql -nginx -php "8.1"
+# @example: vstacklet -wp -postgresql -nginx -php "8.1"
+# @example: vstacklet -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
+# @example: vstacklet -wp -mariadb -nginx -hhvm -wr "/var/www/html"
 # @null
 # @return_code: 135 - WordPress requires a database to be installed.
 # @return_code: 136 - WordPress requires a webserver to be installed.
@@ -2581,8 +2581,8 @@ vstacklet::wordpress::install() {
 #   - `-nginx` or `--nginx`
 # @option: $1 - `-domain | --domain` - The domain to install the SSL certificate for.
 # @arg: $1 - `[domain]` (required)
-# @example: ./vstacklet.sh -nginx -domain example.com -e "your@email.com"
-# ./vstacklet.sh --nginx --domain example.com --email "your@email.com"
+# @example: vstacklet -nginx -domain example.com -e "your@email.com"
+# @example: vstacklet --nginx --domain example.com --email "your@email.com"
 # @null
 # @return_code: 149 - the `-nginx|--nginx` option is required.
 # @return_code: 150 - the `-e|--email` option is required.

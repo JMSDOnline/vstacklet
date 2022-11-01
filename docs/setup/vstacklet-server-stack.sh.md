@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1615
+# vstacklet-server-stack.sh - v3.1.1618
 
 
 ---
@@ -239,9 +239,9 @@ Process the options and values passed to the script. [see function](https://gith
 #### examples:
 
 ```
- ./vstacklet.sh --help
- ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
- ./vstacklet.sh -e "youremail.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
+ vstacklet --help
+ vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
+ vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
 ```
 
 ---
@@ -382,8 +382,8 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -hn myhostname
- ./vstacklet.sh --hostname myhostname
+ vstacklet -hn myhostname
+ vstacklet --hostname myhostname
 ```
 
 ---
@@ -414,8 +414,8 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -wr /var/www/mydirectory
- ./vstacklet.sh --web_root /srv/www/mydirectory
+ vstacklet -wr /var/www/mydirectory
+ vstacklet --web_root /srv/www/mydirectory
 ```
 
 ---
@@ -440,8 +440,8 @@ Set ssh port to custom port (if nothing is set, default port is 22) [see functio
 #### examples:
 
 ```
- ./vstacklet.sh -ssh 2222
- ./vstacklet.sh --ssh_port 2222
+ vstacklet -ssh 2222
+ vstacklet --ssh_port 2222
 ```
 
 ---
@@ -466,8 +466,8 @@ Set ftp port to custom port (if nothing is set, default port is 21) [see functio
 #### examples:
 
 ```
- ./vstacklet.sh -ftp 2121
- ./vstacklet.sh --ftp_port 2121
+ vstacklet -ftp 2121
+ vstacklet --ftp_port 2121
 ```
 
 ---
@@ -583,8 +583,8 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -php 8.1
- ./vstacklet.sh --php 7.4
+ vstacklet -php 8.1
+ vstacklet --php 7.4
 ```
 
 ---
@@ -621,8 +621,8 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -hhvm
- ./vstacklet.sh --hhvm
+ vstacklet -hhvm
+ vstacklet --hhvm
 ```
 
 ---
@@ -667,10 +667,10 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -nginx
- ./vstacklet.sh --nginx
- ./vstacklet.sh -nginx -php 8.1 -varnish -varnishP 80 -http 8080 -https 443
- ./vstacklet.sh --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
+ vstacklet -nginx
+ vstacklet --nginx
+ vstacklet -nginx -php 8.1 -varnish -varnishP 80 -http 8080 -https 443
+vstacklet --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
 ```
 
 ---
@@ -710,10 +710,10 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -varnish -varnishP 6081 -http 80
- ./vstacklet.sh --varnish --varnish_port 6081 --http_port 80
- ./vstacklet.sh -varnish -varnishP 6081 -http 80 -https 443
- ./vstacklet.sh -varnish -varnishP 80 -nginx -http 8080 --https_port 443
+ vstacklet -varnish -varnishP 6081 -http 80
+ vstacklet --varnish --varnish_port 6081 --http_port 80
+ vstacklet -varnish -varnishP 6081 -http 80 -https 443
+ vstacklet -varnish -varnishP 80 -nginx -http 8080 --https_port 443
 ```
 
 ---
@@ -765,10 +765,10 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -ioncube -php 8.1
- ./vstacklet.sh --ioncube --php 8.1
- ./vstacklet.sh -ioncube -php 7.4
- ./vstacklet.sh --ioncube --php 7.4
+ vstacklet -ioncube -php 8.1
+ vstacklet --ioncube --php 8.1
+ vstacklet -ioncube -php 7.4
+ vstacklet --ioncube --php 7.4
 ```
 
 ---
@@ -807,14 +807,14 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -mariadb -mariadbP 3306 -mariadbU root -mariadbPw password
- ./vstacklet.sh --mariadb --mariadb_port 3306 --mariadb_user root --mariadb_password password
- ./vstacklet.sh -mariadb -mariadbP 3306 -mariadbU root
- ./vstacklet.sh --mariadb --mariadb_port 3306 --mariadb_user root
- ./vstacklet.sh -mariadb -mariadbP 3306
- ./vstacklet.sh --mariadb --mariadb_port 3306
- ./vstacklet.sh -mariadb
- ./vstacklet.sh --mariadb
+ vstacklet -mariadb -mariadbP 3306 -mariadbU root -mariadbPw password
+ vstacklet --mariadb --mariadb_port 3306 --mariadb_user root --mariadb_password password
+ vstacklet -mariadb -mariadbP 3306 -mariadbU root
+ vstacklet --mariadb --mariadb_port 3306 --mariadb_user root
+ vstacklet -mariadb -mariadbP 3306
+ vstacklet --mariadb --mariadb_port 3306
+ vstacklet -mariadb
+ vstacklet --mariadb
 ```
 
 ---
@@ -855,8 +855,8 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -mysql -mysqlP 3306 -mysqlU root -mysqlPw password
- ./vstacklet.sh --mysql --mysql_port 3306 --mysql_user root --mysql_password password
+ vstacklet -mysql -mysqlP 3306 -mysqlU root -mysqlPw password
+ vstacklet --mysql --mysql_port 3306 --mysql_user root --mysql_password password
 ```
 
 ---
@@ -888,8 +888,8 @@ Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/v
 #### examples:
 
 ```
- ./vstacklet.sh -postgre -postgreP 5432 -postgreU root -postgrePw password
- ./vstacklet.sh --postgresql --postgresql_port 5432 --postgresql_user root --postgresql_password password
+ vstacklet -postgre -postgreP 5432 -postgreU root -postgrePw password
+ vstacklet --postgresql --postgresql_port 5432 --postgresql_user root --postgresql_password password
 ```
 
 ---
@@ -921,10 +921,10 @@ Install and configure Redis. [see function](https://github.com/JMSDOnline/vstack
 #### examples:
 
 ```
- ./vstacklet.sh -redis -redisP 6379 -redisPw password
- ./vstacklet.sh --redis --redis_port 6379 --redis_password password
- ./vstacklet.sh -redis
- ./vstacklet.sh --redis
+ vstacklet -redis -redisP 6379 -redisPw password
+ vstacklet --redis --redis_port 6379 --redis_password password
+ vstacklet -redis
+ vstacklet --redis
 ```
 
 ---
@@ -990,8 +990,8 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
- ./vstacklet.sh --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
+ vstacklet -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
+ vstacklet --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
 ```
 
 ---
@@ -1039,8 +1039,8 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -csf -e "your@email.com" -csfCf -sendmail
- ./vstacklet.sh --csf --email "your@email.com" --csf_cloudflare --sendmail
+ vstacklet -csf -e "your@email.com" -csfCf -sendmail
+ vstacklet --csf --email "your@email.com" --csf_cloudflare --sendmail
 ```
 
 ---
@@ -1074,7 +1074,7 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -csfCf -csf -e "your@email.com"
+ vstacklet -csfCf -csf -e "your@email.com"
 ```
 
 ---
@@ -1115,9 +1115,9 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -sendmail -e "your@email.com"
- ./vstacklet.sh --sendmail --email "your@email.com"
- ./vstacklet.sh -csf -e "your@email.com"
+ vstacklet -sendmail -e "your@email.com"
+ vstacklet --sendmail --email "your@email.com"
+ vstacklet -csf -e "your@email.com"
 ```
 
 ---
@@ -1169,11 +1169,11 @@ these arguments are:
 #### examples:
 
 ```
- ./vstacklet.sh -wp -mariadb -nginx -php "8.1" -wr "/var/www/html"
- ./vstacklet.sh -wp -mysql -nginx -php "8.1"
- ./vstacklet.sh -wp -postgresql -nginx -php "8.1"
-./vstacklet.sh -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
- ./vstacklet.sh -wp -mariadb -nginx -hhvm -wr "/var/www/html"
+ vstacklet -wp -mariadb -nginx -php "8.1" -wr "/var/www/html"
+ vstacklet -wp -mysql -nginx -php "8.1"
+ vstacklet -wp -postgresql -nginx -php "8.1"
+ vstacklet -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
+ vstacklet -wp -mariadb -nginx -hhvm -wr "/var/www/html"
 ```
 
 ---
@@ -1218,8 +1218,8 @@ notes:
 #### examples:
 
 ```
- ./vstacklet.sh -nginx -domain example.com -e "your@email.com"
- ./vstacklet.sh --nginx --domain example.com --email "your@email.com"
+ vstacklet -nginx -domain example.com -e "your@email.com"
+ vstacklet --nginx --domain example.com --email "your@email.com"
 ```
 
 ---
