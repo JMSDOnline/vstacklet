@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1022
+# @version: 3.1.1023
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -74,6 +74,14 @@ vstacklet::www::args() {
 		-wwwR* | --www_root*)
 			declare -g www_root="${1#*=}"
 			shift 2
+			;;
+		-wwwH | --www_help)
+			vstacklet::www::help
+			exit 0
+			;;
+		-wwwV | --www_version)
+			vstacklet::www::version
+			exit 0
 			;;
 		*)
 			echo "Unknown option: $1"
@@ -329,13 +337,13 @@ vstacklet::permissions::complete() {
 }
 
 ##################################################################################
-# @name: vstacklet::wwwdata::help (5)
+# @name: vstacklet::wwwperms::help (5)
 # @description: Prints the help message for the www-data group.
 # @nooptions
 # @noargs
 # @break
 ##################################################################################
-vstacklet::wwwdata::help() {
+vstacklet::wwwperms::help() {
 	vstacklet::shell::text::white "usage: ./vstacklet -www-perms [options] [args]"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "options:"
@@ -373,13 +381,13 @@ vstacklet::wwwdata::help() {
 }
 
 ##################################################################################
-# @name: vstacklet::wwwdata::version (5)
+# @name: vstacklet::wwwperms::version (5)
 # @description: Prints the version of the www-permissions script.
 # @nooptions
 # @noargs
 # @break
 ##################################################################################
-vstacklet::wwwdata::version() {
+vstacklet::wwwperms::version() {
 	vstacklet::shell::text::white "[vStacklet] www-permissions.sh version: ${www_permissions_version}"
 	vstacklet::shell::misc::nl
 }
@@ -394,5 +402,5 @@ vstacklet::www::args "$@"
 vstacklet::wwwdata::adjust
 vstacklet::permissions::adjust
 vstacklet::permissions::complete
-vstacklet::www::help
-vstacklet::www::version
+vstacklet::wwwperms::help
+vstacklet::wwwperms::version

@@ -1,4 +1,4 @@
-# www-permissions.sh - v3.1.1022
+# www-permissions.sh - v3.1.1023
 
 
 ---
@@ -118,7 +118,7 @@ Complete the permissions adjustment process. [see function]()
 
 ---
 
-### vstacklet::wwwdata::help()
+### vstacklet::wwwperms::help()
 
 Prints the help message for the www-data group.
 
@@ -128,7 +128,7 @@ Prints the help message for the www-data group.
 
 ---
 
-### vstacklet::wwwdata::version()
+### vstacklet::wwwperms::version()
 
 Prints the version of the www-permissions script.
 
