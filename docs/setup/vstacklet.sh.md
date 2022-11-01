@@ -1,4 +1,4 @@
-# vstacklet.sh - v3.1.1021
+# vstacklet.sh - v3.1.1023
 
 
 ---
@@ -30,7 +30,7 @@ vStacklet will install and configure the following:
 
 ### setup::download()
 
-Setup the environment and download vStacklet
+Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L71-L118)
 
 notes:
 - This script function is responsible for downloading vStacklet from GitHub
