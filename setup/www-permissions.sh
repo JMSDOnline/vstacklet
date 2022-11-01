@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1023
+# @version: 3.1.1024
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -76,11 +76,11 @@ vstacklet::www::args() {
 			shift 2
 			;;
 		-wwwH | --www_help)
-			vstacklet::www::help
+			vstacklet::wwwperms::help
 			exit 0
 			;;
 		-wwwV | --www_version)
-			vstacklet::www::version
+			vstacklet::wwwperms::version
 			exit 0
 			;;
 		*)
