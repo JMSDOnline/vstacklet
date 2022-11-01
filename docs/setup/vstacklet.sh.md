@@ -1,4 +1,4 @@
-# vstacklet.sh - v3.1.1020
+# vstacklet.sh - v3.1.1021
 
 
 ---
@@ -39,7 +39,7 @@ and setting up the environment for the installation.
 packages and install them if they are not found.
   - these include:
     ```bash
-    curl sudo wget git
+    curl sudo wget git apt-transport-https lsb-release dnsutils openssl
     ```
 - This script function will additionally call the server stack installation
 and process the given options/flags and arguments.

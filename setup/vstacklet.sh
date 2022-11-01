@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1020
+# @version: 3.1.1021
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -57,7 +57,7 @@
 # packages and install them if they are not found.
 #   - these include:
 #     ```bash
-#     curl sudo wget git
+#     curl sudo wget git apt-transport-https lsb-release dnsutils openssl
 #     ```
 # - This script function will additionally call the server stack installation
 # and process the given options/flags and arguments.
@@ -91,7 +91,7 @@ setup::download() {
 	DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update >/dev/null 2>&1
 	DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to run apt-upgrade, please check your apt with 'apt -y update && apt -y upgrade'" && exit 1; }
 	# Install curl, sudo, wget, and git
-	apt-get -yqq install curl sudo wget git --allow-unauthenticated >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to install wget, sudo, and curl" && exit 1; }
+	apt-get -yqq install curl sudo wget git apt-transport-https lsb-release dnsutils openssl --allow-unauthenticated >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to install script dependencies" && exit 1; }
 	# Remove old install script
 	[[ -f ${vstacklet_path} ]] && rm -f "${vstacklet_path}"
 	# Adjust .bashrc TERM
