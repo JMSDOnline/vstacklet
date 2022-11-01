@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1659
+# @version: 3.1.1660
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -731,7 +731,7 @@ vstacklet::log::check() {
 # @break
 ##################################################################################
 vstacklet::apt::update() {
-	vstacklet::log "running apt update ... "
+	vstacklet::shell::text::white "running apt update ... "
 	DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update >/dev/null 2>&1
 	if [[ -n ${apt_upgrade} ]]; then
 		DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade >/dev/null 2>&1
@@ -750,7 +750,7 @@ vstacklet::apt::update() {
 # @break
 ##################################################################################
 vstacklet::dependencies::install() {
-	vstacklet::log "checking for initial script dependencies ... "
+	vstacklet::shell::text::white "checking for initial script dependencies ... "
 	declare -ga script_dependencies
 	declare -a depend_list
 	declare -ga install_list
@@ -763,9 +763,9 @@ vstacklet::dependencies::install() {
 	[[ -n ${depend_list[*]} ]] && printf -- "%s" "installing: "
 	for install in "${depend_list[@]}"; do
 		if [[ ${install} == "${depend_list[0]}" ]]; then
-			vstacklet::log "${install}"
+			vstacklet::shell::text::white::sl "${install}"
 		else
-			vstacklet::log "| ${install}"
+			vstacklet::shell::text::white::sl "| ${install}"
 		fi
 		vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::clean::rollback 35
 		install_list+=("${install}")
