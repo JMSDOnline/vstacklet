@@ -1,4 +1,4 @@
-# vstacklet.sh - v3.1.1018
+# vstacklet.sh - v3.1.1019
 
 
 ---
@@ -8,6 +8,10 @@ Debian 9/10/11 server. I have done my best to keep it tidy and with as much
 error checking as possible. Couple this with loads of comments and you should
 have a pretty good idea of what is going on. If you have any questions,
 comments, or suggestions, please feel free to open an issue on GitHub.
+
+---
+
+[vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
 
 ---
 
@@ -48,7 +52,7 @@ and process the given options/flags and arguments.
 #### examples:
 
 ```
- ./vstacklet.sh -e "your@email.com" -nginx -php -mariadb -mariadbU mariadbuser -mariadbPw "mariadbpassword" -varnish -varnishP 80 -http 8080 -csf
+ ./vstacklet.sh -e "your@email.com" -nginx -php "8.1" -mariadb -mariadbU mariadbuser -mariadbPw "mariadbpassword" -varnish -varnishP 80 -http 8080 -csf
 ```
 
 ---
