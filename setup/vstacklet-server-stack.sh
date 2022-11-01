@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1618
+# @version: 3.1.1620
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -520,7 +520,8 @@ vstacklet::args::process() {
 			shift
 			;;
 		-www-perms* | --www_permissions*)
-			."${local_setup_dir}/www-permissions.sh" "$@"
+			"${local_setup_dir}/www-permissions.sh" "$@"
+			exit $?
 			;;
 		*)
 			invalid_option+=("$1")
