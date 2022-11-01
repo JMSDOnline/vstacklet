@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1024
+# @version: 3.1.1026
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -53,6 +53,7 @@
 # notes:
 # - This script function is responsible for downloading vStacklet from GitHub
 # and setting up the environment for the installation.
+#   - vStacklet will be downloaded to `/opt/vstacklet`.
 # - This script function will also check for the existence of the required
 # packages and install them if they are not found.
 #   - these include:

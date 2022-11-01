@@ -1,4 +1,4 @@
-# vstacklet.sh - v3.1.1024
+# vstacklet.sh - v3.1.1026
 
 
 ---
@@ -35,6 +35,7 @@ Setup the environment and download vStacklet. [see function](https://github.com/
 notes:
 - This script function is responsible for downloading vStacklet from GitHub
 and setting up the environment for the installation.
+  - vStacklet will be downloaded to `/opt/vstacklet`.
 - This script function will also check for the existence of the required
 packages and install them if they are not found.
   - these include:
