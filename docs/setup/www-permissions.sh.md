@@ -1,4 +1,4 @@
-# www-permissions.sh - v3.1.1047
+# www-permissions.sh - v3.1.1048
 
 
 ---
@@ -78,11 +78,11 @@ Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [
 
 #### options:
 
--  $1 --wwwU | --www_user - The user to add to the www-data group. (default: www-data)
--  $2 -wwwG | --www_group - The group to create. (default: www-data) (optional)
--  $3 -wwwR | --www_root - The root directory to set permissions for.
--  $4 -wwwH | --www_help - Prints the help message.
--  $5 -wwwV | --www_version - Prints the version number.
+-  $1 `-wwwU | --www_user` - The user to add to the www-data group. (default: www-data)
+-  $2 `-wwwG | --www_group` - The group to create. (default: www-data) (optional)
+-  $3 `-wwwR | --www_root` - The root directory to set permissions for. (default: /var/www/html) (optional)
+-  $4 `-wwwH | --www_help` - Prints the help message.
+-  $5 `-wwwV | --www_version` - Prints the version number.
 
 #### arguments:
 

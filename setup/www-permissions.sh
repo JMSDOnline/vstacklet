@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1047
+# @version: 3.1.1048
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html}.
 # Please ensure you have read the documentation before continuing.
@@ -214,11 +214,11 @@ vstacklet::intro() {
 ##################################################################################
 # @name: vstacklet::wwwdata::create (5)
 # @description: Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/www-permissions.sh#L229-L260)
-# @option: $1 --wwwU | --www_user - The user to add to the www-data group. (default: www-data)
-# @option: $2 -wwwG | --www_group - The group to create. (default: www-data) (optional)
-# @option: $3 -wwwR | --www_root - The root directory to set permissions for.
-# @option: $4 -wwwH | --www_help - Prints the help message.
-# @option: $5 -wwwV | --www_version - Prints the version number.
+# @option: $1 `-wwwU | --www_user` - The user to add to the www-data group. (default: www-data)
+# @option: $2 `-wwwG | --www_group` - The group to create. (default: www-data) (optional)
+# @option: $3 `-wwwR | --www_root` - The root directory to set permissions for. (default: /var/www/html) (optional)
+# @option: $4 `-wwwH | --www_help` - Prints the help message.
+# @option: $5 `-wwwV | --www_version` - Prints the version number.
 # @arg: $1 - The username to add to the www-data group.
 # @arg: $2 - The groupname to add to the www-data group.
 # @arg: $3 - The web root directory to set permissions for.
