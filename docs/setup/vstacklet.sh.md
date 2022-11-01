@@ -1,4 +1,4 @@
-# vstacklet.sh - v3.1.1019
+# vstacklet.sh - v3.1.1020
 
 
 ---
@@ -37,6 +37,10 @@ notes:
 and setting up the environment for the installation.
 - This script function will also check for the existence of the required
 packages and install them if they are not found.
+  - these include:
+    ```bash
+    curl sudo wget git
+    ```
 - This script function will additionally call the server stack installation
 and process the given options/flags and arguments.
 - For the various setup options available: [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
