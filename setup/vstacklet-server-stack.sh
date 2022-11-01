@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1658
+# @version: 3.1.1659
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1125,17 +1125,31 @@ vstacklet::sources::update() {
 #------------------------------------------------------------------------------#
 
 ###### Debian Main Repos
-deb http://ftp.nl.debian.org/debian ${codename} main contrib non-free
-deb-src http://ftp.nl.debian.org/debian ${codename} main contrib non-free
+deb http://ftp.debian.org/debian/ ${codename} main contrib non-free
+deb-src http://ftp.debian.org/debian/ ${codename} main contrib non-free
 
-###### Debian Update Repos
 deb http://ftp.debian.org/debian/ ${codename}-updates main contrib non-free
 deb-src http://ftp.debian.org/debian/ ${codename}-updates main contrib non-free
-deb http://security.debian.org/ ${codename}/updates main contrib non-free
-deb-src http://security.debian.org/ ${codename}/updates main contrib non-free
 
-#Debian Backports Repos
-#http://backports.debian.org/debian-backports stretch-backports main
+deb http://security.debian.org/ ${codename}-security main contrib non-free
+deb-src http://security.debian.org/ ${codename}-security main contrib non-free
+
+deb http://ftp.debian.org/debian ${codename}-backports main
+deb-src http://ftp.debian.org/debian ${codename}-backports main
+
+#------------------------------------------------------------------------------#
+#                      UNOFFICIAL  REPOS
+#------------------------------------------------------------------------------#
+
+###### 3rd Party Binary Repos
+###Debian Multimedia
+#deb [arch=amd64,i386] https://www.deb-multimedia.org ${codename} main non-free
+
+###### nginx
+#deb [arch=amd64,i386] http://nginx.org/packages/debian/ ${codename} nginx
+#deb-src [arch=amd64,i386] http://nginx.org/packages/debian/ ${codename} nginx
+
+###### Missing Dependencies
 EOF
 	elif [[ ${distro} == "Ubuntu" ]]; then
 		cat >/etc/apt/sources.list <<EOF
@@ -1153,9 +1167,11 @@ deb-src http://nl.archive.ubuntu.com/ubuntu/ ${codename}-updates main restricted
 deb http://security.ubuntu.com/ubuntu ${codename}-security main restricted universe multiverse
 deb-src http://security.ubuntu.com/ubuntu ${codename}-security main restricted universe multiverse
 
-#Ubuntu Backports Repos
+###### Ubuntu Backports Repos
 #deb http://nl.archive.ubuntu.com/ubuntu/ ${codename}-backports main restricted universe multiverse
 #deb-src http://nl.archive.ubuntu.com/ubuntu/ ${codename}-backports main restricted universe multiverse
+
+###### Missing Dependencies
 EOF
 	elif [[ ${distro} == "Ubuntu" && ${codename} == "bionic" ]]; then
 		cat >/etc/apt/sources.list <<EOF
@@ -1172,6 +1188,8 @@ deb http://nl.archive.ubuntu.com/ubuntu/ ${codename}-updates main restricted uni
 deb-src http://nl.archive.ubuntu.com/ubuntu/ ${codename}-updates main restricted universe
 deb http://security.ubuntu.com/ubuntu ${codename}-security main restricted universe
 deb-src http://security.ubuntu.com/ubuntu ${codename}-security main restricted universe
+
+###### Missing Dependencies
 EOF
 	fi
 }
