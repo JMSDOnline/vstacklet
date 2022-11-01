@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1018
+# @version: 3.1.1022
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -46,7 +46,7 @@
 # All rights reserved.
 # <END METADATA>
 ################################################################################
-www_permissions_version="$(grep "@version:" < /opt/vstacklet/setup/www-permissions.sh | awk '{print $2}')"
+www_permissions_version="$(grep -E '^# @version:' "/opt/vstacklet/setup/www-permissions.sh" | awk '{print $3}')"
 ################################################################################
 # @name: vstacklet::www::args() (1)
 # process options
@@ -317,6 +317,18 @@ vstacklet::permissions::adjust() {
 }
 
 ##################################################################################
+# @name: vstacklet::permissions::complete (6)
+# @description: Complete the permissions adjustment process. [see function]()
+# @nooptions
+# @noargs
+# @break
+##################################################################################
+vstacklet::permissions::complete() {
+	vstacklet::shell::text::success "permissions adjustment complete."
+	vstacklet::shell::misc::nl
+}
+
+##################################################################################
 # @name: vstacklet::wwwdata::help (5)
 # @description: Prints the help message for the www-data group.
 # @nooptions
@@ -371,3 +383,16 @@ vstacklet::wwwdata::version() {
 	vstacklet::shell::text::white "[vStacklet] www-permissions.sh version: ${www_permissions_version}"
 	vstacklet::shell::misc::nl
 }
+
+################################################################################
+# @description: Calls functions in required order.
+################################################################################
+vstacklet::environment::checkroot
+vstacklet::environment::functions
+vstacklet::intro
+vstacklet::www::args "$@"
+vstacklet::wwwdata::adjust
+vstacklet::permissions::adjust
+vstacklet::permissions::complete
+vstacklet::www::help
+vstacklet::www::version

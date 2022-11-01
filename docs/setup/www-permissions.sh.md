@@ -1,4 +1,4 @@
-# www-permissions.sh - v3.1.1018
+# www-permissions.sh - v3.1.1022
 
 
 ---
@@ -101,6 +101,16 @@ notes:
   - `644` (file)
   - `g+rw` (group read/write)
   - `g+s` (group sticky)
+
+*function has no options*
+
+*function has no arguments*
+
+---
+
+### vstacklet::permissions::complete()
+
+Complete the permissions adjustment process. [see function]()
 
 *function has no options*
 
