@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1634
+# @version: 3.1.1635
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -920,8 +920,8 @@ vstacklet::base::dependencies() {
 			vstacklet::shell::text::white::sl "| ${install} "
 		fi
 		# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 36
-			install_list+=("${install}")
+		DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 36
+		install_list+=("${install}")
 	done
 	[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
 	for depend in "${base_dependencies[@]}"; do
@@ -1102,12 +1102,8 @@ vstacklet::ftp::set() {
 ##################################################################################
 vstacklet::block::ssdp() {
 	vstacklet::shell::text::white "blocking port 1900 ..."
-	(
-		vstacklet::log "iptables -A INPUT -p udp --dport 1900 -j DROP"
-		vstacklet::log "iptables -A OUTPUT -p udp --dport 1900 -j DROP"
-		vstacklet::log "iptables -A INPUT -p tcp --dport 1900 -j DROP"
-		vstacklet::log "iptables -A OUTPUT -p tcp --dport 1900 -j DROP"
-	) || vstacklet::clean::rollback 43
+	mkdir -p /etc/iptables/
+	vstacklet::log "iptables -I INPUT 1 -p udp -m udp --dport 1900 -j DROP" || vstacklet::clean::rollback 43
 	vstacklet::log "iptables-save >/etc/iptables/rules.v4" || vstacklet::clean::rollback 44
 }
 
