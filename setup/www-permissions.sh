@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1036
+# @version: 3.1.1041
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -27,10 +27,12 @@
 # - Checks the user is a member of the www-data group, if not, add them.
 # - Set the correct permissions for the web root directory.
 #
-# @example: vstacklet -www-perms -wwwR "/var/www/html"
-# @example: vstacklet -www-perms -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html"
-# @example: /opt/vstacklet/setup/www-permissions.sh -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html"
-# @null
+# #### examples:
+# ```bash
+#  vstacklet -www-perms -wwwR "/var/www/html"
+#  vstacklet -www-perms -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html"
+#  /opt/vstacklet/setup/www-permissions.sh -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html"
+# ```
 #
 # @save_tasks:
 #  automated_versioning: true

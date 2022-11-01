@@ -1,4 +1,4 @@
-# www-permissions.sh - v3.1.1036
+# www-permissions.sh - v3.1.1041
 
 
 ---
@@ -21,6 +21,15 @@ This script will do the following:
 - Checks the user exists, if not, create it.
 - Checks the user is a member of the www-data group, if not, add them.
 - Set the correct permissions for the web root directory.
+
+---
+
+#### examples:
+```bash
+ vstacklet -www-perms -wwwR "/var/www/html"
+ vstacklet -www-perms -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html"
+ /opt/vstacklet/setup/www-permissions.sh -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html"
+```
 
 ---
 
