@@ -1,4 +1,4 @@
-# vstacklet.sh - v3.1.1035
+# vstacklet.sh - v3.1.1036
 
 
 ---
@@ -11,8 +11,8 @@ comments, or suggestions, please feel free to open an issue on GitHub.
 
 ---
 
-[vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
-[vStacklet www-permissions.sh Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/www-permissions.sh.md)
+- [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
+- [vStacklet www-permissions.sh Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/www-permissions.sh.md)
 
 ---
 

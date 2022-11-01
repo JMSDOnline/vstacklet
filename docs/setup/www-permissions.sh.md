@@ -1,4 +1,4 @@
-# www-permissions.sh - v3.1.1046
+# www-permissions.sh - v3.1.1047
 
 
 ---
@@ -8,8 +8,8 @@ ${www_root:-/var/www/html}.
 
 ---
 
-[vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
-[vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
+- [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
+- [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
 
 ---
 
