@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1604
+# @version: 3.1.1605
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -178,16 +178,15 @@
 vstacklet::environment::init() {
 	shopt -s extglob
 	declare -g vstacklet_base_path server_ip server_hostname local_setup_dir local_php8_dir local_php7_dir local_hhvm_dir local_varnish_dir
-	vstacklet_base_path="/etc/vstacklet"
 	server_ip=$(ip addr show | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | cut -d/ -f1 | head -n 1)
 	server_hostname=$(hostname -s)
 	# vstacklet directories
-	local_setup_dir="/etc/vstacklet/setup/"
-	local_php8_dir="/etc/vstacklet/php8/"
-	local_php7_dir="/etc/vstacklet/php7/"
-	local_hhvm_dir="/etc/vstacklet/hhvm/"
-	#local_nginx_dir="/etc/vstacklet/nginx/"
-	local_varnish_dir="/etc/vstacklet/varnish/"
+	local_setup_dir="${vstacklet_base_path:=/opt/vstacklet}/setup"
+	local_php8_dir="/opt/vstacklet/php8/"
+	local_php7_dir="/opt/vstacklet/php7/"
+	local_hhvm_dir="/opt/vstacklet/hhvm/"
+	local_nginx_dir="/opt/vstacklet/nginx/"
+	local_varnish_dir="/opt/vstacklet/varnish/"
 	# create vstacklet directories
 	mkdir -p "${vstacklet_base_path}/setup_temp"    # temporary setup directory - stores default files edited by vStacklet
 	mkdir -p "${vstacklet_base_path}/config/system" # system configuration directory - stores dependencies, keys, and other system files
@@ -1491,7 +1490,7 @@ vstacklet::nginx::install() {
 		sed -i "s/{{server_ip}}/${server_ip};/" "${vstacklet_base_path:?}/nginx/server.configs/directives/cloudflare-real-ip.conf"
 		sed -i "s/{{webroot}}/${web_root:-/var/www/html}\/public\/.well-known/g" "/etc/nginx/server.configs/location/letsencrypt.conf"
 		sleep 3
-		rsync -aP --exclude=/pagespeed --exclude=LICENSE --exclude=README --exclude=.git "${vstacklet_base_path:?}/nginx"/* /etc/nginx/ >/dev/null 2>&1
+		rsync -aP --exclude=/pagespeed --exclude=LICENSE --exclude=README --exclude=.git "${local_nginx_dir}/nginx"/* /etc/nginx/ >/dev/null 2>&1
 		\cp -rf /etc/nginx-pre-vstacklet/uwsgi_params /etc/nginx-pre-vstacklet/fastcgi_params /etc/nginx/
 		chown -R www-data:www-data /etc/nginx/cache
 		chmod -R 755 /etc/nginx/cache
