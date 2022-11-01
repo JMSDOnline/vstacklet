@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1052
+# @version: 3.1.1053
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html}.
 # Please ensure you have read the documentation before continuing.
@@ -281,16 +281,16 @@ vstacklet::wwwdata::create() {
 ##################################################################################
 vstacklet::permissions::adjust() {
 	vstacklet::shell::text::white "adjusting permissions ... "
+	# change the ownership of everything under web root to root:${www_group:-www-data}
+	vstacklet::shell::text::white "changing ownership of ${www_root:-/var/www/html} recursively to ${www_user:-www-data}:${www_group:-www-data} ... "
+	chown "${www_user:-www-data}":"${www_group:-www-data}" -R "${www_root:-/var/www/html}"/ || {
+		vstacklet::shell::text::error "failed to change ownership of ${www_root:-/var/www/html} to ${www_user:-www-data}:${www_group:-www-data}."
+		exit 1
+	}
 	# change the ownership of web root to root:${www_group:-www-data}
 	vstacklet::shell::text::white "changing ownership of ${www_root:-/var/www/html} to root:${www_group:-www-data} ... "
 	chown root:"${www_group:-www-data}" "${www_root:-/var/www/html}" || {
 		vstacklet::shell::text::error "failed to change ownership of ${www_root:-/var/www/html} to root:${www_group:-www-data}."
-		exit 1
-	}
-	# change the ownership of everything under web root to root:${www_group:-www-data}
-	vstacklet::shell::text::white "changing ownership of ${www_root:-/var/www/html} recursively to ${www_user:-www-data}:${www_group:-www-data} ... "
-	chown "${www_user:-www-data}":"${www_group:-www-data}" -R "${www_root:-/var/www/html/}" || {
-		vstacklet::shell::text::error "failed to change ownership of ${www_root:-/var/www/html} to ${www_user:-www-data}:${www_group:-www-data}."
 		exit 1
 	}
 	# change the permissions of directories under web root ${www_root} to 2775
