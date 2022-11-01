@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1638
+# @version: 3.1.1642
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -419,9 +419,9 @@ vstacklet::args::process() {
 			declare -g php="${2}"
 			shift
 			shift
-			[[ -n ${php} && "${php}" != *"8"* || "${php}" != *"7"* ]] || vstacklet::clean::rollback 17
-			[[ "${php}" == *"7"* ]] && declare -g php="7.4"
-			[[ "${php}" == *"8"* ]] && declare -g php="8.1"
+			[[ -n ${php} && ${php} > "8.*" || ${php} > "7.*" ]] || vstacklet::clean::rollback 17
+			[ "${php}" \> "7.*" ] && declare -g php="7.4"
+			[ "${php}" \> "8.*" ] && declare -g php="8.1"
 			[[ -z ${php} ]] && declare -g php="8.1"
 			;;
 		-ioncube | --ioncube)
@@ -870,8 +870,8 @@ vstacklet::dependencies::array() {
 	# install base dependencies
 	declare -ga base_dependencies=("rsync" "dos2unix" "jq" "bc" "automake" "make" "cmake" "checkinstall" "nano" "zip" "unzip" "htop" "vnstat" "vnstati" "vsftpd" "subversion" "iptables" "iptables-persistent")
 	# install php dependencies
-	[[ ${php} == *"7"* ]] && declare php="7.4"
-	[[ ${php} == *"8"* ]] && declare php="8.1"
+	[ "${php}" \> "8.*" ] && declare php="8.1"
+	[ "${php}" \> "7.*" ] && declare php="7.4"
 	[[ -z ${php} ]] && declare php="8.1"
 	declare -ga php_dependencies=("php${php}-fpm" "php${php}-zip" "php${php}-cgi" "php${php}-cli" "php${php}-common" "php${php}-curl" "php${php}-dev" "php${php}-gd" "php${php}-bcmath" "php${php}-gmp" "php${php}-imap" "php${php}-intl" "php${php}-ldap" "php${php}-mbstring" "php${php}-mysql" "php${php}-opcache" "php${php}-pspell" "php${php}-readline" "php${php}-soap" "php${php}-xml" "php${php}-imagick" "php${php}-msgpack" "php${php}-igbinary" "libmcrypt-dev" "mcrypt" "libmemcached-dev" "php-memcached")
 	[[ -n ${redis} ]] && php_dependencies+=("php${php}-redis")
@@ -1327,8 +1327,8 @@ vstacklet::php::install() {
 		# check for nginx \\ to maintain modularity, nginx is not required for PHP
 		#[[ -z ${nginx} ]] && vstacklet::clean::rollback "PHP requires nginx. please install nginx."
 		# php version sanity check
-		[[ ${php} == *"8"* ]] && php="8.1"
-		[[ ${php} == *"7"* ]] && php="7.4"
+		[ "${php}" \> "8.*" ] && php="8.1"
+		[ "${php}" \> "7.*" ] && php="7.4"
 		vstacklet::shell::text::white "installing and configuring php${php}-fpm ... "
 		# install php dependencies and php
 		for depend in "${php_dependencies[@]}"; do
