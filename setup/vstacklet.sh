@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1026
+# @version: 3.1.1028
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -101,19 +101,22 @@ setup::download() {
 	fi
 	source "${HOME}/.bashrc"
 	# Create vstacklet & backup directory strucutre
-	mkdir -p /backup/{directories,databases} /opt/vstacklet || { printf -- "%s\n" "Error: Unable to create /backup/{directories,databases} /opt/vstacklet" && exit 1; }
+	mkdir -p /backup/{directories,databases} || { printf -- "%s\n" "Error: Unable to create /backup/{directories,databases}" && exit 1; }
 	# Download vStacklet
 	if [[ -d /opt/vstacklet/.git ]]; then
 		cd /opt/vstacklet || { printf -- "%s\n" "Error: Unable to move to /opt/vstacklet" && exit 1; }
-		git pull --force || { printf -- "%s\n" "Error: Unable to pull vStacklet from GitHub" && exit 1; }
+		git pull --quiet --ff-only || { printf -- "%s\n" "Error: Unable to pull vStacklet from GitHub" && exit 1; }
 	else
 		git clone --quiet --recurse-submodules "${vstacklet_git}" /opt/vstacklet || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
 	fi
+	# Make www-permissions.sh executable
+	chmod +x "${local_setup_dir}/www-permissions.sh"
 	# Send vStacklet backup (vs-backup) to /usr/local/bin
 	cp -f /opt/vstacklet/packages/backup/vs-backup /usr/local/bin/vs-backup || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
 	chmod +x /usr/local/bin/vs-backup || { printf -- "%s\n" "Error: Unable to chmod +x /usr/local/bin/vs-backup" && exit 1; }
 	# Make the installation script executable
-	chmod +x "${vstacklet_path}" || { printf -- "%s\n" "Error: Unable to make the installation script executable." && exit 1; }
+	cp -f "${vstacklet_path}" /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to copy vstacklet to /usr/local/bin" && exit 1; }
+	chmod +x /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to make the installation script executable." && exit 1; }
 	# Execute the installation script
 	[[ -f "${vstacklet_path}" ]] && /"${vstacklet_path}" "$@" && exit 0
 }

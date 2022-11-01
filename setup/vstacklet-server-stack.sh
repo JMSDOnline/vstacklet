@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1606
+# @version: 3.1.1615
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -519,6 +519,9 @@ vstacklet::args::process() {
 			declare -gi wordpress="1"
 			shift
 			;;
+		-www-perms* | --www_permissions*)
+			."${local_setup_dir}/www-permissions.sh" "$@"
+			;;
 		*)
 			invalid_option+=("$1")
 			shift
@@ -576,17 +579,28 @@ vstacklet::environment::functions() {
 		esac
 		case "${shell_icon}" in
 		arrow) shell_icon="➜ ${shell_reset}" ;;
-		warning) shell_icon="⚠ ${shell_reset}" ;;
+		warning) shell_icon="⚠ warning: ${shell_reset}" && shell_warning="1" ;;
 		check) shell_icon="✓ ${shell_reset}" ;;
 		cross) shell_icon="✗ ${shell_reset}" ;;
+		success) shell_icon="✓ success: ${shell_reset}" && shell_success="1" ;;
+		error) shell_icon="✗ error: ${shell_reset}" && shell_error="1" ;;
+		rollback) shell_icon="⎌ rollback: ${shell_reset}" && shell_rollback="1" ;;
 		esac
-		printf -- "${shell_reset}${shell_color}${shell_icon}${shell_option}%s${shell_newline}${shell_reset}" "$@"
-		[[ " ${VSLOG_FILE_LOADED[*]} " =~ log ]] && printf "${shell_icon}%s${shell_newline}" "$@" >>"${log_file}"
+		if [[ ${shell_success} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_warning} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_error} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_rollback} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		else
+			printf -- "${shell_reset}${shell_color}${shell_icon}${shell_option}%s${shell_newline}${shell_reset}" "$@"
+		fi
 		unset shell_color shell_newline shell_option shell_icon
 	}
 	vstacklet::shell::misc::nl() {
 		printf "\n"
-		[[ " ${VSLOG_FILE_LOADED[*]} " =~ log ]] && printf "\n" >>"${log_file:?}"
 	}
 	vstacklet::shell::text::white() {
 		declare -g shell_color
@@ -601,7 +615,8 @@ vstacklet::environment::functions() {
 	vstacklet::shell::text::error() {
 		declare -g shell_color shell_icon
 		shell_color=$(tput setaf 1)
-		shell_icon="cross"
+		shell_icon="error"
+		output_color=$(tput setaf 7)
 		vstacklet::shell::output "$@"
 	}
 	vstacklet::shell::text::red() {
@@ -617,7 +632,8 @@ vstacklet::environment::functions() {
 	vstacklet::shell::text::success() {
 		declare -g shell_color shell_icon
 		shell_color=$(tput setaf 2)
-		shell_icon="check"
+		shell_icon="success"
+		output_color=$(tput setaf 7)
 		vstacklet::shell::output "$@"
 	}
 	vstacklet::shell::text::green() {
@@ -634,6 +650,7 @@ vstacklet::environment::functions() {
 		declare -g shell_color shell_icon
 		shell_color=$(tput setaf 3)
 		shell_icon="warning"
+		output_color=$(tput setaf 7)
 		vstacklet::shell::output "$@"
 	}
 	vstacklet::shell::text::yellow() {
@@ -660,6 +677,7 @@ vstacklet::environment::functions() {
 		declare -g shell_color shell_icon
 		shell_color=$(tput setaf 5)
 		shell_icon="cross"
+		output_color=$(tput setaf 7)
 		vstacklet::shell::output "$@"
 	}
 	vstacklet::shell::icon::arrow::white() {
@@ -2935,15 +2953,13 @@ vstacklet::clean::rollback() {
 		161) error="failed to edit /etc/nginx/sites-available/${domain}.conf." ;;
 		*) error="Unknown error" ;;
 		esac
-		vstacklet::shell::text::error "error: "
-		vstacklet::shell::text::white::sl "${error}"
+		vstacklet::shell::text::error "${error}"
 		#printf -- "\nerror %s: %s\n" "$1" "${error}"
 	else
-		vstacklet::shell::text::warning "warning: "
-		vstacklet::shell::text::white::sl "installer has been interrupted"
+		vstacklet::shell::text::warning "installer has been interrupted"
 		#printf -- "\ninstaller interrupted\n"
 	fi
-	vstacklet::shell::text::rollback "rolling back setup ... "
+	vstacklet::shell::text::rollback "a fatal error has occurred, rollback has been initiated ... "
 	#printf -- "%s\n" "rolling back setup..."
 	declare installed
 	[[ -n ${ssdp_block} ]] && iptables -D INPUT -p udp --dport 1900 -j DROP
@@ -2962,8 +2978,7 @@ vstacklet::clean::rollback() {
 		apt-get -y autoremove >/dev/null 2>&1
 		apt-get -y autoclean >/dev/null 2>&1
 	fi
-	vstacklet::shell::text::success "success"
-	vstacklet::shell::text::white::sl "server setup has been rolled back. you may attempt to run the installer again."
+	vstacklet::shell::text::success "server setup has been rolled back. you may attempt to run the installer again."
 	#printf -- "%s\n" "server rolled back"
 	exit "${1:-1}"
 }
