@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1038
+# @version: 3.1.1039
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -71,7 +71,7 @@
 
 # @option: $1 - the option/flag to process
 # @arg: $2 - the value of the option/flag
-# @example: vstacklet -e "your@email.com" -nginx -php "8.1" -mariadb -mariadbU mariadbuser -mariadbPw "mariadbpassword" -varnish -varnishP 80 -http 8080 -csf
+# @example: vstacklet -e "your@email.com" -nginx -php "8.1" -mariadb -mariadbU "mariadbuser" -mariadbPw "mariadbpassword" -varnish -varnishP 80 -http 8080 -csf
 # @break
 ################################################################################
 setup::download() {
