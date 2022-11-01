@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1635
+# @version: 3.1.1636
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1104,7 +1104,7 @@ vstacklet::block::ssdp() {
 	vstacklet::shell::text::white "blocking port 1900 ..."
 	mkdir -p /etc/iptables/
 	vstacklet::log "iptables -I INPUT 1 -p udp -m udp --dport 1900 -j DROP" || vstacklet::clean::rollback 43
-	vstacklet::log "iptables-save >/etc/iptables/rules.v4" || vstacklet::clean::rollback 44
+	iptables-save >/etc/iptables/rules.v4 || vstacklet::clean::rollback 44
 }
 
 ##################################################################################
