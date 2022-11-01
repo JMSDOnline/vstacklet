@@ -1,14 +1,20 @@
 # Contributing
 
 > VStacklet is an open source project licensed using the The MIT License.
-> This project has been forked and modified to my own liking from [Quick LEMP](https://github.com/jbradach/quick-lemp/).
-> I appreciate pull requesets as well as other trypes of contributions.
+> This project has been forked and completely rewritten from [Quick LEMP](https://github.com/jbradach/quick-lemp/).
+> I appreciate pull requesets as well as other types of contributions.
 
- - Report script related issues or ideas for enhancements at https://github.com/JMSDOnline/vstacklet/issues.
+## Documentation
 
- - Fork, clone, and improve this repistory by sending a pull request when it's done.
+Documentation is available at: [/docs/](https://github.com/JMSDOnline/vstacklet/tree/development/docs)
+ - :book: [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
+ - :book: [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
+ - :book: [vStacklet www-permissions.sh Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/www-permissions.sh.md)
 
- - Passionate about LEMP stacks and their compoennts? Consisder contributing to the [LEMP Questions and Answers](https://lemp.io/qa/) section over at https://lemp.io.
+## How to Contribute
 
+ - Fork, clone, and improve this repistory by sending a pull request when it's done. (preferrably to the `development` branch)
+ - Report script related issues or ideas for enhancements on the [issue tracker](https://github.com/JMSDOnline/vstacklet/issues).
  - Assist with testing on different distributions to help ensure compability.
+ - Say thanks and spread the word. :heart:
 
