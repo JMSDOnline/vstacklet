@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1636
+# @version: 3.1.1638
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1199,7 +1199,7 @@ EOF
 ##################################################################################
 vstacklet::gpg::keys() {
 	# package and repo addition (c) _add signed keys_
-	vstacklet::shell::text::white "ddding signed keys and sources for required software packages ... "
+	vstacklet::shell::text::white "adding signed keys and sources for required software packages ... "
 	mkdir -p /etc/apt/sources.list.d /etc/apt/keyrings
 	if [[ -n ${hhvm} ]]; then
 		# hhvm
@@ -1268,19 +1268,21 @@ vstacklet::locale::set() {
 	apt-get -y install language-pack-en-base >>"${vslog}" 2>&1
 	if [[ -e /usr/sbin/locale-gen ]]; then
 		(
-			locale-gen en_US.UTF-8
-			dpkg-reconfigure locales
+			update-locale "LANG=en_US.UTF-8" "LC_ALL=en_US.UTF-8" "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
+			dpkg-reconfigure --frontend noninteractive locales
+			vstacklet::log "locale-gen locales"
 		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 45
 	else
 		(
-			apt-get -y update
-			apt-get -y install locales locale-gen
-			locale-gen en_US.UTF-8
-			dpkg-reconfigure locales
+			vstacklet::log "apt-get -y update"
+			vstacklet::log "apt-get -y install locales locale-gen"
+			update-locale "LANG=en_US.UTF-8" "LC_ALL=en_US.UTF-8" "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
+			dpkg-reconfigure --frontend noninteractive locales
+			vstacklet::log "locale-gen locales"
 		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 45
 
 	fi
-	update-locale LANG=en_US.UTF-8
+	declare -xg LANG="en_US.UTF-8" LANGUAGE="en_US.UTF-8"
 }
 
 ##################################################################################
