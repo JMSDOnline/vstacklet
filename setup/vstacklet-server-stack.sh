@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1646
+# @version: 3.1.1658
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -419,7 +419,7 @@ vstacklet::args::process() {
 			declare -g php="${2}"
 			shift
 			shift
-			[[ -n ${php} ]] && [ "${php}" \> "8.*" ] || [ "${php}" \> "7.*" ] || vstacklet::clean::rollback 17
+			[[ -n ${php} ]] && [ "${php}" = "8" ] || [ "${php}" = "7" ] && vstacklet::clean::rollback 17
 			[ "${php}" \> "7.*" ] && declare -g php="7.4"
 			[ "${php}" \> "8.*" ] && declare -g php="8.1"
 			[[ -z ${php} ]] && declare -g php="8.1"
@@ -1125,8 +1125,8 @@ vstacklet::sources::update() {
 #------------------------------------------------------------------------------#
 
 ###### Debian Main Repos
-deb http://ftp.nl.debian.org/debian testing main contrib non-free
-deb-src http://ftp.nl.debian.org/debian testing main contrib non-free
+deb http://ftp.nl.debian.org/debian ${codename} main contrib non-free
+deb-src http://ftp.nl.debian.org/debian ${codename} main contrib non-free
 
 ###### Debian Update Repos
 deb http://ftp.debian.org/debian/ ${codename}-updates main contrib non-free
