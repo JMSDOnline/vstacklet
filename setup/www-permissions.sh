@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1041
+# @version: 3.1.1042
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -31,6 +31,10 @@
 # ```bash
 #  vstacklet -www-perms -wwwR "/var/www/html"
 #  vstacklet -www-perms -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html"
+# ```
+#
+# #### or as a standalone script:
+# ```bash
 #  /opt/vstacklet/setup/www-permissions.sh -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html"
 # ```
 #
@@ -191,7 +195,7 @@ vstacklet::environment::checkroot() {
 }
 
 ##################################################################################
-# @name: vstacklet::intro (1)
+# @name: vstacklet::intro (4)
 # @description: Prints the intro message. [see function]()
 # @script-note: This function is required for the installation of
 # the vStacklet software.
@@ -211,7 +215,7 @@ vstacklet::intro() {
 }
 
 ##################################################################################
-# @name: vstacklet::wwwdata::adjust (4)
+# @name: vstacklet::wwwdata::adjust (5)
 # @description: Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [see function]()
 # @option: $1 --wwwU | --www_user - The user to add to the www-data group. (default: www-data)
 # @option: $2 -wwwG | --www_group - The group to create. (default: www-data) (optional)
@@ -259,7 +263,7 @@ vstacklet::wwwdata::adjust() {
 }
 
 ##################################################################################
-# @name: vstacklet::permissions::adjust (5)
+# @name: vstacklet::permissions::adjust (6)
 # @description: Adjust permissions for the web root. [see function]()
 #
 # notes:
@@ -313,7 +317,7 @@ vstacklet::permissions::adjust() {
 }
 
 ##################################################################################
-# @name: vstacklet::permissions::complete (6)
+# @name: vstacklet::permissions::complete (7)
 # @description: Complete the permissions adjustment process. [see function]()
 # @nooptions
 # @noargs
@@ -325,7 +329,7 @@ vstacklet::permissions::complete() {
 }
 
 ##################################################################################
-# @name: vstacklet::wwwperms::help (5)
+# @name: vstacklet::wwwperms::help (8)
 # @description: Prints the help message for the www-data group.
 # @nooptions
 # @noargs
@@ -364,7 +368,7 @@ vstacklet::wwwperms::help() {
 }
 
 ##################################################################################
-# @name: vstacklet::wwwperms::version (5)
+# @name: vstacklet::wwwperms::version (9)
 # @description: Prints the version of the www-permissions script.
 # @nooptions
 # @noargs
@@ -378,14 +382,14 @@ vstacklet::wwwperms::version() {
 ################################################################################
 # @description: Calls functions in required order.
 ################################################################################
-vstacklet::environment::checkroot
-vstacklet::environment::functions
-vstacklet::wwwperms::args "$@"
+vstacklet::environment::checkroot #(1)
+vstacklet::environment::functions #(2)
+vstacklet::wwwperms::args "$@"    #(3)
 if [[ -z ${skip_intro} ]]; then
-	vstacklet::intro
+	vstacklet::intro #(4)
 fi
-vstacklet::wwwdata::adjust
-vstacklet::permissions::adjust
-vstacklet::permissions::complete
-[[ "$*" =~ "-wwwV" ]] || [[ "$*" =~ "--www_version" ]] && vstacklet::wwwperms::version
-[[ "$*" =~ "-wwwH" ]] || [[ "$*" =~ "--www_help" ]] && vstacklet::wwwperms::help
+vstacklet::wwwdata::adjust                                                             #(5)
+vstacklet::permissions::adjust                                                         #(6)
+vstacklet::permissions::complete                                                       #(7)
+[[ "$*" =~ "-wwwV" ]] || [[ "$*" =~ "--www_version" ]] && vstacklet::wwwperms::version #(8)
+[[ "$*" =~ "-wwwH" ]] || [[ "$*" =~ "--www_help" ]] && vstacklet::wwwperms::help       #(9)

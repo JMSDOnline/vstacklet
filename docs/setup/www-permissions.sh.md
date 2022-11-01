@@ -1,4 +1,4 @@
-# www-permissions.sh - v3.1.1041
+# www-permissions.sh - v3.1.1042
 
 
 ---
@@ -28,6 +28,12 @@ This script will do the following:
 ```bash
  vstacklet -www-perms -wwwR "/var/www/html"
  vstacklet -www-perms -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html"
+```
+
+---
+
+#### or as a standalone script:
+```bash
  /opt/vstacklet/setup/www-permissions.sh -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html"
 ```
 
