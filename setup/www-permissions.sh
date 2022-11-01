@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1054
+# @version: 3.1.1058
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html}.
 # Please ensure you have read the documentation before continuing.
@@ -81,11 +81,11 @@ vstacklet::wwwperms::args() {
 			declare -g www_root="${2}"
 			shift 2
 			;;
-		-wwwH | --www_help)
+		-h | --help)
 			vstacklet::wwwperms::help
 			exit 0
 			;;
-		-wwwV | --www_version)
+		-v | --version)
 			declare -gi skip_intro="1"
 			vstacklet::wwwperms::version
 			exit 0
@@ -226,8 +226,8 @@ vstacklet::intro() {
 # @option: $1 `-wwwU | --www_user` - The user to add to the www-data group. (default: www-data)
 # @option: $2 `-wwwG | --www_group` - The group to create. (default: www-data) (optional)
 # @option: $3 `-wwwR | --www_root` - The root directory to set permissions for. (default: /var/www/html) (optional)
-# @option: $4 `-wwwH | --www_help` - Prints the help message.
-# @option: $5 `-wwwV | --www_version` - Prints the version number.
+# @option: $4 `-h | --help` - Prints the help message.
+# @option: $5 `-v | --version` - Prints the version number.
 # @arg: $1 - The username to add to the www-data group.
 # @arg: $2 - The groupname to add to the www-data group.
 # @arg: $3 - The web root directory to set permissions for.
@@ -292,7 +292,7 @@ vstacklet::permissions::adjust() {
 	vstacklet::shell::text::white "adjusting permissions ... "
 	# change the ownership of everything under web root to root:${www_group:-www-data}
 	vstacklet::shell::text::white "changing ownership of ${www_root:-/var/www/html} recursively to ${www_user:-www-data}:${www_group:-www-data} ... "
-	chown "${www_user:-www-data}":"${www_group:-www-data}" -R "${www_root:-/var/www/html}"/ || {
+	chown "${www_user:-www-data}":"${www_group:-www-data}" -R "${www_root:-/var/www/html}" || {
 		vstacklet::shell::text::error "failed to change ownership of ${www_root:-/var/www/html} to ${www_user:-www-data}:${www_group:-www-data}."
 		exit 1
 	}
@@ -356,27 +356,25 @@ vstacklet::wwwperms::help() {
 	vstacklet::shell::text::white "  -wwwU | --www_user"
 	vstacklet::shell::text::white "  -wwwG | --www_group"
 	vstacklet::shell::text::white "  -wwwR | --www_root"
-	vstacklet::shell::text::white "  -wwwH | --www_help"
-	vstacklet::shell::text::white "  -wwwV | --www_version"
+	vstacklet::shell::text::white "  -h | --help"
+	vstacklet::shell::text::white "  -v | --version"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "args:"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  [www_user] - the user to add to the www-data group"
 	vstacklet::shell::text::white "  [www_group] - the group to add to the www-data group"
 	vstacklet::shell::text::white "  [www_root] - the web root to adjust permissions for"
-	vstacklet::shell::text::white "  [www_help] - prints this help message for the www-permissions script"
-	vstacklet::shell::text::white "  [www_version] - prints the version of the www-permissions script"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "examples:"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  vstacklet -www-perms -wwwU \"www-data\" -wwwG \"www-data\" -wwwR \"/var/www/html\""
-	vstacklet::shell::text::white "  vstacklet -www-perms -wwwH"
-	vstacklet::shell::text::white "  vstacklet -www-perms -wwwV"
+	vstacklet::shell::text::white "  vstacklet -www-perms -h"
+	vstacklet::shell::text::white "  vstacklet -www-perms -v"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "standalone:"
 	vstacklet::shell::text::white "  /opt/vstacklet/setup/www-permissions.sh -wwwU \"www-data\" -wwwG \"www-data\" -wwwR \"/var/www/html\""
-	vstacklet::shell::text::white "  /opt/vstacklet/setup/www-permissions.sh -wwwh"
-	vstacklet::shell::text::white "  /opt/vstacklet/setup/www-permissions.sh -wwwV"
+	vstacklet::shell::text::white "  /opt/vstacklet/setup/www-permissions.sh --help"
+	vstacklet::shell::text::white "  /opt/vstacklet/setup/www-permissions.sh --version"
 	vstacklet::shell::misc::nl
 }
 
@@ -404,5 +402,5 @@ fi
 vstacklet::wwwdata::create                                                             #(5)
 vstacklet::permissions::adjust                                                         #(6)
 vstacklet::permissions::complete                                                       #(7)
-[[ "$*" =~ "-wwwV" ]] || [[ "$*" =~ "--www_version" ]] && vstacklet::wwwperms::version #(8)
-[[ "$*" =~ "-wwwH" ]] || [[ "$*" =~ "--www_help" ]] && vstacklet::wwwperms::help       #(9)
+[[ "$*" =~ "-v" ]] || [[ "$*" =~ "--version" ]] && vstacklet::wwwperms::version #(8)
+[[ "$*" =~ "-h" ]] || [[ "$*" =~ "--help" ]] && vstacklet::wwwperms::help       #(9)
