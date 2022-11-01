@@ -1,4 +1,4 @@
-# www-permissions.sh - v3.1.1048
+# www-permissions.sh - v3.1.1049
 
 
 ---
@@ -105,7 +105,7 @@ notes:
   - adjustments are made to the default web root of `/var/www/html`
   if the `-wwwR | --www_root` option is not used.
 - permissions are adjusted to the following:
-  - `www-data:www-data` (user:group)
+  - `root:www-data` (user:group)
   - `755` (directory)
   - `644` (file)
   - `g+rw` (group read/write)

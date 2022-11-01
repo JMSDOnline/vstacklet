@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1048
+# @version: 3.1.1049
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html}.
 # Please ensure you have read the documentation before continuing.
@@ -270,7 +270,7 @@ vstacklet::wwwdata::create() {
 #   - adjustments are made to the default web root of `/var/www/html`
 #   if the `-wwwR | --www_root` option is not used.
 # - permissions are adjusted to the following:
-#   - `www-data:www-data` (user:group)
+#   - `root:www-data` (user:group)
 #   - `755` (directory)
 #   - `644` (file)
 #   - `g+rw` (group read/write)
@@ -281,9 +281,15 @@ vstacklet::wwwdata::create() {
 ##################################################################################
 vstacklet::permissions::adjust() {
 	vstacklet::shell::text::white "adjusting permissions ... "
-	# change the ownership of everything under web root ${www_root} to root:www-data
+	# change the ownership of web root to root:${www_group:-www-data}
 	vstacklet::shell::text::white "changing ownership of ${www_root:-/var/www/html} to root:www-data ... "
-	chown www-data:www-data -R "${www_root:-/var/www/html}" || {
+	chown root:"${www_group:-www-data}"-data "${www_root:-/var/www/html}" || {
+		vstacklet::shell::text::error "failed to change ownership of ${www_root:-/var/www/html} to root:www-data."
+		exit 1
+	}
+	# change the ownership of everything under web root to root:${www_group:-www-data}
+	vstacklet::shell::text::white "changing ownership of ${www_root:-/var/www/html} to root:www-data ... "
+	chown "${www_user:-www-data}":"${www_group:-www-data}" -R "${www_root:-/var/www/html/}" || {
 		vstacklet::shell::text::error "failed to change ownership of ${www_root:-/var/www/html} to root:www-data."
 		exit 1
 	}
