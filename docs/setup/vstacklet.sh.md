@@ -1,4 +1,4 @@
-# vstacklet.sh - v3.1.1036
+# vstacklet.sh - v3.1.1038
 
 
 ---
@@ -37,6 +37,10 @@ notes:
 - This script function is responsible for downloading vStacklet from GitHub
 and setting up the environment for the installation.
   - vStacklet will be downloaded to `/opt/vstacklet`.
+  - `vstacklet-server-stack.sh` will be loaded to `/usr/local/bin/vstacklet`. This
+will allow you to run `vstacklet [options] [args]` from anywhere on the server.
+  - `vs-backup` will be loaded to `/usr/local/bin/vs-backup`. This
+will allow you to run `vs-backup` from anywhere on the server.
 - This script function will also check for the existence of the required
 packages and install them if they are not found.
   - these include:
@@ -58,7 +62,7 @@ and process the given options/flags and arguments.
 #### examples:
 
 ```
- vstacklet.sh -e "your@email.com" -nginx -php "8.1" -mariadb -mariadbU mariadbuser -mariadbPw "mariadbpassword" -varnish -varnishP 80 -http 8080 -csf
+ vstacklet -e "your@email.com" -nginx -php "8.1" -mariadb -mariadbU mariadbuser -mariadbPw "mariadbpassword" -varnish -varnishP 80 -http 8080 -csf
 ```
 
 ---
