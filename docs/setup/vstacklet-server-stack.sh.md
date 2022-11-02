@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1673
+# vstacklet-server-stack.sh - v3.1.1679
 
 
 ---
@@ -185,7 +185,7 @@ Process the options and values passed to the script. [see function](https://gith
 -  `-mariadb | --mariadb` - install MariaDB
 -  `-mariadbP | --mariadb_port` - port to use for the MariaDB server
 -  `-mariadbU | --mariadb_user` - user to use for the MariaDB server
--  `-mariadbPw | --mariadb-password` - password to use for the MariaDB root user
+-  `-mariadbPw | --mariadb-password` - password to use for the MariaDB user
 -  `-redis | --redis` - install Redis
 -  `-postgre | --postgre` - install PostgreSQL
 -  `-pma | --phpmyadmin` - install phpMyAdmin
@@ -791,7 +791,7 @@ notes:
 #### arguments:
 
 -  $2 - `[port]` (optional) (default: 3306)
--  $3 - `[user]` (optional) (default: root)
+-  $3 - `[user]` (optional) (default: admin)
 -  $4 - `[password]` (optional) (default: password auto-generated)
 
 #### return codes:
@@ -807,10 +807,10 @@ notes:
 #### examples:
 
 ```
- vstacklet -mariadb -mariadbP 3306 -mariadbU root -mariadbPw password
- vstacklet --mariadb --mariadb_port 3306 --mariadb_user root --mariadb_password password
- vstacklet -mariadb -mariadbP 3306 -mariadbU root
- vstacklet --mariadb --mariadb_port 3306 --mariadb_user root
+ vstacklet -mariadb -mariadbP 3306 -mariadbU admin -mariadbPw password
+ vstacklet --mariadb --mariadb_port 3306 --mariadb_user admin --mariadb_password password
+ vstacklet -mariadb -mariadbP 3306 -mariadbU admin
+ vstacklet --mariadb --mariadb_port 3306 --mariadb_user admin
  vstacklet -mariadb -mariadbP 3306
  vstacklet --mariadb --mariadb_port 3306
  vstacklet -mariadb
@@ -838,7 +838,7 @@ notes:
 #### arguments:
 
 -  $2 - `[mysql_port]` (optional) (default: 3306)
--  $3 - `[mysql_user]` (optional) (default: root)
+-  $3 - `[mysql_user]` (optional) (default: admin)
 -  $4 - `[mysql_password]` (optional) (default: password auto-generated)
 
 #### return codes:
@@ -855,8 +855,8 @@ notes:
 #### examples:
 
 ```
- vstacklet -mysql -mysqlP 3306 -mysqlU root -mysqlPw password
- vstacklet --mysql --mysql_port 3306 --mysql_user root --mysql_password password
+ vstacklet -mysql -mysqlP 3306 -mysqlU admin -mysqlPw password
+ vstacklet --mysql --mysql_port 3306 --mysql_user admin --mysql_password password
 ```
 
 ---
@@ -872,7 +872,7 @@ Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/v
 #### arguments:
 
 -  $2 - `[postgresql_port]` (optional) (default: 5432)
--  $3 - `[postgresql_user]` (optional) (default: root)
+-  $3 - `[postgresql_user]` (optional) (default: admin)
 -  $4 - `[postgresql_password]` (optional) (default: password auto-generated)
 
 #### return codes:
@@ -888,8 +888,8 @@ Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/v
 #### examples:
 
 ```
- vstacklet -postgre -postgreP 5432 -postgreU root -postgrePw password
- vstacklet --postgresql --postgresql_port 5432 --postgresql_user root --postgresql_password password
+ vstacklet -postgre -postgreP 5432 -postgreU admin -postgrePw password
+ vstacklet --postgresql --postgresql_port 5432 --postgresql_user admin --postgresql_password password
 ```
 
 ---
@@ -953,7 +953,7 @@ notes:
   - database server: mariadb, mysql
     - mariaDB usage: `-mariadbU [user] | --mariadb_user [user]` & `-mariadbPw [password] | --mariadb_password [password]`
     - mysql usage: `-mysqlU [user] | --mysql_user [user]` & `-mysqlPw [password] | --mysql_password [password]`
-    - note: if no user or password is provided, the default user and password will be used. (root, auto-generated password)
+    - note: if no user or password is provided, the default user and password will be used. (admin, auto-generated password)
   - php version: php7.4, php8.1
     - PHP usage: `-php [version] | --php [version]`
   - port: http
@@ -990,8 +990,8 @@ notes:
 #### examples:
 
 ```
- vstacklet -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
- vstacklet --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
+ vstacklet -phpmyadmin -nginx -mariadbU admin -mariadbPw password -php 8.1 -http 80
+ vstacklet --phpmyadmin --nginx --mariadb_user admin --mariadb_password password --php 8.1 --http 80
 ```
 
 ---

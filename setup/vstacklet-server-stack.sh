@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1673
+# @version: 3.1.1679
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -230,7 +230,7 @@ vstacklet::environment::init() {
 # @option: `-mariadb | --mariadb` - install MariaDB
 # @option: `-mariadbP | --mariadb_port` - port to use for the MariaDB server
 # @option: `-mariadbU | --mariadb_user` - user to use for the MariaDB server
-# @option: `-mariadbPw | --mariadb-password` - password to use for the MariaDB root user
+# @option: `-mariadbPw | --mariadb-password` - password to use for the MariaDB user
 #
 # @option: `-redis | --redis` - install Redis
 # @option: `-postgre | --postgre` - install PostgreSQL
@@ -751,7 +751,7 @@ vstacklet::dependencies::install() {
 	declare -ga script_dependencies
 	declare -a depend_list
 	declare -ga install_list
-	script_dependencies=("apt-transport-https" "lsb-release" "curl" "wget" "git" "dnsutils" "dialog" "ssl-cert" "openssl")
+	script_dependencies=("apt-transport-https" "lsb-release" "curl" "wget" "git" "dnsutils" "dialog" "ssl-cert" "openssl" "expect")
 	for depend in "${script_dependencies[@]}"; do
 		if [[ $(dpkg-query -W -f='${Status}' "${depend}" 2>/dev/null | grep -c "ok installed") != "1" ]]; then
 			depend_list+=("${depend}")
@@ -1236,11 +1236,8 @@ vstacklet::gpg::keys() {
 	fi
 	if [[ -n ${mariadb} ]]; then
 		# mariadb
-		wget -qO- https://mariadb.org/mariadb_release_signing_key.asc | gpg --dearmor >/etc/apt/trusted.gpg.d/mariadb.gpg >>"${vslog}" 2>&1
-		cat >/etc/apt/sources.list.d/mariadb.list <<EOF
-deb [arch=amd64,i386,arm64,ppc64el] http://mirrors.syringanetworks.net/mariadb/repo/10.6/${distro} ${codename} main
-deb-src http://mirrors.syringanetworks.net/mariadb/repo/10.6/${distro}/ ${codename} main
-EOF
+		curl -fsSL https://mariadb.org/mariadb_release_signing_key.asc | gpg --dearmor -o /etc/apt/keyrings/mariadb.gpg >>"${vslog}" 2>&1
+		echo "deb [signed-by=/etc/apt/keyrings/mariadb.gpg] http://mirror.its.dal.ca/mariadb/repo/10.6/${distro,,} ${codename} main" | tee /etc/apt/sources.list.d/mariadb.list >>"${vslog}" 2>&1
 	fi
 	if [[ -n ${redis} ]]; then
 		# redis
@@ -1517,7 +1514,7 @@ vstacklet::nginx::install() {
 		mkdir -p /etc/nginx/{conf.d,cache,ssl,sites-enabled,sites-available}
 		sed -i "s|{{server_ip}}|${server_ip}|g" "${vstacklet_base_path}/nginx/server.configs/directives/cloudflare-real-ip.conf"
 		wr_sanitize=$(echo "${web_root:-/var/www/html}" | sed 's/\//\\\//g')
-		sed -i "s|{{webroot}}|${wr_sanitize}|g" "/etc/nginx/server.configs/location/letsencrypt.conf"
+		sed -i "s|{{webroot}}|${wr_sanitize}|g" "${vstacklet_base_path}/nginx/server.configs/location/letsencrypt.conf"
 		sleep 3
 		rsync -aP --exclude=/pagespeed --exclude=LICENSE --exclude=README --exclude=.git "${local_nginx_dir}"/* /etc/nginx/ >/dev/null 2>&1
 		\cp -rf /etc/nginx-pre-vstacklet/uwsgi_params /etc/nginx-pre-vstacklet/fastcgi_params /etc/nginx/
@@ -1717,12 +1714,12 @@ vstacklet::ioncube::install() {
 # @option: $3 - `-mariadbU | --mariadb_user` (optional) (takes one argument)
 # @option: $4 - `-mariadbPw | --mariadb_password` (optional) (takes one argument)
 # @arg: $2 - `[port]` (optional) (default: 3306)
-# @arg: $3 - `[user]` (optional) (default: root)
+# @arg: $3 - `[user]` (optional) (default: admin)
 # @arg: $4 - `[password]` (optional) (default: password auto-generated)
-# @example: vstacklet -mariadb -mariadbP 3306 -mariadbU root -mariadbPw password
-# @example: vstacklet --mariadb --mariadb_port 3306 --mariadb_user root --mariadb_password password
-# @example: vstacklet -mariadb -mariadbP 3306 -mariadbU root
-# @example: vstacklet --mariadb --mariadb_port 3306 --mariadb_user root
+# @example: vstacklet -mariadb -mariadbP 3306 -mariadbU admin -mariadbPw password
+# @example: vstacklet --mariadb --mariadb_port 3306 --mariadb_user admin --mariadb_password password
+# @example: vstacklet -mariadb -mariadbP 3306 -mariadbU admin
+# @example: vstacklet --mariadb --mariadb_port 3306 --mariadb_user admin
 # @example: vstacklet -mariadb -mariadbP 3306
 # @example: vstacklet --mariadb --mariadb_port 3306
 # @example: vstacklet -mariadb
@@ -1765,21 +1762,74 @@ vstacklet::mariadb::install() {
 		done
 		unset depend depend_list install
 		# configure mariadb
-		#vstacklet::log "mysql_secure_installation" || vstacklet::clean::rollback 70
-		vstacklet::log "mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 71
-		vstacklet::log "mysql -u root -p${mariadb_password:-${mariadb_autoPw}} -e \"CREATE USER '${mariadb_user:-root}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 72
-		vstacklet::log "mysql -u root -p${mariadb_password:-${mariadb_autoPw}} -e \"GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-root}'@'localhost' WITH GRANT OPTION;\"" || vstacklet::clean::rollback 73
+		(
+			prog=/usr/bin/mysql_secure_installation
+			/usr/bin/expect <<DOD
+spawn "${prog}"
+send "\r"
+expect "(y/n)?\r"
+send "y\r"
+expect "(y/n)?\r"
+send "y\r"
+expect "New password:"
+send "${mariadb_password:-${mariadb_autoPw}}\r"
+expect "Re-enter new password:"
+send "${mariadb_password:-${mariadb_autoPw}}\r"
+expect "(y/n)?\r"
+send "y\r"
+expect "(y/n)?\r"
+send "y\r"
+expect "(y/n)?\r"
+send "y\r"
+expect "(y/n)?\r"
+send "y\r"
+expect dof
+exit
+DOD
+		) >>${vslog} 2>&1 || setup::clean::rollback 70
+		# rather than alter the root user directly, create a new admin user with all privileges
+		#vstacklet::log "mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 71
+		# create mariadb user
+		# run a quick drop
+		vstacklet::log "mysql -u root -e \"DROP USER '${mariadb_user:-admin}'@'localhost';\""
+		vstacklet::log "mysql -u root -p${mariadb_password:-${mariadb_autoPw}} -e \"CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 72
+		vstacklet::log "mysql -u root -p${mariadb_password:-${mariadb_autoPw}} -e \"GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;\"" || vstacklet::clean::rollback 73
 		vstacklet::log "mysql -u root -p${mariadb_password:-${mariadb_autoPw}} -e \"FLUSH PRIVILEGES;\"" || vstacklet::clean::rollback 74
 		# set mariadb client and server configuration
 		{
 			echo -e "[client]"
+			echo -e "user = ${mariadb_user:-admin}"
+			echo -e "password = ${mariadb_password:-${mariadb_autoPw}}"
 			echo -e "port = ${mariadb_port:-3306}"
 			echo -e "socket = /var/run/mysqld/mysqld.sock"
+			echo
 			echo -e "[mysqld]"
 			echo -e "port = ${mariadb_port:-3306}"
 			echo -e "socket = /var/run/mysqld/mysqld.sock"
 			echo -e "bind-address = 127.0.0.1"
-
+			echo -e "datadir = /var/lib/mysql"
+			echo -e "log-error = /var/log/mysql/error.log"
+			echo -e "pid-file = /var/run/mysqld/mysqld.pid"
+			echo -e "max_allowed_packet = 16M"
+			echo -e "max_connections = 1000"
+			echo -e "max_user_connections = 1000"
+			echo -e "max_connect_errors = 1000"
+			echo -e "max_heap_table_size = 16M"
+			echo -e "max_sp_recursion_depth = 255"
+			echo -e "max_sp_cache_size = 4096"
+			echo -e "max_binlog_size = 100M"
+			echo -e "max_binlog_cache_size = 1M"
+			echo -e "max_binlog_stmt_cache_size = 1M"
+			echo -e "max_sort_length = 1024"
+			echo -e "max_join_size = 1000000"
+			echo -e "max_length_for_sort_data = 1024"
+			echo -e "max_seeks_for_key = 4294967295"
+			echo -e "max_write_lock_count = 4294967295"
+			echo -e "max_tmp_tables = 32"
+			echo -e "max_tmp_disk_tables = 32"
+			echo -e "max_prepared_stmt_count = 16382"
+			echo -e "max_delayed_threads = 20"
+			echo -e "max_insert_delayed_threads = 20"
 		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 75
 		vstacklet::shell::text::green "mariaDB installed and configured. see details below:"
 		vstacklet::shell::misc::nl
@@ -1787,7 +1837,7 @@ vstacklet::mariadb::install() {
 		vstacklet::shell::text::green::sl "${mariadb_password:-${mariadb_autoPw}}"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "mariaDB user: "
-		vstacklet::shell::text::green::sl "${mariadb_user:-root}"
+		vstacklet::shell::text::green::sl "${mariadb_user:-admin}"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "mariaDB port: "
 		vstacklet::shell::text::green::sl "${mariadb_port:-3306}"
@@ -1814,10 +1864,10 @@ vstacklet::mariadb::install() {
 # @option: $3 - `-mysqlU | --mysql_user` (optional) (takes one argument)
 # @option: $4 - `-mysqlPw | --mysql_password` (optional) (takes one argument)
 # @arg: $2 - `[mysql_port]` (optional) (default: 3306)
-# @arg: $3 - `[mysql_user]` (optional) (default: root)
+# @arg: $3 - `[mysql_user]` (optional) (default: admin)
 # @arg: $4 - `[mysql_password]` (optional) (default: password auto-generated)
-# @example: vstacklet -mysql -mysqlP 3306 -mysqlU root -mysqlPw password
-# @example: vstacklet --mysql --mysql_port 3306 --mysql_user root --mysql_password password
+# @example: vstacklet -mysql -mysqlP 3306 -mysqlU admin -mysqlPw password
+# @example: vstacklet --mysql --mysql_port 3306 --mysql_user admin --mysql_password password
 # @null
 # @return_code: 76 - failed to download MySQL deb package.
 # @return_code: 77 - failed to install MySQL deb package.
@@ -1862,9 +1912,9 @@ vstacklet::mysql::install() {
 		done
 		unset depend_list install_list
 		# configure mysql
-		vstacklet::log "mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::clean::rollback 79
-		vstacklet::log "mysql -u root -p${mysql_password:-${mysql_autoPw}} -e \"CREATE USER '${mysql_user:-root}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::clean::rollback 80
-		vstacklet::log "mysql -u root -p${mysql_password:-${mysql_autoPw}} -e \"GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-root}'@'localhost' WITH GRANT OPTION;\"" || vstacklet::clean::rollback 81
+		#vstacklet::log "mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::clean::rollback 79
+		vstacklet::log "mysql -u root -p${mysql_password:-${mysql_autoPw}} -e \"CREATE USER '${mysql_user:-admin}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::clean::rollback 80
+		vstacklet::log "mysql -u root -p${mysql_password:-${mysql_autoPw}} -e \"GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-admin}'@'localhost' WITH GRANT OPTION;\"" || vstacklet::clean::rollback 81
 		vstacklet::log "mysql -u root -p${mysql_password:-${mysql_autoPw}} -e \"FLUSH PRIVILEGES;\"" || vstacklet::clean::rollback 82
 		# set mysql client and server configuration
 		{
@@ -1882,7 +1932,7 @@ vstacklet::mysql::install() {
 		vstacklet::shell::text::green::sl "${mysql_password:-${mysql_autoPw}}"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "mySQL user: "
-		vstacklet::shell::text::green::sl "${mysql_user:-root}"
+		vstacklet::shell::text::green::sl "${mysql_user:-admin}"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "mySQL port: "
 		vstacklet::shell::text::green::sl "${mysql_port:-3306}"
@@ -1901,10 +1951,10 @@ vstacklet::mysql::install() {
 # @description: Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1889-L1969)
 # @option: $1 - `-postgre | --postgresql` (optional)
 # @arg: $2 - `[postgresql_port]` (optional) (default: 5432)
-# @arg: $3 - `[postgresql_user]` (optional) (default: root)
+# @arg: $3 - `[postgresql_user]` (optional) (default: admin)
 # @arg: $4 - `[postgresql_password]` (optional) (default: password auto-generated)
-# @example: vstacklet -postgre -postgreP 5432 -postgreU root -postgrePw password
-# @example: vstacklet --postgresql --postgresql_port 5432 --postgresql_user root --postgresql_password password
+# @example: vstacklet -postgre -postgreP 5432 -postgreU admin -postgrePw password
+# @example: vstacklet --postgresql --postgresql_port 5432 --postgresql_user admin --postgresql_password password
 # @return_code: 84 - failed to install PostgreSQL dependencies.
 # @return_code: 85 - failed to switch to /etc/postgresql/${postgre_version}/main directory.
 # @return_code: 86 - failed to set PostgreSQL password.
@@ -1955,9 +2005,9 @@ vstacklet::postgre::install() {
 		# set postgresql root password
 		vstacklet::log "sudo -u postgres psql -c \"ALTER USER postgres WITH PASSWORD '${postgresql_password:-${postgresql_autoPw}}';\"" || vstacklet::clean::rollback 86
 		# create postgresql user
-		vstacklet::log "sudo -u postgres psql -c \"CREATE USER ${postgresql_user:-root} WITH PASSWORD '${postgresql_password:-${postgresql_autoPw}}';\"" || vstacklet::clean::rollback 87
+		vstacklet::log "sudo -u postgres psql -c \"CREATE USER ${postgresql_user:-admin} WITH PASSWORD '${postgresql_password:-${postgresql_autoPw}}';\"" || vstacklet::clean::rollback 87
 		# grant postgresql user privileges
-		vstacklet::log "sudo -u postgres psql -c \"ALTER USER ${postgresql_user:-root} WITH SUPERUSER;\"" || vstacklet::clean::rollback 88
+		vstacklet::log "sudo -u postgres psql -c \"ALTER USER ${postgresql_user:-admin} WITH SUPERUSER;\"" || vstacklet::clean::rollback 88
 		# set postgre client and server configuration
 		cp -f "/etc/postgresql/${postgre_version}/main/postgresql.conf" "/etc/postgresql/${postgre_version}/main/postgresql.conf.default-bak"
 		{
@@ -1980,7 +2030,7 @@ vstacklet::postgre::install() {
 		vstacklet::shell::text::green::sl "${postgresql_password:-${postgresql_autoPw}}"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "postgre user:"
-		vstacklet::shell::text::green::sl "${postgresql_user:-root}"
+		vstacklet::shell::text::green::sl "${postgresql_user:-admin}"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "postgre port:"
 		vstacklet::shell::text::green::sl "${postgresql_port:-5432}"
@@ -2095,7 +2145,7 @@ vstacklet::redis::install() {
 #   - database server: mariadb, mysql
 #     - mariaDB usage: `-mariadbU [user] | --mariadb_user [user]` & `-mariadbPw [password] | --mariadb_password [password]`
 #     - mysql usage: `-mysqlU [user] | --mysql_user [user]` & `-mysqlPw [password] | --mysql_password [password]`
-#     - note: if no user or password is provided, the default user and password will be used. (root, auto-generated password)
+#     - note: if no user or password is provided, the default user and password will be used. (admin, auto-generated password)
 #   - php version: php7.4, php8.1
 #     - PHP usage: `-php [version] | --php [version]`
 #   - port: http
@@ -2103,8 +2153,8 @@ vstacklet::redis::install() {
 #     - note: if no port is provided, the default port will be used. (80)
 # @option: $1 - `-phpmyadmin | --phpmyadmin` (optional) (takes no arguments) (default: not installed)
 # @arg: `-phpmyadmin | --phpmyadmin` does not take any arguments. However, it requires the options as expressed above.
-# @example: vstacklet -phpmyadmin -nginx -mariadbU root -mariadbPw password -php 8.1 -http 80
-# @example: vstacklet --phpmyadmin --nginx --mariadb_user root --mariadb_password password --php 8.1 --http 80
+# @example: vstacklet -phpmyadmin -nginx -mariadbU admin -mariadbPw password -php 8.1 -http 80
+# @example: vstacklet --phpmyadmin --nginx --mariadb_user admin --mariadb_password password --php 8.1 --http 80
 # @null
 # @return_code: 97 - a database server was not selected.
 # @return_code: 98 - a web server was not selected.
@@ -2175,7 +2225,7 @@ vstacklet::phpmyadmin::install() {
 		vstacklet::shell::text::white "configuring phpMyAdmin ... "
 		# create phpmyadmin htpasswd file - this is used for basic authentication, not for the database
 		# this is only used if/when the user opts to use basic authentication (a post install courtesy)
-		htpasswd -b -c /usr/share/phpmyadmin/.htpasswd "${mariadb_user:-${mysql_user:-root}}" "${pma_password}" >>${vslog} 2>&1 || vstacklet::clean::rollback 111
+		htpasswd -b -c /usr/share/phpmyadmin/.htpasswd "${mariadb_user:-${mysql_user:-admin}}" "${pma_password}" >>${vslog} 2>&1 || vstacklet::clean::rollback 111
 		# set phpmyadmin configuration
 		{
 			echo -e "<?php"
@@ -2191,7 +2241,7 @@ vstacklet::phpmyadmin::install() {
 			echo -e "\$cfg['Servers'][\$i]['extension'] = 'mysqli';"
 			echo -e "\$cfg['Servers'][\$i]['compress'] = false;"
 			echo -e "\$cfg['Servers'][\$i]['auth_type'] = 'cookie';"
-			echo -e "\$cfg['Servers'][\$i]['user'] = '${mariadb_user:-${mysql_user:-root}}';"
+			echo -e "\$cfg['Servers'][\$i]['user'] = '${mariadb_user:-${mysql_user:-admin}}';"
 			echo -e "\$cfg['Servers'][\$i]['password'] = '${pma_password}';"
 			echo -e "\$cfg['Servers'][\$i]['AllowNoPassword'] = false;"
 			echo -e "/* End of servers configuration */"
@@ -2208,7 +2258,7 @@ vstacklet::phpmyadmin::install() {
 		vstacklet::shell::text::green::sl "${pma_version}"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "phpMyAdmin username: "
-		vstacklet::shell::text::green::sl "${mariadb_user:-${mysql_user:-root}}"
+		vstacklet::shell::text::green::sl "${mariadb_user:-${mysql_user:-admin}}"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "phpMyAdmin password: "
 		vstacklet::shell::text::green::sl "${pma_password}"
@@ -2518,7 +2568,7 @@ vstacklet::sendmail::install() {
 vstacklet::wordpress::install() {
 	# check if WordPress has been selected
 	# If you prefer a more modular installation, you can comment out the following 3 lines.
-	[[ -z ${mariadb} || -z ${mysql} ]] && vstacklet::clean::rollback 135
+	[[ -z ${mariadb} || -z ${mysql} || -z ${postresql} ]] && vstacklet::clean::rollback 135
 	[[ -z ${nginx} || -z ${varnish} ]] && vstacklet::clean::rollback 136
 	[[ -z ${php} || -z ${hhvm} ]] && vstacklet::clean::rollback 137
 	if [[ -n ${wordpress} ]]; then
