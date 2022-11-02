@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1669
+# @version: 3.1.1673
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -306,12 +306,10 @@ vstacklet::args::process() {
 			declare -gi sendmail_skip="1"
 			declare -gi csf="1"
 			shift
-			[[ -z ${email} ]] && vstacklet::clean::rollback 3
 			;;
 		-csfCf | --csf_cloudflare)
 			declare -gi csf_cloudflare="1"
 			shift
-			[[ -z ${csf} ]] && vstacklet::clean::rollback 4
 			;;
 		-d* | --domain*)
 			declare -gi domain_ssl=1
@@ -436,7 +434,7 @@ vstacklet::args::process() {
 			shift
 			;;
 		-php* | --php*)
-			declare -gi php_set="1"
+			#declare -gi php_set="1"
 			declare -g php="${2}"
 			shift
 			shift
@@ -467,7 +465,6 @@ vstacklet::args::process() {
 		-sendmail | --sendmail)
 			declare -gi sendmail="1"
 			shift
-			[[ -z ${email} ]] && vstacklet::clean::rollback 26
 			;;
 		-sendmailP* | --sendmail_port*)
 			declare -gi sendmail_port="${2}"
@@ -514,6 +511,8 @@ vstacklet::args::process() {
 			;;
 		esac
 	done
+	[[ -n ${csfCf} && -z ${csf} ]] && vstacklet::clean::rollback 4
+	[[ -n ${csf} && -z ${email} ]] && vstacklet::clean::rollback 3
 	[[ -z ${ftp_port} ]] && declare -gi ftp_port="21"
 	[[ -z ${https_port} ]] && declare -gi https_port="443"
 	[[ -z ${http_port} ]] && declare -gi http_port="80"
@@ -522,6 +521,7 @@ vstacklet::args::process() {
 	[[ -z ${postgresql_port} ]] && declare -gi postgresql_port="5432"
 	[[ -z ${php} ]] && declare -g php="8.1"
 	[[ -z ${redis_port} ]] && declare -gi redis_port="6379"
+	[[ -n ${sendmail} && -z ${email} ]] && vstacklet::clean::rollback 26
 	[[ -z ${sendmail_port} ]] && declare -gi sendmail_port="587"
 	[[ -z ${ssh_port} ]] && declare -gi ssh_port="22"
 	[[ -z ${varnish_port} ]] && declare -gi varnish_port="6081"
@@ -869,6 +869,7 @@ vstacklet::dependencies::array() {
 	# install php dependencies
 	declare -ga php_dependencies=("php${php}-fpm" "php${php}-zip" "php${php}-cgi" "php${php}-cli" "php${php}-common" "php${php}-curl" "php${php}-dev" "php${php}-gd" "php${php}-bcmath" "php${php}-gmp" "php${php}-imap" "php${php}-intl" "php${php}-ldap" "php${php}-mbstring" "php${php}-mysql" "php${php}-opcache" "php${php}-pspell" "php${php}-readline" "php${php}-soap" "php${php}-xml" "php${php}-imagick" "php${php}-msgpack" "php${php}-igbinary" "libmcrypt-dev" "mcrypt" "libmemcached-dev" "php-memcached")
 	[[ -n ${redis} ]] && php_dependencies+=("php${php}-redis")
+	[[ -n ${mariadb} || -n ${mysql} ]] && php_dependencies+=("php${php}-mysql")
 	# install hhvm dependencies
 	declare -ga hhvm_dependencies=("hhvm")
 	# install nginx dependencies
@@ -1280,7 +1281,7 @@ vstacklet::locale::set() {
 	apt-get -y install language-pack-en-base >>"${vslog}" 2>&1
 	if [[ -e /usr/sbin/locale-gen ]]; then
 		(
-			update-locale "LANG=en_US.UTF-8" "LC_ALL=en_US.UTF-8" "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
+			update-locale "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
 			dpkg-reconfigure --frontend noninteractive locales
 			vstacklet::log "locale-gen locales"
 		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 45
@@ -1288,13 +1289,13 @@ vstacklet::locale::set() {
 		(
 			vstacklet::log "apt-get -y update"
 			vstacklet::log "apt-get -y install locales locale-gen"
-			update-locale "LANG=en_US.UTF-8" "LC_ALL=en_US.UTF-8" "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
+			update-locale "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
 			dpkg-reconfigure --frontend noninteractive locales
 			vstacklet::log "locale-gen locales"
 		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 45
 
 	fi
-	declare -xg LANG="en_US.UTF-8" LANGUAGE="en_US.UTF-8"
+	declare -xg LANGUAGE="en_US.UTF-8"
 }
 
 ##################################################################################
@@ -1333,9 +1334,9 @@ vstacklet::locale::set() {
 # @break
 ##################################################################################
 vstacklet::php::install() {
-	if [[ -n ${php} && ${php_set} == "1" ]]; then
-		# check for hhvm
-		[[ -n ${hhvm} ]] && vstacklet::clean::rollback 46
+	# check for hhvm
+	[[ -n ${php} && -n ${hhvm} ]] && vstacklet::clean::rollback 46
+	if [[ -n ${php} && -z ${hhvm} ]]; then
 		# check for nginx \\ to maintain modularity, nginx is not required for PHP
 		#[[ -z ${nginx} ]] && vstacklet::clean::rollback "PHP requires nginx. please install nginx."
 		vstacklet::shell::text::white "installing and configuring php${php}-fpm ... "
@@ -1375,10 +1376,9 @@ vstacklet::php::install() {
 		for i in "${phpmods[@]}"; do
 			phpenmod -v "${php}" "${i}"
 		done
-		# trunk-ignore(shellcheck/SC2015)
-		[[ -n ${memcached} ]] && phpenmod -v "${php}" memcached || vstacklet::clean::rollback 48
-		# trunk-ignore(shellcheck/SC2015)
-		[[ -n ${redis} ]] && phpenmod -v "${php}" redis || vstacklet::clean::rollback 49
+		[[ -n ${redis} ]] && phpmods+=("redis")
+		#phpenmod -v "${php}" memcached >>${vslog} 2>&1 || { vstacklet::clean::rollback 48; } (deprecated)
+		#phpenmod -v "${php}" redis >>${vslog} 2>&1 || { vstacklet::clean::rollback 49; } (deprecated)
 	fi
 }
 
@@ -1411,7 +1411,7 @@ vstacklet::php::install() {
 ##################################################################################
 vstacklet::hhvm::install() {
 	# check for php
-	[[ -n ${php} ]] && vstacklet::clean::rollback 50
+	[[ -n ${hhvm} && -n ${php} ]] && vstacklet::clean::rollback 50
 	if [[ -n ${hhvm} && -z ${php} ]]; then
 		# check for nginx \\ to maintain modularity, nginx is not required for HHVM
 		#[[ -z ${nginx} ]] && vstacklet::clean::rollback "hhvm requires nginx. please install with -nginx."
@@ -1511,14 +1511,15 @@ vstacklet::nginx::install() {
 		unset depend depend_list install
 		vstacklet::log "systemctl stop nginx"
 		mkdir -p "${vstacklet_base_path}/setup/nginx/temp"
-		[[ -f /etc/nginx/nginx.conf ]] && mv -f /etc/nginx/nginx.conf "${vstacklet_base_path:?}/setup/nginx/temp/nginx.conf"
-		[[ -f /etc/nginx/sites-enabled/default ]] && mv -f /etc/nginx/sites-enabled/default "${vstacklet_base_path:?}/setup/nginx/temp/default"
+		[[ -f /etc/nginx/nginx.conf ]] && mv -f /etc/nginx/nginx.conf "${vstacklet_base_path}/setup/nginx/temp/nginx.conf"
+		[[ -f /etc/nginx/sites-enabled/default ]] && mv -f /etc/nginx/sites-enabled/default "${vstacklet_base_path}/setup/nginx/temp/default"
 		mv /etc/nginx /etc/nginx-pre-vstacklet
 		mkdir -p /etc/nginx/{conf.d,cache,ssl,sites-enabled,sites-available}
-		sed -i "s/{{server_ip}}/${server_ip};/" "${vstacklet_base_path:?}/nginx/server.configs/directives/cloudflare-real-ip.conf"
-		sed -i "s/{{webroot}}/${web_root:-/var/www/html}\/public\/.well-known/g" "/etc/nginx/server.configs/location/letsencrypt.conf"
+		sed -i "s|{{server_ip}}|${server_ip}|g" "${vstacklet_base_path}/nginx/server.configs/directives/cloudflare-real-ip.conf"
+		wr_sanitize=$(echo "${web_root:-/var/www/html}" | sed 's/\//\\\//g')
+		sed -i "s|{{webroot}}|${wr_sanitize}|g" "/etc/nginx/server.configs/location/letsencrypt.conf"
 		sleep 3
-		rsync -aP --exclude=/pagespeed --exclude=LICENSE --exclude=README --exclude=.git "${local_nginx_dir}/nginx"/* /etc/nginx/ >/dev/null 2>&1
+		rsync -aP --exclude=/pagespeed --exclude=LICENSE --exclude=README --exclude=.git "${local_nginx_dir}"/* /etc/nginx/ >/dev/null 2>&1
 		\cp -rf /etc/nginx-pre-vstacklet/uwsgi_params /etc/nginx-pre-vstacklet/fastcgi_params /etc/nginx/
 		chown -R www-data:www-data /etc/nginx/cache
 		chmod -R 755 /etc/nginx/cache
@@ -1537,7 +1538,6 @@ vstacklet::nginx::install() {
 		fi
 		vstacklet::shell::text::white "configuring NGinx ... "
 		# post necessary edits to nginx config files
-		wr_sanitize=$(echo "${web_root:-/var/www/html}" | sed 's/\//\\\//g')
 		sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::rollback::clean 55
 		# enable site
 		ln -sf "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "/etc/nginx/sites-enabled/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 56
@@ -1616,7 +1616,7 @@ vstacklet::varnish::install() {
 		sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{vanish_port}}|${varnish_port:-6081}|g" "/etc/varnish/default.vcl"
 		sed -i "s|6081|${varnish_port:-6081}|g" /etc/default/varnish
 		# adjust varnish service
-		cp -f /lib/systemd/system/varnishlog.service /etc/systemd/system/
+		#todo: cp -f /lib/systemd/system/varnishlog.service /etc/systemd/system/
 		cp -f /lib/systemd/system/varnish.service /etc/systemd/system/
 		sed -i "s|6081|${varnish_port:-6081}|g" /etc/systemd/system/varnish.service
 		sed -i "s|6081|${varnish_port:-6081}|g" /lib/systemd/system/varnish.service
@@ -1765,7 +1765,7 @@ vstacklet::mariadb::install() {
 		done
 		unset depend depend_list install
 		# configure mariadb
-		vstacklet::log "mysql_secure_installation" || vstacklet::clean::rollback 70
+		#vstacklet::log "mysql_secure_installation" || vstacklet::clean::rollback 70
 		vstacklet::log "mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 71
 		vstacklet::log "mysql -u root -p${mariadb_password:-${mariadb_autoPw}} -e \"CREATE USER '${mariadb_user:-root}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 72
 		vstacklet::log "mysql -u root -p${mariadb_password:-${mariadb_autoPw}} -e \"GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-root}'@'localhost' WITH GRANT OPTION;\"" || vstacklet::clean::rollback 73
@@ -2130,7 +2130,7 @@ vstacklet::phpmyadmin::install() {
 	[[ -z ${nginx} && -z ${varnish} ]] && vstacklet::clean::rollback 98
 	[[ -z ${php} ]] && vstacklet::clean::rollback 99
 	# check if hhvm is selected and throw an error if it is
-	[[ -n ${hhvm} ]] && vstacklet::clean::rollback 100
+	[[ -n ${hhvm} && -n ${phpmyadmin} ]] && vstacklet::clean::rollback 100
 	if [[ (-n ${phpmyadmin}) && (-n ${mariadb} || -n ${mysql}) && (-n ${nginx} || -n ${varnish}) && (-n ${php}) ]]; then
 		declare pma_version pma_password pma_bf
 		pma_version=$(curl -s https://www.phpmyadmin.net/home_page/version.json | jq -r '.version')
