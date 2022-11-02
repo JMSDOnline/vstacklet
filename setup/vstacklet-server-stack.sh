@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1691
+# @version: 3.1.1692
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2258,9 +2258,9 @@ vstacklet::redis::install() {
 ##################################################################################
 vstacklet::phpmyadmin::install() {
 	# If you prefer a more modular installation, you can comment out the following 3 lines.
-	[[ -z ${mariadb} || -z ${mysql} ]] && vstacklet::clean::rollback 97
-	[[ -z ${nginx} && -z ${varnish} ]] && vstacklet::clean::rollback 98
-	[[ -z ${php} ]] && vstacklet::clean::rollback 99
+	#[[ -z ${mariadb} || -z ${mysql} ]] && vstacklet::clean::rollback 97
+	#[[ -z ${nginx} && -z ${varnish} ]] && vstacklet::clean::rollback 98
+	#[[ -z ${php} ]] && vstacklet::clean::rollback 99
 	# check if hhvm is selected and throw an error if it is
 	[[ -n ${hhvm} && -n ${phpmyadmin} ]] && vstacklet::clean::rollback 100
 	if [[ (-n ${phpmyadmin}) && (-n ${mariadb} || -n ${mysql}) && (-n ${nginx} || -n ${varnish}) && (-n ${php}) ]]; then
