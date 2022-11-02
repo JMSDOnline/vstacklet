@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1694
+# @version: 3.1.1699
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -3113,9 +3113,16 @@ vstacklet::clean::rollback() {
 	#rm -rf "/var/log/vstacklet"
 	if [[ -n ${install_list[*]} ]]; then
 		for installed in "${install_list[@]}"; do
-			vstacklet::log "apt-get -y autoremove ${installed}"
+			# trunk-ignore(shellcheck/SC2046)
+			DEBIAN_FRONTEND=noninteractive apt-get -y purge $(apt-cache depends "${installed}" | awk '{ print $2 }' | tr '\n' ' ') >>"${vslog}" 2>&1
+			DEBIAN_FRONTEND=noninteractive apt-get -y --purge autoremove "${installed}" >>"${vslog}" 2>&1
 			vstacklet::log "apt-get -y autopurge ${installed}"
+			vstacklet::log "apt-get -y autoremove ${installed}"
 		done
+		vstacklet::log "apt-get -y update"
+		vstacklet::log "apt-get -y check"
+		vstacklet::log "apt-get -fy install"
+		vstacklet::log "apt-get -y autoclean"
 		vstacklet::log "apt-get -y autoremove"
 		vstacklet::log "apt-get -y autoclean"
 	fi
