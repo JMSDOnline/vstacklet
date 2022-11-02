@@ -1790,15 +1790,6 @@ expect dof
 exit
 DOD
 		) >>${vslog} 2>&1 || setup::clean::rollback 70
-		# rather than alter the root user directly, create a new admin user with all privileges
-		#vstacklet::log "mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 71
-		vstacklet::log "mysqladmin -u root -h localhost password \"${mariadb_password:-${mariadb_autoPw}}\"" || vstacklet::clean::rollback 71
-		# create mariadb user
-		# run a quick drop
-		vstacklet::log "mysql -u root -e \"DROP USER '${mariadb_user:-admin}'@'localhost';\""
-		vstacklet::log "mysql -u root -e \"CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 72
-		vstacklet::log "mysql -u root -e \"GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;\"" || vstacklet::clean::rollback 73
-		vstacklet::log "mysql -u root -e \"FLUSH PRIVILEGES;\"" || vstacklet::clean::rollback 74
 		# set mariadb client and server configuration
 		{
 			echo -e "[client]"
@@ -1835,6 +1826,15 @@ DOD
 			echo -e "max_delayed_threads = 20"
 			echo -e "max_insert_delayed_threads = 20"
 		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 75
+		# rather than alter the root user directly, create a new admin user with all privileges
+		#vstacklet::log "mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 71
+		vstacklet::log "mysqladmin -u root -h localhost password \"${mariadb_password:-${mariadb_autoPw}}\"" || vstacklet::clean::rollback 71
+		# create mariadb user
+		# run a quick drop
+		vstacklet::log "mysql -u root -e \"DROP USER '${mariadb_user:-admin}'@'localhost';\""
+		vstacklet::log "mysql -u root -e \"CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 72
+		vstacklet::log "mysql -u root -e \"GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;\"" || vstacklet::clean::rollback 73
+		vstacklet::log "mysql -u root -e \"FLUSH PRIVILEGES;\"" || vstacklet::clean::rollback 74
 		vstacklet::shell::text::green "mariaDB installed and configured. see details below:"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "mariaDB password: "
