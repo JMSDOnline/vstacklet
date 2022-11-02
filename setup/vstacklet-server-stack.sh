@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1687
+# @version: 3.1.1688
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1848,11 +1848,11 @@ DOD
 		# create the mysql database
 		vstacklet::log "mysql_install_db --user=mysql --ldata=/var/lib/mysql"
 		# run a quick drop in the event this is a reinstall (otherwise, this is harmless)
-		vstacklet::log "mysql -e \"DROP USER '${mariadb_user:-admin}'@'localhost';\""
+		mysql -e "DROP USER '${mariadb_user:-admin}'@'localhost';" >>${vslog} 2>&1
 		# create mariadb user
-		vstacklet::log "mysql -e \"CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 72
-		vstacklet::log "mysql -e \"GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;\"" || vstacklet::clean::rollback 73
-		vstacklet::log "mysql -e \"FLUSH PRIVILEGES;\"" || vstacklet::clean::rollback 74
+		mysql -e "CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 72
+		mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 73
+		mysql -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 74
 		vstacklet::shell::text::green "mariaDB installed and configured. see details below:"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "mariaDB password: "
