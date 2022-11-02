@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1665
+# @version: 3.1.1668
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -331,10 +331,34 @@ vstacklet::args::process() {
 			shift
 			[[ -n ${ftp_port} && ${ftp_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 6
 			[[ -n ${ftp_port} && ${ftp_port} -lt 1 || ${ftp_port} -gt 65535 ]] && vstacklet::clean::rollback 7
-			[[ -z ${ftp_port} ]] && declare -gi ftp_port="21"
 			;;
 		-hhvm | --hhvm)
 			declare -gi hhvm="1"
+			shift
+			;;
+		-hn* | --hostname*)
+			declare -g hostname="${2}"
+			shift
+			shift
+			[[ -n ${hostname} && $(echo "${hostname}" | grep -P '(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)') == "" ]] && vstacklet::clean::rollback 22
+			[[ -z ${hostname} ]] && declare -g hostname="localhost"
+			;;
+		-https* | --https_port*)
+			declare -gi https_port="${2}"
+			shift
+			shift
+			[[ -n ${https_port} && ${https_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 18
+			[[ -n ${https_port} && ${https_port} -lt 1 || ${https_port} -gt 65535 ]] && vstacklet::clean::rollback 19
+			;;
+		-http* | --http_port*)
+			declare -gi http_port="${2}"
+			shift
+			shift
+			[[ -n ${http_port} && ${http_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 20
+			[[ -n ${http_port} && ${http_port} -lt 1 || ${http_port} -gt 65535 ]] && vstacklet::clean::rollback 21
+			;;
+		-ioncube | --ioncube)
+			declare -gi ioncube="1"
 			shift
 			;;
 		-mariadb | --mariadb)
@@ -358,7 +382,6 @@ vstacklet::args::process() {
 			shift
 			[[ -n ${mariadb_port} && ${mariadb_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 9
 			[[ -n ${mariadb_port} && ${mariadb_port} -lt 1 || ${mariadb_port} -gt 65535 ]] && vstacklet::clean::rollback 10
-			[[ -z ${mariadb_port} ]] && declare -gi mariadb_port="3306"
 			;;
 		-mysql | --mysql)
 			declare -gi mysql="1"
@@ -381,7 +404,6 @@ vstacklet::args::process() {
 			shift
 			[[ -n ${mysql_port} && ${mysql_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 12
 			[[ -n ${mysql_port} && ${mysql_port} -lt 1 || ${mysql_port} -gt 65535 ]] && vstacklet::clean::rollback 13
-			[[ -z ${mysql_port} ]] && declare -gi mysql_port="3306"
 			;;
 		-nginx | --nginx)
 			declare -gi nginx="1"
@@ -408,7 +430,6 @@ vstacklet::args::process() {
 			shift
 			[[ -n ${postgresql_port} && ${postgresql_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 15
 			[[ -n ${postgresql_port} && ${postgresql_port} -lt 1 || ${postgresql_port} -gt 65535 ]] && vstacklet::clean::rollback 16
-			[[ -z ${postgresql_port} ]] && declare -gi postgresql_port="5432"
 			;;
 		-pma | --phpmyadmin)
 			declare -gi phpmyadmin="1"
@@ -419,51 +440,18 @@ vstacklet::args::process() {
 			declare -g php="${2}"
 			shift
 			shift
-			[[ -z ${php} ]] && declare -g php="8.1"
 			[[ ${php} == *"7"* ]] && declare -g php="7.4"
 			[[ ${php} == *"8"* ]] && declare -g php="8.1"
+			[[ -z ${php} ]] && declare -g php="8.1"
 			declare -a allowed_php=("7.4" "8.1")
 			if ! vstacklet::array::contains "${php}" "supported php versions" ${allowed_php[@]}; then
 				vstacklet::clean::rollback 17
 			fi
 			;;
-		-ioncube | --ioncube)
-			declare -gi ioncube="1"
-			shift
-			;;
-		-https* | --https_port*)
-			declare -gi https_port="${2}"
-			shift
-			shift
-			[[ -n ${https_port} && ${https_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 18
-			[[ -n ${https_port} && ${https_port} -lt 1 || ${https_port} -gt 65535 ]] && vstacklet::clean::rollback 19
-			[[ -z ${https_port} ]] && declare -gi https_port="443"
-			;;
-		-http* | --http_port*)
-			declare -gi http_port="${2}"
-			shift
-			shift
-			[[ -n ${http_port} && ${http_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 20
-			[[ -n ${http_port} && ${http_port} -lt 1 || ${http_port} -gt 65535 ]] && vstacklet::clean::rollback 21
-			[[ -z ${http_port} ]] && declare -gi http_port="80"
-			;;
-		-hn* | --hostname*)
-			declare -g hostname="${2}"
-			shift
-			shift
-			[[ -n ${hostname} && $(echo "${hostname}" | grep -P '(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)') == "" ]] && vstacklet::clean::rollback 22
-			[[ -z ${hostname} ]] && declare -g hostname="localhost"
-			;;
 		-redis | --redis)
 			declare -gi redis="1"
 			shift
 			;;
-		# option for the future - not implemented yet
-		#-redisU* | --redis_user*)
-		#	declare -g redis_user="${2}"
-		#	shift
-		#	shift
-		#	;;
 		-redisPw* | --redis_password*)
 			declare -g redis_password="${2}"
 			shift
@@ -476,20 +464,18 @@ vstacklet::args::process() {
 			shift
 			[[ -n ${redis_port} && ${redis_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 24
 			[[ -n ${redis_port} && ${redis_port} -lt 1 || ${redis_port} -gt 65535 ]] && vstacklet::clean::rollback 25
-			[[ -z ${redis_port} ]] && declare -gi redis_port="6379"
 			;;
 		-sendmail | --sendmail)
 			declare -gi sendmail="1"
 			shift
 			[[ -z ${email} ]] && vstacklet::clean::rollback 26
 			;;
-		-sendmailP | --sendmail_port)
+		-sendmailP* | --sendmail_port*)
 			declare -gi sendmail_port="${2}"
 			shift
 			shift
 			[[ -n ${sendmail_port} && ${sendmail_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 27
 			[[ -n ${sendmail_port} && ${sendmail_port} -lt 1 || ${sendmail_port} -gt 65535 ]] && vstacklet::clean::rollback 28
-			[[ -z ${sendmail_port} ]] && declare -gi sendmail_port="587"
 			;;
 		-ssh* | --ssh_port*)
 			declare -gi ssh_port="${2}"
@@ -497,7 +483,6 @@ vstacklet::args::process() {
 			shift
 			[[ -n ${ssh_port} && ${ssh_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 29
 			[[ -n ${ssh_port} && ${ssh_port} -lt 1 || ${ssh_port} -gt 65535 ]] && vstacklet::clean::rollback 30
-			[[ -z ${ssh_port} ]] && declare -gi ssh_port="22"
 			;;
 		-varnish | --varnish)
 			declare -gi varnish="1"
@@ -509,22 +494,20 @@ vstacklet::args::process() {
 			shift
 			[[ -n ${varnish_port} && ${varnish_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 31
 			[[ -n ${varnish_port} && ${varnish_port} -lt 1 || ${varnish_port} -gt 65535 ]] && vstacklet::clean::rollback 32
-			[[ -z ${varnish_port} ]] && declare -gi varnish_port="6081"
+			;;
+		-wp | --wordpress)
+			declare -gi wordpress="1"
+			shift
 			;;
 		-wr* | --web_root*)
 			declare -g web_root="${2}"
 			shift
 			shift
 			[[ -n ${web_root} && $(sed -e 's/[\\/]/\\/g;s/[\/\/]/\\\//g;' <<<"${web_root}") == "" ]] && vstacklet::clean::rollback 33
-			[[ -z ${web_root} ]] && declare -g web_root="/var/www/html"
-			;;
-		-wp | --wordpress)
-			declare -gi wordpress="1"
-			shift
 			;;
 		-www-perms* | --www_permissions*)
 			"${local_setup_dir}/www-permissions.sh" "$@"
-			exit $?
+			#exit $?
 			;;
 		*)
 			invalid_option+=("$1")
@@ -532,6 +515,18 @@ vstacklet::args::process() {
 			;;
 		esac
 	done
+	[[ -z ${ftp_port} ]] && declare -gi ftp_port="21"
+	[[ -z ${https_port} ]] && declare -gi https_port="443"
+	[[ -z ${http_port} ]] && declare -gi http_port="80"
+	[[ -z ${mariadb_port} ]] && declare -gi mariadb_port="3306"
+	[[ -z ${mysql_port} ]] && declare -gi mysql_port="3306"
+	[[ -z ${postgresql_port} ]] && declare -gi postgresql_port="5432"
+	[[ -z ${php} ]] && declare -g php="8.1"
+	[[ -z ${redis_port} ]] && declare -gi redis_port="6379"
+	[[ -z ${sendmail_port} ]] && declare -gi sendmail_port="587"
+	[[ -z ${ssh_port} ]] && declare -gi ssh_port="22"
+	[[ -z ${varnish_port} ]] && declare -gi varnish_port="6081"
+	[[ -z ${web_root} ]] && declare -g web_root="/var/www/html"
 	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::clean::rollback 34
 }
 
@@ -560,8 +555,8 @@ vstacklet::environment::functions() {
 				break
 			fi
 		done
-		[[ ${_result} == "1" ]] && exit 1 #vstacklet::shell::text::error "[${_result}]: ${_named_array} array does not contain ${_value}" && exit 1
-		return "${_result}"               # 0 if found, 1 if not found, 2 if missing arguments
+		[[ ${_result} == "1" ]] && vstacklet::shell::text::error "[${_result}]: ${_named_array} array does not contain ${_value}" # && exit 1
+		return "${_result}"                                                                                                       # 0 if found, 1 if not found, 2 if missing arguments
 	}
 	vstacklet::shell::output() {
 		declare shell_reset
