@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1685
+# @version: 3.1.1687
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1845,6 +1845,8 @@ DOD
 			echo "password=${mariadb_password:-${mariadb_autoPw}}"
 			echo
 		} >/root/.my.cnf #|| vstacklet::clean::rollback 71
+		# create the mysql database
+		vstacklet::log "mysql_install_db --user=mysql --ldata=/var/lib/mysql"
 		# run a quick drop in the event this is a reinstall (otherwise, this is harmless)
 		vstacklet::log "mysql -e \"DROP USER '${mariadb_user:-admin}'@'localhost';\""
 		# create mariadb user
