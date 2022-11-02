@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1692
+# @version: 3.1.1693
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1685,8 +1685,8 @@ vstacklet::ioncube::install() {
 			cd ioncube || vstacklet::clean::rollback 66
 			cp -f ioncube_loader_lin_7.4.so /usr/lib/php/20190902/ || vstacklet::clean::rollback 67
 			echo "zend_extension = /usr/lib/php/20190902/ioncube_loader_lin_7.4.so" >/etc/php/7.4/mods-available/ioncube.ini
-			ln -sf /etc/php/7.4/mods-available/ioncube.ini /etc/php/7.4/cli/conf.d/20-ioncube.ini
-			ln -sf /etc/php/7.4/mods-available/ioncube.ini /etc/php/7.4/fpm/conf.d/20-ioncube.ini
+			ln -sf /etc/php/7.4/mods-available/ioncube.ini /etc/php/7.4/cli/conf.d/00-ioncube.ini
+			ln -sf /etc/php/7.4/mods-available/ioncube.ini /etc/php/7.4/fpm/conf.d/00-ioncube.ini
 			phpenmod -v 7.4 ioncube || vstacklet::clean::rollback 68
 		fi
 		# install ioncube loader for php 8.1
@@ -1697,8 +1697,8 @@ vstacklet::ioncube::install() {
 			cd ioncube || vstacklet::clean::rollback 66
 			cp -f ioncube_loader_lin_8.1.so /usr/lib/php/20210902/ || vstacklet::clean::rollback 67
 			echo "zend_extension = /usr/lib/php/20210902/ioncube_loader_lin_8.1.so" >/etc/php/8.1/mods-available/ioncube.ini
-			ln -sf /etc/php/8.1/mods-available/ioncube.ini /etc/php/8.1/cli/conf.d/20-ioncube.ini
-			ln -sf /etc/php/8.1/mods-available/ioncube.ini /etc/php/8.1/fpm/conf.d/20-ioncube.ini
+			ln -sf /etc/php/8.1/mods-available/ioncube.ini /etc/php/8.1/cli/conf.d/00-ioncube.ini
+			ln -sf /etc/php/8.1/mods-available/ioncube.ini /etc/php/8.1/fpm/conf.d/00-ioncube.ini
 			phpenmod -v 8.1 ioncube || vstacklet::clean::rollback 68
 		fi
 	fi
