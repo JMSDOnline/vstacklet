@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1688
+# @version: 3.1.1691
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1826,7 +1826,17 @@ DOD
 			echo -e "max_delayed_threads = 20"
 			echo -e "max_insert_delayed_threads = 20"
 		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 75
-		# set mariadb privileges
+		# set mariadb privileges sql
+		{
+			echo -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}' WITH GRANT OPTION;"
+			echo -e "FLUSH PRIVILEGES;"
+		} >/tmp/vstacklet_mariadb_privileges.sql || vstacklet::clean::rollback 75
+		# set mariadb root password sql
+		{
+			echo -e "UPDATE mysql.user SET Password=PASSWORD('${mariadb_password:-${mariadb_autoPw}}') WHERE User='root';"
+			echo -e "FLUSH PRIVILEGES;"
+		} >/tmp/vstacklet_mariadb_root_password.sql || vstacklet::clean::rollback 75
+		# set .my.cnf
 		{
 			echo "[client]"
 			echo "user=root"
@@ -1844,31 +1854,24 @@ DOD
 			echo "user=root"
 			echo "password=${mariadb_password:-${mariadb_autoPw}}"
 			echo
-		} >/root/.my.cnf #|| vstacklet::clean::rollback 71
+		} >/root/.my.cnf || vstacklet::clean::rollback 75
 		# create the mysql database
 		vstacklet::log "mysql_install_db --user=mysql --ldata=/var/lib/mysql"
-		# run a quick drop in the event this is a reinstall (otherwise, this is harmless)
-		mysql -e "DROP USER '${mariadb_user:-admin}'@'localhost';" >>${vslog} 2>&1
 		# create mariadb user
 		mysql -e "CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 72
 		mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 73
 		mysql -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 74
 		vstacklet::shell::text::green "mariaDB installed and configured. see details below:"
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "mariaDB password: "
-		vstacklet::shell::text::green::sl "${mariadb_password:-${mariadb_autoPw}}"
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "mariaDB user: "
-		vstacklet::shell::text::green::sl "${mariadb_user:-admin}"
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "mariaDB port: "
-		vstacklet::shell::text::green::sl "${mariadb_port:-3306}"
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "mariaDB socket: "
-		vstacklet::shell::text::green::sl "/var/run/mysqld/mysqld.sock"
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "mariaDB configuration file: "
-		vstacklet::shell::text::green::sl "/etc/mysql/conf.d/vstacklet.cnf"
+		vstacklet::shell::text::white::sl "mariaDB password: "
+		vstacklet::shell::text::green "${mariadb_password:-${mariadb_autoPw}}"
+		vstacklet::shell::text::white::sl "mariaDB user: "
+		vstacklet::shell::text::green "${mariadb_user:-admin}"
+		vstacklet::shell::text::white::sl "mariaDB port: "
+		vstacklet::shell::text::green "${mariadb_port:-3306}"
+		vstacklet::shell::text::white::sl "mariaDB socket: "
+		vstacklet::shell::text::green "/var/run/mysqld/mysqld.sock"
+		vstacklet::shell::text::white::sl "mariaDB configuration file: "
+		vstacklet::shell::text::green "/etc/mysql/conf.d/vstacklet.cnf"
 		vstacklet::shell::misc::nl
 	fi
 }
@@ -1935,36 +1938,90 @@ vstacklet::mysql::install() {
 		unset depend_list install_list
 		# configure mysql
 		vstacklet::shell::text::yellow "configuring MySQL ... "
-		#vstacklet::log "mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::clean::rollback 79
-		vstacklet::log "mysql -u root -p${mysql_password:-${mysql_autoPw}} -e \"CREATE USER '${mysql_user:-admin}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::clean::rollback 80
-		vstacklet::log "mysql -u root -p${mysql_password:-${mysql_autoPw}} -e \"GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-admin}'@'localhost' WITH GRANT OPTION;\"" || vstacklet::clean::rollback 81
-		vstacklet::log "mysql -u root -p${mysql_password:-${mysql_autoPw}} -e \"FLUSH PRIVILEGES;\"" || vstacklet::clean::rollback 82
 		# set mysql client and server configuration
 		{
 			echo -e "[client]"
 			echo -e "port = ${mysql_port:-3306}"
 			echo -e "socket = /var/run/mysqld/mysqld.sock"
+			echo
 			echo -e "[mysqld]"
 			echo -e "port = ${mysql_port:-3306}"
 			echo -e "socket = /var/run/mysql/mysql.sock"
 			echo -e "bind-address = 127.0.0.1"
+			echo -e "skip-external-locking"
+			echo -e "key_buffer_size = 16M"
+			echo -e "max_allowed_packet = 16M"
+			echo -e "table_open_cache = 64"
+			echo -e "sort_buffer_size = 4M"
+			echo -e "net_buffer_length = 8K"
+			echo -e "read_buffer_size = 2M"
+			echo -e "read_rnd_buffer_size = 1M"
+			echo -e "myisam_sort_buffer_size = 64M"
+			echo -e "thread_cache_size = 8"
+			echo -e "query_cache_size = 32M"
+			echo -e "query_cache_limit = 2M"
+			echo -e "query_cache_type = 1"
+			echo -e "log_error = /var/log/mysql/error.log"
+			echo -e "expire_logs_days = 10"
+			echo -e "max_binlog_size = 100M"
+			echo -e "character-set-server = utf8mb4"
+			echo -e "collation-server = utf8mb4_unicode_ci"
+			echo -e "default-storage-engine = InnoDB"
+			echo -e "innodb_file_per_table = 1"
+			echo -e "innodb_buffer_pool_size = 128M"
+			echo -e "innodb_log_file_size = 64M"
+			echo -e "innodb_log_buffer_size = 8M"
+			echo -e "innodb_flush_log_at_trx_commit = 1"
+			echo -e "innodb_lock_wait_timeout = 50"
+			echo -e "innodb_doublewrite = 1"
+			echo -e "innodb_flush_method = O_DIRECT"
+			echo -e "innodb_read_io_threads = 4"
+			echo -e "innodb_write_io_threads = 4"
+			echo -e "innodb_purge_threads = 1"
+			echo -e "innodb_thread_concurrency = 0"
+			echo -e "innodb_strict_mode = 1"
+			echo -e "innodb_large_prefix = 1"
+			echo -e "innodb_file_format = Barracuda"
+			echo -e "innodb_file_format_max = Barracuda"
+			echo -e "innodb_stats_on_metadata = 0"
+			echo -e "innodb_autoinc_lock_mode = 2"
+			echo -e "innodb_print_all_deadlocks = 1"
+			echo -e "innodb_buffer_pool_instances = 1"
+			echo -e "innodb_buffer_pool_load_at_startup = 1"
+			echo -e "innodb_buffer_pool_dump_at_shutdown = 1"
+			echo -e "innodb_buffer_pool_dump_pct = 25"
+			echo -e "innodb_buffer_pool_dump_now = 1"
+			echo -e "innodb_buffer_pool_load_now = 1"
+			echo -e "innodb_buffer_pool_dump_filename = /var/lib/mysql/ib_buffer_pool"
+			echo -e "innodb_buffer_pool_load_filename = /var/lib/mysql/ib_buffer_pool"
 		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 83
+		# set mysql privileges
+		{
+			echo -e "[mysqld]"
+			echo -e "skip-grant-tables"
+		} >/etc/mysql/conf.d/vstacklet-grant.cnf || vstacklet::clean::rollback 83
+		# set .my.cnf
+		{
+			echo -e "[client]"
+			echo -e "user = root"
+			echo -e "password = ${mysql_password:-${mysql_autoPw}}"
+		} >"${vstacklet_base_path}/config/mysql/.my.cnf" || vstacklet::clean::rollback 83
+		#mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::clean::rollback 79
+		mysql -e "CREATE USER '${mysql_user:-admin}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 80
+		mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 81
+		mysql -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 82
+		# print mysql credentials
 		vstacklet::shell::text::green "MySQL installed and configured. see details below:"
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "MySQL password: "
-		vstacklet::shell::text::green::sl "${mysql_password:-${mysql_autoPw}}"
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "MySQL user: "
-		vstacklet::shell::text::green::sl "${mysql_user:-admin}"
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "MySQL port: "
-		vstacklet::shell::text::green::sl "${mysql_port:-3306}"
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "MySQL socket: "
-		vstacklet::shell::text::green::sl "/var/run/mysqld/mysqld.sock"
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "MySQL configuration file: "
-		vstacklet::shell::text::green::sl "/etc/mysql/conf.d/vstacklet.cnf"
+		vstacklet::shell::text::white::sl "MySQL password: "
+		vstacklet::shell::text::green "${mysql_password:-${mysql_autoPw}}"
+		vstacklet::shell::text::white::sl "MySQL user: "
+		vstacklet::shell::text::green "${mysql_user:-admin}"
+		vstacklet::shell::text::white::sl "MySQL port: "
+		vstacklet::shell::text::green "${mysql_port:-3306}"
+		vstacklet::shell::text::white::sl "MySQL socket: "
+		vstacklet::shell::text::green "/var/run/mysqld/mysqld.sock"
+		vstacklet::shell::text::white::sl "MySQL configuration file: "
+		vstacklet::shell::text::green "/etc/mysql/conf.d/vstacklet.cnf"
 		vstacklet::shell::misc::nl
 	fi
 }
