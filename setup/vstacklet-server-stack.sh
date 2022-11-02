@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1684
+# @version: 3.1.1685
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1826,15 +1826,31 @@ DOD
 			echo -e "max_delayed_threads = 20"
 			echo -e "max_insert_delayed_threads = 20"
 		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 75
-		# rather than alter the root user directly, create a new admin user with all privileges
-		#vstacklet::log "mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 71
-		vstacklet::log "mysqladmin -u root -h localhost password \"${mariadb_password:-${mariadb_autoPw}}\"" || vstacklet::clean::rollback 71
+		# set mariadb privileges
+		{
+			echo "[client]"
+			echo "user=root"
+			echo "password=${mariadb_password:-${mariadb_autoPw}}"
+			echo
+			echo "[mysql]"
+			echo "user=root"
+			echo "password=${mariadb_password:-${mariadb_autoPw}}"
+			echo
+			echo "[mysqldump]"
+			echo "user=root"
+			echo "password=${mariadb_password:-${mariadb_autoPw}}"
+			echo
+			echo "[mysqldiff]"
+			echo "user=root"
+			echo "password=${mariadb_password:-${mariadb_autoPw}}"
+			echo
+		} >/root/.my.cnf #|| vstacklet::clean::rollback 71
+		# run a quick drop in the event this is a reinstall (otherwise, this is harmless)
+		vstacklet::log "mysql -e \"DROP USER '${mariadb_user:-admin}'@'localhost';\""
 		# create mariadb user
-		# run a quick drop
-		vstacklet::log "mysql -u root -e \"DROP USER '${mariadb_user:-admin}'@'localhost';\""
-		vstacklet::log "mysql -u root -e \"CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 72
-		vstacklet::log "mysql -u root -e \"GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;\"" || vstacklet::clean::rollback 73
-		vstacklet::log "mysql -u root -e \"FLUSH PRIVILEGES;\"" || vstacklet::clean::rollback 74
+		vstacklet::log "mysql -e \"CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';\"" || vstacklet::clean::rollback 72
+		vstacklet::log "mysql -e \"GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;\"" || vstacklet::clean::rollback 73
+		vstacklet::log "mysql -e \"FLUSH PRIVILEGES;\"" || vstacklet::clean::rollback 74
 		vstacklet::shell::text::green "mariaDB installed and configured. see details below:"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "mariaDB password: "
