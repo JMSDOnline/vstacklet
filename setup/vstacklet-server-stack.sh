@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1786
+# @version: 3.1.1787
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -699,10 +699,13 @@ vstacklet::environment::functions() {
 		done
 	}
 	vs::stat::progress::start() {
-		trap 'vs::stat::progress' SIGINT
+		_progress_pid() {
+			echo $!
+		}
+		trap '_progress_pid' SIGINT
 	}
 	vs::stat::progress::stop() {
-		kill -9 vs::stat::progress
+		kill -9 _progress_pid
 		vstacklet::shell::icon::check::green "done"
 	}
 }
