@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1720
+# @version: 3.1.1724
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -190,11 +190,8 @@ vstacklet::environment::init() {
 	# create vstacklet directories
 	mkdir -p "${vstacklet_base_path}/setup_temp"    # temporary setup directory - stores default files edited by vStacklet
 	mkdir -p "${vstacklet_base_path}/config/system" # system configuration directory - stores dependencies, keys, and other system files
-	# vstacklet script timing
-	S=$(date +%s)
-	E=$(date +%s)
-	DIFF=$(echo "${E}" - "${S}" | bc)
-	FIN=$(echo "${DIFF}" / 60 | bc)
+	# script start time
+	vstacklet_start_time=$(date +%s)
 }
 
 ##################################################################################
@@ -2664,14 +2661,21 @@ vstacklet::wordpress::install() {
 		[[ (-z ${mariadb}) && (-z ${mysql}) && (-z ${postgresql}) ]] && vstacklet::rollback::clean 135
 		[[ (-z ${nginx}) && (-z ${varnish}) ]] && vstacklet::rollback::clean 136
 		[[ (-z ${php}) && (-z ${hhvm}) ]] && vstacklet::rollback::clean 137
-		vstacklet::vstacklet::shell::text::white "please enter the following information for WordPress:"
+		declare wp_db_name wp_db_user wp_db_password
+		vstacklet::shell::text::white "please enter the following information for WordPress:"
 		# get WordPress database name
-		read -rp "WordPress database name: " wp_db_name
+		mflibs::shell::text::white::sl "WordPress database name: "
+		mflibs::shell::icon::arrow::white
+		read -r wp_db_name
 		# get WordPress database user
-		read -rp "WordPress database user: " wp_db_user
+		mflibs::shell::text::white::sl "WordPress database user: "
+		mflibs::shell::icon::arrow::white
+		read -r wp_db_user
 		# get WordPress database password
-		read -rp "WordPress database password: " wp_db_password
-		vstacklet::vstacklet::shell::text::white "installing and configuring WordPress ... "
+		mflibs::shell::text::white::sl "WordPress database password: "
+		mflibs::shell::icon::arrow::white
+		read -r wp_db_password
+		vstacklet::shell::text::white "installing and configuring WordPress ... "
 		# download WordPress
 		vstacklet::log "wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz" || vstacklet::rollback::clean 138
 		# extract WordPress
@@ -2693,13 +2697,13 @@ vstacklet::wordpress::install() {
 			-e "s/utf8mb4/utf8/g" \
 			"${web_root:-/var/www/html}/public/wp-config.php" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 143
 		# create the database
-		vstacklet::log "mysql -u root -p${mariadb_password:-${mysql_password:-${postgresql_password}}} -e \"CREATE DATABASE ${wp_db_name};\"" || vstacklet::rollback::clean 144
+		mysql -h 127.0.0.1 -u root -e "CREATE DATABASE ${wp_db_name};" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 144
 		# create the database user
-		vstacklet::log "mysql -u root -p${mariadb_password:-${mysql_password:-${postgresql_password}}} -e \"CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';\"" || vstacklet::rollback::clean 145
+		mysql -h 127.0.0.1 -u root -e "CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 145
 		# grant privileges to the database user
-		vstacklet::log "mysql -u root -p${mariadb_password:-${mysql_password:-${postgresql_password}}} -e \"GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';\"" || vstacklet::rollback::clean 146
+		mysql -h 127.0.0.1 -u root -e "GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 146
 		# flush privileges
-		vstacklet::log "mysql -u root -p${mariadb_password:-${mysql_password:-${postgresql_password}}} -e \"FLUSH PRIVILEGES;\"" || vstacklet::rollback::clean 147
+		mysql -h 127.0.0.1 -u root -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 147
 		# remove the WordPress installation files
 		vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::rollback::clean 148
 		# display the WordPress installation URL
@@ -2860,17 +2864,24 @@ vstacklet::clean::complete() {
 # @break
 ################################################################################
 vstacklet::message::complete() {
+	# vstacklet end time
+	vstacklet_end_time="$(date +%s)"
+	# vstacklet total time
+	vstacklet_total_time="$((vstacklet_end_time - vstacklet_start_time))"
+	# vstacklet total time in minutes
+	vstacklet_total_time_minutes="$((vstacklet_total_time / 60))"
+	# display success message
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::green "vStacklet Installation Complete! (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"
-	vstacklet::shell::text::green " - Installation Completed in: ${FIN}/min"
+	vstacklet::shell::text::green " - Installation Completed in: ${vstacklet_total_time_minutes}/min"
 	vstacklet::shell::text::white " - SSH port: ${ssh_port:-22}"
 	vstacklet::shell::text::white " - FTP port: ${ftp_port:-21}"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "Be sure to review the above output from the vStacklet installation process"
 	vstacklet::shell::text::white "for relevant information regarding your new server and connection details."
 	vstacklet::shell::misc::nl
-	[[ ( -n ${nginx} || -n ${varnish} ) && ( -n ${php} || -n ${hhvm} ) ]] && vstacklet::shell::text::white " - Visit: https://${domain:-${server_ip}}/checkinfo.php"
-	[[ ( -n ${nginx} || -n ${varnish} ) && ( -n ${php} || -n ${hhvm} ) ]] && vstacklet::shell::text::white " - Remember to remove or rename the checkinfo.php file after verification."
+	[[ (-n ${nginx} || -n ${varnish}) && (-n ${php} || -n ${hhvm}) ]] && vstacklet::shell::text::white " - Visit: https://${domain:-${server_ip}}/checkinfo.php"
+	[[ (-n ${nginx} || -n ${varnish}) && (-n ${php} || -n ${hhvm}) ]] && vstacklet::shell::text::white " - Remember to remove or rename the checkinfo.php file after verification."
 	[[ ${setup_reboot} -eq "1" ]] && vstacklet::shell::text::white "rebooting..." && reboot
 	if [[ -z ${setup_reboot} ]]; then
 		declare input
