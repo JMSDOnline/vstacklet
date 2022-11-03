@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1724
+# @version: 3.1.1725
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2664,16 +2664,16 @@ vstacklet::wordpress::install() {
 		declare wp_db_name wp_db_user wp_db_password
 		vstacklet::shell::text::white "please enter the following information for WordPress:"
 		# get WordPress database name
-		mflibs::shell::text::white::sl "WordPress database name: "
-		mflibs::shell::icon::arrow::white
+		vstacklet::shell::text::white::sl "WordPress database name: "
+		vstacklet::shell::icon::arrow::white
 		read -r wp_db_name
 		# get WordPress database user
-		mflibs::shell::text::white::sl "WordPress database user: "
-		mflibs::shell::icon::arrow::white
+		vstacklet::shell::text::white::sl "WordPress database user: "
+		vstacklet::shell::icon::arrow::white
 		read -r wp_db_user
 		# get WordPress database password
-		mflibs::shell::text::white::sl "WordPress database password: "
-		mflibs::shell::icon::arrow::white
+		vstacklet::shell::text::white::sl "WordPress database password: "
+		vstacklet::shell::icon::arrow::white
 		read -r wp_db_password
 		vstacklet::shell::text::white "installing and configuring WordPress ... "
 		# download WordPress
