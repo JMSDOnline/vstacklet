@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1754
+# @version: 3.1.1755
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -3278,22 +3278,23 @@ vstacklet::sources::update      #(20)
 vstacklet::gpg::keys            #(21)
 vstacklet::apt::update          #(4)
 vstacklet::locale::set          #(22)
-vstacklet::php::install         #(23)
-vstacklet::hhvm::install        #(24)
-vstacklet::nginx::install       #(25)
-vstacklet::varnish::install     #(26)
-vstacklet::permissions::adjust  #(27)
-vstacklet::ioncube::install     #(28)
-vstacklet::mariadb::install     #(29)
-vstacklet::mysql::install       #(30)
-vstacklet::postgre::install     #(31)
-vstacklet::redis::install       #(32)
-vstacklet::phpmyadmin::install  #(33)
-vstacklet::csf::install         #(34)
-vstacklet::cloudflare::csf      #(34.1)
-vstacklet::sendmail::install    #(35)
-vstacklet::wordpress::install   #(36)
-vstacklet::domain::ssl          #(37)
-vstacklet::clean::complete      #(38)
-vstacklet::message::complete    #(39)
+vstacklet::php::install &
+vs::stat::progress $!          #(23)
+vstacklet::hhvm::install       #(24)
+vstacklet::nginx::install      #(25)
+vstacklet::varnish::install    #(26)
+vstacklet::permissions::adjust #(27)
+vstacklet::ioncube::install    #(28)
+vstacklet::mariadb::install    #(29)
+vstacklet::mysql::install      #(30)
+vstacklet::postgre::install    #(31)
+vstacklet::redis::install      #(32)
+vstacklet::phpmyadmin::install #(33)
+vstacklet::csf::install        #(34)
+vstacklet::cloudflare::csf     #(34.1)
+vstacklet::sendmail::install   #(35)
+vstacklet::wordpress::install  #(36)
+vstacklet::domain::ssl         #(37)
+vstacklet::clean::complete     #(38)
+vstacklet::message::complete   #(39)
 ################################################################################
