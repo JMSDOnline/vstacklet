@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1732
+# @version: 3.1.1754
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -679,6 +679,12 @@ vstacklet::environment::functions() {
 		declare -g shell_color shell_icon
 		shell_color=$(tput setaf 7)
 		shell_icon="arrow"
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::icon::check::green() {
+		declare -g shell_color shell_icon shell_newline=0
+		shell_color=$(tput setaf 2)
+		shell_icon="check"
 		vstacklet::shell::output "$@"
 	}
 }
@@ -1767,13 +1773,9 @@ vstacklet::mariadb::install() {
 spawn "${prog}"
 send "\r"
 expect "(y/n)?\r"
-send "y\r"
+send "n\r"
 expect "(y/n)?\r"
-send "y\r"
-expect "New password:"
-send "${mariadb_password:-${mariadb_autoPw}}\r"
-expect "Re-enter new password:"
-send "${mariadb_password:-${mariadb_autoPw}}\r"
+send "n\r"
 expect "(y/n)?\r"
 send "y\r"
 expect "(y/n)?\r"
@@ -1790,7 +1792,7 @@ DOD
 		{
 			echo -e "[client]"
 			echo -e "user = ${mariadb_user:-admin}"
-			echo -e "password ${mariadb_password:-${mariadb_autoPw}}"
+			echo -e "password = ${mariadb_password:-${mariadb_autoPw}}"
 			echo
 			echo -e "[mysqld]"
 			echo -e "port = ${mariadb_port:-3306}"
@@ -1820,20 +1822,10 @@ DOD
 			echo -e "max_delayed_threads = 20"
 			#echo -e "max_insert_delayed_threads = 20"
 		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 75
-		# set mariadb privileges sql
-		{
-			echo -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}' WITH GRANT OPTION;"
-			echo -e "FLUSH PRIVILEGES;"
-		} >/tmp/vstacklet_mariadb_privileges.sql || vstacklet::clean::rollback 75
-		# set mariadb root password sql
-		{
-			echo -e "UPDATE mysql.user SET Password=PASSWORD('${mariadb_password:-${mariadb_autoPw}}') WHERE User='root';"
-			echo -e "FLUSH PRIVILEGES;"
-		} >/tmp/vstacklet_mariadb_root_password.sql || vstacklet::clean::rollback 75
 		# set .my.cnf
 		{
 			echo "[client]"
-			echo "user=root"
+			echo "user=${mariadb_user:-admin}"
 			echo "password=${mariadb_password:-${mariadb_autoPw}}"
 			echo
 			echo "[mysql]"
@@ -1849,17 +1841,13 @@ DOD
 			echo "password=${mariadb_password:-${mariadb_autoPw}}"
 			echo
 		} >/root/.my.cnf || vstacklet::clean::rollback 75
-		# create the mysql database
-		vstacklet::log "mysql_install_db --user=mysql --ldata=/var/lib/mysql"
 		vstacklet::log "systemctl daemon-reload"
-		#vstacklet::log "systemctl enable mariadb"
-		#vstacklet::log "systemctl restart mariadb"
-		vstacklet::log "mysql_upgrade"
-		vstacklet::log "mysql --user=mysql < /tmp/vstacklet_mariadb_root_password.sql"
+		vstacklet::log "systemctl restart maraidb"
+		#mysqladmin -u root -h localhost password "${mariadb_password:-${mariadb_autoPw}}"
 		# create mariadb user
-		mysql -h 127.0.0.1 -u root -e "CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 72
-		mysql -h 127.0.0.1 -u root -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 73
-		mysql -h 127.0.0.1 -u root -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 74
+		mysql -e "CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 72
+		mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 73
+		mysql -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 74
 		vstacklet::shell::text::green "mariaDB installed and configured. see details below:"
 		vstacklet::shell::text::white::sl "mariaDB password: "
 		vstacklet::shell::text::green "${mariadb_password:-${mariadb_autoPw}}"
@@ -1940,8 +1928,8 @@ vstacklet::mysql::install() {
 		# set mysql client and server configuration
 		{
 			echo -e "[client]"
-			echo -e "port = ${mysql_port:-3306}"
-			echo -e "socket = /var/run/mysqld/mysqld.sock"
+			echo -e "username = ${mysql_user:-admin}"
+			echo -e "password = ${mysql_password:-${mysql_autoPw}}"
 			echo
 			echo -e "[mysqld]"
 			echo -e "port = ${mysql_port:-3306}"
@@ -1999,19 +1987,27 @@ vstacklet::mysql::install() {
 			echo -e "[mysqld]"
 			echo -e "skip-grant-tables"
 		} >/etc/mysql/conf.d/vstacklet-grant.cnf || vstacklet::clean::rollback 83
-		# set .my.cnf
+		# set ~/.my.cnf
 		{
 			echo -e "[client]"
-			echo -e "user = root"
+			echo -e "user = ${mysql_user:-admin}"
 			echo -e "password = ${mysql_password:-${mysql_autoPw}}"
-		} >"${vstacklet_base_path}/config/mysql/.my.cnf" || vstacklet::clean::rollback 83
+			echo
+			echo -e "[mysql]"
+			echo -e "user = ${mysql_user:-admin}"
+			echo -e "password = ${mysql_password:-${mysql_autoPw}}"
+			echo
+			echo -e "[mysqldump]"
+			echo -e "user = ${mysql_user:-admin}"
+			echo -e "password = ${mysql_password:-${mysql_autoPw}}"
+		} >"${HOME}/.my.cnf" || vstacklet::clean::rollback 83
 		vstacklet::log "systemctl daemon-reload"
 		#vstacklet::log "systemctl enable mysql"
 		#vstacklet::log "systemctl restart mysql"
 		#mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::clean::rollback 79
-		mysql -h 127.0.0.1 -u root -e "CREATE USER '${mysql_user:-admin}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 80
-		mysql -h 127.0.0.1 -u root -e "GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 81
-		mysql -h 127.0.0.1 -u root -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 82
+		mysql -e "CREATE USER '${mysql_user:-admin}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 80
+		mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 81
+		mysql -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 82
 		# print mysql credentials
 		vstacklet::shell::text::green "MySQL installed and configured. see details below:"
 		vstacklet::shell::text::white::sl "MySQL password: "
@@ -2191,7 +2187,7 @@ vstacklet::redis::install() {
 		# restart redis
 		vstacklet::log "systemctl restart redis-server" || vstacklet::clean::rollback 95
 		# set redis password
-		redis-cli -a "" -h localhost -p ${redis_port:-6379} config set requirepass ${redis_password:-${redis_autoPw}} >>${vslog} 2>&1 || vstacklet::clean::rollback 96
+		redis-cli -a "" -h localhost -p ${redis_port:-6379} config set requirepass "${redis_password:-${redis_autoPw}}" >>${vslog} 2>&1 || vstacklet::clean::rollback 96
 		vstacklet::shell::text::green "Redis installed and configured. see details below:"
 		vstacklet::shell::text::white::sl "Redis password: "
 		vstacklet::shell::text::green "${redis_password:-${redis_autoPw}}"
@@ -2674,23 +2670,33 @@ vstacklet::wordpress::install() {
 		vstacklet::shell::text::white::sl "WordPress database name: "
 		vstacklet::shell::icon::arrow::white
 		read -r wp_db_name
+		while [[ -z ${wp_db_name} ]]; do
+			vstacklet::shell::icon::arrow::white
+			read -r wp_db_name
+		done
 		# get WordPress database user
 		vstacklet::shell::text::white::sl "WordPress database user: "
-		vstacklet::shell::icon::arrow::white
-		read -r wp_db_user
+		vstacklet::shell::icon::arrow::white read -r wp_db_user
+		while [[ -z ${wp_db_user} ]]; do
+			vstacklet::shell::icon::arrow::white
+			read -r wp_db_user
+		done
 		# get WordPress database password
 		vstacklet::shell::text::white::sl "WordPress database password: "
-		vstacklet::shell::icon::arrow::white
-		read -r wp_db_password
+		vstacklet::shell::icon::arrow::white read -r wp_db_password
+		while [[ -z ${wp_db_password} ]]; do
+			vstacklet::shell::icon::arrow::white
+			read -r wp_db_password
+		done
 		vstacklet::shell::text::white "installing and configuring WordPress ... "
 		# download WordPress
 		vstacklet::log "wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz" || vstacklet::rollback::clean 138
 		# extract WordPress
 		vstacklet::log "tar -xzf /tmp/wordpress.tar.gz -C /tmp" || vstacklet::rollback::clean 139
 		# move WordPress to the web root
-		mv /tmp/wordpress/* "${web_root:-/var/www/html}/public" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 140
+		mv /tmp/wordpress/* "${web_root:-/var/www/html}/public" || vstacklet::rollback::clean 140
 		# create the uploads directory
-		mkdir -p "${web_root:-/var/www/html}/public/wp-content/uploads" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 141
+		mkdir -p "${web_root:-/var/www/html}/public/wp-content/uploads" || vstacklet::rollback::clean 141
 		# set the correct permissions
 		vstacklet::permissions::adjust
 		vstacklet::shell::text::yellow "configuring WordPress ... "
@@ -2702,15 +2708,15 @@ vstacklet::wordpress::install() {
 			-e "s/username_here/${wp_db_user}/g" \
 			-e "s/password_here/${wp_db_password}/g" \
 			-e "s/utf8mb4/utf8/g" \
-			"${web_root:-/var/www/html}/public/wp-config.php" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 143
+			"${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::rollback::clean 143
 		# create the database
-		mysql -h 127.0.0.1 -u root -e "CREATE DATABASE ${wp_db_name};" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 144
+		mysql -e "CREATE DATABASE ${wp_db_name};" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 144
 		# create the database user
-		mysql -h 127.0.0.1 -u root -e "CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 145
+		mysql -e "CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 145
 		# grant privileges to the database user
-		mysql -h 127.0.0.1 -u root -e "GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 146
+		mysql -e "GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 146
 		# flush privileges
-		mysql -h 127.0.0.1 -u root -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 147
+		mysql -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 147
 		# remove the WordPress installation files
 		vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::rollback::clean 148
 		# display the WordPress installation URL
@@ -2897,16 +2903,38 @@ vstacklet::message::complete() {
 		vstacklet::shell::text::white::sl "es"
 		vstacklet::shell::text::white::sl " or "
 		vstacklet::shell::text::red::sl "[n]o:"
-		vstacklet::shell::icon::arrow::white read -r input
-		[[ ${input} =~ ^[Yy]$ ]] && vstacklet::shell::text::white "rebooting..." && reboot
+		vstacklet::shell::icon::arrow::white
+		while read -r input; do
+			case "${input}" in
+			[yY][eE][sS] | [yY])
+				vstacklet::shell::text::white "rebooting..."
+				reboot
+				break
+				;;
+			[nN][oO] | [nN])
+				vstacklet::shell::text::white "not rebooting..."
+				break
+				;;
+			*)
+				vstacklet::shell::text::red "invalid input"
+				vstacklet::shell::text::white::sl "do you want to reboot (recommended)? "
+				vstacklet::shell::text::green::sl "[y]"
+				vstacklet::shell::text::white::sl "es"
+				vstacklet::shell::text::white::sl " or "
+				vstacklet::shell::text::red::sl "[n]o:"
+				vstacklet::shell::icon::arrow::white
+				;;
+			esac
+		done
 	fi
 	unset vstacklet_log_location
 }
 
-spinner() {
+################################################################################
+vs::stat::progress() {
 	local pid=$1
 	local delay=0.25
-	# shellcheck disable=SC2034,SC1003,SC2086,SC2312
+	# trunk-ignore(shellcheck/SC1003)
 	local spinstr='|/-\' # / = forward slash, \ = backslash
 	while "$(ps a -o pid | awk '{ print $1 }' | grep "${pid}")"; do
 		local temp=${spinstr#?}
@@ -2916,8 +2944,18 @@ spinner() {
 		printf "\b\b\b\b\b\b"
 	done
 	printf "    \b\b\b\b"
-	echo -ne "${OK}"
+	vstacklet::shell::icon::check::green "done"
 }
+################################################################################
+vs::stat::progress::start() {
+	vs::stat::progress "${1}" &
+}
+################################################################################
+vs::stat::progress::stop() {
+	kill "${1}" &>/dev/null
+	wait "${1}" &>/dev/null
+}
+################################################################################
 
 ################################################################################
 # @name: vstacklet::clean::rollback - vStacklet Rollback (40/return_code)
@@ -3162,13 +3200,13 @@ vstacklet::clean::rollback() {
 			rm -rf "/etc/nginx" >/dev/null 2>&1
 			vstacklet::log "apt-get -y autopurge nginx*"
 			vstacklet::log "apt-get -y autoremove nginx*"
-			rm -rf "/etc/apt/sources.list.d/nginx.list" >/dev/null 2>&1
+			rm -rf "/etc/apt/sources.list.d/nginx.list" "/etc/apt/keyrings/nginx.gpg" >/dev/null 2>&1
 		fi
 		if [[ -n ${varnish} ]]; then
-			rm -rf "/etc/nginx" >/dev/null 2>&1
+			rm -rf "/etc/varnish" >/dev/null 2>&1
 			vstacklet::log "apt-get -y autopurge varnish*"
 			vstacklet::log "apt-get -y autoremove varnish*"
-			rm -rf "/etc/apt/sources.list.d/varnishcache_varnish72.list" "/etc/apt/keyrings/nginx.gpg" >/dev/null 2>&1
+			rm -rf "/etc/apt/sources.list.d/varnishcache_varnish72.list" "/etc/apt/keyrings/varnishcache_varnish72-archive-keyring.gpg" >/dev/null 2>&1
 		fi
 		if [[ -n ${php} ]]; then
 			vstacklet::log "apt-get -y autopurge php*"
