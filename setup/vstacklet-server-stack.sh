@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1730
+# @version: 3.1.1732
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1855,7 +1855,7 @@ DOD
 		#vstacklet::log "systemctl enable mariadb"
 		#vstacklet::log "systemctl restart mariadb"
 		vstacklet::log "mysql_upgrade"
-		vstacklet::log "mysql --user=mysql --ldata=/var/lib/mysql < /tmp/vstacklet_mariadb_root_password.sql"
+		vstacklet::log "mysql --user=mysql < /tmp/vstacklet_mariadb_root_password.sql"
 		# create mariadb user
 		mysql -h 127.0.0.1 -u root -e "CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 72
 		mysql -h 127.0.0.1 -u root -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 73
