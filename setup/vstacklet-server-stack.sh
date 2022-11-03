@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1765
+# @version: 3.1.1772
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2689,25 +2689,30 @@ vstacklet::wordpress::install() {
 		vstacklet::shell::text::white "please enter the following information for WordPress:"
 		# get WordPress database name
 		vstacklet::shell::text::white::sl "WordPress database name: "
+		# trunk-ignore(shellcheck/SC2119)
 		vstacklet::shell::icon::arrow::white
-		read -r wp_db_name
-		while [[ -z ${wp_db_name} ]]; do
-			vstacklet::shell::icon::arrow::white
-			read -r wp_db_name
+		while read -r wp_db_name; do
+			# trunk-ignore(shellcheck/SC2119)
+			[[ -z ${wp_db_name} ]] && vstacklet::shell::text::error "WordPress database name cannot be empty." && vstacklet::shell::text::white::sl "WordPress database name: " && vstacklet::shell::icon::arrow::white && continue
+			break
 		done
 		# get WordPress database user
 		vstacklet::shell::text::white::sl "WordPress database user: "
-		vstacklet::shell::icon::arrow::white read -r wp_db_user
-		while [[ -z ${wp_db_user} ]]; do
-			vstacklet::shell::icon::arrow::white
-			read -r wp_db_user
+		# trunk-ignore(shellcheck/SC2119)
+		vstacklet::shell::icon::arrow::white
+		while read -r wp_db_user; do
+		# trunk-ignore(shellcheck/SC2119)
+			[[ -z ${wp_db_user} ]] && vstacklet::shell::text::error "WordPress database user cannot be empty." && vstacklet::shell::text::white::sl "WordPress database user: " && vstacklet::shell::icon::arrow::white && continue
+			break
 		done
 		# get WordPress database password
 		vstacklet::shell::text::white::sl "WordPress database password: "
-		vstacklet::shell::icon::arrow::white read -r wp_db_password
-		while [[ -z ${wp_db_password} ]]; do
-			vstacklet::shell::icon::arrow::white
-			read -r wp_db_password
+		# trunk-ignore(shellcheck/SC2119)
+		vstacklet::shell::icon::arrow::white
+		while read -r wp_db_password; do
+		# trunk-ignore(shellcheck/SC2119)
+			[[ -z ${wp_db_password} ]] && vstacklet::shell::text::error "WordPress database password cannot be empty." && vstacklet::shell::text::white::sl "WordPress database password: " && vstacklet::shell::icon::arrow::white && continue
+			break
 		done
 		vstacklet::shell::text::white "installing and configuring WordPress ... "
 		# download WordPress
