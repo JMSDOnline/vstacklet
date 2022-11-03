@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1755
+# @version: 3.1.1765
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -687,6 +687,24 @@ vstacklet::environment::functions() {
 		shell_icon="check"
 		vstacklet::shell::output "$@"
 	}
+	vs::stat::progress() {
+		spinner="/|\\-/|\\-"
+		while :; do
+			for i in $(seq 0 7); do
+				echo -n "${spinner:$i:1}"
+				echo -en "\010"
+				sleep 1
+			done
+		done
+	}
+	vs::stat::progress::start() {
+		progress_pid=$!
+		trap 'kill -9 $progress_pid' $(seq 0 15)
+	}
+	vs::stat::progress::stop() {
+		kill -9 $progress_pid
+		vstacklet::shell::icon::check::green ""
+	}
 }
 
 ##################################################################################
@@ -1338,14 +1356,14 @@ vstacklet::php::install() {
 	if [[ -n ${php} && -z ${hhvm} ]]; then
 		# check for nginx \\ to maintain modularity, nginx is not required for PHP
 		#[[ -z ${nginx} ]] && vstacklet::clean::rollback "PHP requires nginx. please install nginx."
-		vstacklet::shell::text::white "installing and configuring php${php}-fpm ... "
+		vstacklet::shell::text::white "installing and configuring PHP ${php} ... "
 		# install php dependencies and php
 		for depend in "${php_dependencies[@]}"; do
 			if [[ $(dpkg-query -W -f='${Status}' "${depend}" 2>/dev/null | grep -c "ok installed") != "1" ]]; then
 				depend_list+=("${depend}")
 			fi
 		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing php dependencies: "
+		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing PHP dependencies: "
 		for install in "${depend_list[@]}"; do
 			if [[ ${install} == "${depend_list[0]}" ]]; then
 				vstacklet::shell::text::white::sl "${install} "
@@ -1536,7 +1554,9 @@ vstacklet::nginx::install() {
 		if [[ -n ${hhvm} ]]; then
 			cp -f "${local_hhvm_dir}/nginx/conf.d/default.hhvm.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
-		vstacklet::shell::text::yellow "configuring NGinx ... "
+		vstacklet::shell::text::yellow::sl "configuring NGinx ... " &
+		vs::stat::progress &
+		vs::stat::progress::start # get stat progress PID
 		# post necessary edits to nginx config files
 		sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::rollback::clean 55
 		# enable site
@@ -1552,6 +1572,7 @@ vstacklet::nginx::install() {
 		chmod -R 755 "${web_root:-/var/www/html}"
 		chmod -R g+rw "${web_root:-/var/www/html}"
 		sh -c "find ${web_root:-/var/www/html} -type d -print0 | sudo xargs -0 chmod g+s"
+		vs::stat::progress::stop # stop stat progress
 	fi
 }
 
@@ -2931,31 +2952,6 @@ vstacklet::message::complete() {
 }
 
 ################################################################################
-vs::stat::progress() {
-	local pid=$1
-	local delay=0.25
-	# trunk-ignore(shellcheck/SC1003)
-	local spinstr='|/-\' # / = forward slash, \ = backslash
-	while "$(ps a -o pid | awk '{ print $1 }' | grep "${pid}")"; do
-		local temp=${spinstr#?}
-		printf " [%c]  " "${spinstr}"
-		local spinstr=${temp}${spinstr%"${temp}"}
-		sleep "${delay}"
-		printf "\b\b\b\b\b\b"
-	done
-	printf "    \b\b\b\b"
-	vstacklet::shell::icon::check::green "done"
-}
-################################################################################
-vs::stat::progress::start() {
-	vs::stat::progress "${1}" &
-}
-################################################################################
-vs::stat::progress::stop() {
-	kill "${1}" &>/dev/null
-	wait "${1}" &>/dev/null
-}
-################################################################################
 
 ################################################################################
 # @name: vstacklet::clean::rollback - vStacklet Rollback (40/return_code)
@@ -3187,53 +3183,52 @@ vstacklet::clean::rollback() {
 			vstacklet::log "apt-get -y autopurge ${installed}"
 			vstacklet::log "apt-get -y autoremove ${installed}"
 		done
-		# @script-note: sources list locations
-		#rm -rf "/etc/apt/sources.list.d/hhvm.list" >/dev/null 2>&1
-		#rm -rf "/etc/apt/sources.list.d/nginx.list" >/dev/null 2>&1
-		#rm -rf "/etc/apt/sources.list.d/varnishcache_varnish72.list" >/dev/null 2>&1
-		#rm -rf "/etc/apt/sources.list.d/php-sury.list" >/dev/null 2>&1
-		#rm -rf "/etc/apt/sources.list.d/mariadb.list" >/dev/null 2>&1
-		#rm -rf "/etc/apt/sources.list.d/redis.list" >/dev/null 2>&1
-		#rm -rf "/etc/apt/sources.list.d/postgresql.list" >/dev/null 2>&1
-		if [[ -n ${nginx} ]]; then
-			rm -rf "/etc/nginx-pre-vstacklet"
-			rm -rf "/etc/nginx" >/dev/null 2>&1
-			vstacklet::log "apt-get -y autopurge nginx*"
-			vstacklet::log "apt-get -y autoremove nginx*"
-			rm -rf "/etc/apt/sources.list.d/nginx.list" "/etc/apt/keyrings/nginx.gpg" >/dev/null 2>&1
-		fi
-		if [[ -n ${varnish} ]]; then
-			rm -rf "/etc/varnish" >/dev/null 2>&1
-			vstacklet::log "apt-get -y autopurge varnish*"
-			vstacklet::log "apt-get -y autoremove varnish*"
-			rm -rf "/etc/apt/sources.list.d/varnishcache_varnish72.list" "/etc/apt/keyrings/varnishcache_varnish72-archive-keyring.gpg" >/dev/null 2>&1
-		fi
-		if [[ -n ${php} ]]; then
-			vstacklet::log "apt-get -y autopurge php*"
-			vstacklet::log "apt-get -y autoremove php*"
-			rm -rf "/etc/apt/sources.list.d/php-sury.list" "/etc/apt/keyrings/php.gpg" >/dev/null 2>&1
-		fi
-		if [[ -n ${mariadb} ]]; then
-			rm -rf "/var/lib/mysql" "/var/run/mysqld" "/etc/mysql" "/root/.my.cnf" >/dev/null 2>&1
-			vstacklet::log "apt-get -y autopurge mariadb*"
-			vstacklet::log "apt-get -y autoremove mariadb*"
-			rm -rf "/etc/apt/sources.list.d/mariadb.list" "/etc/apt/keyrings/mariadb.gpg" >/dev/null 2>&1
-		fi
-		if [[ -n ${mysql} ]]; then
-			rm -rf "/var/lib/mysql" "/var/run/mysql" "/var/run/mysqld" "/etc/mysql" "/root/.my.cnf" >/dev/null 2>&1
-			vstacklet::log "apt-get -y autopurge mysql*"
-			vstacklet::log "apt-get -y autoremove mysql*"
-		fi
-		if [[ -n ${phpmyadmin} ]]; then
-			vstacklet::log "apt-get -y autopurge phpmyadmin*"
-			vstacklet::log "apt-get -y autoremove phpmyadmin*"
-		fi
 		vstacklet::log "apt-get -y update"
 		vstacklet::log "apt-get -y check"
 		vstacklet::log "apt-get -fy install"
 		vstacklet::log "apt-get -y autoclean"
 		vstacklet::log "apt-get -y autoremove"
 		vstacklet::log "apt-get -y autoclean"
+	fi
+	# @script-note: sources list locations
+	#rm -rf "/etc/apt/sources.list.d/hhvm.list" >/dev/null 2>&1
+	#rm -rf "/etc/apt/sources.list.d/nginx.list" >/dev/null 2>&1
+	#rm -rf "/etc/apt/sources.list.d/varnishcache_varnish72.list" >/dev/null 2>&1
+	#rm -rf "/etc/apt/sources.list.d/php-sury.list" >/dev/null 2>&1
+	#rm -rf "/etc/apt/sources.list.d/mariadb.list" >/dev/null 2>&1
+	#rm -rf "/etc/apt/sources.list.d/redis.list" >/dev/null 2>&1
+	#rm -rf "/etc/apt/sources.list.d/postgresql.list" >/dev/null 2>&1
+	if [[ -n ${nginx} ]]; then
+		rm -rf "/etc/nginx-pre-vstacklet" "/etc/nignx" >/dev/null 2>&1
+		apt-get -y autopurge nginx* >/dev/null 2>&1
+		apt-get -y autoremove nginx* >/dev/null 2>&1
+		rm -rf "/etc/apt/sources.list.d/nginx.list" "/etc/apt/keyrings/nginx.gpg" >/dev/null 2>&1
+	fi
+	if [[ -n ${varnish} ]]; then
+		rm -rf "/etc/varnish" >/dev/null 2>&1
+		apt-get -y autopurge varnish* >/dev/null 2>&1
+		apt-get -y autoremove varnish* >/dev/null 2>&1
+		rm -rf "/etc/apt/sources.list.d/varnishcache_varnish72.list" "/etc/apt/keyrings/varnishcache_varnish72-archive-keyring.gpg" >/dev/null 2>&1
+	fi
+	if [[ -n ${php} ]]; then
+		apt-get -y autopurge php* >/dev/null 2>&1
+		apt-get -y autoremove php* >/dev/null 2>&1
+		rm -rf "/etc/apt/sources.list.d/php-sury.list" "/etc/apt/keyrings/php.gpg" >/dev/null 2>&1
+	fi
+	if [[ -n ${mariadb} ]]; then
+		rm -rf "/var/lib/mysql" "/var/run/mysqld" "/etc/mysql" "/root/.my.cnf" >/dev/null 2>&1
+		apt-get -y autopurge mariadb* >/dev/null 2>&1
+		apt-get -y autoremove mariadb* >/dev/null 2>&1
+		rm -rf "/etc/apt/sources.list.d/mariadb.list" "/etc/apt/keyrings/mariadb.gpg" >/dev/null 2>&1
+	fi
+	if [[ -n ${mysql} ]]; then
+		rm -rf "/var/lib/mysql" "/var/run/mysql" "/var/run/mysqld" "/etc/mysql" "/root/.my.cnf" >/dev/null 2>&1
+		apt-get -y autopurge mysql* >/dev/null 2>&1
+		apt-get -y autoremove mysql* >/dev/null 2>&1
+	fi
+	if [[ -n ${phpmyadmin} ]]; then
+		apt-get -y autopurge phpmyadmin* >/dev/null 2>&1
+		apt-get -y autoremove phpmyadmin* >/dev/null 2>&1
 	fi
 	vstacklet::log "systemctl daemon-reload"
 	# should the above purge be too aggressive, the following will restore the system to a working state.
@@ -3278,23 +3273,22 @@ vstacklet::sources::update      #(20)
 vstacklet::gpg::keys            #(21)
 vstacklet::apt::update          #(4)
 vstacklet::locale::set          #(22)
-vstacklet::php::install &
-vs::stat::progress $!          #(23)
-vstacklet::hhvm::install       #(24)
-vstacklet::nginx::install      #(25)
-vstacklet::varnish::install    #(26)
-vstacklet::permissions::adjust #(27)
-vstacklet::ioncube::install    #(28)
-vstacklet::mariadb::install    #(29)
-vstacklet::mysql::install      #(30)
-vstacklet::postgre::install    #(31)
-vstacklet::redis::install      #(32)
-vstacklet::phpmyadmin::install #(33)
-vstacklet::csf::install        #(34)
-vstacklet::cloudflare::csf     #(34.1)
-vstacklet::sendmail::install   #(35)
-vstacklet::wordpress::install  #(36)
-vstacklet::domain::ssl         #(37)
-vstacklet::clean::complete     #(38)
-vstacklet::message::complete   #(39)
+vstacklet::php::install         #(23)
+vstacklet::hhvm::install        #(24)
+vstacklet::nginx::install       #(25)
+vstacklet::varnish::install     #(26)
+vstacklet::permissions::adjust  #(27)
+vstacklet::ioncube::install     #(28)
+vstacklet::mariadb::install     #(29)
+vstacklet::mysql::install       #(30)
+vstacklet::postgre::install     #(31)
+vstacklet::redis::install       #(32)
+vstacklet::phpmyadmin::install  #(33)
+vstacklet::csf::install         #(34)
+vstacklet::cloudflare::csf      #(34.1)
+vstacklet::sendmail::install    #(35)
+vstacklet::wordpress::install   #(36)
+vstacklet::domain::ssl          #(37)
+vstacklet::clean::complete      #(38)
+vstacklet::message::complete    #(39)
 ################################################################################
