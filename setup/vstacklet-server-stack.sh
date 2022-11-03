@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1776
+# @version: 3.1.1786
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -167,7 +167,7 @@
 # All rights reserved.
 # <END METADATA>
 ##################################################################################
-# shellcheck disable=1091,2068,2312
+# shellcheck disable=1091,2068,2119,2312
 ##################################################################################
 # @name: vstacklet::environment::init (1)
 # @description: Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L178-L198)
@@ -675,6 +675,7 @@ vstacklet::environment::functions() {
 		output_color=$(tput setaf 7)
 		vstacklet::shell::output "$@"
 	}
+	# trunk-ignore(shellcheck/SC2120)
 	vstacklet::shell::icon::arrow::white() {
 		declare -g shell_color shell_icon
 		shell_color=$(tput setaf 7)
@@ -698,11 +699,10 @@ vstacklet::environment::functions() {
 		done
 	}
 	vs::stat::progress::start() {
-		progress_pid=$!
-		trap 'kill -9 $progress_pid' $(seq 0 15)
+		trap 'vs::stat::progress' SIGINT
 	}
 	vs::stat::progress::stop() {
-		kill -9 $progress_pid
+		kill -9 vs::stat::progress
 		vstacklet::shell::icon::check::green "done"
 	}
 }
@@ -1555,8 +1555,8 @@ vstacklet::nginx::install() {
 			cp -f "${local_hhvm_dir}/nginx/conf.d/default.hhvm.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
 		vstacklet::shell::text::yellow::sl "configuring NGinx and generating self-signed certificates ... " &
-		vs::stat::progress &
-		vs::stat::progress::start # get stat progress PID
+		vs::stat::progress &        # start stat progress
+		vs::stat::progress::start & # start progress id
 		# post necessary edits to nginx config files
 		sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::rollback::clean 55
 		# enable site
@@ -2924,7 +2924,8 @@ vstacklet::message::complete() {
 		vstacklet::shell::text::white::sl " or "
 		vstacklet::shell::text::red::sl "[n]"
 		vstacklet::shell::text::white::sl "o: "
-		vstacklet::shell::icon::arrow::white read -r input
+		vstacklet::shell::icon::arrow::white
+		read -r input
 		case "${input,,}" in
 		[y] | [y][e][s] | "") vstacklet::shell::text::white "rebooting ... " && reboot ;;
 		[n] | [n][o]) vstacklet::shell::text::white "skipping reboot ... " ;;
