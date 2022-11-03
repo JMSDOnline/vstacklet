@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1725
+# @version: 3.1.1730
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1790,13 +1790,11 @@ DOD
 		{
 			echo -e "[client]"
 			echo -e "user = ${mariadb_user:-admin}"
-			echo -e "password = ${mariadb_password:-${mariadb_autoPw}}"
-			echo -e "port = ${mariadb_port:-3306}"
-			echo -e "socket = /var/run/mysqld/mysqld.sock"
+			echo -e "password ${mariadb_password:-${mariadb_autoPw}}"
 			echo
 			echo -e "[mysqld]"
 			echo -e "port = ${mariadb_port:-3306}"
-			echo -e "socket = /var/run/mysqld/mysqld.sock"
+			echo -e "socket = /run/mysqld/mysqld.sock"
 			echo -e "bind-address = 127.0.0.1"
 			echo -e "datadir = /var/lib/mysql"
 			echo -e "log-error = /var/log/mysql/error.log"
@@ -1807,7 +1805,7 @@ DOD
 			#echo -e "max_connect_errors = 1000"
 			echo -e "max_heap_table_size = 16M"
 			echo -e "max_sp_recursion_depth = 255"
-			echo -e "max_sp_cache_size = 4096"
+			#echo -e "max_sp_cache_size = 4096"
 			echo -e "max_binlog_size = 100M"
 			echo -e "max_binlog_cache_size = 1M"
 			echo -e "max_binlog_stmt_cache_size = 1M"
@@ -1817,10 +1815,10 @@ DOD
 			echo -e "max_seeks_for_key = 4294967295"
 			echo -e "max_write_lock_count = 4294967295"
 			echo -e "max_tmp_tables = 32"
-			echo -e "max_tmp_disk_tables = 32"
+			#echo -e "max_tmp_disk_tables = 32"
 			echo -e "max_prepared_stmt_count = 16382"
 			echo -e "max_delayed_threads = 20"
-			echo -e "max_insert_delayed_threads = 20"
+			#echo -e "max_insert_delayed_threads = 20"
 		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 75
 		# set mariadb privileges sql
 		{
@@ -2088,11 +2086,20 @@ vstacklet::postgre::install() {
 		# that postgresql has access to
 		cd "/etc/postgresql/${postgre_version}/main" || vstacklet::clean::rollback 85
 		# set postgresql root password
-		sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '${postgresql_password:-${postgresql_autoPw}}';" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 86
+		(
+			sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '${postgresql_password:-${postgresql_autoPw}}';"
+			sleep 2
+		) >>${vslog} 2>&1 || vstacklet::clean::rollback 86
 		# create postgresql user
-		sudo -u postgres psql -c "CREATE USER ${postgresql_user:-admin} WITH PASSWORD '${postgresql_password:-${postgresql_autoPw}}';" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 87
+		(
+			sudo -u postgres psql -c "CREATE USER ${postgresql_user:-admin} WITH PASSWORD '${postgresql_password:-${postgresql_autoPw}}';"
+			sleep 2
+		) >>${vslog} 2>&1 || vstacklet::clean::rollback 87
 		# grant postgresql user privileges
-		sudo -u postgres psql -c "ALTER USER ${postgresql_user:-admin} WITH SUPERUSER;" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 88
+		(
+			sudo -u postgres psql -c "ALTER USER ${postgresql_user:-admin} WITH SUPERUSER;"
+			sleep 2
+		) >>${vslog} 2>&1 || vstacklet::clean::rollback 88
 		# set postgre client and server configuration
 		cp -f "/etc/postgresql/${postgre_version}/main/postgresql.conf" "/etc/postgresql/${postgre_version}/main/postgresql.conf.default-bak"
 		{
