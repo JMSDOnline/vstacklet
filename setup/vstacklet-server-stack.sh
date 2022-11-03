@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1775
+# @version: 3.1.1776
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1554,7 +1554,7 @@ vstacklet::nginx::install() {
 		if [[ -n ${hhvm} ]]; then
 			cp -f "${local_hhvm_dir}/nginx/conf.d/default.hhvm.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
-		vstacklet::shell::text::yellow::sl "configuring NGinx ... " &
+		vstacklet::shell::text::yellow::sl "configuring NGinx and generating self-signed certificates ... " &
 		vs::stat::progress &
 		vs::stat::progress::start # get stat progress PID
 		# post necessary edits to nginx config files
@@ -1565,14 +1565,14 @@ vstacklet::nginx::install() {
 		[[ ! -f /etc/ssl/certs/ssl-cert-snakeoil.pem ]] && openssl req -config "${vstacklet_base_path}/setup/templates/ssl/openssl.conf" -x509 -nodes -days 720 -newkey rsa:2048 -keyout /etc/ssl/private/ssl-cert-snakeoil.key -out /etc/ssl/certs/ssl-cert-snakeoil.pem >>"${vslog}" 2>&1
 		[[ ! -f /etc/nginx/ssl/dhparam.pem ]] && openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >>"${vslog}" 2>&1
 		openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >>"${vslog}" 2>&1 || vstacklet::rollback::clean 57
+		vs::stat::progress::stop # stop stat progress
 		# stage checkinfo.php for verification
-		vstacklet::shell::text::yellow "staging checkinfo.php ... "
+		vstacklet::shell::text::yellow "staging checkinfo.php and adjusting permissions on ${web_root:-/var/www/html} ... "
 		echo '<?php phpinfo(); ?>' >"${web_root:-/var/www/html}/public/checkinfo.php" || vstacklet::clean::rollback 58
 		chown -R www-data:www-data "${web_root:-/var/www/html}"
 		chmod -R 755 "${web_root:-/var/www/html}"
 		chmod -R g+rw "${web_root:-/var/www/html}"
 		sh -c "find ${web_root:-/var/www/html} -type d -print0 | sudo xargs -0 chmod g+s"
-		vs::stat::progress::stop # stop stat progress
 	fi
 }
 
