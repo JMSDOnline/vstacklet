@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1772
+# @version: 3.1.1775
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -703,7 +703,7 @@ vstacklet::environment::functions() {
 	}
 	vs::stat::progress::stop() {
 		kill -9 $progress_pid
-		vstacklet::shell::icon::check::green ""
+		vstacklet::shell::icon::check::green "done"
 	}
 }
 
@@ -2689,28 +2689,22 @@ vstacklet::wordpress::install() {
 		vstacklet::shell::text::white "please enter the following information for WordPress:"
 		# get WordPress database name
 		vstacklet::shell::text::white::sl "WordPress database name: "
-		# trunk-ignore(shellcheck/SC2119)
 		vstacklet::shell::icon::arrow::white
 		while read -r wp_db_name; do
-			# trunk-ignore(shellcheck/SC2119)
 			[[ -z ${wp_db_name} ]] && vstacklet::shell::text::error "WordPress database name cannot be empty." && vstacklet::shell::text::white::sl "WordPress database name: " && vstacklet::shell::icon::arrow::white && continue
 			break
 		done
 		# get WordPress database user
 		vstacklet::shell::text::white::sl "WordPress database user: "
-		# trunk-ignore(shellcheck/SC2119)
 		vstacklet::shell::icon::arrow::white
 		while read -r wp_db_user; do
-		# trunk-ignore(shellcheck/SC2119)
 			[[ -z ${wp_db_user} ]] && vstacklet::shell::text::error "WordPress database user cannot be empty." && vstacklet::shell::text::white::sl "WordPress database user: " && vstacklet::shell::icon::arrow::white && continue
 			break
 		done
 		# get WordPress database password
 		vstacklet::shell::text::white::sl "WordPress database password: "
-		# trunk-ignore(shellcheck/SC2119)
 		vstacklet::shell::icon::arrow::white
 		while read -r wp_db_password; do
-		# trunk-ignore(shellcheck/SC2119)
 			[[ -z ${wp_db_password} ]] && vstacklet::shell::text::error "WordPress database password cannot be empty." && vstacklet::shell::text::white::sl "WordPress database password: " && vstacklet::shell::icon::arrow::white && continue
 			break
 		done
@@ -2921,39 +2915,23 @@ vstacklet::message::complete() {
 	vstacklet::shell::misc::nl
 	[[ (-n ${nginx} || -n ${varnish}) && (-n ${php} || -n ${hhvm}) ]] && vstacklet::shell::text::white " - Visit: https://${domain:-${server_ip}}/checkinfo.php"
 	[[ (-n ${nginx} || -n ${varnish}) && (-n ${php} || -n ${hhvm}) ]] && vstacklet::shell::text::white " - Remember to remove or rename the checkinfo.php file after verification."
-	[[ ${setup_reboot} -eq "1" ]] && vstacklet::shell::text::white "rebooting..." && reboot
+	[[ ${setup_reboot} -eq "1" ]] && vstacklet::shell::text::white "rebooting ... " && reboot
 	if [[ -z ${setup_reboot} ]]; then
 		declare input
 		vstacklet::shell::text::white::sl "do you want to reboot (recommended)? "
 		vstacklet::shell::text::green::sl "[y]"
 		vstacklet::shell::text::white::sl "es"
 		vstacklet::shell::text::white::sl " or "
-		vstacklet::shell::text::red::sl "[n]o:"
-		vstacklet::shell::icon::arrow::white
-		while read -r input; do
-			case "${input}" in
-			[yY][eE][sS] | [yY])
-				vstacklet::shell::text::white "rebooting..."
-				reboot
-				break
-				;;
-			[nN][oO] | [nN])
-				vstacklet::shell::text::white "not rebooting..."
-				break
-				;;
-			*)
-				vstacklet::shell::text::red "invalid input"
-				vstacklet::shell::text::white::sl "do you want to reboot (recommended)? "
-				vstacklet::shell::text::green::sl "[y]"
-				vstacklet::shell::text::white::sl "es"
-				vstacklet::shell::text::white::sl " or "
-				vstacklet::shell::text::red::sl "[n]o:"
-				vstacklet::shell::icon::arrow::white
-				;;
-			esac
-		done
+		vstacklet::shell::text::red::sl "[n]"
+		vstacklet::shell::text::white::sl "o: "
+		vstacklet::shell::icon::arrow::white read -r input
+		case "${input,,}" in
+		[y] | [y][e][s] | "") vstacklet::shell::text::white "rebooting ... " && reboot ;;
+		[n] | [n][o]) vstacklet::shell::text::white "skipping reboot ... " ;;
+		*) ;;
+		esac
 	fi
-	unset vstacklet_log_location
+	unset vstacklet_log_location vstacklet_start_time vstacklet_end_time vstacklet_total_time vstacklet_total_time_minutes
 }
 
 ################################################################################
@@ -3263,37 +3241,37 @@ vstacklet::environment::checkdistro #(7)
 # by way of the options and arguments provided. #(8)
 ################################################################################
 vstacklet::args::process "$@"
-vstacklet::intro                #(9)
-vstacklet::ask::continue        #(10)
-vstacklet::dependencies::array  #(11)
-vstacklet::base::dependencies   #(12)
-vstacklet::source::dependencies #(13)
-vstacklet::bashrc::set          #(14)
-vstacklet::hostname::set        #(15)
-vstacklet::webroot::set         #(16)
-vstacklet::ssh::set             #(17)
-vstacklet::ftp::set             #(18)
-vstacklet::block::ssdp          #(19)
-vstacklet::sources::update      #(20)
-vstacklet::gpg::keys            #(21)
-vstacklet::apt::update          #(4)
-vstacklet::locale::set          #(22)
-vstacklet::php::install         #(23)
-vstacklet::hhvm::install        #(24)
-vstacklet::nginx::install       #(25)
-vstacklet::varnish::install     #(26)
-vstacklet::permissions::adjust  #(27)
-vstacklet::ioncube::install     #(28)
-vstacklet::mariadb::install     #(29)
-vstacklet::mysql::install       #(30)
-vstacklet::postgre::install     #(31)
-vstacklet::redis::install       #(32)
-vstacklet::phpmyadmin::install  #(33)
-vstacklet::csf::install         #(34)
-vstacklet::cloudflare::csf      #(34.1)
-vstacklet::sendmail::install    #(35)
-vstacklet::wordpress::install   #(36)
-vstacklet::domain::ssl          #(37)
-vstacklet::clean::complete      #(38)
-vstacklet::message::complete    #(39)
+vstacklet::intro                                      #(9)
+vstacklet::ask::continue                              #(10)
+vstacklet::dependencies::array                        #(11)
+vstacklet::base::dependencies                         #(12)
+vstacklet::source::dependencies                       #(13)
+vstacklet::bashrc::set                                #(14)
+vstacklet::hostname::set                              #(15)
+vstacklet::webroot::set                               #(16)
+vstacklet::ssh::set                                   #(17)
+vstacklet::ftp::set                                   #(18)
+vstacklet::block::ssdp                                #(19)
+vstacklet::sources::update                            #(20)
+vstacklet::gpg::keys                                  #(21)
+vstacklet::apt::update                                #(4)
+vstacklet::locale::set                                #(22)
+vstacklet::php::install                               #(23)
+vstacklet::hhvm::install                              #(24)
+vstacklet::nginx::install                             #(25)
+vstacklet::varnish::install                           #(26)
+vstacklet::permissions::adjust                        #(27)
+vstacklet::ioncube::install                           #(28)
+vstacklet::mariadb::install                           #(29)
+vstacklet::mysql::install                             #(30)
+vstacklet::postgre::install                           #(31)
+vstacklet::redis::install                             #(32)
+vstacklet::phpmyadmin::install                        #(33)
+vstacklet::csf::install                               #(34)
+vstacklet::cloudflare::csf                            #(34.1)
+vstacklet::sendmail::install                          #(35)
+vstacklet::wordpress::install                         #(36)
+vstacklet::domain::ssl                                #(37)
+vstacklet::clean::complete                            #(38)
+vstacklet::message::complete && rm -rf ~/vstacklet.sh #(39)
 ################################################################################
