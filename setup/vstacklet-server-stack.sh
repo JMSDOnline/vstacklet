@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1799
+# @version: 3.1.1800
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1578,7 +1578,7 @@ vstacklet::nginx::install() {
 		chmod -R 755 "${web_root:-/var/www/html}"
 		chmod -R g+rw "${web_root:-/var/www/html}"
 		sh -c "find ${web_root:-/var/www/html} -type d -print0 | sudo xargs -0 chmod g+s"
-		vstacklet::shell::text::green "NGinx and self-signed certificates installed successfully. see details below:"
+		vstacklet::shell::text::green "NGinx and self-signed certificates installed and configured. see details below:"
 		vstacklet::shell::text::white::sl "NGinx config file: "
 		vstacklet::shell::text::green "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		vstacklet::shell::text::white::sl "self-signed ssl cert: "
@@ -1661,6 +1661,15 @@ vstacklet::varnish::install() {
 		sed -i "s|6081|${varnish_port:-6081}|g" /lib/systemd/system/varnish.service
 		vstacklet::log "systemctl daemon-reload" || vstacklet::clean::rollback 61
 		cd "${HOME}" || vstacklet::clean::rollback 62
+		# print varnish config info
+		vstacklet::shell::text::green "Varnish installed and configured. see details below:"
+		vstacklet::shell::text::white::sl "Varnish port: "
+		vstacklet::shell::text::green "${varnish_port:-6081}"
+		vstacklet::shell::text::white::sl "Varnish config: "
+		vstacklet::shell::text::green "/etc/varnish/default.vcl"
+		vstacklet::shell::text::white::sl "Varnish service: "
+		vstacklet::shell::text::green "/etc/systemd/system/varnish.service"
+		vstacklet::shell::misc::nl
 	fi
 }
 
