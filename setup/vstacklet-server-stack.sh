@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1805
+# @version: 3.1.1807
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1650,15 +1650,16 @@ vstacklet::varnish::install() {
 		vstacklet::shell::text::yellow "configuring Varnish ... "
 		mv default.vcl default.vcl.ORIG
 		# import varnish config files from vStacklet
-		cp -f "${local_varnish_dir}default.vcl" "/etc/varnish/default.vcl"
+		cp -f "${local_varnish_dir}custom.vcl" "/etc/varnish/custom.vcl"
 		# adjust varnish config files
-		sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{varnish_port}}|${varnish_port:-6081}|g" "/etc/varnish/default.vcl"
-		sed -i "s|6081|${varnish_port:-6081}|g" /etc/default/varnish
+		sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{varnish_port}}|${varnish_port:-6081}|g" -e "s|{{domain}}|${domain:-${server_ip}}|g" "/etc/varnish/custom.vcl"
+		sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish"
+		/etc/default/varnish
 		# adjust varnish service
 		#todo: cp -f /lib/systemd/system/varnishlog.service /etc/systemd/system/
 		cp -f /lib/systemd/system/varnish.service /etc/systemd/system/
-		sed -i "s|6081|${varnish_port:-6081}|g" /etc/systemd/system/varnish.service
-		sed -i "s|6081|${varnish_port:-6081}|g" /lib/systemd/system/varnish.service
+		sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" "/etc/systemd/system/varnish.service"
+		sed -i "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" "/lib/systemd/system/varnish.service"
 		vstacklet::log "systemctl daemon-reload" || vstacklet::clean::rollback 61
 		cd "${HOME}" || vstacklet::clean::rollback 62
 		# print varnish config info
@@ -1666,7 +1667,7 @@ vstacklet::varnish::install() {
 		vstacklet::shell::text::white::sl "Varnish port: "
 		vstacklet::shell::text::green "${varnish_port:-6081}"
 		vstacklet::shell::text::white::sl "Varnish config: "
-		vstacklet::shell::text::green "/etc/varnish/default.vcl"
+		vstacklet::shell::text::green "/etc/varnish/custom.vcl"
 		vstacklet::shell::text::white::sl "Varnish service: "
 		vstacklet::shell::text::green "/etc/systemd/system/varnish.service"
 		vstacklet::shell::misc::nl
@@ -1910,7 +1911,6 @@ DOD
 		vstacklet::shell::text::white::sl "mariaDB configuration file: "
 		vstacklet::shell::text::green "/etc/mysql/conf.d/vstacklet.cnf"
 		vstacklet::shell::misc::nl
-		[[ -n ${phpmyadmin} ]] && declare -g pma_password="${mariadb_password:-${mariadb_autoPw}}"
 	fi
 }
 
@@ -2319,6 +2319,8 @@ vstacklet::phpmyadmin::install() {
 	if [[ -n ${phpmyadmin} ]]; then
 		if [[ (-n ${mariadb} || -n ${mysql}) && (-n ${nginx} || -n ${varnish}) && (-n ${php}) ]]; then
 			declare pma_version pma_password pma_bf
+			[[ -n ${mariadb} ]] && pma_password="${mariadb_password:-${mariadb_autoPw}}"
+			[[ -n ${mysql} ]] && pma_password="${mysql_password:-${mysql_autoPw}}"
 			pma_version=$(curl -s https://www.phpmyadmin.net/home_page/version.json | jq -r '.version')
 			pma_bf=$(perl -le 'print map { (a..z,A..Z,0..9)[rand 62] } 0..31')
 			# install phpmyadmin
