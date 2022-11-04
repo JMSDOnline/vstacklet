@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1811
+# @version: 3.1.1813
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1920,6 +1920,8 @@ DOD
 		vstacklet::shell::text::white::sl "mariaDB configuration file: "
 		vstacklet::shell::text::green "/etc/mysql/conf.d/vstacklet.cnf"
 		vstacklet::shell::misc::nl
+		declare -g pma_password
+		pma_password="${mariadb_password:-${mariadb_autoPw}}"
 	fi
 }
 
@@ -2082,7 +2084,8 @@ vstacklet::mysql::install() {
 		vstacklet::shell::text::white::sl "MySQL configuration file: "
 		vstacklet::shell::text::green "/etc/mysql/conf.d/vstacklet.cnf"
 		vstacklet::shell::misc::nl
-		[[ -n ${phpmyadmin} ]] && declare -g pma_password="${mysql_password:-${mysql_autoPw}}"
+		declare -g pma_password
+		pma_password="${mysql_password:-${mysql_autoPw}}"
 	fi
 }
 
@@ -2327,9 +2330,7 @@ vstacklet::phpmyadmin::install() {
 	[[ -n ${hhvm} && -n ${phpmyadmin} ]] && vstacklet::clean::rollback 100
 	if [[ -n ${phpmyadmin} ]]; then
 		if [[ (-n ${mariadb} || -n ${mysql}) && (-n ${nginx} || -n ${varnish}) && (-n ${php}) ]]; then
-			declare pma_version pma_password pma_bf
-			[[ -n ${mariadb} ]] && pma_password="${mariadb_password:-${mariadb_autoPw}}"
-			[[ -n ${mysql} ]] && pma_password="${mysql_password:-${mysql_autoPw}}"
+			declare pma_version pma_bf
 			pma_version=$(curl -s https://www.phpmyadmin.net/home_page/version.json | jq -r '.version')
 			pma_bf=$(perl -le 'print map { (a..z,A..Z,0..9)[rand 62] } 0..31')
 			# install phpmyadmin
