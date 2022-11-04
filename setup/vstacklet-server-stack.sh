@@ -510,8 +510,10 @@ vstacklet::args::process() {
 			;;
 		esac
 	done
+	# sanity checks
 	[[ -n ${csfCf} && -z ${csf} ]] && vstacklet::clean::rollback 4
 	[[ -n ${csf} && -z ${email} ]] && vstacklet::clean::rollback 3
+	[[ -n ${domain} && -z ${email} ]] && vstacklet::shell::text::error "an email is needed to register with Let's Encrypt. please set an email with \`-e\`." && exit 1
 	[[ -z ${ftp_port} ]] && declare -gi ftp_port="21"
 	[[ -z ${https_port} ]] && declare -gi https_port="443"
 	[[ -z ${http_port} ]] && declare -gi http_port="80"
