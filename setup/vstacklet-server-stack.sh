@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1796
+# @version: 3.1.1797
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1804,7 +1804,8 @@ vstacklet::mariadb::install() {
 		done
 		unset depend depend_list install
 		# configure mariadb
-		vstacklet::shell::text::yellow "configuring MariaDB ... "
+		vstacklet::shell::text::yellow "configuring MariaDB ... " &
+		vs::stat::progress::start # start progress status
 		(
 			prog=/usr/bin/mysql_secure_installation
 			/usr/bin/expect <<DOD
@@ -1886,6 +1887,7 @@ DOD
 		mysql -e "CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 72
 		mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 73
 		mysql -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 74
+		vs::stat::progress::stop # stop progress status
 		vstacklet::shell::text::green "mariaDB installed and configured. see details below:"
 		vstacklet::shell::text::white::sl "mariaDB password: "
 		vstacklet::shell::text::green "${mariadb_password:-${mariadb_autoPw}}"
