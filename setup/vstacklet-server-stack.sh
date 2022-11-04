@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1815
+# @version: 3.1.1818
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -195,7 +195,7 @@ vstacklet::environment::init() {
 }
 
 ##################################################################################
-# @name: vstacklet::args::process (8)
+# @name: vstacklet::args::process (3)
 # @description: Process the options and values passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L287-L529)
 # @option: $1 - the option/flag to process
 # @arg: $2 - the value of the option/flag
@@ -499,7 +499,9 @@ vstacklet::args::process() {
 			[[ -n ${web_root} && $(sed -e 's/[\\/]/\\/g;s/[\/\/]/\\\//g;' <<<"${web_root}") == "" ]] && vstacklet::clean::rollback 33
 			;;
 		-www-perms* | --www_permissions*)
-			"${local_setup_dir}/www-permissions.sh" "$@"
+			declare -g www_permissions="1"
+			shift
+			#"${local_setup_dir}/www-permissions.sh" "$@"
 			#exit $?
 			;;
 		*)
@@ -523,7 +525,7 @@ vstacklet::args::process() {
 	[[ -z ${ssh_port} ]] && declare -gi ssh_port="22"
 	[[ -z ${varnish_port} ]] && declare -gi varnish_port="6081"
 	[[ -z ${web_root} ]] && declare -g web_root="/var/www/html"
-	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::clean::rollback 34
+	[[ ${#invalid_option[@]} -gt 0 ]] && exit #vstacklet::clean::rollback 34
 }
 
 ##################################################################################
@@ -715,7 +717,7 @@ vs::stat::progress::stop() {
 }
 
 ##################################################################################
-# @name: vstacklet::log::check (3)
+# @name: vstacklet::log::check (4)
 # @description: Check if the log file exists and create it if it doesn't. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L685-L705)
 #
 # notes:
@@ -749,7 +751,7 @@ vstacklet::log::check() {
 }
 
 ##################################################################################
-# @name: vstacklet::apt::update (4)
+# @name: vstacklet::apt::update (5)
 # @description: Updates server via apt-get. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L714-L723)
 # @nooptions
 # @noargs
@@ -767,7 +769,7 @@ vstacklet::apt::update() {
 }
 
 ##################################################################################
-# @name: vstacklet::dependencies::install (5)
+# @name: vstacklet::dependencies::install (6)
 # @description: Installs dependencies for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L733-L754)
 # @nooptions
 # @noargs
@@ -799,7 +801,7 @@ vstacklet::dependencies::install() {
 }
 
 ##################################################################################
-# @name: vstacklet::environment::checkroot (6)
+# @name: vstacklet::environment::checkroot (7)
 # @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L764-L766)
 # @script-note: This function is required for the installation of
 # the vStacklet software.
@@ -811,7 +813,7 @@ vstacklet::environment::checkroot() {
 }
 
 ##################################################################################
-# @name: vstacklet::environment::checkdistro (7)
+# @name: vstacklet::environment::checkdistro (8)
 # @description: Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11 [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L776-L787)
 # @script-note: This function is required for the installation of
 # the vStacklet software.
@@ -3044,11 +3046,11 @@ vstacklet::clean::rollback() {
 	declare error
 	if [[ -n $1 ]]; then
 		case $1 in
-		# vstacklet::environment::checkroot (6)
+		# vstacklet::environment::checkroot (7)
 		1) error="you must be root to run this script." ;;
-		# vstacklet::environment::checkdistro (7)
+		# vstacklet::environment::checkdistro (8)
 		2) error="this script only supports Ubuntu 18.04/20.04 and Debian 9/10/11." ;;
-		# vstacklet::args::process (8)
+		# vstacklet::args::process (3)
 		3) error="please provide a valid email address. (required for '-csf', '-sendmail', and '-csfCf')" ;;
 		4) error="'-csfCf' requires '-csf'" ;;
 		5) error="please provide a valid domain name." ;;
@@ -3081,7 +3083,7 @@ vstacklet::clean::rollback() {
 		32) error="invalid Varnish port number. please enter a number between 1 and 65535." ;;
 		33) error="invalid web root. please enter a valid path. (e.g. '-wr \"/var/www/html\"')" ;;
 		34) error="invalid option(s): ${invalid_option[*]}" ;;
-		# vstacklet::dependencies::install (5)
+		# vstacklet::dependencies::install (6)
 		35) error="failed to install script dependencies." ;;
 		# vstacklet::base::dependencies (12)
 		36) error="failed to install base dependencies." ;;
@@ -3316,18 +3318,16 @@ trap 'vstacklet::clean::rollback' SIGINT
 # the following functions are called in the order they are listed and
 # are used for post-installation setup.
 ################################################################################
-vstacklet::environment::init        #(1)
-vstacklet::environment::functions   #(2)
-vstacklet::log::check               #(3)
-vstacklet::apt::update              #(4)
-vstacklet::dependencies::install    #(5)
-vstacklet::environment::checkroot   #(6)
-vstacklet::environment::checkdistro #(7)
-################################################################################
-# the following functions are called during installation and are processed
-# by way of the options and arguments provided. #(8)
-################################################################################
-vstacklet::args::process "$@"
+vstacklet::environment::init      #(1)
+vstacklet::environment::functions #(2)
+vstacklet::args::process "$@"     #(3)
+[[ "$*" =~ "-h" ]] || [[ "$*" =~ "--help" ]] && vstacklet::help && exit 0
+[[ "${www_permissions}" -eq 1 ]] && "${local_setup_dir}"/www-permissions.sh "--www_help" && exit 0
+vstacklet::log::check                                 #(4)
+vstacklet::apt::update                                #(5)
+vstacklet::dependencies::install                      #(6)
+vstacklet::environment::checkroot                     #(7)
+vstacklet::environment::checkdistro                   #(8)
 vstacklet::intro                                      #(9)
 vstacklet::ask::continue                              #(10)
 vstacklet::dependencies::array                        #(11)
@@ -3341,7 +3341,7 @@ vstacklet::ftp::set                                   #(18)
 vstacklet::block::ssdp                                #(19)
 vstacklet::sources::update                            #(20)
 vstacklet::gpg::keys                                  #(21)
-vstacklet::apt::update                                #(4)
+vstacklet::apt::update                                #(5)
 vstacklet::locale::set                                #(22)
 vstacklet::php::install                               #(23)
 vstacklet::hhvm::install                              #(24)
