@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.647
-  Build: 647
+  Version: v3.1.1.648
+  Build: 648
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 
@@ -97,7 +97,7 @@ Updated: ~~(*coming soon as a single script*)~~ Added as standalone and included
 - Cleanup remaining individual archives
 - Simply configure and type '**vs-backup**' to backup important directories and databases - cron examples included.
 
-![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/master/developer_resources/images/vs-backup-utility-preview.png "VStacklet VS-Backup Utility")
+![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vs-backup-utility-preview.png "VStacklet VS-Backup Utility")
 
 ---
 
