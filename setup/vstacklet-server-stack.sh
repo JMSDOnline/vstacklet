@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1808
+# @version: 3.1.1809
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -245,7 +245,7 @@ vstacklet::environment::init() {
 ##################################################################################
 # @example: vstacklet --help
 # @example: vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
-# @example: vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
+# @example: vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 8080 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
 # @null
 # @return_code: 3 - please provide a valid email address. (required for -csf, -sendmail, and -csfCf)
 # @return_code: 4 - `-csfCf` requires `-csf`.
@@ -1500,8 +1500,8 @@ vstacklet::hhvm::install() {
 # @option: $1 - `-nginx | --nginx` (optional) (takes no arguments)
 # @example: vstacklet -nginx
 # @example: vstacklet --nginx
-# @example: vstacklet -nginx -php 8.1 -varnish -varnishP 80 -http 8080 -https 443
-# @example:vstacklet --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
+# @example: vstacklet -nginx -php 8.1 -varnish -varnishP 8080 -http 8080 -https 443
+# @example:vstacklet --nginx --php 8.1 --varnish --varnishP 8080 --http 8080 --https 443
 # @null
 # @return_code: 54 - failed to install NGINX dependencies.
 # @return_code: 55 - failed to edit NGINX configuration file.
@@ -1613,8 +1613,8 @@ vstacklet::nginx::install() {
 # @arg: $4 - `[https_port_number]` (optional) (default: 443)
 # @example: vstacklet -varnish -varnishP 6081 -http 80
 # @example: vstacklet --varnish --varnish_port 6081 --http_port 80
-# @example: vstacklet -varnish -varnishP 6081 -http 80 -https 443
-# @example: vstacklet -varnish -varnishP 80 -nginx -http 8080 --https_port 443
+# @example: vstacklet -varnish -varnishP 8080 -http 8080 -https 443
+# @example: vstacklet -varnish -varnishP 8080 -nginx -http 8080 --https_port 443
 # @null
 # @return_code: 59 - failed to install Varnish dependencies.
 # @return_code: 60 - could not switch to /etc/varnish directory.
@@ -2692,7 +2692,7 @@ vstacklet::sendmail::install() {
 # @example: vstacklet -wp -mariadb -nginx -php "8.1" -wr "/var/www/html"
 # @example: vstacklet -wp -mysql -nginx -php "8.1"
 # @example: vstacklet -wp -postgresql -nginx -php "8.1"
-# @example: vstacklet -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
+# @example: vstacklet -wp -mariadb -nginx -php "8.1" -varnish -varnishP 8080 -http 8080 -https 443
 # @example: vstacklet -wp -mariadb -nginx -hhvm -wr "/var/www/html"
 # @null
 # @return_code: 135 - WordPress requires a database to be installed.
