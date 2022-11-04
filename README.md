@@ -28,7 +28,7 @@ Debian:
 [![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 [![Debian 9 Testing](https://img.shields.io/badge/Debian%209-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 [![Debian 10 Testing](https://img.shields.io/badge/Debian%2010-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
-[![Debian 11 Testing](https://img.shields.io/badge/Debian%2011-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
+[![Debian 11 Passing](https://img.shields.io/badge/Debian%2011-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 
 </div>
 
