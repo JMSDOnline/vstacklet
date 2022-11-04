@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1795
+# @version: 3.1.1796
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1589,6 +1589,7 @@ vstacklet::nginx::install() {
 		vstacklet::shell::text::green "/etc/nginx/ssl/dhparam.pem"
 		vstacklet::shell::text::white::sl "checkinfo.php: "
 		vstacklet::shell::text::green "${web_root:-/var/www/html}/public/checkinfo.php"
+		vstacklet::shell::misc::nl
 	fi
 }
 
@@ -2802,9 +2803,9 @@ vstacklet::wordpress::install() {
 # @break
 ##################################################################################
 vstacklet::domain::ssl() {
-	[[ -z ${nginx} ]] && vstacklet::clean::rollback 149
-	[[ -z ${email} ]] && vstacklet::clean::rollback 150
 	if [[ -n ${domain_ssl} ]]; then
+		[[ -z ${nginx} ]] && vstacklet::clean::rollback 149
+		[[ -z ${email} ]] && vstacklet::clean::rollback 150
 		vstacklet::shell::text::white "installing SSL certificate for ${domain} ... "
 		# build acme.sh for Let's Encrypt SSL
 		cd "/root" || vstacklet::clean::rollback 151
