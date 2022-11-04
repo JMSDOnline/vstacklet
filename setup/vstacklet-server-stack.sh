@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1801
+# @version: 3.1.1805
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1786,7 +1786,8 @@ vstacklet::ioncube::install() {
 # @break
 ##################################################################################
 vstacklet::mariadb::install() {
-	if [[ -n ${mariadb} && -z ${mysql} ]]; then
+	if [[ -n ${mariadb} ]]; then
+		[[ -n ${mysql} ]] && vstacklet::shell::text::red "mariadb and mysql cannot be installed together. choose either mariadb or mysql." && vstacklet::clean::rollback 1
 		declare mariadb_autoPw
 		mariadb_autoPw="$(perl -e 'print map +(A..Z,a..z,0..9)[rand 62], 0..15')"
 		vstacklet::shell::text::white "installing and configuring MariaDB ... "
@@ -1909,6 +1910,7 @@ DOD
 		vstacklet::shell::text::white::sl "mariaDB configuration file: "
 		vstacklet::shell::text::green "/etc/mysql/conf.d/vstacklet.cnf"
 		vstacklet::shell::misc::nl
+		[[ -n ${phpmyadmin} ]] && declare -g pma_password="${mariadb_password:-${mariadb_autoPw}}"
 	fi
 }
 
@@ -1941,7 +1943,8 @@ DOD
 # @break
 ##################################################################################
 vstacklet::mysql::install() {
-	if [[ -n ${mysql} && -z ${mariadb} ]]; then
+	if [[ -n ${mysql} ]]; then
+		[[ -n ${mariadb} ]] && vstacklet::shell::text::red "mysql and mariadb cannot be installed together. choose either mysql or mariadb." && vstacklet::clean::rollback
 		declare mysql_autoPw
 		mysql_autoPw="$(perl -e 'print map +(A..Z,a..z,0..9)[rand 62], 0..15')"
 		mysql_deb_version="mysql-apt-config_0.8.24-1_all.deb"
@@ -2070,6 +2073,7 @@ vstacklet::mysql::install() {
 		vstacklet::shell::text::white::sl "MySQL configuration file: "
 		vstacklet::shell::text::green "/etc/mysql/conf.d/vstacklet.cnf"
 		vstacklet::shell::misc::nl
+		[[ -n ${phpmyadmin} ]] && declare -g pma_password="${mysql_password:-${mysql_autoPw}}"
 	fi
 }
 
@@ -2316,7 +2320,6 @@ vstacklet::phpmyadmin::install() {
 		if [[ (-n ${mariadb} || -n ${mysql}) && (-n ${nginx} || -n ${varnish}) && (-n ${php}) ]]; then
 			declare pma_version pma_password pma_bf
 			pma_version=$(curl -s https://www.phpmyadmin.net/home_page/version.json | jq -r '.version')
-			pma_password="${mariadb_password:-${mysql_password:-$(perl -le 'print map {(a..z,A..Z,0..9)[rand 62] } 0..pop' 15)}}"
 			pma_bf=$(perl -le 'print map { (a..z,A..Z,0..9)[rand 62] } 0..31')
 			# install phpmyadmin
 			vstacklet::shell::text::white "installing and configuring phpMyAdmin ... "
@@ -2359,6 +2362,8 @@ vstacklet::phpmyadmin::install() {
 			# this is only used if/when the user opts to use basic authentication (a post install courtesy)
 			htpasswd -b -c /usr/share/phpmyadmin/.htpasswd "${mariadb_user:-${mysql_user:-admin}}" "${pma_password}" >>${vslog} 2>&1 || vstacklet::clean::rollback 111
 			# set phpmyadmin configuration
+			# /etc/phpmyadmin/config.inc.php
+			# /usr/share/phpmyadmin/config.inc.php - this is the default config file
 			{
 				echo -e "<?php"
 				echo -e "/* Servers configuration */"
@@ -2383,10 +2388,8 @@ vstacklet::phpmyadmin::install() {
 				echo -e "\$cfg['UploadDir'] = '';"
 				echo -e "\$cfg['SaveDir'] = '';"
 				echo -e "?>"
-			} >/etc/phpmyadmin/config.inc.php || vstacklet::clean::rollback 112
+			} >/usr/share/phpmyadmin/config.inc.php || vstacklet::clean::rollback 112
 			vstacklet::shell::text::green "phpMyAdmin installed and configured. see details below:"
-			vstacklet::shell::text::white::sl "phpMyAdmin version: "
-			vstacklet::shell::text::green "${pma_version}"
 			vstacklet::shell::text::white::sl "phpMyAdmin username: "
 			vstacklet::shell::text::green "${mariadb_user:-${mysql_user:-admin}}"
 			vstacklet::shell::text::white::sl "phpMyAdmin password: "
@@ -2396,7 +2399,7 @@ vstacklet::phpmyadmin::install() {
 			vstacklet::shell::text::white::sl "phpMyAdmin htpasswd file: "
 			vstacklet::shell::text::green "/usr/share/phpmyadmin/.htpasswd"
 			vstacklet::shell::text::white::sl "phpMyAdmin configuration file: "
-			vstacklet::shell::text::green "/etc/phpmyadmin/config.inc.php"
+			vstacklet::shell::text::green "/usr/share/phpmyadmin/config.inc.php"
 			vstacklet::shell::text::white::sl "phpMyAdmin web root: "
 			vstacklet::shell::text::green "${web_root:-/var/www/html}/public"
 			vstacklet::shell::misc::nl
