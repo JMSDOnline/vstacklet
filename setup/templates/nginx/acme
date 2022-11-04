@@ -19,7 +19,7 @@ server {
 	server_name {{domain}};
 	ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
 	ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
-	include server.configs/ssl.conf;
+	include server.configs/directives/ssl.conf;
 	client_max_body_size 40M;
 	server_tokens off;
 	root {{webroot}}/;

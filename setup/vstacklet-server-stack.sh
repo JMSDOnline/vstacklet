@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1827
+# @version: 3.1.1834
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1595,7 +1595,7 @@ vstacklet::nginx::install() {
 		chmod -R g+rw "${web_root:-/var/www/html}"
 		sh -c "find ${web_root:-/var/www/html} -type d -print0 | sudo xargs -0 chmod g+s"
 		# @script-note: set override for nginx pid file
-		mkdir /etc/systemd/system/nginx.service.d
+		mkdir -p /etc/systemd/system/nginx.service.d >/dev/null 2>&1
 		printf "[Service]\nExecStartPost=/bin/sleep 1\n" >"/etc/systemd/system/nginx.service.d/override.conf"
 		vstacklet::log "systemctl daemon-reload && systemctl restart nginx" >>"${vslog}" 2>&1
 		vs::stat::progress::stop # stop progress status
@@ -2905,7 +2905,8 @@ vstacklet::domain::ssl() {
 		# @script-note: create SSL certificate
 		cp -f "${local_setup_dir}/templates/nginx/acme" "/etc/nginx/sites-enabled/"
 		# @script-note: post necessary edits to nginx acme file
-		sed -i -e "s|{{domain}}|${domain}|g" -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{http_ports}}|${https_port:-443}|g" -e "s|{{php}}|${php:-8.1}|g" /etc/nginx/sites-enabled/acme
+		wr_sanitize=$(echo "${web_root:-/var/www/html}" | sed 's/\//\\\//g')
+		sed -i -e "s|{{domain}}|${domain}|g" -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" /etc/nginx/sites-enabled/acme
 		systemctl reload nginx.service >>"${vslog}" 2>&1 || vstacklet::clean::rollback 156
 		./acme.sh --register-account -m "${email:?}" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 157
 		./acme.sh --set-default-ca --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 158
@@ -2922,9 +2923,14 @@ vstacklet::domain::ssl() {
 		# @script-note: post necessary edits to nginx config file
 		crt_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" | sed 's/\//\\\//g')
 		key_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" | sed 's/\//\\\//g')
-		chn_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" | sed 's/\//\\\//g')
-		[[ -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" ]] && mv "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "${vstacklet_base_path:?}/setup_tmp/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1
-		sed -i.bak -e "s|^ssl_certificate.*|ssl_certificate ${crt_sanitize};|g" -e "s|^ssl_certificate_key.*|ssl_certificate_key ${key_sanitize};|g" -e "s|^ssl_trusted_certificate.*|ssl_trusted_certificate ${chn_sanitize};|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 161
+		#chn_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" | sed 's/\//\\\//g')
+		[[ -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" ]] && mv "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "${vstacklet_base_path:?}/setup_temp/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1
+		# @script-note: place generated ssl to nginx config file
+		sed -i.bak -e "/ssl_certificate .*/c\        ssl_certificate ${crt_sanitize};" -e "/ssl_certificate_key .*/c\        ssl_certificate_key ${key_sanitize};" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 161
+		# @script-note: if wordpress option is enabled, edit nginx config file
+		# to include wordpress specific directives.
+		# no need to log this one as it's not a critical step (helpful, but not critical)
+		[[ -n ${wordpress} ]] && sed -i -e '/# include wordpress.conf;/s/#//' -e '/# include restrictions.conf;/s/#//' "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		# @script-note: remove acme ssl template
 		[[ -f "/etc/nginx/sites-enabled/acme" ]] && rm -f "/etc/nginx/sites-enabled/acme" >>"${vslog}" 2>&1
 		# @script-note: ssl installation complete
