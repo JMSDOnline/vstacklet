@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1046
+# @version: 3.1.1047
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -81,11 +81,11 @@ setup::download() {
 	server_hostname=$(hostname -s)
 	# vstacklet directories
 	local_setup_dir="${vstacklet_base_path:=/opt/vstacklet}/setup"
-	local_php8_dir="/opt/vstacklet/php8/"
-	local_php7_dir="/opt/vstacklet/php7/"
-	local_hhvm_dir="/opt/vstacklet/hhvm/"
-	local_nginx_dir="/opt/vstacklet/nginx/"
-	local_varnish_dir="/opt/vstacklet/varnish/"
+	local_php8_dir="/opt/vstacklet/config/php8/"
+	local_php7_dir="/opt/vstacklet/config/php7/"
+	local_hhvm_dir="/opt/vstacklet/config/hhvm/"
+	local_nginx_dir="/opt/vstacklet/config/nginx/"
+	local_varnish_dir="/opt/vstacklet/config/varnish/"
 	# create vstacklet directories
 	mkdir -p "${vstacklet_base_path}/setup_temp"    # temporary setup directory - stores default files edited by vStacklet
 	mkdir -p "${vstacklet_base_path}/config/system" # system configuration directory - stores dependencies, keys, and other system files
@@ -108,17 +108,19 @@ setup::download() {
 	# Download vStacklet
 	rm -rf /tmp/vstacklet
 	if [[ -d /opt/vstacklet/.git ]]; then
-		git clone --quiet --recurse-submodules --branch "development" "${vstacklet_git}" /tmp/vstacklet || { printf -- "%s\n" "Error: Unable to update vStacklet from GitHub" && exit 1; }
+		git clone --quiet --branch "development" "${vstacklet_git}" /tmp/vstacklet || { printf -- "%s\n" "Error: Unable to update vStacklet from GitHub" && exit 1; }
 		cp -rf /tmp/vstacklet/* /opt/vstacklet || { printf -- "%s\n" "Error: Unable to copy vStacklet files to /opt/vstacklet" && exit 1; }
 	else
 		# Remove old install script
 		[[ -d ${vstacklet_base_path} ]] && rm -rf "${vstacklet_base_path}"
-		git clone --quiet --recurse-submodules --branch "development" "${vstacklet_git}" /opt/vstacklet || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
+		git clone --quiet --branch "development" "${vstacklet_git}" /opt/vstacklet || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
 	fi
+	# Send vStacklet backup (www-permissions.sh) to /usr/local/bin
+	cp -f /opt/vstacklet/bin/backup/www-permissions.sh /usr/local/bin/vs-perms || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
 	# Make www-permissions.sh executable
-	chmod +x "${local_setup_dir}/www-permissions.sh"
+	chmod +x /usr/local/bin/vs-perms || { printf -- "%s\n" "Error: Unable to make vs-perms executable" && exit 1; }
 	# Send vStacklet backup (vs-backup) to /usr/local/bin
-	cp -f /opt/vstacklet/packages/backup/vs-backup /usr/local/bin/vs-backup || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
+	cp -f /opt/vstacklet/bin/backup/vs-backup /usr/local/bin/vs-backup || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
 	chmod +x /usr/local/bin/vs-backup || { printf -- "%s\n" "Error: Unable to chmod +x /usr/local/bin/vs-backup" && exit 1; }
 	# Make the installation script executable
 	cp -f "${vstacklet_server_stack_script}" /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to copy vstacklet to /usr/local/bin" && exit 1; }
