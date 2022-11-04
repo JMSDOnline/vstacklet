@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.646
-  Build: 646
+  Version: v3.1.1.647
+  Build: 647
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 
@@ -66,7 +66,7 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 
 Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 10:12 installing everything. No Sendmail or Cert script installs at 04:22. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue.
 
-![preview 1](https://github.com/JMSDOnline/vstacklet/blob/development/images/vstacklet_install_preview.png "vstacklet preview 1")
+![preview 1](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet_install_preview.png "vstacklet preview 1")
 
 ## Meet the Scripts
 
@@ -97,7 +97,7 @@ Updated: ~~(*coming soon as a single script*)~~ Added as standalone and included
 - Cleanup remaining individual archives
 - Simply configure and type '**vs-backup**' to backup important directories and databases - cron examples included.
 
-![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/master/images/vs-backup-utility-preview.png "VStacklet VS-Backup Utility")
+![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/master/developer_resources/images/vs-backup-utility-preview.png "VStacklet VS-Backup Utility")
 
 ---
 
