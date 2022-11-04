@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1814
+# @version: 3.1.1815
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1363,6 +1363,7 @@ vstacklet::php::install() {
 	if [[ -n ${php} && -z ${hhvm} ]]; then
 		# @script-note: check for nginx \\ to maintain modularity, nginx is not required for PHP
 		#[[ -z ${nginx} ]] && vstacklet::clean::rollback "PHP requires nginx. please install nginx."
+		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring PHP ${php} ... "
 		# @script-note: install php dependencies and php
 		for depend in "${php_dependencies[@]}"; do
@@ -1387,20 +1388,24 @@ vstacklet::php::install() {
 		done
 		unset depend depend_list install
 		# @script-note: tweak php.ini
-		vstacklet::shell::text::yellow "tweaking php.ini ... "
+		vstacklet::shell::text::yellow::sl "tweaking php.ini ... " &
+		vs::stat::progress::start # start progress status
 		declare -a php_files=("/etc/php/${php}/fpm/php.ini" "/etc/php/${php}/cli/php.ini")
 		# shellcheck disable=SC2215
 		for file in "${php_files[@]}"; do
 			sed -i.bak -e "s/.*post_max_size =.*/post_max_size = 92M/" -e "s/.*upload_max_filesize =.*/upload_max_filesize = 92M/" -e "s/.*expose_php =.*/expose_php = Off/" -e "s/.*memory_limit =.*/memory_limit = 768M/" -e "s/.*session.cookie_secure =.*/session.cookie_secure = 1/" -e "s/.*session.cookie_httponly =.*/session.cookie_httponly = 1/" -e "s/.*session.cookie_samesite =.*/cookie_samesite.cookie_secure = Lax/" -e "s/.*cgi.fix_pathinfo=.*/cgi.fix_pathinfo=1/" -e "s/.*opcache.enable=.*/opcache.enable=1/" -e "s/.*opcache.memory_consumption=.*/opcache.memory_consumption=128/" -e "s/.*opcache.max_accelerated_files=.*/opcache.max_accelerated_files=4000/" -e "s/.*opcache.revalidate_freq=.*/opcache.revalidate_freq=60/" "${file}"
 		done
 		sleep 3
+		vs::stat::progress::stop # stop progress status
 		# @script-note: enable modules
-		vstacklet::shell::text::yellow "enabling PHP modules ... "
+		vstacklet::shell::text::yellow::sl "enabling PHP modules ... " &
+		vs::stat::progress::start # start progress status
 		phpmods=("opcache" "xml" "igbinary" "imagick" "intl" "mbstring" "gmp" "bcmath" "msgpack" "memcached")
 		for i in "${phpmods[@]}"; do
 			phpenmod -v "${php}" "${i}"
 		done
 		[[ -n ${redis} ]] && phpmods+=("redis")
+		vs::stat::progress::stop # stop progress status
 		#phpenmod -v "${php}" memcached >>${vslog} 2>&1 || { vstacklet::clean::rollback 48; } (deprecated)
 		#phpenmod -v "${php}" redis >>${vslog} 2>&1 || { vstacklet::clean::rollback 49; } (deprecated)
 		# @script-note: php installation complete
@@ -1441,6 +1446,7 @@ vstacklet::hhvm::install() {
 		# @script-note: check for nginx \\ to maintain modularity, nginx is not required for HHVM
 		#[[ -z ${nginx} ]] && vstacklet::clean::rollback "hhvm requires nginx. please install with -nginx."
 		# @script-note: install hhvm
+		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring HHVM ... "
 		# @script-note: install php dependencies and php
 		for depend in "${hhvm_dependencies[@]}"; do
@@ -1516,6 +1522,7 @@ vstacklet::hhvm::install() {
 ##################################################################################
 vstacklet::nginx::install() {
 	if [[ -n ${nginx} ]]; then
+		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring NGinx ... "
 		# @script-note: install nginx dependencies
 		for depend in "${nginx_dependencies[@]}"; do
@@ -1596,7 +1603,6 @@ vstacklet::nginx::install() {
 		vstacklet::shell::text::green "/etc/nginx/ssl/dhparam.pem"
 		vstacklet::shell::text::white::sl "checkinfo.php: "
 		vstacklet::shell::text::green "${web_root:-/var/www/html}/public/checkinfo.php"
-		vstacklet::shell::misc::nl
 	fi
 }
 
@@ -1631,6 +1637,7 @@ vstacklet::nginx::install() {
 ##################################################################################
 vstacklet::varnish::install() {
 	if [[ -n ${varnish} ]]; then
+		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring Varnish ... "
 		# @script-note: install varnish dependencies
 		for depend in "${varnish_dependencies[@]}"; do
@@ -1688,7 +1695,6 @@ vstacklet::varnish::install() {
 		vstacklet::shell::text::green "/etc/varnish/custom.vcl"
 		vstacklet::shell::text::white::sl "Varnish service: "
 		vstacklet::shell::text::green "/etc/systemd/system/varnish.service"
-		vstacklet::shell::misc::nl
 	fi
 }
 
@@ -1713,6 +1719,7 @@ vstacklet::varnish::install() {
 # @break
 ##################################################################################
 vstacklet::permissions::adjust() {
+	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "adjusting permissions ... "
 	chown -R www-data:www-data "${web_root:-/var/www/html}"
 	chmod -R 755 "${web_root:-/var/www/html}"
@@ -1744,6 +1751,7 @@ vstacklet::permissions::adjust() {
 ##################################################################################
 vstacklet::ioncube::install() {
 	if [[ -n ${ioncube} ]]; then
+		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing IonCube Loader for php-${php} ... "
 		# @script-note: install ioncube loader for php 7.4
 		if [[ ${php} == *"7"* ]]; then
@@ -1807,9 +1815,10 @@ vstacklet::ioncube::install() {
 ##################################################################################
 vstacklet::mariadb::install() {
 	if [[ -n ${mariadb} ]]; then
-		[[ -n ${mysql} ]] && vstacklet::shell::text::red "mariadb and mysql cannot be installed together. choose either mariadb or mysql." && vstacklet::clean::rollback 1
+		[[ -n ${mysql} ]] && vstacklet::shell::misc::nl && vstacklet::shell::text::red "mariadb and mysql cannot be installed together. choose either mariadb or mysql." && vstacklet::clean::rollback 1
 		declare mariadb_autoPw
 		mariadb_autoPw="$(perl -e 'print map +(A..Z,a..z,0..9)[rand 62], 0..15')"
+		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring MariaDB ... "
 		# @script-note: install mariadb dependencies
 		for depend in "${mariadb_dependencies[@]}"; do
@@ -1930,7 +1939,6 @@ DOD
 		vstacklet::shell::text::green "/var/run/mysqld/mysqld.sock"
 		vstacklet::shell::text::white::sl "mariaDB configuration file: "
 		vstacklet::shell::text::green "/etc/mysql/conf.d/vstacklet.cnf"
-		vstacklet::shell::misc::nl
 		declare -g pma_password
 		pma_password="${mariadb_password:-${mariadb_autoPw}}"
 	fi
@@ -1966,10 +1974,11 @@ DOD
 ##################################################################################
 vstacklet::mysql::install() {
 	if [[ -n ${mysql} ]]; then
-		[[ -n ${mariadb} ]] && vstacklet::shell::text::red "mysql and mariadb cannot be installed together. choose either mysql or mariadb." && vstacklet::clean::rollback
+		[[ -n ${mariadb} ]] && vstacklet::shell::misc::nl && vstacklet::shell::text::red "mysql and mariadb cannot be installed together. choose either mysql or mariadb." && vstacklet::clean::rollback
 		declare mysql_autoPw
 		mysql_autoPw="$(perl -e 'print map +(A..Z,a..z,0..9)[rand 62], 0..15')"
 		mysql_deb_version="mysql-apt-config_0.8.24-1_all.deb"
+		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring MySQL ... "
 		# @script-note: install mysql deb
 		vstacklet::log "wget https://dev.mysql.com/get/mysql-apt-config_${mysql_deb_version}_all.deb -O /tmp/mysql-apt-config_${mysql_deb_version}_all.deb" || vstacklet::clean::rollback 76
@@ -2096,7 +2105,6 @@ vstacklet::mysql::install() {
 		vstacklet::shell::text::green "/var/run/mysqld/mysqld.sock"
 		vstacklet::shell::text::white::sl "MySQL configuration file: "
 		vstacklet::shell::text::green "/etc/mysql/conf.d/vstacklet.cnf"
-		vstacklet::shell::misc::nl
 		declare -g pma_password
 		pma_password="${mysql_password:-${mysql_autoPw}}"
 	fi
@@ -2124,6 +2132,7 @@ vstacklet::postgre::install() {
 	if [[ -n ${postgresql} ]]; then
 		declare postgresql_autoPw
 		postgresql_autoPw="$(perl -e 'print map +(A..Z,a..z,0..9)[rand 62], 0..15')"
+		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring PostgreSQL ... "
 		# @script-note: install postgre dependencies
 		declare -a depend_list install_list
@@ -2206,7 +2215,6 @@ vstacklet::postgre::install() {
 		vstacklet::shell::text::green "/etc/postgresql/${postgre_version}/main/postgresql.conf"
 		vstacklet::shell::text::white::sl "PostgreSQL hba file: "
 		vstacklet::shell::text::green "/etc/postgresql/${postgre_version}/main/pg_hba.conf"
-		vstacklet::shell::misc::nl
 	fi
 }
 
@@ -2235,6 +2243,7 @@ vstacklet::redis::install() {
 	if [[ -n ${redis} ]]; then
 		declare redis_autoPw
 		redis_autoPw="$(perl -e 'print map { (a..z,A..Z,0..9)[rand 62] } 0..15')"
+		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring Redis ... "
 		# @script-note: install redis dependencies
 		declare -a depend_list install_list
@@ -2283,7 +2292,6 @@ vstacklet::redis::install() {
 		vstacklet::shell::text::green "/var/run/redis/redis-server.sock"
 		vstacklet::shell::text::white::sl "Redis configuration file: "
 		vstacklet::shell::text::green "/etc/redis/redis.conf"
-		vstacklet::shell::misc::nl
 	fi
 }
 
@@ -2353,6 +2361,7 @@ vstacklet::phpmyadmin::install() {
 			pma_version=$(curl -s https://www.phpmyadmin.net/home_page/version.json | jq -r '.version')
 			pma_bf=$(perl -le 'print map { (a..z,A..Z,0..9)[rand 62] } 0..31')
 			# @script-note: install phpmyadmin
+			vstacklet::shell::misc::nl
 			vstacklet::shell::text::white "installing and configuring phpMyAdmin ... "
 			# @script-note: install phpmyadmin dependencies and phpmyadmin
 			for depend in "${phpmyadmin_dependencies[@]}"; do
@@ -2436,7 +2445,6 @@ vstacklet::phpmyadmin::install() {
 			vstacklet::shell::text::green "/usr/share/phpmyadmin/config.inc.php"
 			vstacklet::shell::text::white::sl "phpMyAdmin web root: "
 			vstacklet::shell::text::green "${web_root:-/var/www/html}/public"
-			vstacklet::shell::misc::nl
 		fi
 	fi
 }
@@ -2479,6 +2487,7 @@ vstacklet::phpmyadmin::install() {
 vstacklet::csf::install() {
 	if [[ -n ${csf} ]]; then
 		# @script-note: check if csf is installed
+		vstacklet::shell::misc::nl
 		[[ -f /etc/csf/csf.conf ]] && vstacklet::shell::text::yellow "CSF is already installed. skipping ... " && return 0
 		# @script-note: install csf
 		vstacklet::shell::text::white "installing and configuring CSF (ConfigServer Security & Firewall) firewall ... "
@@ -2638,6 +2647,7 @@ vstacklet::sendmail::install() {
 	if [[ -n ${sendmail} || -n ${sendmail_skip} ]]; then
 		[[ -z ${email} ]] && vstacklet::clean::rollback 126
 		# @script-note: install sendmail
+		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring sendmail ... "
 		# @script-note: install sendmail dependencies and sendmail
 		for depend in "${sendmail_dependencies[@]}"; do
@@ -2701,7 +2711,6 @@ vstacklet::sendmail::install() {
 		vstacklet::shell::text::green "${hostname:-${server_hostname}}"
 		vstacklet::shell::text::white::sl "sendmail domain: "
 		vstacklet::shell::text::green "${domain:-${server_ip}}"
-		vstacklet::shell::misc::nl
 	fi
 
 }
@@ -2758,6 +2767,7 @@ vstacklet::wordpress::install() {
 		[[ (-z ${nginx}) && (-z ${varnish}) ]] && vstacklet::clean::rollback 136
 		[[ (-z ${php}) && (-z ${hhvm}) ]] && vstacklet::clean::rollback 137
 		declare wp_db_name wp_db_user wp_db_password
+		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "please enter the following information for WordPress:"
 		# @script-note: get WordPress database name
 		vstacklet::shell::text::white::sl "WordPress database name: "
@@ -2863,6 +2873,7 @@ vstacklet::domain::ssl() {
 	if [[ -n ${domain_ssl} ]]; then
 		[[ -z ${nginx} ]] && vstacklet::clean::rollback 149
 		[[ -z ${email} ]] && vstacklet::clean::rollback 150
+		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing SSL certificate for ${domain} ... "
 		# @script-note: build acme.sh for Let's Encrypt SSL
 		cd "/root" || vstacklet::clean::rollback 151
@@ -2916,7 +2927,6 @@ vstacklet::domain::ssl() {
 		vstacklet::shell::text::green "0 0 * * * /root/.acme.sh/acme.sh --cron --home /root/.acme.sh >> /var/log/vstacklet/${domain}.log"
 		vstacklet::shell::text::white::sl "SSL certificate expiration date: "
 		vstacklet::shell::text::green "$(openssl x509 -in "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" -noout -enddate | cut -d= -f2)"
-		vstacklet::shell::misc::nl
 	fi
 }
 
@@ -2931,6 +2941,7 @@ vstacklet::domain::ssl() {
 # @break
 ################################################################################
 vstacklet::clean::complete() {
+	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "cleaning up setup files..."
 	declare service
 	declare -a services=()
@@ -3006,6 +3017,7 @@ vstacklet::message::complete() {
 		*) ;;
 		esac
 	fi
+	vstacklet::shell::misc::nl
 	unset vstacklet_log_location vstacklet_start_time vstacklet_end_time vstacklet_total_time vstacklet_total_time_minutes
 }
 
