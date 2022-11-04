@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1826
+# @version: 3.1.1827
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2888,7 +2888,7 @@ vstacklet::domain::ssl() {
 		systemctl restart nginx >>"${vslog}" 2>&1
 		# @script-note: testing:
 		systemctl status nginx >>"${vslog}" 2>&1
-		systemctl status nginx
+		sleep 3
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing SSL certificate for ${domain} ... "
 		# @script-note: build acme.sh for Let's Encrypt SSL
