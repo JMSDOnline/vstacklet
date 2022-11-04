@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1809
+# @version: 3.1.1810
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2779,7 +2779,7 @@ vstacklet::wordpress::install() {
 		vstacklet::shell::text::white::sl "WordPress Database Password: "
 		vstacklet::shell::text::green "${wp_db_password}"
 		vstacklet::shell::text::white::sl "Complete the WordPress installation at: "
-		vstacklet::shell::text::green "http://${domain:-${server_ip}}:${http_port:-80}/wp-admin/install.php"
+		vstacklet::shell::text::green "http://${domain:-${server_ip}}/wp-admin/install.php"
 		vstacklet::shell::misc::nl
 		vstacklet::permissions::adjust
 	fi
@@ -2945,7 +2945,7 @@ vstacklet::message::complete() {
 	vstacklet::shell::text::white "Be sure to review the above output from the vStacklet installation process"
 	vstacklet::shell::text::white "for relevant information regarding your new server and connection details."
 	vstacklet::shell::misc::nl
-	[[ (-n ${nginx} || -n ${varnish}) && (-n ${php} || -n ${hhvm}) ]] && vstacklet::shell::text::white " - Visit: http://${domain:-${server_ip}}:${http_port:-80}/checkinfo.php"
+	[[ (-n ${nginx} || -n ${varnish}) && (-n ${php} || -n ${hhvm}) ]] && vstacklet::shell::text::white " - Visit: http://${domain:-${server_ip}}/checkinfo.php"
 	[[ (-n ${nginx} || -n ${varnish}) && (-n ${php} || -n ${hhvm}) ]] && vstacklet::shell::text::white " - Remember to remove or rename the checkinfo.php file after verification."
 	[[ ${setup_reboot} -eq "1" ]] && vstacklet::shell::text::white "rebooting ... " && reboot
 	if [[ -z ${setup_reboot} ]]; then
