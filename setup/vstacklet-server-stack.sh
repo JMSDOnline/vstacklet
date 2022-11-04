@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1819
+# @version: 3.1.1826
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1594,6 +1594,10 @@ vstacklet::nginx::install() {
 		chmod -R 755 "${web_root:-/var/www/html}"
 		chmod -R g+rw "${web_root:-/var/www/html}"
 		sh -c "find ${web_root:-/var/www/html} -type d -print0 | sudo xargs -0 chmod g+s"
+		# @script-note: set override for nginx pid file
+		mkdir /etc/systemd/system/nginx.service.d
+		printf "[Service]\nExecStartPost=/bin/sleep 1\n" >"/etc/systemd/system/nginx.service.d/override.conf"
+		vstacklet::log "systemctl daemon-reload && systemctl restart nginx" >>"${vslog}" 2>&1
 		vs::stat::progress::stop # stop progress status
 		# @script-note: nginx installation complete
 		vstacklet::shell::text::green "NGinx and self-signed certificates installed and configured. see details below:"
@@ -2877,6 +2881,14 @@ vstacklet::domain::ssl() {
 	if [[ -n ${domain_ssl} ]]; then
 		[[ -z ${nginx} ]] && vstacklet::clean::rollback 149
 		[[ -z ${email} ]] && vstacklet::clean::rollback 150
+		# @script-note: signal a service daemon reload and restart nginx
+		[[ -f /run/nginx.pid ]] && rm -f /run/nginx.pid
+		systemctl daemon-reload >>"${vslog}" 2>&1
+		[[ -n ${varnish} ]] && systemctl restart varnish >>"${vslog}" 2>&1
+		systemctl restart nginx >>"${vslog}" 2>&1
+		# @script-note: testing:
+		systemctl status nginx >>"${vslog}" 2>&1
+		systemctl status nginx
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing SSL certificate for ${domain} ... "
 		# @script-note: build acme.sh for Let's Encrypt SSL
@@ -2893,7 +2905,7 @@ vstacklet::domain::ssl() {
 		# @script-note: create SSL certificate
 		cp -f "${local_setup_dir}/templates/nginx/acme" "/etc/nginx/sites-enabled/"
 		# @script-note: post necessary edits to nginx acme file
-		sed -i "s/{{domain}}/${domain}/g" /etc/nginx/sites-enabled/acme
+		sed -i -e "s|{{domain}}|${domain}|g" -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{http_ports}}|${https_port:-443}|g" -e "s|{{php}}|${php:-8.1}|g" /etc/nginx/sites-enabled/acme
 		systemctl reload nginx.service >>"${vslog}" 2>&1 || vstacklet::clean::rollback 156
 		./acme.sh --register-account -m "${email:?}" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 157
 		./acme.sh --set-default-ca --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 158
@@ -3303,6 +3315,27 @@ vstacklet::clean::rollback() {
 	if [[ -n ${phpmyadmin} ]]; then
 		apt-get -y autopurge phpmyadmin* >/dev/null 2>&1
 		apt-get -y autoremove phpmyadmin* >/dev/null 2>&1
+	fi
+	if [[ -n ${redis} ]]; then
+		rm -rf "/var/lib/redis" "/var/run/redis" "/etc/redis" >/dev/null 2>&1
+		apt-get -y autopurge redis* >/dev/null 2>&1
+		apt-get -y autoremove redis* >/dev/null 2>&1
+		rm -rf "/etc/apt/sources.list.d/redis.list" "/etc/apt/keyrings/redis.gpg" >/dev/null 2>&1
+	fi
+	if [[ -n ${postgresql} ]]; then
+		rm -rf "/var/lib/postgresql" "/var/run/postgresql" "/etc/postgresql" >/dev/null 2>&1
+		apt-get -y autopurge postgresql* >/dev/null 2>&1
+		apt-get -y autoremove postgresql* >/dev/null 2>&1
+		rm -rf "/etc/apt/sources.list.d/postgresql.list" "/etc/apt/trusted.gpg.d/postgresql.gpg" >/dev/null 2>&1
+	fi
+	if [[ -n ${hhvm} ]]; then
+		rm -rf "/etc/hhvm" "/etc/hhvm" >/dev/null 2>&1
+		apt-get -y autopurge hhvm* >/dev/null 2>&1
+		apt-get -y autoremove hhvm* >/dev/null 2>&1
+		rm -rf "/etc/apt/sources.list.d/hhvm.list" "/etc/apt/trusted.gpg.d/hhvm.gpg" >/dev/null 2>&1
+	fi
+	if [[ -n ${domain} ]]; then
+		rm -rf ~/.acme.sh/"${domain}"* ~/acme.sh >/dev/null 2>&1
 	fi
 	vstacklet::log "systemctl daemon-reload"
 	# should the above purge be too aggressive, the following will restore the system to a working state.
