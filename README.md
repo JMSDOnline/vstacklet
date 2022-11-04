@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.658
-  Build: 658
+  Version: v3.1.1.659
+  Build: 659
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 
@@ -64,7 +64,7 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 - HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="http://h2.nix-admin.com/" target="_blank">HTTP/2 Checker</a>
 - Everything you need to get that Nginx + Varnish server up and running!
 
-Total script install time on a $5 <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 10:12 installing everything. No Sendmail or Cert script installs at 04:22. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue.
+Total script install time on a General CPU <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 6/minutes installing everything. No Sendmail or CSF. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
 
 ![preview 1](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet_install_preview.png "vstacklet preview 1")
 
@@ -158,10 +158,10 @@ chmod +x vstacklet.sh
 > - **The development branch is not recommended for production use.**
 > - The following example will set the admin email, stage a verified Let's Encrypt SSL cert, install PHP8.1, NGinx, Varnish, MariaDB, phpMyAdmin, CSF, Sendmail, and IonCube Loader. Where NGinx and Varnish are installed, we will set the standard web port for nginx to 8080 and Varnish to 80. This is to allow for SSL termination on port 443 with nginx and Varnish caching on port 80.
 
-###### Example
+##### Example
 
 ```bash
-./vstacklet.sh -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -phpmyadmin -csf -ioncube
+./vstacklet.sh -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -phpmyadmin -ioncube
 ```
 
 To view the available options, run the script with the -h option or view the documentation [here](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
@@ -194,17 +194,18 @@ cd /etc/vstacklet/packages/backup && ./vstacklet-backup-standalone.sh
 
 - [x] Enable OPCode Caching
 - [x] Enable Memcached Caching
-- [ ] Optional install of php7.4, php8.1 or HHVM [wip]
+- [x] Optional install of php7.4, php8.1 or HHVM
 - [x] Sendmail
 - [x] IonCube Loader (w/ option prompt)
 - [x] Improve script structure
-- [ ] FTP Server (w/ option prompt)
-- [x] phpMyAdmin (w/ option prompt)
-- [x] CSF (w/ option prompt)
+- [x] FTP Server (w/ option prompt) `-fpt | --ftp_port` will set the port AND install vsftpd
+- [x] phpMyAdmin (w/ option prompt) `-pma | --phpmyadmin`
+- [x] CSF (w/ option prompt) `-csf | --csf`
 - [x] VS-Backup standalone kit (included in FULL Kit also)
 - [ ] Full support for Ubuntu 18.04/20.04 & Debian 9/10/11 [wip]
 - [ ] Nginx + Page Speed building
-- [ ] Build SSL with LetsEncrypt [wip]
+- [x] Build SSL with LetsEncrypt
+- [x] Automagically build and setup a WordPress site
 
 ---
 
