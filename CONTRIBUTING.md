@@ -2,6 +2,7 @@
 
 > VStacklet is an open source project licensed using the The MIT License.
 > This project has been forked and completely rewritten from [Quick LEMP](https://github.com/jbradach/quick-lemp/).
+> Though the two are not the same and are entirely different, vStacklet has drawn inspiration from Quick LEMP and is grateful for the work that has been done.
 > I appreciate pull requesets as well as other types of contributions.
 
 ## Documentation

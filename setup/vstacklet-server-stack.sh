@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1818
+# @version: 3.1.1819
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -182,11 +182,11 @@ vstacklet::environment::init() {
 	server_hostname=$(hostname -s)
 	# vstacklet directories
 	local_setup_dir="${vstacklet_base_path:=/opt/vstacklet}/setup"
-	local_php8_dir="/opt/vstacklet/php8/"
-	local_php7_dir="/opt/vstacklet/php7/"
-	local_hhvm_dir="/opt/vstacklet/hhvm/"
-	local_nginx_dir="/opt/vstacklet/nginx/"
-	local_varnish_dir="/opt/vstacklet/varnish/"
+	local_php8_dir="/opt/vstacklet/config/php8/"
+	local_php7_dir="/opt/vstacklet/config/php7/"
+	local_hhvm_dir="/opt/vstacklet/config/hhvm/"
+	local_nginx_dir="/opt/vstacklet/config/nginx/"
+	local_varnish_dir="/opt/vstacklet/config/varnish/"
 	# create vstacklet directories
 	mkdir -p "${vstacklet_base_path}/setup_temp"    # temporary setup directory - stores default files edited by vStacklet
 	mkdir -p "${vstacklet_base_path}/config/system" # system configuration directory - stores dependencies, keys, and other system files
@@ -1007,8 +1007,8 @@ vstacklet::bashrc::set() {
 	profile_path="${HOME}/.profile"
 	[[ -f "${bashrc_path}" ]] && mv "${bashrc_path}" "${vstacklet_base_path}/config/system/bashrc"
 	[[ -f "${profile_path}" ]] && mv "${profile_path}" "${vstacklet_base_path}/config/system/profile"
-	\cp -f "${local_setup_dir}/templates/bashrc.template" "${bashrc_path}"
-	\cp -f "${local_setup_dir}/templates/profile.template" "${profile_path}"
+	\cp -f "${local_setup_dir}/templates/bashrc" "${bashrc_path}"
+	\cp -f "${local_setup_dir}/templates/profile" "${profile_path}"
 }
 
 ##################################################################################
@@ -1102,8 +1102,8 @@ vstacklet::ftp::set() {
 	if [[ -n ${ftp_port} ]]; then
 		vstacklet::shell::text::white "setting ftp port to ${ftp_port:-21} ... "
 		cp -f /etc/vsftpd.conf "${vstacklet_base_path}/setup_temp/vsftpd.conf"
-		openssl req -config "${vstacklet_base_path}/setup/ssl/openssl.conf" -x509 -nodes -days 720 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem >/dev/null 2>&1
-		cp -f "${vstacklet_base_path}/setup/templates/vsftpd/vsftpd.conf" /etc/vsftpd.conf
+		openssl req -config "${local_setup_dir}/templates/ssl/openssl.conf" -x509 -nodes -days 720 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem >/dev/null 2>&1
+		cp -f "${local_setup_dir}/templates/vsftpd/vsftpd.conf" /etc/vsftpd.conf
 		sed -i.bak -e "s|{{ftp_port}}|${ftp_port:-21}|g" -e "s|{{server_ip}}|${server_ip}|g" /etc/vsftpd.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 41
 		vstacklet::log "systemctl restart vsftpd" || vstacklet::clean::rollback 42
 		vstacklet::log "iptables -I INPUT -p tcp --destination-port 10090:10100 -j ACCEPT"
@@ -1548,14 +1548,14 @@ vstacklet::nginx::install() {
 		done
 		unset depend depend_list install
 		vstacklet::log "systemctl stop nginx"
-		mkdir -p "${vstacklet_base_path}/setup/nginx/temp"
-		[[ -f /etc/nginx/nginx.conf ]] && mv -f /etc/nginx/nginx.conf "${vstacklet_base_path}/setup/nginx/temp/nginx.conf"
-		[[ -f /etc/nginx/sites-enabled/default ]] && mv -f /etc/nginx/sites-enabled/default "${vstacklet_base_path}/setup/nginx/temp/default"
+		mkdir -p "${local_setup_dir}/nginx/temp"
+		[[ -f /etc/nginx/nginx.conf ]] && mv -f /etc/nginx/nginx.conf "${local_setup_dir}/nginx/temp/nginx.conf"
+		[[ -f /etc/nginx/sites-enabled/default ]] && mv -f /etc/nginx/sites-enabled/default "${local_setup_dir}/nginx/temp/default"
 		mv /etc/nginx /etc/nginx-pre-vstacklet
 		mkdir -p /etc/nginx/{conf.d,cache,ssl,sites-enabled,sites-available}
-		sed -i "s|{{server_ip}}|${server_ip}|g" "${vstacklet_base_path}/nginx/server.configs/directives/cloudflare-real-ip.conf"
+		sed -i "s|{{server_ip}}|${server_ip}|g" "${local_nginx_dir}/server.configs/directives/cloudflare-real-ip.conf"
 		wr_sanitize=$(echo "${web_root:-/var/www/html}" | sed 's/\//\\\//g')
-		sed -i "s|{{webroot}}|${wr_sanitize}|g" "${vstacklet_base_path}/nginx/server.configs/location/letsencrypt.conf"
+		sed -i "s|{{webroot}}|${wr_sanitize}|g" "${local_nginx_dir}/server.configs/location/letsencrypt.conf"
 		sleep 3
 		rsync -aP --exclude=/pagespeed --exclude=LICENSE --exclude=README --exclude=.git "${local_nginx_dir}"/* /etc/nginx/ >/dev/null 2>&1
 		\cp -rf /etc/nginx-pre-vstacklet/uwsgi_params /etc/nginx-pre-vstacklet/fastcgi_params /etc/nginx/
@@ -1566,13 +1566,13 @@ vstacklet::nginx::install() {
 		sh -c 'find /etc/nginx/cache -type d -print0 | sudo xargs -0 chmod g+s'
 		# @script-note: import nginx reverse config files from vStacklet
 		if [[ ${php} == *"8"* ]]; then
-			cp -f "${local_php8_dir}/nginx/conf.d/default.php8.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
+			cp -f "${local_php8_dir}/nginx/default.php8.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
 		if [[ ${php} == *"7"* ]]; then
-			cp -f "${local_php7_dir}/nginx/conf.d/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
+			cp -f "${local_php7_dir}/nginx/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
 		if [[ -n ${hhvm} ]]; then
-			cp -f "${local_hhvm_dir}/nginx/conf.d/default.hhvm.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
+			cp -f "${local_hhvm_dir}/nginx/default.hhvm.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
 		vstacklet::shell::text::yellow::sl "configuring NGinx and generating self-signed certificates ... " &
 		vs::stat::progress::start # start progress status
@@ -2275,7 +2275,7 @@ vstacklet::redis::install() {
 		vs::stat::progress::start # start progress status
 		# @script-note: set redis client and server configuration
 		cp -f /etc/redis/redis.conf /etc/redis/redis.conf.bak || vstacklet::clean::rollback 92
-		cp -f "${vstacklet_base_path}/setup/templates/redis/redis.conf" /etc/redis/redis.conf || vstacklet::clean::rollback 93
+		cp -f "${local_setup_dir}/templates/redis/redis.conf" /etc/redis/redis.conf || vstacklet::clean::rollback 93
 		sed -i.bak "s/{{redis_port}}/${redis_port:-6379}/g" /etc/redis/redis.conf || vstacklet::clean::rollback 94
 		# @script-note: restart redis
 		vstacklet::log "systemctl restart redis-server" || vstacklet::clean::rollback 95
@@ -2889,7 +2889,7 @@ vstacklet::domain::ssl() {
 		# @script-note: create nginx directory for SSL
 		mkdir -p "/etc/nginx/ssl/${domain:?}"
 		# @script-note: create SSL certificate
-		cp -f "${vstacklet_base_path:?}/setup/templates/nginx/acme" "/etc/nginx/sites-enabled/"
+		cp -f "${local_setup_dir}/templates/nginx/acme" "/etc/nginx/sites-enabled/"
 		# @script-note: post necessary edits to nginx acme file
 		sed -i "s/{{domain}}/${domain}/g" /etc/nginx/sites-enabled/acme
 		systemctl reload nginx.service >>"${vslog}" 2>&1 || vstacklet::clean::rollback 156
