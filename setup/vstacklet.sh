@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1047
+# @version: 3.1.1048
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -116,7 +116,7 @@ setup::download() {
 		git clone --quiet --branch "development" "${vstacklet_git}" /opt/vstacklet || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
 	fi
 	# Send vStacklet backup (www-permissions.sh) to /usr/local/bin
-	cp -f /opt/vstacklet/bin/backup/www-permissions.sh /usr/local/bin/vs-perms || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
+	cp -f /opt/vstacklet/bin/www-permissions.sh /usr/local/bin/vs-perms || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
 	# Make www-permissions.sh executable
 	chmod +x /usr/local/bin/vs-perms || { printf -- "%s\n" "Error: Unable to make vs-perms executable" && exit 1; }
 	# Send vStacklet backup (vs-backup) to /usr/local/bin
