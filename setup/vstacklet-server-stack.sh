@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1787
+# @version: 3.1.1793
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -688,26 +688,30 @@ vstacklet::environment::functions() {
 		shell_icon="check"
 		vstacklet::shell::output "$@"
 	}
-	vs::stat::progress() {
-		spinner="/|\\-/|\\-"
-		while :; do
-			for i in $(seq 0 7); do
-				echo -n "${spinner:$i:1}"
-				echo -en "\010"
-				sleep 1
-			done
+}
+
+vs::stat::progress() {
+	spinner="/|\\-/|\\-"
+	while :; do
+		for i in $(seq 0 7); do
+			echo -n "${spinner:$i:1}"
+			echo -en "\010"
+			sleep 1
 		done
-	}
-	vs::stat::progress::start() {
-		_progress_pid() {
-			echo $!
-		}
-		trap '_progress_pid' SIGINT
-	}
-	vs::stat::progress::stop() {
-		kill -9 _progress_pid
-		vstacklet::shell::icon::check::green "done"
-	}
+	done
+}
+vs::stat::progress::start() {
+	declare -g pg_pid
+	vs::stat::progress &
+	pg_pid=$!
+	trap 'kill -9 ${pg_pid}' $(seq 0 15) >/dev/null 2>&1
+
+}
+#trap 'vs::stat::progress::start' SIGINT
+vs::stat::progress::stop() {
+	vstacklet::shell::icon::check::green "done"
+	kill -9 ${pg_pid} >/dev/null 2>&1
+	unset pg_pid
 }
 
 ##################################################################################
@@ -1557,19 +1561,16 @@ vstacklet::nginx::install() {
 		if [[ -n ${hhvm} ]]; then
 			cp -f "${local_hhvm_dir}/nginx/conf.d/default.hhvm.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
-		vstacklet::shell::text::yellow::sl "configuring NGinx and generating self-signed certificates ... " &
-		vs::stat::progress &        # start stat progress
-		vs::stat::progress::start & # start progress id
+		vstacklet::shell::text::yellow::sl "configuring NGinx and generating self-signed certificates ... " & vs::stat::progress::start # start progress status
 		# post necessary edits to nginx config files
-		sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::rollback::clean 55
+		sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::clean::rollback 55
 		# enable site
-		ln -sf "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "/etc/nginx/sites-enabled/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 56
+		ln -sf "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "/etc/nginx/sites-enabled/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 56
 		# generate self-signed ssl cert and Diffie-Hellman parameters file
 		[[ ! -f /etc/ssl/certs/ssl-cert-snakeoil.pem ]] && openssl req -config "${vstacklet_base_path}/setup/templates/ssl/openssl.conf" -x509 -nodes -days 720 -newkey rsa:2048 -keyout /etc/ssl/private/ssl-cert-snakeoil.key -out /etc/ssl/certs/ssl-cert-snakeoil.pem >>"${vslog}" 2>&1
 		[[ ! -f /etc/nginx/ssl/dhparam.pem ]] && openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >>"${vslog}" 2>&1
-		openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >>"${vslog}" 2>&1 || vstacklet::rollback::clean 57
-		vs::stat::progress::stop # stop stat progress
-		# stage checkinfo.php for verification
+		openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >>"${vslog}" 2>&1 || vstacklet::clean::rollback 57
+		vs::stat::progress::stop # stop progress status
 		vstacklet::shell::text::yellow "staging checkinfo.php and adjusting permissions on ${web_root:-/var/www/html} ... "
 		echo '<?php phpinfo(); ?>' >"${web_root:-/var/www/html}/public/checkinfo.php" || vstacklet::clean::rollback 58
 		chown -R www-data:www-data "${web_root:-/var/www/html}"
@@ -2524,7 +2525,7 @@ vstacklet::cloudflare::csf() {
 		# check if CSF has been selected
 		[[ -z ${csf} ]] && vstacklet::clean::rollback 124
 		# check if the csf.allow file exists
-		[[ ! -f "/etc/csf/csf.allow" ]] || vstacklet::rollback::clean 125
+		[[ ! -f "/etc/csf/csf.allow" ]] || vstacklet::clean::rollback 125
 		# add Cloudflare IP addresses to the allow list
 		vstacklet::shell::text::white "adding Cloudflare IP addresses to the allow list ... "
 		{
@@ -2597,31 +2598,31 @@ vstacklet::sendmail::install() {
 		# configure sendmail
 		vstacklet::shell::text::yellow "configuring sendmail ... "
 		# modify aliases
-		sed -i.bak -e "s/^root:.*$/root: ${email}/g" /etc/aliases >>"${vslog}" 2>&1 || vstacklet::rollback::clean 128
+		sed -i.bak -e "s/^root:.*$/root: ${email}/g" /etc/aliases >>"${vslog}" 2>&1 || vstacklet::clean::rollback 128
 		# modify /etc/mail/sendmail.cf
 		sed -i.bak -e "s/^DS.*$/DS${email}/g" \
 			-e "s/^O DaemonPortOptions=Addr=${sendmail_port:-587}, Name=MTA-v4/O DaemonPortOptions=Addr=${sendmail_port:-587}, Name=MTA-v4, Family=inet/g" \
 			-e "s/^O PrivacyOptions=authwarnings,novrfy,noexpnO PrivacyOptions=authwarnings,novrfy,noexpn/O PrivacyOptions=authwarnings,novrfy,noexpn,restrictqrun/g" \
 			-e "s/^O AuthInfo=.*/O AuthInfo=${email}:*:${email}/g" \
-			-e "s/^O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4/O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4, Family=inet/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || vstacklet::rollback::clean 129
+			-e "s/^O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4/O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4, Family=inet/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 129
 		# modify /etc/postfix/main.cf
 		sed -i.bak -e "s/^#myhostname = host.domain.tld/myhostname = ${hostname:-${server_hostname}}/g" \
 			-e "s/^#mydomain = domain.tld/mydomain = ${domain:-${server_ip}}/g" \
 			-e "s/^#myorigin = \$mydomain/myorigin = \$mydomain/g" \
 			-e "s/^#mydestination = \$myhostname, localhost.\$mydomain, localhost/mydestination = \$myhostname, localhost.\$mydomain, localhost/g" \
-			-e "s/^#relayhost =/relayhost = ${server_ip}:${sendmail_port:-587}/g" /etc/postfix/main.cf >>"${vslog}" 2>&1 || vstacklet::rollback::clean 130
+			-e "s/^#relayhost =/relayhost = ${server_ip}:${sendmail_port:-587}/g" /etc/postfix/main.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 130
 		# modify /etc/postfix/master.cf
 		sed -i.bak -e "s/^#submission/submission/g" \
 			-e "s/^#  -o syslog_name=postfix\/submission/  -o syslog_name=postfix\/submission/g" \
 			-e "s/^#  -o smtpd_tls_security_level=encrypt/  -o smtpd_tls_security_level=encrypt/g" \
 			-e "s/^#  -o smtpd_sasl_auth_enable=yes/  -o smtpd_sasl_auth_enable=yes/g" \
 			-e "s/^#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/g" \
-			-e "s/^#  -o milter_macro_daemon_name=ORIGINATING/  -o milter_macro_daemon_name=ORIGINATING/g" /etc/postfix/master.cf >>"${vslog}" 2>&1 || vstacklet::rollback::clean 131
+			-e "s/^#  -o milter_macro_daemon_name=ORIGINATING/  -o milter_macro_daemon_name=ORIGINATING/g" /etc/postfix/master.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 131
 		# modify /etc/postfix/sasl_passwd
-		echo "[${server_ip}]:${sendmail_port:-587} ${email}:${email}" >/etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || vstacklet::rollback::clean 132
+		echo "[${server_ip}]:${sendmail_port:-587} ${email}:${email}" >/etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || vstacklet::clean::rollback 132
 		# modify /etc/postfix/sasl_passwd
-		postmap /etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || vstacklet::rollback::clean 133
-		newaliases >>"${vslog}" 2>&1 || vstacklet::rollback::clean 134
+		postmap /etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || vstacklet::clean::rollback 133
+		newaliases >>"${vslog}" 2>&1 || vstacklet::clean::rollback 134
 		# print sendmail configuration
 		vstacklet::shell::text::green "sendmail installed and configured. see details below:"
 		vstacklet::shell::text::white::sl "sendmail port: "
@@ -2685,9 +2686,9 @@ vstacklet::sendmail::install() {
 vstacklet::wordpress::install() {
 	# check if WordPress has been selected
 	if [[ -n ${wordpress} ]]; then
-		[[ (-z ${mariadb}) && (-z ${mysql}) && (-z ${postgresql}) ]] && vstacklet::rollback::clean 135
-		[[ (-z ${nginx}) && (-z ${varnish}) ]] && vstacklet::rollback::clean 136
-		[[ (-z ${php}) && (-z ${hhvm}) ]] && vstacklet::rollback::clean 137
+		[[ (-z ${mariadb}) && (-z ${mysql}) && (-z ${postgresql}) ]] && vstacklet::clean::rollback 135
+		[[ (-z ${nginx}) && (-z ${varnish}) ]] && vstacklet::clean::rollback 136
+		[[ (-z ${php}) && (-z ${hhvm}) ]] && vstacklet::clean::rollback 137
 		declare wp_db_name wp_db_user wp_db_password
 		vstacklet::shell::text::white "please enter the following information for WordPress:"
 		# get WordPress database name
@@ -2713,35 +2714,35 @@ vstacklet::wordpress::install() {
 		done
 		vstacklet::shell::text::white "installing and configuring WordPress ... "
 		# download WordPress
-		vstacklet::log "wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz" || vstacklet::rollback::clean 138
+		vstacklet::log "wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz" || vstacklet::clean::rollback 138
 		# extract WordPress
-		vstacklet::log "tar -xzf /tmp/wordpress.tar.gz -C /tmp" || vstacklet::rollback::clean 139
+		vstacklet::log "tar -xzf /tmp/wordpress.tar.gz -C /tmp" || vstacklet::clean::rollback 139
 		# move WordPress to the web root
-		mv /tmp/wordpress/* "${web_root:-/var/www/html}/public" || vstacklet::rollback::clean 140
+		mv /tmp/wordpress/* "${web_root:-/var/www/html}/public" || vstacklet::clean::rollback 140
 		# create the uploads directory
-		mkdir -p "${web_root:-/var/www/html}/public/wp-content/uploads" || vstacklet::rollback::clean 141
+		mkdir -p "${web_root:-/var/www/html}/public/wp-content/uploads" || vstacklet::clean::rollback 141
 		# set the correct permissions
 		vstacklet::permissions::adjust
 		vstacklet::shell::text::yellow "configuring WordPress ... "
 		# create the wp-config.php file
-		vstacklet::log "cp -f ${web_root:-/var/www/html}/public/wp-config-sample.php ${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::rollback::clean 142
+		vstacklet::log "cp -f ${web_root:-/var/www/html}/public/wp-config-sample.php ${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::clean::rollback 142
 		# modify the wp-config.php file
 		sed -i \
 			-e "s/database_name_here/${wp_db_name}/g" \
 			-e "s/username_here/${wp_db_user}/g" \
 			-e "s/password_here/${wp_db_password}/g" \
 			-e "s/utf8mb4/utf8/g" \
-			"${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::rollback::clean 143
+			"${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::clean::rollback 143
 		# create the database
-		mysql -e "CREATE DATABASE ${wp_db_name};" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 144
+		mysql -e "CREATE DATABASE ${wp_db_name};" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 144
 		# create the database user
-		mysql -e "CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 145
+		mysql -e "CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 145
 		# grant privileges to the database user
-		mysql -e "GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 146
+		mysql -e "GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 146
 		# flush privileges
-		mysql -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 147
+		mysql -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 147
 		# remove the WordPress installation files
-		vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::rollback::clean 148
+		vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::clean::rollback 148
 		# display the WordPress installation URL
 		vstacklet::shell::text::green "WordPress installed and configured. see details below:"
 		vstacklet::shell::text::white::sl "WordPress Database Name: "
@@ -2789,29 +2790,29 @@ vstacklet::wordpress::install() {
 # @break
 ##################################################################################
 vstacklet::domain::ssl() {
-	[[ -z ${nginx} ]] && vstacklet::rollback::clean 149
-	[[ -z ${email} ]] && vstacklet::rollback::clean 150
+	[[ -z ${nginx} ]] && vstacklet::clean::rollback 149
+	[[ -z ${email} ]] && vstacklet::clean::rollback 150
 	if [[ -n ${domain_ssl} ]]; then
 		vstacklet::shell::text::white "installing SSL certificate for ${domain} ... "
 		# build acme.sh for Let's Encrypt SSL
-		cd "/root" || vstacklet::rollback::clean 151
+		cd "/root" || vstacklet::clean::rollback 151
 		[[ -d "/root/.acme.sh" ]] && rm -rf "/root/.acme.sh" >>"${vslog}" 2>&1
-		mkdir -p "${web_root:-/var/www/html}/.well-known/acme-challenge" || vstacklet::rollback::clean 152
+		mkdir -p "${web_root:-/var/www/html}/.well-known/acme-challenge" || vstacklet::clean::rollback 152
 		chown -R root:www-data "${web_root:-/var/www/html}/.well-known" >>"${vslog}" 2>&1
 		chmod -R 755 "${web_root:-/var/www/html}/.well-known" >>"${vslog}" 2>&1
-		git clone "https://github.com/Neilpang/acme.sh.git" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 153
-		cd "/root/acme.sh" || vstacklet::rollback::clean 154
-		./acme.sh --install --home "/root/.acme.sh" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 155
+		git clone "https://github.com/Neilpang/acme.sh.git" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 153
+		cd "/root/acme.sh" || vstacklet::clean::rollback 154
+		./acme.sh --install --home "/root/.acme.sh" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 155
 		# create nginx directory for SSL
 		mkdir -p "/etc/nginx/ssl/${domain:?}"
 		# create SSL certificate
 		cp -f "${vstacklet_base_path:?}/setup/templates/nginx/acme" "/etc/nginx/sites-enabled/"
 		# post necessary edits to nginx acme file
 		sed -i "s/{{domain}}/${domain}/g" /etc/nginx/sites-enabled/acme
-		systemctl reload nginx.service >>"${vslog}" 2>&1 || vstacklet::rollback::clean 156
-		./acme.sh --register-account -m "${email:?}" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 157
-		./acme.sh --set-default-ca --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::rollback::clean 158
-		./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html}" --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::rollback::clean 159
+		systemctl reload nginx.service >>"${vslog}" 2>&1 || vstacklet::clean::rollback 156
+		./acme.sh --register-account -m "${email:?}" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 157
+		./acme.sh --set-default-ca --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 158
+		./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html}" --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 159
 		(
 			./acme.sh --install-cert -d "${domain}" \
 				--keylength ec-256 \
@@ -2820,13 +2821,13 @@ vstacklet::domain::ssl() {
 				--fullchain-file "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" \
 				--log "/var/log/vstacklet/${domain}.log" \
 				--reloadcmd "systemctl reload nginx.service"
-		) >>"${vslog}" 2>&1 || vstacklet::rollback::clean 160
+		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 160
 		# post necessary edits to nginx config file
 		crt_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" | sed 's/\//\\\//g')
 		key_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" | sed 's/\//\\\//g')
 		chn_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" | sed 's/\//\\\//g')
 		[[ -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" ]] && mv "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "${vstacklet_base_path:?}/setup_tmp/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1
-		sed -i.bak -e "s|^ssl_certificate.*|ssl_certificate ${crt_sanitize};|g" -e "s|^ssl_certificate_key.*|ssl_certificate_key ${key_sanitize};|g" -e "s|^ssl_trusted_certificate.*|ssl_trusted_certificate ${chn_sanitize};|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::rollback::clean 161
+		sed -i.bak -e "s|^ssl_certificate.*|ssl_certificate ${crt_sanitize};|g" -e "s|^ssl_certificate_key.*|ssl_certificate_key ${key_sanitize};|g" -e "s|^ssl_trusted_certificate.*|ssl_trusted_certificate ${chn_sanitize};|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 161
 		# remove acme ssl template
 		[[ -f "/etc/nginx/sites-enabled/acme" ]] && rm -f "/etc/nginx/sites-enabled/acme" >>"${vslog}" 2>&1
 		# display success message
