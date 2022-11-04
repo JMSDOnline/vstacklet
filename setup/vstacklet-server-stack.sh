@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1793
+# @version: 3.1.1795
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1561,7 +1561,8 @@ vstacklet::nginx::install() {
 		if [[ -n ${hhvm} ]]; then
 			cp -f "${local_hhvm_dir}/nginx/conf.d/default.hhvm.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
-		vstacklet::shell::text::yellow::sl "configuring NGinx and generating self-signed certificates ... " & vs::stat::progress::start # start progress status
+		vstacklet::shell::text::yellow::sl "configuring NGinx and generating self-signed certificates ... " &
+		vs::stat::progress::start # start progress status
 		# post necessary edits to nginx config files
 		sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::clean::rollback 55
 		# enable site
@@ -1577,6 +1578,17 @@ vstacklet::nginx::install() {
 		chmod -R 755 "${web_root:-/var/www/html}"
 		chmod -R g+rw "${web_root:-/var/www/html}"
 		sh -c "find ${web_root:-/var/www/html} -type d -print0 | sudo xargs -0 chmod g+s"
+		vstacklet::shell::text::green "NGinx and self-signed certificates installed successfully. see details below:"
+		vstacklet::shell::text::white::sl "NGinx config file: "
+		vstacklet::shell::text::green "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
+		vstacklet::shell::text::white::sl "self-signed ssl cert: "
+		vstacklet::shell::text::green "/etc/ssl/certs/ssl-cert-snakeoil.pem"
+		vstacklet::shell::text::white::sl "self-signed ssl key: "
+		vstacklet::shell::text::green "/etc/ssl/private/ssl-cert-snakeoil.key"
+		vstacklet::shell::text::white::sl "Diffie-Hellman parameters file: "
+		vstacklet::shell::text::green "/etc/nginx/ssl/dhparam.pem"
+		vstacklet::shell::text::white::sl "checkinfo.php: "
+		vstacklet::shell::text::green "${web_root:-/var/www/html}/public/checkinfo.php"
 	fi
 }
 
@@ -2722,7 +2734,6 @@ vstacklet::wordpress::install() {
 		# create the uploads directory
 		mkdir -p "${web_root:-/var/www/html}/public/wp-content/uploads" || vstacklet::clean::rollback 141
 		# set the correct permissions
-		vstacklet::permissions::adjust
 		vstacklet::shell::text::yellow "configuring WordPress ... "
 		# create the wp-config.php file
 		vstacklet::log "cp -f ${web_root:-/var/www/html}/public/wp-config-sample.php ${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::clean::rollback 142
@@ -2754,6 +2765,7 @@ vstacklet::wordpress::install() {
 		vstacklet::shell::text::white::sl "Complete the WordPress installation at: "
 		vstacklet::shell::text::green "http://${domain:-${server_ip}}/wp-admin/install.php"
 		vstacklet::shell::misc::nl
+		vstacklet::permissions::adjust
 	fi
 }
 
@@ -2917,7 +2929,7 @@ vstacklet::message::complete() {
 	vstacklet::shell::text::white "Be sure to review the above output from the vStacklet installation process"
 	vstacklet::shell::text::white "for relevant information regarding your new server and connection details."
 	vstacklet::shell::misc::nl
-	[[ (-n ${nginx} || -n ${varnish}) && (-n ${php} || -n ${hhvm}) ]] && vstacklet::shell::text::white " - Visit: https://${domain:-${server_ip}}/checkinfo.php"
+	[[ (-n ${nginx} || -n ${varnish}) && (-n ${php} || -n ${hhvm}) ]] && vstacklet::shell::text::white " - Visit: http://${domain:-${server_ip}}/checkinfo.php"
 	[[ (-n ${nginx} || -n ${varnish}) && (-n ${php} || -n ${hhvm}) ]] && vstacklet::shell::text::white " - Remember to remove or rename the checkinfo.php file after verification."
 	[[ ${setup_reboot} -eq "1" ]] && vstacklet::shell::text::white "rebooting ... " && reboot
 	if [[ -z ${setup_reboot} ]]; then
