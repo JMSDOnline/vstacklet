@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1810
+# vstacklet-server-stack.sh - v3.1.1811
 
 
 ---
@@ -241,7 +241,7 @@ Process the options and values passed to the script. [see function](https://gith
 ```
  vstacklet --help
  vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
- vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 8080 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
+ vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
 ```
 
 ---
@@ -669,8 +669,8 @@ notes:
 ```
  vstacklet -nginx
  vstacklet --nginx
- vstacklet -nginx -php 8.1 -varnish -varnishP 8080 -http 8080 -https 443
-vstacklet --nginx --php 8.1 --varnish --varnishP 8080 --http 8080 --https 443
+ vstacklet -nginx -php 8.1 -varnish -varnishP 80 -http 8080 -https 443
+vstacklet --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
 ```
 
 ---
@@ -712,8 +712,8 @@ notes:
 ```
  vstacklet -varnish -varnishP 6081 -http 80
  vstacklet --varnish --varnish_port 6081 --http_port 80
- vstacklet -varnish -varnishP 8080 -http 8080 -https 443
- vstacklet -varnish -varnishP 8080 -nginx -http 8080 --https_port 443
+ vstacklet -varnish -varnishP 80 -http 8080 -https 443
+ vstacklet -varnish -varnishP 80 -nginx -http 8080 --https_port 443
 ```
 
 ---
@@ -1172,7 +1172,7 @@ these arguments are:
  vstacklet -wp -mariadb -nginx -php "8.1" -wr "/var/www/html"
  vstacklet -wp -mysql -nginx -php "8.1"
  vstacklet -wp -postgresql -nginx -php "8.1"
- vstacklet -wp -mariadb -nginx -php "8.1" -varnish -varnishP 8080 -http 8080 -https 443
+ vstacklet -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
  vstacklet -wp -mariadb -nginx -hhvm -wr "/var/www/html"
 ```
 
