@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1846
+# @version: 3.1.1847
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2814,7 +2814,7 @@ vstacklet::wordpress::install() {
 		vstacklet::wp::user
 		vstacklet::wp::password
 		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white::sl "Are the entered details correct?"
+		vstacklet::shell::text::white::sl "Are the entered details correct? "
 		vstacklet::shell::text::green::sl "[y]"
 		vstacklet::shell::text::white::sl "es"
 		vstacklet::shell::text::white::sl " or "
@@ -2827,7 +2827,7 @@ vstacklet::wordpress::install() {
 			vstacklet::wp::user
 			vstacklet::wp::password
 			vstacklet::shell::misc::nl
-			vstacklet::shell::text::white::sl "Are the entered details correct?"
+			vstacklet::shell::text::white::sl "Are the entered details correct? "
 			vstacklet::shell::text::green::sl "[y]"
 			vstacklet::shell::text::white::sl "es"
 			vstacklet::shell::text::white::sl " or "

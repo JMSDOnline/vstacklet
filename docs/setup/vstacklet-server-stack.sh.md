@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1846
+# vstacklet-server-stack.sh - v3.1.1847
 
 
 ---
