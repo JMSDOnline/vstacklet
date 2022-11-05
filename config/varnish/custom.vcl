@@ -10,7 +10,7 @@ acl purger {
 }
 
 sub vcl_recv {
-	if (client.ip != "127.0.0.1" && req.http.host ~ "example-over-https.com") {
+	if (client.ip != "127.0.0.1" && req.http.host ~ "{{domain}}") {
 		set req.http.x-redir = "https://{{domain}}" + req.url;
 		return(synth(850, ""));
 	}
