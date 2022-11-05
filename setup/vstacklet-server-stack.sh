@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1837
+# @version: 3.1.1846
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1595,6 +1595,10 @@ vstacklet::nginx::install() {
 		chmod -R 755 "${web_root:-/var/www/html}"
 		chmod -R g+rw "${web_root:-/var/www/html}"
 		sh -c "find ${web_root:-/var/www/html} -type d -print0 | sudo xargs -0 chmod g+s"
+		# @script-note: if wordpress option is enabled, edit nginx config file
+		# to include wordpress specific directives.
+		# no need to log this one as it's not a critical step (helpful, but not critical)
+		[[ -n ${wordpress} ]] && sed -i -e '/# include wordpress.conf;/s/#//' -e '/# include restrictions.conf;/s/#//' "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		# @script-note: set override for nginx pid file
 		mkdir -p /etc/systemd/system/nginx.service.d >/dev/null 2>&1
 		printf "[Service]\nExecStartPost=/bin/sleep 1\n" >"/etc/systemd/system/nginx.service.d/override.conf"
@@ -2345,15 +2349,15 @@ vstacklet::redis::install() {
 # @return_code: 100 - phpMyAdmin does not support HHVM.
 # @return_code: 101 - failed to install phpMyAdmin dependencies.
 # @return_code: 102 - failed to switch to /usr/share directory.
-# @return_code: 103 - failed to remove existing phpMyAdmin directory.
-# @return_code: 104 - failed to download phpMyAdmin.
-# @return_code: 105 - failed to extract phpMyAdmin.
-# @return_code: 106 - failed to move phpMyAdmin to /usr/share directory.
-# @return_code: 107 - failed to remove phpMyAdmin .tar.gz file.
-# @return_code: 108 - failed to set ownership of phpMyAdmin directory.
-# @return_code: 109 - failed to set permissions of phpMyAdmin directory.
-# @return_code: 110 - failed to create /usr/share/phpmyadmin/tmp directory.
-# @return_code: 111 - failed to set symlink of ./phpmyadmin to ${web_root}/public/phpmyadmin.
+# @return_code: 103 - failed to download phpMyAdmin.
+# @return_code: 104 - failed to extract phpMyAdmin.
+# @return_code: 105 - failed to move phpMyAdmin to /usr/share directory.
+# @return_code: 106 - failed to remove phpMyAdmin .tar.gz file.
+# @return_code: 107 - failed to set ownership of phpMyAdmin directory.
+# @return_code: 108 - failed to set permissions of phpMyAdmin directory.
+# @return_code: 109 - failed to create /usr/share/phpmyadmin/tmp directory.
+# @return_code: 110 - failed to set symlink of ./phpmyadmin to ${web_root}/public/phpmyadmin.
+# @return_code: 111 - failed to create htpasswd file.
 # @return_code: 112 - failed to create phpMyAdmin configuration file.
 # @break
 ##################################################################################
@@ -2817,67 +2821,68 @@ vstacklet::wordpress::install() {
 		vstacklet::shell::text::red::sl "[n]"
 		vstacklet::shell::text::white::sl "o: "
 		vstacklet::shell::icon::arrow::white
-		read -r input
-		case "${input,,}" in
-		y | yes)
-			return 0
-			;;
-		n | no)
+		read -r wp_input
+		while [[ ${wp_input} != "y" ]]; do
 			vstacklet::wp::db
 			vstacklet::wp::user
 			vstacklet::wp::password
-			;;
-		*)
-			vstacklet::shell::text::error "invalid input."
-			vstacklet::wp::db
-			vstacklet::wp::user
-			vstacklet::wp::password
-			;;
-		esac
-		vstacklet::shell::text::white "installing and configuring WordPress ... "
-		# @script-note: download WordPress
-		vstacklet::log "wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz" || vstacklet::clean::rollback 138
-		# @script-note: extract WordPress
-		vstacklet::log "tar -xzf /tmp/wordpress.tar.gz -C /tmp" || vstacklet::clean::rollback 139
-		# @script-note: move WordPress to the web root
-		mv /tmp/wordpress/* "${web_root:-/var/www/html}/public" || vstacklet::clean::rollback 140
-		# @script-note: create the uploads directory
-		mkdir -p "${web_root:-/var/www/html}/public/wp-content/uploads" || vstacklet::clean::rollback 141
-		# @script-note: set the correct permissions
-		vstacklet::shell::text::yellow::sl "configuring WordPress ... " &
-		vs::stat::progress::start # @script-note: start progress status
-		# @script-note: create the wp-config.php file
-		vstacklet::log "cp -f ${web_root:-/var/www/html}/public/wp-config-sample.php ${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::clean::rollback 142
-		# @script-note: modify the wp-config.php file
-		sed -i \
-			-e "s/database_name_here/${wp_db_name}/g" \
-			-e "s/username_here/${wp_db_user}/g" \
-			-e "s/password_here/${wp_db_password}/g" \
-			-e "s/utf8mb4/utf8/g" \
-			"${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::clean::rollback 143
-		# @script-note: create the database
-		mysql -e "CREATE DATABASE ${wp_db_name};" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 144
-		# @script-note: create the database user
-		mysql -e "CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 145
-		# @script-note: grant privileges to the database user
-		mysql -e "GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 146
-		# @script-note: flush privileges
-		mysql -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 147
-		# @script-note: remove the WordPress installation files
-		vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::clean::rollback 148
-		vs::stat::progress::stop # stop progress status
-		# @script-note: wordpress installation complete
-		vstacklet::shell::text::green "WordPress installed and configured. see details below:"
-		vstacklet::shell::text::white::sl "WordPress Database Name: "
-		vstacklet::shell::text::green "${wp_db_name}"
-		vstacklet::shell::text::white::sl "WordPress Database User: "
-		vstacklet::shell::text::green "${wp_db_user}"
-		vstacklet::shell::text::white::sl "WordPress Database Password: "
-		vstacklet::shell::text::green "${wp_db_password}"
-		vstacklet::shell::text::white::sl "Complete the WordPress installation at: "
-		vstacklet::shell::text::green "http://${domain:-${server_ip}}/wp-admin/install.php"
+			vstacklet::shell::misc::nl
+			vstacklet::shell::text::white::sl "Are the entered details correct?"
+			vstacklet::shell::text::green::sl "[y]"
+			vstacklet::shell::text::white::sl "es"
+			vstacklet::shell::text::white::sl " or "
+			vstacklet::shell::text::red::sl "[n]"
+			vstacklet::shell::text::white::sl "o: "
+			vstacklet::shell::icon::arrow::white
+			read -r wp_input
+		done
 		vstacklet::shell::misc::nl
-		vstacklet::permissions::adjust
+		[[ ${wp_input,,} =~ ^(yes|y)$ ]] && declare wp_input_continue="true"
+		if [[ ${wp_input_continue} == "true" ]]; then
+			vstacklet::shell::text::white "installing and configuring WordPress ... "
+			# @script-note: download WordPress
+			vstacklet::log "wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz" || vstacklet::clean::rollback 138
+			# @script-note: extract WordPress
+			vstacklet::log "tar -xzf /tmp/wordpress.tar.gz -C /tmp" || vstacklet::clean::rollback 139
+			# @script-note: move WordPress to the web root
+			mv /tmp/wordpress/* "${web_root:-/var/www/html}/public" || vstacklet::clean::rollback 140
+			# @script-note: create the uploads directory
+			mkdir -p "${web_root:-/var/www/html}/public/wp-content/uploads" || vstacklet::clean::rollback 141
+			# @script-note: set the correct permissions
+			vstacklet::shell::text::yellow::sl "configuring WordPress ... " &
+			vs::stat::progress::start # @script-note: start progress status
+			# @script-note: create the wp-config.php file
+			vstacklet::log "cp -f ${web_root:-/var/www/html}/public/wp-config-sample.php ${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::clean::rollback 142
+			# @script-note: modify the wp-config.php file
+			sed -i \
+				-e "s/database_name_here/${wp_db_name}/g" \
+				-e "s/username_here/${wp_db_user}/g" \
+				-e "s/password_here/${wp_db_password}/g" \
+				-e "s/utf8mb4/utf8/g" \
+				"${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::clean::rollback 143
+			# @script-note: create the database
+			mysql -e "CREATE DATABASE ${wp_db_name};" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 144
+			# @script-note: create the database user
+			mysql -e "CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 145
+			# @script-note: grant privileges to the database user
+			mysql -e "GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 146
+			# @script-note: flush privileges
+			mysql -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 147
+			# @script-note: remove the WordPress installation files
+			vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::clean::rollback 148
+			vs::stat::progress::stop # stop progress status
+			# @script-note: wordpress installation complete
+			vstacklet::shell::text::green "WordPress installed and configured. see details below:"
+			vstacklet::shell::text::white::sl "WordPress Database Name: "
+			vstacklet::shell::text::green "${wp_db_name}"
+			vstacklet::shell::text::white::sl "WordPress Database User: "
+			vstacklet::shell::text::green "${wp_db_user}"
+			vstacklet::shell::text::white::sl "WordPress Database Password: "
+			vstacklet::shell::text::green "${wp_db_password}"
+			vstacklet::shell::text::white::sl "Complete the WordPress installation at: "
+			vstacklet::shell::text::green "http://${domain:-${server_ip}}/wp-admin/install.php"
+			vstacklet::permissions::adjust
+		fi
 	fi
 }
 
@@ -2960,13 +2965,9 @@ vstacklet::domain::ssl() {
 		crt_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" | sed 's/\//\\\//g')
 		key_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" | sed 's/\//\\\//g')
 		#chn_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" | sed 's/\//\\\//g')
-		[[ -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" ]] && mv "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "${vstacklet_base_path:?}/setup_temp/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1
+		[[ -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" ]] && cp -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "${vstacklet_base_path:?}/setup_temp/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1
 		# @script-note: place generated ssl to nginx config file
 		sed -i.bak -e "/ssl_certificate .*/c\        ssl_certificate ${crt_sanitize};" -e "/ssl_certificate_key .*/c\        ssl_certificate_key ${key_sanitize};" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 161
-		# @script-note: if wordpress option is enabled, edit nginx config file
-		# to include wordpress specific directives.
-		# no need to log this one as it's not a critical step (helpful, but not critical)
-		[[ -n ${wordpress} ]] && sed -i -e '/# include wordpress.conf;/s/#//' -e '/# include restrictions.conf;/s/#//' "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		# @script-note: remove acme ssl template
 		[[ -f "/etc/nginx/sites-enabled/acme" ]] && rm -f "/etc/nginx/sites-enabled/acme" >>"${vslog}" 2>&1
 		# @script-note: ssl installation complete

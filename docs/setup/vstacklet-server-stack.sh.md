@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1837
+# vstacklet-server-stack.sh - v3.1.1846
 
 
 ---
@@ -976,15 +976,15 @@ notes:
 - 100 - phpMyAdmin does not support HHVM.
 - 101 - failed to install phpMyAdmin dependencies.
 - 102 - failed to switch to /usr/share directory.
-- 103 - failed to remove existing phpMyAdmin directory.
-- 104 - failed to download phpMyAdmin.
-- 105 - failed to extract phpMyAdmin.
-- 106 - failed to move phpMyAdmin to /usr/share directory.
-- 107 - failed to remove phpMyAdmin .tar.gz file.
-- 108 - failed to set ownership of phpMyAdmin directory.
-- 109 - failed to set permissions of phpMyAdmin directory.
-- 110 - failed to create /usr/share/phpmyadmin/tmp directory.
-- 111 - failed to set symlink of ./phpmyadmin to ${web_root}/public/phpmyadmin.
+- 103 - failed to download phpMyAdmin.
+- 104 - failed to extract phpMyAdmin.
+- 105 - failed to move phpMyAdmin to /usr/share directory.
+- 106 - failed to remove phpMyAdmin .tar.gz file.
+- 107 - failed to set ownership of phpMyAdmin directory.
+- 108 - failed to set permissions of phpMyAdmin directory.
+- 109 - failed to create /usr/share/phpmyadmin/tmp directory.
+- 110 - failed to set symlink of ./phpmyadmin to ${web_root}/public/phpmyadmin.
+- 111 - failed to create htpasswd file.
 - 112 - failed to create phpMyAdmin configuration file.
 
 #### examples:
