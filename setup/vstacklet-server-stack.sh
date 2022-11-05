@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1847
+# @version: 3.1.1867
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -247,38 +247,6 @@ vstacklet::environment::init() {
 # @example: vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
 # @example: vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
 # @null
-# @return_code: 3 - please provide a valid email address. (required for -csf, -sendmail, and -csfCf)
-# @return_code: 4 - `-csfCf` requires `-csf`.
-# @return_code: 5 - please provide a valid domain name.
-# @return_code: 6 - please provide a valid port number for the FTP server.
-# @return_code: 7 - invalid FTP port number. please enter a number between 1 and 65535.
-# @return_code: 8 - the MariaDB password must be at least 8 characters long.
-# @return_code: 9 - please provide a valid port number for the MariaDB server.
-# @return_code: 10 - invalid MariaDB port number. please enter a number between 1 and 65535.
-# @return_code: 11 - the MySQL password must be at least 8 characters long.
-# @return_code: 12 - the MySQL port must be a number.
-# @return_code: 13 - invalid MySQL port number. please enter a number between 1 and 65535.
-# @return_code: 14 - the postgreSQL password must be at least 8 characters long.
-# @return_code: 15 - please provide a valid port number for the postgreSQL server.
-# @return_code: 16 - invalid postgreSQL port number. please enter a number between 1 and 65535.
-# @return_code: 17 - invalid PHP version. please enter either 7 (7.4), or 8 (8.1).
-# @return_code: 18 - the HTTPS port must be a number.
-# @return_code: 19 - invalid HTTPS port number. please enter a number between 1 and 65535.
-# @return_code: 20 - the HTTP port must be a number.
-# @return_code: 21 - invalid HTTP port number. please enter a number between 1 and 65535.
-# @return_code: 22 - invalid hostname. please enter a valid hostname.
-# @return_code: 23 - the Redis password must be at least 8 characters long.
-# @return_code: 24 - please provide a valid port number for the Redis server.
-# @return_code: 25 - invalid Redis port number. please enter a number between 1 and 65535.
-# @return_code: 26 - an email is needed to register the server aliases. please set an email with `-e your@email.com`.
-# @return_code: 27 - the Sendmail port must be a number.
-# @return_code: 28 - invalid Sendmail port number. please enter a number between 1 and 65535.
-# @return_code: 29 - the SSH port must be a number.
-# @return_code: 30 - invalid SSH port number. please enter a number between 1 and 65535.
-# @return_code: 31 - the Varnish port must be a number.
-# @return_code: 32 - invalid Varnish port number. please enter a number between 1 and 65535.
-# @return_code: 33 - invalid web root. please enter a valid path. (e.g. /var/www/html)
-# @return_code: 34 - invalid option(s): ${invalid_option[*]}
 # @break
 ##################################################################################
 vstacklet::args::process() {
@@ -313,7 +281,7 @@ vstacklet::args::process() {
 			declare -g domain="${2}"
 			shift
 			shift
-			[[ -n ${domain} && $(echo "${domain}" | grep -P '(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)') == "" ]] && vstacklet::clean::rollback 5
+			[[ -n ${domain} && $(echo "${domain}" | grep -P '(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)') == "" ]] && vstacklet::shell::text::error "please provide a valid domain name." && exit 1
 			;;
 		-e* | --email*)
 			declare -g email="${2}"
@@ -324,8 +292,8 @@ vstacklet::args::process() {
 			declare -gi ftp_port="${2}"
 			shift
 			shift
-			[[ -n ${ftp_port} && ${ftp_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 6
-			[[ -n ${ftp_port} && ${ftp_port} -lt 1 || ${ftp_port} -gt 65535 ]] && vstacklet::clean::rollback 7
+			[[ -n ${ftp_port} && ${ftp_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for the FTP server." && exit 1
+			[[ -n ${ftp_port} && ${ftp_port} -lt 1 || ${ftp_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid FTP port number. please enter a number between 1 and 65535." && exit 1
 			;;
 		-hhvm | --hhvm)
 			declare -gi hhvm="1"
@@ -335,22 +303,22 @@ vstacklet::args::process() {
 			declare -g hostname="${2}"
 			shift
 			shift
-			[[ -n ${hostname} && $(echo "${hostname}" | grep -P '(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)') == "" ]] && vstacklet::clean::rollback 22
+			[[ -n ${hostname} && $(echo "${hostname}" | grep -P '(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)') == "" ]] && vstacklet::shell::text::error "please provide a valid hostname." && exit 1
 			[[ -z ${hostname} ]] && declare -g hostname="localhost"
 			;;
 		-https* | --https_port*)
 			declare -gi https_port="${2}"
 			shift
 			shift
-			[[ -n ${https_port} && ${https_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 18
-			[[ -n ${https_port} && ${https_port} -lt 1 || ${https_port} -gt 65535 ]] && vstacklet::clean::rollback 19
+			[[ -n ${https_port} && ${https_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for the HTTPS server." && exit 1
+			[[ -n ${https_port} && ${https_port} -lt 1 || ${https_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid HTTPS port number. please enter a number between 1 and 65535." && exit 1
 			;;
 		-http* | --http_port*)
 			declare -gi http_port="${2}"
 			shift
 			shift
-			[[ -n ${http_port} && ${http_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 20
-			[[ -n ${http_port} && ${http_port} -lt 1 || ${http_port} -gt 65535 ]] && vstacklet::clean::rollback 21
+			[[ -n ${http_port} && ${http_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for the HTTP server." && exit 1
+			[[ -n ${http_port} && ${http_port} -lt 1 || ${http_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid HTTP port number. please enter a number between 1 and 65535." && exit 1
 			;;
 		-ioncube | --ioncube)
 			declare -gi ioncube="1"
@@ -369,14 +337,14 @@ vstacklet::args::process() {
 			declare -g mariadb_password="${2}"
 			shift
 			shift
-			[[ -n ${mariadb_password} && ${#mariadb_password} -lt 8 ]] && vstacklet::clean::rollback 8
+			[[ -n ${mariadb_password} && ${#mariadb_password} -lt 8 ]] && vstacklet::shell::text::error "please provide a password for mariadb that is at least 8 characters long." && exit 1
 			;;
 		-mariadbP* | --mariadb_port*)
 			declare -gi mariadb_port="${2}"
 			shift
 			shift
-			[[ -n ${mariadb_port} && ${mariadb_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 9
-			[[ -n ${mariadb_port} && ${mariadb_port} -lt 1 || ${mariadb_port} -gt 65535 ]] && vstacklet::clean::rollback 10
+			[[ -n ${mariadb_port} && ${mariadb_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for mariadb." && exit 1
+			[[ -n ${mariadb_port} && ${mariadb_port} -lt 1 || ${mariadb_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid mariadb port number. please enter a number between 1 and 65535." && exit 1
 			;;
 		-mysql | --mysql)
 			declare -gi mysql="1"
@@ -391,14 +359,14 @@ vstacklet::args::process() {
 			declare -g mysql_password="${2}"
 			shift
 			shift
-			[[ -n ${mysql_password} && ${#mysql_password} -lt 8 ]] && vstacklet::clean::rollback 11
+			[[ -n ${mysql_password} && ${#mysql_password} -lt 8 ]] && vstacklet::shell::text::error "please provide a password for mysql that is at least 8 characters long." && exit 1
 			;;
 		-mysqlP* | --mysql_port*)
 			declare -gi mysql_port="${2}"
 			shift
 			shift
-			[[ -n ${mysql_port} && ${mysql_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 12
-			[[ -n ${mysql_port} && ${mysql_port} -lt 1 || ${mysql_port} -gt 65535 ]] && vstacklet::clean::rollback 13
+			[[ -n ${mysql_port} && ${mysql_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for mysql." && exit 1
+			[[ -n ${mysql_port} && ${mysql_port} -lt 1 || ${mysql_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid mysql port number. please enter a number between 1 and 65535." && exit 1
 			;;
 		-nginx | --nginx)
 			declare -gi nginx="1"
@@ -417,14 +385,14 @@ vstacklet::args::process() {
 			declare -g postgresql_password="${2}"
 			shift
 			shift
-			[[ -n ${postgresql_password} && ${#postgresql_password} -lt 8 ]] && vstacklet::clean::rollback 14
+			[[ -n ${postgresql_password} && ${#postgresql_password} -lt 8 ]] && vstacklet::shell::text::error "please provide a password for postgresql that is at least 8 characters long." && exit 1
 			;;
 		-postgreP* | --postgresql_port*)
 			declare -gi postgresql_port="${2}"
 			shift
 			shift
-			[[ -n ${postgresql_port} && ${postgresql_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 15
-			[[ -n ${postgresql_port} && ${postgresql_port} -lt 1 || ${postgresql_port} -gt 65535 ]] && vstacklet::clean::rollback 16
+			[[ -n ${postgresql_port} && ${postgresql_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for postgresql." && exit 1
+			[[ -n ${postgresql_port} && ${postgresql_port} -lt 1 || ${postgresql_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid postgresql port number. please enter a number between 1 and 65535." && exit 1
 			;;
 		-pma | --phpmyadmin)
 			declare -gi phpmyadmin="1"
@@ -439,7 +407,7 @@ vstacklet::args::process() {
 			[[ ${php} == *"8"* ]] && declare -g php="8.1"
 			declare -a allowed_php=("7.4" "8.1")
 			if ! vstacklet::array::contains "${php}" "supported php versions" ${allowed_php[@]}; then
-				vstacklet::clean::rollback 17
+				vstacklet::shell::text::error "please provide a valid php version. supported versions are: ${allowed_php[*]}"
 			fi
 			;;
 		-redis | --redis)
@@ -450,14 +418,14 @@ vstacklet::args::process() {
 			declare -g redis_password="${2}"
 			shift
 			shift
-			[[ -n ${redis_password} && ${#redis_password} -lt 8 ]] && vstacklet::clean::rollback 23
+			[[ -n ${redis_password} && ${#redis_password} -lt 8 ]] && vstacklet::shell::text::error "please provide a password for redis that is at least 8 characters long." && exit 1
 			;;
 		-redisP* | --redis_port*)
 			declare -gi redis_port="${2}"
 			shift
 			shift
-			[[ -n ${redis_port} && ${redis_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 24
-			[[ -n ${redis_port} && ${redis_port} -lt 1 || ${redis_port} -gt 65535 ]] && vstacklet::clean::rollback 25
+			[[ -n ${redis_port} && ${redis_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for redis." && exit 1
+			[[ -n ${redis_port} && ${redis_port} -lt 1 || ${redis_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid redis port number. please enter a number between 1 and 65535." && exit 1
 			;;
 		-sendmail | --sendmail)
 			declare -gi sendmail="1"
@@ -467,15 +435,15 @@ vstacklet::args::process() {
 			declare -gi sendmail_port="${2}"
 			shift
 			shift
-			[[ -n ${sendmail_port} && ${sendmail_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 27
-			[[ -n ${sendmail_port} && ${sendmail_port} -lt 1 || ${sendmail_port} -gt 65535 ]] && vstacklet::clean::rollback 28
+			[[ -n ${sendmail_port} && ${sendmail_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for sendmail." && exit 1
+			[[ -n ${sendmail_port} && ${sendmail_port} -lt 1 || ${sendmail_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid sendmail port number. please enter a number between 1 and 65535." && exit 1
 			;;
 		-ssh* | --ssh_port*)
 			declare -gi ssh_port="${2}"
 			shift
 			shift
-			[[ -n ${ssh_port} && ${ssh_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 29
-			[[ -n ${ssh_port} && ${ssh_port} -lt 1 || ${ssh_port} -gt 65535 ]] && vstacklet::clean::rollback 30
+			[[ -n ${ssh_port} && ${ssh_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for ssh." && exit 1
+			[[ -n ${ssh_port} && ${ssh_port} -lt 1 || ${ssh_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid ssh port number. please enter a number between 1 and 65535." && exit 1
 			;;
 		-varnish | --varnish)
 			declare -gi varnish="1"
@@ -485,8 +453,8 @@ vstacklet::args::process() {
 			declare -gi varnish_port="${2}"
 			shift
 			shift
-			[[ -n ${varnish_port} && ${varnish_port} != ?(-)+([0-9]) ]] && vstacklet::clean::rollback 31
-			[[ -n ${varnish_port} && ${varnish_port} -lt 1 || ${varnish_port} -gt 65535 ]] && vstacklet::clean::rollback 32
+			[[ -n ${varnish_port} && ${varnish_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for varnish." && exit 1
+			[[ -n ${varnish_port} && ${varnish_port} -lt 1 || ${varnish_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid varnish port number. please enter a number between 1 and 65535." && exit 1
 			;;
 		-wp | --wordpress)
 			declare -gi wordpress="1"
@@ -496,7 +464,7 @@ vstacklet::args::process() {
 			declare -g web_root="${2}"
 			shift
 			shift
-			[[ -n ${web_root} && $(sed -e 's/[\\/]/\\/g;s/[\/\/]/\\\//g;' <<<"${web_root}") == "" ]] && vstacklet::clean::rollback 33
+			[[ -n ${web_root} && $(sed -e 's/[\\/]/\\/g;s/[\/\/]/\\\//g;' <<<"${web_root}") == "" ]] && vstacklet::shell::text::error "invalid web root. please provide a valid web root. (e.g. /var/www/html)" && exit 1
 			;;
 		-www-perms* | --www_permissions*)
 			declare -g www_permissions="1"
@@ -511,9 +479,24 @@ vstacklet::args::process() {
 		esac
 	done
 	# sanity checks
-	[[ -n ${csfCf} && -z ${csf} ]] && vstacklet::clean::rollback 4
-	[[ -n ${csf} && -z ${email} ]] && vstacklet::clean::rollback 3
+	[[ -n ${csfCf} && -z ${csf} ]] && vstacklet::shell::text::error "\`-csfCf\` requires \`-csf\`" && exit 1
+	[[ -n ${csf} && -z ${email} ]] && vstacklet::shell::text::error "please provide a valid email address. (required for \`-csf\`, \`-sendmail\`, and \`-csfCf\`)" && exit 1
 	[[ -n ${domain} && -z ${email} ]] && vstacklet::shell::text::error "an email is needed to register with Let's Encrypt. please set an email with \`-e\`." && exit 1
+	[[ -n ${mariadb} && -n ${mysql} ]] && vstacklet::shell::text::error "mariadb and mysql cannot be installed together. choose either mariadb and mysql." && exit 1
+	[[ -n ${sendmail} && -z ${email} ]] && vstacklet::shell::text::error "an email is needed to register the server aliases. please set an email with \`-e your@email.com\`." && exit 1
+	[[ -n ${hhvm} && -n ${phpmyadmin} ]] && vstacklet::shell::text::error "phpmyadmin dodes not support hhvm, please use php 7.4|8.1 if you require phpmyadmin" && exit 1
+	if [[ -n ${wordpress} ]]; then
+		[[ (-z ${mariadb}) && (-z ${mysql}) && (-z ${postgresql}) ]] && vstacklet::shell::text::error "WordPress requires a database to be installed." && exit 1
+		[[ (-z ${nginx}) && (-z ${varnish}) ]] && vstacklet::shell::text::error "WordPress requires a webserver to be installed." && exit 1
+		[[ (-z ${php}) && (-z ${hhvm}) ]] && vstacklet::shell::text::error "WordPress requires a php version to be installed." && exit 1
+	fi
+	if [[ -n ${domain_ssl} ]]; then
+		[[ -z ${email} ]] && vstacklet::shell::text::error "please provide an email address with \`-e\`." && exit 1
+		[[ -z ${nginx} ]] && vstacklet::shell::text::error "please install nginx with \`-nginx\`." && exit 1
+		[[ -z ${php} ]] && vstacklet::shell::text::error "please install php with \`-php \"7.4\"\` or \`-php \"8.1\"\`." && exit 1
+	fi
+	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::shell::text::error "invalid option(s): ${invalid_option[*]}" && exit 1
+	# default values
 	[[ -z ${ftp_port} ]] && declare -gi ftp_port="21"
 	[[ -z ${https_port} ]] && declare -gi https_port="443"
 	[[ -z ${http_port} ]] && declare -gi http_port="80"
@@ -522,12 +505,10 @@ vstacklet::args::process() {
 	[[ -z ${postgresql_port} ]] && declare -gi postgresql_port="5432"
 	[[ -z ${php} ]] && declare -g php="8.1"
 	[[ -z ${redis_port} ]] && declare -gi redis_port="6379"
-	[[ -n ${sendmail} && -z ${email} ]] && vstacklet::clean::rollback 26
 	[[ -z ${sendmail_port} ]] && declare -gi sendmail_port="587"
 	[[ -z ${ssh_port} ]] && declare -gi ssh_port="22"
 	[[ -z ${varnish_port} ]] && declare -gi varnish_port="6081"
 	[[ -z ${web_root} ]] && declare -g web_root="/var/www/html"
-	[[ ${#invalid_option[@]} -gt 0 ]] && exit #vstacklet::clean::rollback 34
 }
 
 ##################################################################################
@@ -694,6 +675,10 @@ vstacklet::environment::functions() {
 	}
 }
 
+##################################################################################
+# The following three functions are used for the progress spinner.
+##################################################################################
+# create the spinner
 vs::stat::progress() {
 	spinner="/|\\-/|\\-"
 	while :; do
@@ -704,14 +689,14 @@ vs::stat::progress() {
 		done
 	done
 }
+# start the spinner and save the function's PID
 vs::stat::progress::start() {
 	declare -g pg_pid
 	vs::stat::progress &
 	pg_pid=$!
 	trap 'kill -9 ${pg_pid} 2>/dev/null' $(seq 0 15) >/dev/null 2>&1
-
 }
-#trap 'vs::stat::progress::start' SIGINT
+# stop the spinner and remove the function's PID
 vs::stat::progress::stop() {
 	vstacklet::shell::icon::check::green "done"
 	kill -9 ${pg_pid} >/dev/null 2>&1
@@ -775,7 +760,7 @@ vstacklet::apt::update() {
 # @description: Installs dependencies for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L733-L754)
 # @nooptions
 # @noargs
-# @return_code: 35 - failed to install script dependencies.
+# @return_code: 3 - failed to install script dependencies.
 # @break
 ##################################################################################
 vstacklet::dependencies::install() {
@@ -796,7 +781,7 @@ vstacklet::dependencies::install() {
 		else
 			vstacklet::shell::text::white::sl "| ${install} "
 		fi
-		vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::clean::rollback 35
+		vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::clean::rollback 3
 		install_list+=("${install}")
 	done
 	clear
@@ -926,7 +911,7 @@ vstacklet::dependencies::array() {
 ################################################################################
 # @name: vstacklet::base::dependencies (12)
 # @description: Handles base dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L886-L910)
-# @return_code: 36 - failed to install base dependencies.
+# @return_code: 4 - failed to install base dependencies.
 # @break
 ################################################################################
 vstacklet::base::dependencies() {
@@ -946,7 +931,7 @@ vstacklet::base::dependencies() {
 			vstacklet::shell::text::white::sl "| ${install} "
 		fi
 		# shellcheck disable=SC2015
-		DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 36
+		DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 4
 		install_list+=("${install}")
 	done
 	[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -961,7 +946,7 @@ vstacklet::base::dependencies() {
 # @description: Installs required sources for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L920-L947)
 # @nooptions
 # @noargs
-# @return_code: 37 - failed to install source dependencies.
+# @return_code: 5 - failed to install source dependencies.
 # @break
 ##################################################################################
 vstacklet::source::dependencies() {
@@ -983,7 +968,7 @@ vstacklet::source::dependencies() {
 		else
 			vstacklet::shell::text::white::sl "| ${install} "
 		fi
-		vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::clean::rollback 37
+		vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::clean::rollback 5
 		install_list+=("${install}")
 	done
 	[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1029,13 +1014,19 @@ vstacklet::bashrc::set() {
 # @example: vstacklet -hn myhostname
 # @example: vstacklet --hostname myhostname
 # @null
-# @return: 38 - failed to set hostname
+# @return: 6 - failed to set hostname
 # @break
 ##################################################################################
 vstacklet::hostname::set() {
-	vstacklet::shell::text::white "setting hostname to ${domain:-${hostname:-${server_hostname}}}"
-	vstacklet::log "hostnamectl set-hostname ${domain:-${hostname:-${server_hostname}}}" || vstacklet::clean::rollback 38
-	hostnamectl set-hostname "${domain:-${hostname:-${server_hostname}}}" || vstacklet::clean::rollback 38
+	if [[ -n ${hostname} && -z ${domain} ]]; then
+		vstacklet::shell::text::white "setting hostname to ${hostname} ... "
+		hostnamectl set-hostname "${hostname}" >>${vslog} 2>&1 || vstacklet::clean::rollback 6
+		vstacklet::shell::misc::nl
+	elif [[ -n ${domain} && -z ${hostname} ]]; then
+		vstacklet::shell::text::white "setting hostname to ${domain} ... "
+		hostnamectl set-hostname "${domain}" >>${vslog} 2>&1 || vstacklet::clean::rollback 6
+		vstacklet::shell::misc::nl
+	fi
 }
 
 ##################################################################################
@@ -1075,16 +1066,16 @@ vstacklet::webroot::set() {
 # @example: vstacklet -ssh 2222
 # @example: vstacklet --ssh_port 2222
 # @null
-# @return_code: 39 - failed to set SSH port.
-# @return_code: 40 - failed to restart SSH daemon service.
+# @return_code: 7 - failed to set SSH port.
+# @return_code: 8 - failed to restart SSH daemon service.
 # @break
 ##################################################################################
 vstacklet::ssh::set() {
 	if [[ -n ${ssh_port} ]]; then
 		vstacklet::shell::text::white "setting ssh port to ${ssh_port:-22} ... "
 		cp -f /etc/ssh/sshd_config "${vstacklet_base_path}/setup_temp/sshd_config"
-		sed -i "s/^.*Port .*/Port ${ssh_port:-22}/g" /etc/ssh/sshd_config || vstacklet::clean::rollback 39
-		vstacklet::log "systemctl restart sshd" || vstacklet::clean::rollback 40
+		sed -i "s/^.*Port .*/Port ${ssh_port:-22}/g" /etc/ssh/sshd_config || vstacklet::clean::rollback 7
+		vstacklet::log "systemctl restart sshd" || vstacklet::clean::rollback 8
 	fi
 }
 
@@ -1096,8 +1087,8 @@ vstacklet::ssh::set() {
 # @example: vstacklet -ftp 2121
 # @example: vstacklet --ftp_port 2121
 # @null
-# @return_code: 41 - failed to set FTP port.
-# @return_code: 42 - failed to restart FTP service.
+# @return_code: 9 - failed to set FTP port.
+# @return_code: 10 - failed to restart FTP service.
 # @break
 ##################################################################################
 vstacklet::ftp::set() {
@@ -1106,8 +1097,8 @@ vstacklet::ftp::set() {
 		cp -f /etc/vsftpd.conf "${vstacklet_base_path}/setup_temp/vsftpd.conf"
 		openssl req -config "${local_setup_dir}/templates/ssl/openssl.conf" -x509 -nodes -days 720 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem >/dev/null 2>&1
 		cp -f "${local_setup_dir}/templates/vsftpd/vsftpd.conf" /etc/vsftpd.conf
-		sed -i.bak -e "s|{{ftp_port}}|${ftp_port:-21}|g" -e "s|{{server_ip}}|${server_ip}|g" /etc/vsftpd.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 41
-		vstacklet::log "systemctl restart vsftpd" || vstacklet::clean::rollback 42
+		sed -i.bak -e "s|{{ftp_port}}|${ftp_port:-21}|g" -e "s|{{server_ip}}|${server_ip}|g" /etc/vsftpd.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 9
+		vstacklet::log "systemctl restart vsftpd" || vstacklet::clean::rollback 10
 		vstacklet::log "iptables -I INPUT -p tcp --destination-port 10090:10100 -j ACCEPT"
 		echo "" >/etc/vsftpd.chroot_list
 	fi
@@ -1122,15 +1113,15 @@ vstacklet::ftp::set() {
 # @nooptions
 # @script-note: This function is required for the installation of
 # the vStacklet software.
-# @return_code: 43 - failed to block SSDP port.
-# @return_code: 44 - failed to save iptables rules.
+# @return_code: 11 - failed to block SSDP port.
+# @return_code: 12 - failed to save iptables rules.
 # @break
 ##################################################################################
 vstacklet::block::ssdp() {
 	vstacklet::shell::text::white "blocking port 1900 ..."
 	mkdir -p /etc/iptables/
-	vstacklet::log "iptables -I INPUT 1 -p udp -m udp --dport 1900 -j DROP" || vstacklet::clean::rollback 43
-	iptables-save >/etc/iptables/rules.v4 || vstacklet::clean::rollback 44
+	vstacklet::log "iptables -I INPUT 1 -p udp -m udp --dport 1900 -j DROP" || vstacklet::clean::rollback 11
+	iptables-save >/etc/iptables/rules.v4 || vstacklet::clean::rollback 12
 }
 
 ##################################################################################
@@ -1301,7 +1292,7 @@ EOF
 # @nooptions
 # @script-note: This function is required for the installation of
 # the vStacklet software.
-# @return_code: 45 - failed to set locale.
+# @return_code: 13 - failed to set locale.
 # @break
 ##################################################################################
 vstacklet::locale::set() {
@@ -1312,7 +1303,7 @@ vstacklet::locale::set() {
 			update-locale "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
 			dpkg-reconfigure --frontend noninteractive locales
 			vstacklet::log "locale-gen locales"
-		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 45
+		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 13
 	else
 		(
 			vstacklet::log "apt-get -y update"
@@ -1320,7 +1311,7 @@ vstacklet::locale::set() {
 			update-locale "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
 			dpkg-reconfigure --frontend noninteractive locales
 			vstacklet::log "locale-gen locales"
-		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 45
+		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 13
 
 	fi
 	declare -xg LANGUAGE="en_US.UTF-8"
@@ -1355,15 +1346,13 @@ vstacklet::locale::set() {
 # @example: vstacklet -php 8.1
 # @example: vstacklet --php 7.4
 # @null
-# @return_code: 46 - php and hhvm cannot be installed at the same time, please choose one.
-# @return_code: 47 - failed to install php dependencies.
-# @return_code: 48 - failed to enable php memcached extension.
-# @return_code: 49 - failed to enable php redis extension.
+# @return_code: 14 - PHP and HHVM cannot be installed at the same time, please choose one.
+# @return_code: 15 - failed to install PHP dependencies.
 # @break
 ##################################################################################
 vstacklet::php::install() {
 	# @script-note: check for hhvm
-	[[ -n ${php} && -n ${hhvm} ]] && vstacklet::clean::rollback 46
+	[[ -n ${php} && -n ${hhvm} ]] && vstacklet::clean::rollback 14
 	if [[ -n ${php} && -z ${hhvm} ]]; then
 		# @script-note: check for nginx \\ to maintain modularity, nginx is not required for PHP
 		#[[ -z ${nginx} ]] && vstacklet::clean::rollback "PHP requires nginx. please install nginx."
@@ -1383,7 +1372,7 @@ vstacklet::php::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 47
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 15
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1410,8 +1399,6 @@ vstacklet::php::install() {
 		done
 		[[ -n ${redis} ]] && phpmods+=("redis")
 		vs::stat::progress::stop # stop progress status
-		#phpenmod -v "${php}" memcached >>${vslog} 2>&1 || { vstacklet::clean::rollback 48; } (deprecated)
-		#phpenmod -v "${php}" redis >>${vslog} 2>&1 || { vstacklet::clean::rollback 49; } (deprecated)
 		# @script-note: php installation complete
 	fi
 }
@@ -1437,15 +1424,15 @@ vstacklet::php::install() {
 # @example: vstacklet -hhvm
 # @example: vstacklet --hhvm
 # @null
-# @return_code: 50 - HHVM and PHP cannot be installed at the same time, please choose one.
-# @return_code: 51 - failed to install HHVM dependencies.
-# @return_code: 52 - failed to install HHVM.
-# @return_code: 53 - failed to update PHP alternatives.
+# @return_code: 16 - HHVM and PHP cannot be installed at the same time, please choose one.
+# @return_code: 17 - failed to install HHVM dependencies.
+# @return_code: 18 - failed to install HHVM.
+# @return_code: 19 - failed to update PHP alternatives.
 # @break
 ##################################################################################
 vstacklet::hhvm::install() {
 	# @script-note: check for php
-	[[ -n ${hhvm} && -n ${php} ]] && vstacklet::clean::rollback 50
+	[[ -n ${hhvm} && -n ${php} ]] && vstacklet::clean::rollback 16
 	if [[ -n ${hhvm} && -z ${php} ]]; then
 		# @script-note: check for nginx \\ to maintain modularity, nginx is not required for HHVM
 		#[[ -z ${nginx} ]] && vstacklet::clean::rollback "hhvm requires nginx. please install with -nginx."
@@ -1465,7 +1452,7 @@ vstacklet::hhvm::install() {
 			else
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
-			vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::clean::rollback 51
+			vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::clean::rollback 17
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1474,11 +1461,11 @@ vstacklet::hhvm::install() {
 		done
 		unset depend depend_list install
 		# @script-note: install hhvm
-		/usr/share/hhvm/install_fastcgi.sh >>"${vslog}" 2>&1 || vstacklet::clean::rollback 52
+		/usr/share/hhvm/install_fastcgi.sh >>"${vslog}" 2>&1 || vstacklet::clean::rollback 18
 		vstacklet::shell::text::yellow::sl "configuring HHVM ... " &
 		vs::stat::progress::start # start progress status
 		# @script-note: update php alternatives
-		/usr/bin/update-alternatives --install /usr/bin/php php /usr/bin/hhvm 60 >>"${vslog}" 2>&1 || vstacklet::clean::rollback 53
+		/usr/bin/update-alternatives --install /usr/bin/php php /usr/bin/hhvm 60 >>"${vslog}" 2>&1 || vstacklet::clean::rollback 19
 		# @script-note: get off the port and use socket - vStacklet nginx configurations already know this
 		cp -f "${local_hhvm_dir}server.ini.template" /etc/hhvm/server.ini
 		cp -f "${local_hhvm_dir}php.ini.template" /etc/hhvm/php.ini
@@ -1517,11 +1504,12 @@ vstacklet::hhvm::install() {
 # @example: vstacklet -nginx -php 8.1 -varnish -varnishP 80 -http 8080 -https 443
 # @example:vstacklet --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
 # @null
-# @return_code: 54 - failed to install NGINX dependencies.
-# @return_code: 55 - failed to edit NGINX configuration file.
-# @return_code: 56 - failed to enable NGINX configuration file.
-# @return_code: 57 - failed to generate dhparam file.
-# @return_code: 58 - failed to stage checkinfo.php verification file.
+# @return_code: 20 - failed to install NGINX dependencies.
+# @return_code: 21 - failed to edit NGINX configuration file.
+# @return_code: 22 - failed to enable NGINX configuration file.
+# @return_code: 23 - failed to generate dhparam file.
+# @return_code: 24 - failed to generate self-signed certificate.
+# @return_code: 25 - failed to stage checkinfo.php verification file.
 # @break
 ##################################################################################
 vstacklet::nginx::install() {
@@ -1541,7 +1529,7 @@ vstacklet::nginx::install() {
 			else
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
-			vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::clean::rollback 54
+			vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::clean::rollback 20
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1580,17 +1568,20 @@ vstacklet::nginx::install() {
 		vs::stat::progress::start # start progress status
 		# @script-note: post necessary edits to nginx config files
 		sed -i "s|{{php}}|${php:-8.1}|g" "/etc/nginx/wordpress.conf" >/dev/null 2>&1
-		sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::clean::rollback 55
+		sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::clean::rollback 21
 		# @script-note: enable site
-		ln -sf "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "/etc/nginx/sites-enabled/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 56
-		# @script-note: generate self-signed ssl cert and Diffie-Hellman parameters file
-		[[ ! -f /etc/ssl/certs/ssl-cert-snakeoil.pem ]] && openssl req -config "${vstacklet_base_path}/setup/templates/ssl/openssl.conf" -x509 -nodes -days 720 -newkey rsa:2048 -keyout /etc/ssl/private/ssl-cert-snakeoil.key -out /etc/ssl/certs/ssl-cert-snakeoil.pem >>"${vslog}" 2>&1
-		[[ ! -f /etc/nginx/ssl/dhparam.pem ]] && openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >>"${vslog}" 2>&1
-		openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >>"${vslog}" 2>&1 || vstacklet::clean::rollback 57
+		ln -sf "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "/etc/nginx/sites-enabled/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 22
+		# @script-note: generate Diffie-Hellman parameters file and self-signed ssl cert
+		if [[ ! -f /etc/nginx/ssl/dhparam.pem ]]; then
+			openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048 >>"${vslog}" 2>&1 || vstacklet::clean::rollback 23
+		fi
+		if [[ ! -f /etc/ssl/certs/ssl-cert-snakeoil.pem ]]; then
+			openssl req -config "${vstacklet_base_path}/setup/templates/ssl/openssl.conf" -x509 -nodes -days 720 -newkey rsa:2048 -keyout /etc/ssl/private/ssl-cert-snakeoil.key -out /etc/ssl/certs/ssl-cert-snakeoil.pem >>"${vslog}" 2>&1 || vstacklet::clean::rollback 24
+		fi
 		vs::stat::progress::stop # stop progress status
 		vstacklet::shell::text::yellow::sl "staging checkinfo.php and adjusting permissions on ${web_root:-/var/www/html} ... " &
 		vs::stat::progress::start # start progress status
-		echo '<?php phpinfo(); ?>' >"${web_root:-/var/www/html}/public/checkinfo.php" || vstacklet::clean::rollback 58
+		echo '<?php phpinfo(); ?>' >"${web_root:-/var/www/html}/public/checkinfo.php" || vstacklet::clean::rollback 25
 		chown -R www-data:www-data "${web_root:-/var/www/html}"
 		chmod -R 755 "${web_root:-/var/www/html}"
 		chmod -R g+rw "${web_root:-/var/www/html}"
@@ -1642,10 +1633,11 @@ vstacklet::nginx::install() {
 # @example: vstacklet -varnish -varnishP 80 -http 8080 -https 443
 # @example: vstacklet -varnish -varnishP 80 -nginx -http 8080 --https_port 443
 # @null
-# @return_code: 59 - failed to install Varnish dependencies.
-# @return_code: 60 - could not switch to /etc/varnish directory.
-# @return_code: 61 - failed to reload the systemd daemon.
-# @return_code: 62 - failed to switch to ~/
+# @return_code: 26 - failed to install Varnish dependencies.
+# @return_code: 27 - could not switch to /etc/varnish directory.
+# @return_code: 28 - failed to edit the Varnish default config file.
+# @return_code: 29 - failed to reload the systemd daemon.
+# @return_code: 30 - failed to switch to ~/
 # @break
 ##################################################################################
 vstacklet::varnish::install() {
@@ -1665,7 +1657,7 @@ vstacklet::varnish::install() {
 			else
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
-			vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::clean::rollback 59
+			vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::clean::rollback 26
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1673,7 +1665,7 @@ vstacklet::varnish::install() {
 			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
 		done
 		unset depend depend_list install
-		cd /etc/varnish || vstacklet::clean::rollback 60
+		cd /etc/varnish || vstacklet::clean::rollback 27
 		vstacklet::shell::text::yellow::sl "configuring Varnish ... " &
 		vs::stat::progress::start # start progress status
 		mv default.vcl default.vcl.ORIG
@@ -1685,20 +1677,24 @@ vstacklet::varnish::install() {
 		# adjust varnish config files
 		if [[ -n ${nginx} ]]; then
 			# @script-note: if nginx is installed, then use nginx as the backend. this is assigned by way of the http_port variable
-			sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{varnish_port}}|${http_port:-80}|g" -e "s|{{domain}}|${domain:-${server_ip}}|g" "/etc/varnish/custom.vcl"
-			sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish"
+			(
+				sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{varnish_port}}|${http_port:-80}|g" -e "s|{{domain}}|${domain:-${server_ip}}|g" "/etc/varnish/custom.vcl"
+				sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish"
+			) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 28
 		else
-			# @script-note: if nginx is not installed, then use varnish as the backend. this is assigned by way of the varnish_port variable (this is not useful for most people)
-			sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{varnish_port}}|${varnish_port:-6081}|g" -e "s|{{domain}}|${domain:-${server_ip}}|g" "/etc/varnish/custom.vcl"
-			sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish"
+			# @script-note: if nginx is not installed, then use varnish as the backend.
+			# this is assigned by way of the varnish_port variable (this is not useful for most people)
+			(
+				sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{varnish_port}}|${varnish_port:-6081}|g" -e "s|{{domain}}|${domain:-${server_ip}}|g" "/etc/varnish/custom.vcl"
+				sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish"
+			) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 28
 		fi
 		# @script-note: adjust varnish service
-		#todo: cp -f /lib/systemd/system/varnishlog.service /etc/systemd/system/
 		cp -f /lib/systemd/system/varnish.service /etc/systemd/system/
 		sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" "/etc/systemd/system/varnish.service"
 		sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" "/lib/systemd/system/varnish.service"
-		vstacklet::log "systemctl daemon-reload" || vstacklet::clean::rollback 61
-		cd "${HOME}" || vstacklet::clean::rollback 62
+		vstacklet::log "systemctl daemon-reload" || vstacklet::clean::rollback 29
+		cd "${HOME}" || vstacklet::clean::rollback 30
 		vs::stat::progress::stop # stop progress status
 		# @script-note: varnish installation complete
 		vstacklet::shell::text::green "Varnish installed and configured. see details below:"
@@ -1754,12 +1750,11 @@ vstacklet::permissions::adjust() {
 # @example: vstacklet -ioncube -php 7.4
 # @example: vstacklet --ioncube --php 7.4
 # @null
-# @return_code: 63 - failed to switch to /tmp directory.
-# @return_code: 64 - failed to download ionCube loader.
-# @return_code: 65 - failed to extract ionCube loader.
-# @return_code: 66 - failed to switch to /tmp/ioncube directory.
-# @return_code: 67 - failed to copy ionCube loader to /usr/lib/php/ directory.
-# @return_code: 68 - failed to enable ionCube loader php extension.
+# @return_code: 31 - failed to switch to /tmp directory.
+# @return_code: 32 - failed to download ionCube loader.
+# @return_code: 33 - failed to extract ionCube loader.
+# @return_code: 34 - failed to switch to /tmp/ioncube directory.
+# @return_code: 35 - failed to copy ionCube loader to /usr/lib/php/ directory.
 # @break
 ##################################################################################
 vstacklet::ioncube::install() {
@@ -1768,27 +1763,25 @@ vstacklet::ioncube::install() {
 		vstacklet::shell::text::white "installing IonCube Loader for php-${php} ... "
 		# @script-note: install ioncube loader for php 7.4
 		if [[ ${php} == *"7"* ]]; then
-			cd /tmp || vstacklet::clean::rollback 63
-			vstacklet::log "wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::clean::rollback 64
-			vstacklet::log "tar -xvzf ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::clean::rollback 65
-			cd ioncube || vstacklet::clean::rollback 66
-			cp -f ioncube_loader_lin_7.4.so /usr/lib/php/20190902/ || vstacklet::clean::rollback 67
+			cd /tmp || vstacklet::clean::rollback 31
+			vstacklet::log "wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::clean::rollback 32
+			vstacklet::log "tar -xvzf ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::clean::rollback 33
+			cd ioncube || vstacklet::clean::rollback 34
+			cp -f ioncube_loader_lin_7.4.so /usr/lib/php/20190902/ || vstacklet::clean::rollback 35
 			echo "zend_extension = /usr/lib/php/20190902/ioncube_loader_lin_7.4.so" >/etc/php/7.4/mods-available/ioncube.ini
 			ln -sf /etc/php/7.4/mods-available/ioncube.ini /etc/php/7.4/cli/conf.d/00-ioncube.ini
 			ln -sf /etc/php/7.4/mods-available/ioncube.ini /etc/php/7.4/fpm/conf.d/00-ioncube.ini
-			#phpenmod -v 7.4 ioncube || vstacklet::clean::rollback 68
 		fi
 		# @script-note: install ioncube loader for php 8.1
 		if [[ ${php} == *"8"* ]]; then
-			cd /tmp || vstacklet::clean::rollback 63
-			vstacklet::log "wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::clean::rollback 64
-			vstacklet::log "tar -xvzf ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::clean::rollback 65
-			cd ioncube || vstacklet::clean::rollback 66
-			cp -f ioncube_loader_lin_8.1.so /usr/lib/php/20210902/ || vstacklet::clean::rollback 67
+			cd /tmp || vstacklet::clean::rollback 31
+			vstacklet::log "wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::clean::rollback 32
+			vstacklet::log "tar -xvzf ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::clean::rollback 33
+			cd ioncube || vstacklet::clean::rollback 34
+			cp -f ioncube_loader_lin_8.1.so /usr/lib/php/20210902/ || vstacklet::clean::rollback 35
 			echo "zend_extension = /usr/lib/php/20210902/ioncube_loader_lin_8.1.so" >/etc/php/8.1/mods-available/ioncube.ini
 			ln -sf /etc/php/8.1/mods-available/ioncube.ini /etc/php/8.1/cli/conf.d/00-ioncube.ini
 			ln -sf /etc/php/8.1/mods-available/ioncube.ini /etc/php/8.1/fpm/conf.d/00-ioncube.ini
-			#phpenmod -v 8.1 ioncube || vstacklet::clean::rollback 68
 		fi
 		# @script-note: ioncube installation complete
 	fi
@@ -1817,18 +1810,17 @@ vstacklet::ioncube::install() {
 # @example: vstacklet -mariadb
 # @example: vstacklet --mariadb
 # @null
-# @return_code: 69 - failed to install MariaDB dependencies.
-# @return_code: 70 - failed to initialize MariaDB secure installation.
-# @return_code: 71 - failed to create MariaDB user.
-# @return_code: 72 - failed to create MariaDB user password.
-# @return_code: 73 - failed to create MariaDB user privileges.
-# @return_code: 74 - failed to flush privileges.
-# @return_code: 75 - failed to set MariaDB client and server configuration.
+# @return_code: 36 - failed to install MariaDB dependencies.
+# @return_code: 37 - failed to initialize MariaDB secure installation.
+# @return_code: 38 - failed to set MariaDB client and server configuration.
+# @return_code: 39 - failed to set MariaDB .my.cnf configuration.
+# @return_code: 40 - failed to create MariaDB user.
+# @return_code: 41 - failed to create MariaDB user privileges.
+# @return_code: 42 - failed to flush privileges.
 # @break
 ##################################################################################
 vstacklet::mariadb::install() {
 	if [[ -n ${mariadb} ]]; then
-		[[ -n ${mysql} ]] && vstacklet::shell::misc::nl && vstacklet::shell::text::red "mariadb and mysql cannot be installed together. choose either mariadb or mysql." && vstacklet::clean::rollback 1
 		declare mariadb_autoPw
 		mariadb_autoPw="$(perl -e 'print map +(A..Z,a..z,0..9)[rand 62], 0..15')"
 		vstacklet::shell::misc::nl
@@ -1847,7 +1839,7 @@ vstacklet::mariadb::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || setup::clean::rollback 69
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || setup::clean::rollback 36
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1878,7 +1870,7 @@ send "y\r"
 expect dof
 exit
 DOD
-		) >>${vslog} 2>&1 || setup::clean::rollback 70
+		) >>${vslog} 2>&1 || setup::clean::rollback 37
 		# @script-note: set mariadb client and server configuration
 		{
 			echo -e "[client]"
@@ -1893,12 +1885,8 @@ DOD
 			echo -e "log-error = /var/log/mysql/error.log"
 			echo -e "pid-file = /var/run/mysqld/mysqld.pid"
 			echo -e "max_allowed_packet = 16M"
-			#echo -e "max_connections = 1000"
-			#echo -e "max_user_connections = 1000"
-			#echo -e "max_connect_errors = 1000"
 			echo -e "max_heap_table_size = 16M"
 			echo -e "max_sp_recursion_depth = 255"
-			#echo -e "max_sp_cache_size = 4096"
 			echo -e "max_binlog_size = 100M"
 			echo -e "max_binlog_cache_size = 1M"
 			echo -e "max_binlog_stmt_cache_size = 1M"
@@ -1908,11 +1896,9 @@ DOD
 			echo -e "max_seeks_for_key = 4294967295"
 			echo -e "max_write_lock_count = 4294967295"
 			echo -e "max_tmp_tables = 32"
-			#echo -e "max_tmp_disk_tables = 32"
 			echo -e "max_prepared_stmt_count = 16382"
 			echo -e "max_delayed_threads = 20"
-			#echo -e "max_insert_delayed_threads = 20"
-		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 75
+		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 38
 		# @script-note: set .my.cnf
 		{
 			echo "[client]"
@@ -1931,14 +1917,14 @@ DOD
 			echo "user=root"
 			echo "password=${mariadb_password:-${mariadb_autoPw}}"
 			echo
-		} >/root/.my.cnf || vstacklet::clean::rollback 75
+		} >/root/.my.cnf || vstacklet::clean::rollback 39
 		vstacklet::log "systemctl daemon-reload"
 		vstacklet::log "systemctl restart mariadb"
 		#mysqladmin -u root -h localhost password "${mariadb_password:-${mariadb_autoPw}}"
 		# @script-note: create mariadb user
-		mysql -e "CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 72
-		mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 73
-		mysql -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 74
+		mysql -e "CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 40
+		mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 41
+		mysql -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 42
 		vs::stat::progress::stop # stop progress status
 		# @script-note: mariadb installation complete
 		vstacklet::shell::text::green "mariaDB installed and configured. see details below:"
@@ -1975,27 +1961,26 @@ DOD
 # @example: vstacklet -mysql -mysqlP 3306 -mysqlU admin -mysqlPw password
 # @example: vstacklet --mysql --mysql_port 3306 --mysql_user admin --mysql_password password
 # @null
-# @return_code: 76 - failed to download MySQL deb package.
-# @return_code: 77 - failed to install MySQL deb package.
-# @return_code: 78 - failed to install MySQL dependencies.
-# @return_code: 79 - failed to set MySQL password.
-# @return_code: 80 - failed to create MySQL user.
-# @return_code: 81 - failed to grant MySQL user privileges.
-# @return_code: 82 - failed to flush MySQL privileges.
-# @return_code: 83 - failed to set MySQL client and server configuration.
+# @return_code: 43 - failed to download MySQL deb package.
+# @return_code: 44 - failed to install MySQL deb package.
+# @return_code: 45 - failed to install MySQL dependencies.
+# @return_code: 46 - failed to set MySQL client and server configuration.
+# @return_code: 47 - failed to set MySQL .my.cnf file.
+# @return_code: 48 - failed to create MySQL user.
+# @return_code: 49 - failed to grant MySQL user privileges.
+# @return_code: 50 - failed to flush MySQL privileges.
 # @break
 ##################################################################################
 vstacklet::mysql::install() {
 	if [[ -n ${mysql} ]]; then
-		[[ -n ${mariadb} ]] && vstacklet::shell::misc::nl && vstacklet::shell::text::red "mysql and mariadb cannot be installed together. choose either mysql or mariadb." && vstacklet::clean::rollback
 		declare mysql_autoPw
 		mysql_autoPw="$(perl -e 'print map +(A..Z,a..z,0..9)[rand 62], 0..15')"
 		mysql_deb_version="mysql-apt-config_0.8.24-1_all.deb"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring MySQL ... "
 		# @script-note: install mysql deb
-		vstacklet::log "wget https://dev.mysql.com/get/mysql-apt-config_${mysql_deb_version}_all.deb -O /tmp/mysql-apt-config_${mysql_deb_version}_all.deb" || vstacklet::clean::rollback 76
-		vstacklet::log "dpkg -i ${mysql_deb_version}" || vstacklet::clean::rollback 77
+		vstacklet::log "wget https://dev.mysql.com/get/mysql-apt-config_${mysql_deb_version}_all.deb -O /tmp/mysql-apt-config_${mysql_deb_version}_all.deb" || vstacklet::clean::rollback 43
+		vstacklet::log "dpkg -i ${mysql_deb_version}" || vstacklet::clean::rollback 44
 		# @script-note: install mysql dependencies
 		declare -a depend_list install_list
 		for depend in "${mysql_dependencies[@]}"; do
@@ -2011,7 +1996,7 @@ vstacklet::mysql::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || setup::clean::rollback 78
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || setup::clean::rollback 45
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -2078,12 +2063,12 @@ vstacklet::mysql::install() {
 			echo -e "innodb_buffer_pool_load_now = 1"
 			echo -e "innodb_buffer_pool_dump_filename = /var/lib/mysql/ib_buffer_pool"
 			echo -e "innodb_buffer_pool_load_filename = /var/lib/mysql/ib_buffer_pool"
-		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 83
+		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 46
 		# @script-note: set mysql privileges
 		{
 			echo -e "[mysqld]"
 			echo -e "skip-grant-tables"
-		} >/etc/mysql/conf.d/vstacklet-grant.cnf || vstacklet::clean::rollback 83
+		} >/etc/mysql/conf.d/vstacklet-grant.cnf >>${vslog} 2>&1
 		# @script-note: set ~/.my.cnf
 		{
 			echo -e "[client]"
@@ -2097,14 +2082,14 @@ vstacklet::mysql::install() {
 			echo -e "[mysqldump]"
 			echo -e "user = ${mysql_user:-admin}"
 			echo -e "password = ${mysql_password:-${mysql_autoPw}}"
-		} >"${HOME}/.my.cnf" || vstacklet::clean::rollback 83
+		} >"${HOME}/.my.cnf" || vstacklet::clean::rollback 47
 		vstacklet::log "systemctl daemon-reload"
 		#vstacklet::log "systemctl enable mysql"
 		#vstacklet::log "systemctl restart mysql"
 		#mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::clean::rollback 79
-		mysql -e "CREATE USER '${mysql_user:-admin}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 80
-		mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 81
-		mysql -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 82
+		mysql -e "CREATE USER '${mysql_user:-admin}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 48
+		mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 49
+		mysql -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 50
 		vs::stat::progress::stop # stop progress status
 		# @script-note: mysql installation complete
 		vstacklet::shell::text::green "MySQL installed and configured. see details below:"
@@ -2132,13 +2117,13 @@ vstacklet::mysql::install() {
 # @arg: $4 - `[postgresql_password]` (optional) (default: password auto-generated)
 # @example: vstacklet -postgre -postgreP 5432 -postgreU admin -postgrePw password
 # @example: vstacklet --postgresql --postgresql_port 5432 --postgresql_user admin --postgresql_password password
-# @return_code: 84 - failed to install PostgreSQL dependencies.
-# @return_code: 85 - failed to switch to /etc/postgresql/${postgre_version}/main directory.
-# @return_code: 86 - failed to set PostgreSQL password.
-# @return_code: 87 - failed to create PostgreSQL user.
-# @return_code: 88 - failed to grant PostgreSQL user privileges.
-# @return_code: 89 - failed to edit /etc/postgresql/${postgre_version}/main/postgresql.conf file.
-# @return_code: 90 - failed to edit /etc/postgresql/${postgre_version}/main/pg_hba.conf file.
+# @return_code: 51 - failed to install PostgreSQL dependencies.
+# @return_code: 52 - failed to switch to /etc/postgresql/${postgre_version}/main directory.
+# @return_code: 53 - failed to set PostgreSQL password.
+# @return_code: 54 - failed to create PostgreSQL user.
+# @return_code: 55 - failed to grant PostgreSQL user privileges.
+# @return_code: 56 - failed to edit /etc/postgresql/${postgre_version}/main/postgresql.conf file.
+# @return_code: 57 - failed to edit /etc/postgresql/${postgre_version}/main/pg_hba.conf file.
 # @break
 ##################################################################################
 vstacklet::postgre::install() {
@@ -2162,7 +2147,7 @@ vstacklet::postgre::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 84
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 51
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -2181,28 +2166,28 @@ vstacklet::postgre::install() {
 		postgre_version="$(apt-cache policy postgresql | grep -A1 "Installed:" | grep -v "Installed:" | awk '{print $2}' | awk -F. '{print $1"."$2}' | cut -d'+' -f1)"
 		# @script-note: to make alterations to postgresql, we must first switch to a directory
 		# that postgresql has access to
-		cd "/etc/postgresql/${postgre_version}/main" || vstacklet::clean::rollback 85
+		cd "/etc/postgresql/${postgre_version}/main" || vstacklet::clean::rollback 52
 		# set postgresql root password
 		(
 			sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '${postgresql_password:-${postgresql_autoPw}}';"
 			sleep 2
-		) >>${vslog} 2>&1 || vstacklet::clean::rollback 86
+		) >>${vslog} 2>&1 || vstacklet::clean::rollback 53
 		# @script-note: create postgresql user
 		(
 			sudo -u postgres psql -c "CREATE USER ${postgresql_user:-admin} WITH PASSWORD '${postgresql_password:-${postgresql_autoPw}}';"
 			sleep 2
-		) >>${vslog} 2>&1 || vstacklet::clean::rollback 87
+		) >>${vslog} 2>&1 || vstacklet::clean::rollback 54
 		# @script-note: grant postgresql user privileges
 		(
 			sudo -u postgres psql -c "ALTER USER ${postgresql_user:-admin} WITH SUPERUSER;"
 			sleep 2
-		) >>${vslog} 2>&1 || vstacklet::clean::rollback 88
+		) >>${vslog} 2>&1 || vstacklet::clean::rollback 55
 		# @script-note: set postgre client and server configuration
 		cp -f "/etc/postgresql/${postgre_version}/main/postgresql.conf" "/etc/postgresql/${postgre_version}/main/postgresql.conf.default-bak"
 		{
 			echo -e "port = ${postgresql_port:-5432}"
 			echo -e "listen_addresses = 'localhost'"
-		} >"/etc/postgresql/${postgre_version}/main/postgresql.conf" || vstacklet::clean::rollback 89
+		} >"/etc/postgresql/${postgre_version}/main/postgresql.conf" || vstacklet::clean::rollback 56
 		cp -f "/etc/postgresql/${postgre_version}/main/pg_hba.conf" "/etc/postgresql/${postgre_version}/main/pg_hba.conf.default-bak"
 		{
 			echo -e "# Database administrative login by Unix domain socket"
@@ -2212,7 +2197,7 @@ vstacklet::postgre::install() {
 			echo
 			echo -e "# \"local\" is for Unix domain socket connections only"
 			echo -e "local   all             all                                     md5"
-		} >"/etc/postgresql/${postgre_version}/main/pg_hba.conf" || vstacklet::clean::rollback 90
+		} >"/etc/postgresql/${postgre_version}/main/pg_hba.conf" || vstacklet::clean::rollback 57
 		vs::stat::progress::stop # stop progress status
 		# @script-note: postgresql installation complete
 		vstacklet::shell::text::green "PostgreSQL installed and configured. see details below:"
@@ -2244,12 +2229,12 @@ vstacklet::postgre::install() {
 # @example: vstacklet -redis
 # @example: vstacklet --redis
 # @null
-# @return_code: 91 - failed to install Redis dependencies.
-# @return_code: 92 - failed to backup the Redis configuration file.
-# @return_code: 93 - failed to import the Redis configuration file.
-# @return_code: 94 - failed to modify the Redis configuration file.
-# @return_code: 95 - failed to restart the Redis service.
-# @return_code: 96 - failed to set the Redis password.
+# @return_code: 58 - failed to install Redis dependencies.
+# @return_code: 59 - failed to backup the Redis configuration file.
+# @return_code: 60 - failed to import the Redis configuration file.
+# @return_code: 61 - failed to modify the Redis configuration file.
+# @return_code: 62 - failed to restart the Redis service.
+# @return_code: 63 - failed to set the Redis password.
 # @break
 ##################################################################################
 vstacklet::redis::install() {
@@ -2273,7 +2258,7 @@ vstacklet::redis::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 91
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 58
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -2285,13 +2270,13 @@ vstacklet::redis::install() {
 		vstacklet::shell::text::yellow::sl "configuring Redis ... " &
 		vs::stat::progress::start # start progress status
 		# @script-note: set redis client and server configuration
-		cp -f /etc/redis/redis.conf /etc/redis/redis.conf.bak || vstacklet::clean::rollback 92
-		cp -f "${local_setup_dir}/templates/redis/redis.conf" /etc/redis/redis.conf || vstacklet::clean::rollback 93
-		sed -i.bak "s/{{redis_port}}/${redis_port:-6379}/g" /etc/redis/redis.conf || vstacklet::clean::rollback 94
+		cp -f /etc/redis/redis.conf /etc/redis/redis.conf.bak || vstacklet::clean::rollback 59
+		cp -f "${local_setup_dir}/templates/redis/redis.conf" /etc/redis/redis.conf || vstacklet::clean::rollback 60
+		sed -i.bak "s/{{redis_port}}/${redis_port:-6379}/g" /etc/redis/redis.conf || vstacklet::clean::rollback 61
 		# @script-note: restart redis
-		vstacklet::log "systemctl restart redis-server" || vstacklet::clean::rollback 95
+		vstacklet::log "systemctl restart redis-server" || vstacklet::clean::rollback 62
 		# @script-note: set redis password
-		redis-cli -a "" -h localhost -p ${redis_port:-6379} config set requirepass "${redis_password:-${redis_autoPw}}" >>${vslog} 2>&1 || vstacklet::clean::rollback 96
+		redis-cli -a "" -h localhost -p ${redis_port:-6379} config set requirepass "${redis_password:-${redis_autoPw}}" >>${vslog} 2>&1 || vstacklet::clean::rollback 63
 		vs::stat::progress::stop # stop progress status
 		# @script-note: redis installation complete
 		vstacklet::shell::text::green "Redis installed and configured. see details below:"
@@ -2343,31 +2328,22 @@ vstacklet::redis::install() {
 # @example: vstacklet -phpmyadmin -nginx -mariadbU admin -mariadbPw password -php 8.1 -http 80
 # @example: vstacklet --phpmyadmin --nginx --mariadb_user admin --mariadb_password password --php 8.1 --http 80
 # @null
-# @return_code: 97 - a database server was not selected.
-# @return_code: 98 - a web server was not selected.
-# @return_code: 99 - a php version was not selected.
-# @return_code: 100 - phpMyAdmin does not support HHVM.
-# @return_code: 101 - failed to install phpMyAdmin dependencies.
-# @return_code: 102 - failed to switch to /usr/share directory.
-# @return_code: 103 - failed to download phpMyAdmin.
-# @return_code: 104 - failed to extract phpMyAdmin.
-# @return_code: 105 - failed to move phpMyAdmin to /usr/share directory.
-# @return_code: 106 - failed to remove phpMyAdmin .tar.gz file.
-# @return_code: 107 - failed to set ownership of phpMyAdmin directory.
-# @return_code: 108 - failed to set permissions of phpMyAdmin directory.
-# @return_code: 109 - failed to create /usr/share/phpmyadmin/tmp directory.
-# @return_code: 110 - failed to set symlink of ./phpmyadmin to ${web_root}/public/phpmyadmin.
-# @return_code: 111 - failed to create htpasswd file.
-# @return_code: 112 - failed to create phpMyAdmin configuration file.
+# @return_code: 64 - failed to install phpMyAdmin dependencies.
+# @return_code: 65 - failed to switch to /usr/share directory.
+# @return_code: 66 - failed to download phpMyAdmin.
+# @return_code: 67 - failed to extract phpMyAdmin.
+# @return_code: 68 - failed to move phpMyAdmin to /usr/share directory.
+# @return_code: 69 - failed to remove phpMyAdmin .tar.gz file.
+# @return_code: 70 - failed to set ownership of phpMyAdmin directory.
+# @return_code: 71 - failed to set permissions of phpMyAdmin directory.
+# @return_code: 72 - failed to create /usr/share/phpmyadmin/tmp directory.
+# @return_code: 73 - failed to set symlink of ./phpmyadmin to ${web_root}/public/phpmyadmin.
+# @return_code: 74 - failed to create htpasswd file.
+# @return_code: 75 - failed to create phpMyAdmin configuration file.
 # @break
 ##################################################################################
 vstacklet::phpmyadmin::install() {
-	# If you prefer a more modular installation, you can comment out the following 3 lines.
-	#[[ -z ${mariadb} || -z ${mysql} ]] && vstacklet::clean::rollback 97
-	#[[ -z ${nginx} && -z ${varnish} ]] && vstacklet::clean::rollback 98
-	#[[ -z ${php} ]] && vstacklet::clean::rollback 99
 	# check if hhvm is selected and throw an error if it is
-	[[ -n ${hhvm} && -n ${phpmyadmin} ]] && vstacklet::clean::rollback 100
 	if [[ -n ${phpmyadmin} ]]; then
 		if [[ (-n ${mariadb} || -n ${mysql}) && (-n ${nginx} || -n ${varnish}) && (-n ${php}) ]]; then
 			declare pma_version pma_bf
@@ -2390,7 +2366,7 @@ vstacklet::phpmyadmin::install() {
 					vstacklet::shell::text::white::sl "| ${install} "
 				fi
 				# shellcheck disable=SC2015
-				DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 101
+				DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 64
 				install_list+=("${install}")
 			done
 			[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -2398,23 +2374,23 @@ vstacklet::phpmyadmin::install() {
 				echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
 			done
 			unset depend depend_list install
-			cd /usr/share || vstacklet::clean::rollback 102
+			cd /usr/share || vstacklet::clean::rollback 65
 			[[ -d phpmyadmin ]] && rm -rf phpmyadmin
-			wget -q "https://files.phpmyadmin.net/phpMyAdmin/${pma_version}/phpMyAdmin-${pma_version}-all-languages.tar.gz" || vstacklet::clean::rollback 103
-			tar -xzf phpMyAdmin-"${pma_version}"-all-languages.tar.gz || vstacklet::clean::rollback 104
-			mv phpMyAdmin-"${pma_version}"-all-languages phpmyadmin || vstacklet::clean::rollback 105
-			rm -rf phpMyAdmin-"${pma_version}"-all-languages.tar.gz || vstacklet::clean::rollback 106
-			chown -R www-data:www-data phpmyadmin || vstacklet::clean::rollback 107
-			chmod -R 755 phpmyadmin || vstacklet::clean::rollback 108
+			wget -q "https://files.phpmyadmin.net/phpMyAdmin/${pma_version}/phpMyAdmin-${pma_version}-all-languages.tar.gz" || vstacklet::clean::rollback 66
+			tar -xzf phpMyAdmin-"${pma_version}"-all-languages.tar.gz || vstacklet::clean::rollback 67
+			mv phpMyAdmin-"${pma_version}"-all-languages phpmyadmin || vstacklet::clean::rollback 68
+			rm -rf phpMyAdmin-"${pma_version}"-all-languages.tar.gz || vstacklet::clean::rollback 69
+			chown -R www-data:www-data phpmyadmin || vstacklet::clean::rollback 70
+			chmod -R 755 phpmyadmin || vstacklet::clean::rollback 71
 			# trunk-ignore(shellcheck/SC2015)
-			mkdir -p /usr/share/phpmyadmin/tmp && chown -R www-data:www-data /usr/share/phpmyadmin/tmp || vstacklet::clean::rollback 109
-			ln -sf /usr/share/phpmyadmin "${web_root:-/var/www/html}/public" || vstacklet::clean::rollback 110
+			mkdir -p /usr/share/phpmyadmin/tmp && chown -R www-data:www-data /usr/share/phpmyadmin/tmp || vstacklet::clean::rollback 72
+			ln -sf /usr/share/phpmyadmin "${web_root:-/var/www/html}/public" || vstacklet::clean::rollback 73
 			# @script-note: configure phpmyadmin
 			vstacklet::shell::text::yellow::sl "configuring phpMyAdmin ... " &
 			vs::stat::progress::start # start progress status
 			# @script-note: create phpmyadmin htpasswd file - this is used for basic authentication, not for the database
 			# this is only used if/when the user opts to use basic authentication (a post install courtesy)
-			htpasswd -b -c /usr/share/phpmyadmin/.htpasswd "${mariadb_user:-${mysql_user:-admin}}" "${pma_password}" >>${vslog} 2>&1 || vstacklet::clean::rollback 111
+			htpasswd -b -c /usr/share/phpmyadmin/.htpasswd "${mariadb_user:-${mysql_user:-admin}}" "${pma_password}" >>${vslog} 2>&1 || vstacklet::clean::rollback 74
 			# @script-note: set phpmyadmin configuration
 			# - /etc/phpmyadmin/config.inc.php
 			# - /usr/share/phpmyadmin/config.inc.php - this is the default config file
@@ -2442,7 +2418,7 @@ vstacklet::phpmyadmin::install() {
 				echo -e "\$cfg['UploadDir'] = '';"
 				echo -e "\$cfg['SaveDir'] = '';"
 				echo -e "?>"
-			} >/usr/share/phpmyadmin/config.inc.php || vstacklet::clean::rollback 112
+			} >/usr/share/phpmyadmin/config.inc.php || vstacklet::clean::rollback 75
 			vs::stat::progress::stop # stop progress status
 			# @script-note: phpmyadmin installation complete
 			vstacklet::shell::text::green "phpMyAdmin installed and configured. see details below:"
@@ -2484,17 +2460,17 @@ vstacklet::phpmyadmin::install() {
 # @example: vstacklet -csf -e "your@email.com" -csfCf -sendmail
 # @example: vstacklet --csf --email "your@email.com" --csf_cloudflare --sendmail
 # @null
-# @return_code: 113 - failed to install CSF firewall dependencies.
-# @return_code: 114 - failed to download CSF firewall.
-# @return_code: 115 - failed to switch to /usr/local/src/csf directory.
-# @return_code: 116 - failed to install CSF firewall.
-# @return_code: 117 - failed to initialize CSF firewall.
-# @return_code: 118 - failed to modify CSF blocklist.
-# @return_code: 119 - failed to modify CSF ignore list.
-# @return_code: 120 - failed to modify CSF allow list.
-# @return_code: 121 - failed to modify CSF allow ports (inbound).
-# @return_code: 122 - failed to modify CSF allow ports (outbound).
-# @return_code: 123 - failed to modify CSF configuration file (csf.conf).
+# @return_code: 76 - failed to install CSF firewall dependencies.
+# @return_code: 77 - failed to download CSF firewall.
+# @return_code: 78 - failed to switch to /usr/local/src/csf directory.
+# @return_code: 79 - failed to install CSF firewall.
+# @return_code: 80 - failed to initialize CSF firewall.
+# @return_code: 81 - failed to modify CSF blocklist.
+# @return_code: 82 - failed to modify CSF ignore list.
+# @return_code: 83 - failed to modify CSF allow list.
+# @return_code: 84 - failed to modify CSF allow ports (inbound).
+# @return_code: 85 - failed to modify CSF allow ports (outbound).
+# @return_code: 86 - failed to modify CSF configuration file (csf.conf).
 # @break
 ##################################################################################
 vstacklet::csf::install() {
@@ -2518,7 +2494,7 @@ vstacklet::csf::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 113
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 76
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -2527,16 +2503,16 @@ vstacklet::csf::install() {
 		done
 		unset depend depend_list install
 		# @script-note: install csf
-		wget -O - https://download.configserver.com/csf.tgz | tar -xz -C /usr/local/src >>${vslog} 2>&1 || vstacklet::clean::rollback 114
-		cd /usr/local/src/csf || vstacklet::clean::rollback 115
-		sh install.sh >>"${vslog}" 2>&1 || vstacklet::clean::rollback 116
+		wget -O - https://download.configserver.com/csf.tgz | tar -xz -C /usr/local/src >>${vslog} 2>&1 || vstacklet::clean::rollback 77
+		cd /usr/local/src/csf || vstacklet::clean::rollback 78
+		sh install.sh >>"${vslog}" 2>&1 || vstacklet::clean::rollback 79
 		# @script-note: configure csf
 		vstacklet::shell::text::yellow::sl "configuring CSF ... " &
 		vs::stat::progress::start # start progress status
-		perl /usr/local/csf/bin/csftest.pl >>"${vslog}" 2>&1 || vstacklet::clean::rollback 117
+		perl /usr/local/csf/bin/csftest.pl >>"${vslog}" 2>&1 || vstacklet::clean::rollback 80
 		# @script-note: modify csf blocklists - essentiallly like cloudflare, but for csf
 		# https://www.configserver.com/cp/csf.html#blocklists
-		sed -i.bak -e 's/^SPAMDROP|86400|0|/SPAMDROP|86400|100|/g' -e 's/^SPAMEDROP|86400|0|/SPAMEDROP|86400|100|/g' -e 's/^DSHIELD|86400|0|/DSHIELD|86400|100|/g' -e 's/^TOR|86400|0|/TOR|86400|100|/g' -e 's/^ALTTOR|86400|0|/ALTTOR|86400|100|/g' -e 's/^BOGON|86400|0|/BOGON|86400|100|/g' -e 's/^HONEYPOT|86400|0|/HONEYPOT|86400|100|/g' -e 's/^CIARMY|86400|0|/CIARMY|86400|100|/g' -e 's/^BFB|86400|0|/BFB|86400|100|/g' -e 's/^OPENBL|86400|0|/OPENBL|86400|100|/g' -e 's/^AUTOSHUN|86400|0|/AUTOSHUN|86400|100|/g' -e 's/^MAXMIND|86400|0|/MAXMIND|86400|100|/g' -e 's/^BDE|3600|0|/BDE|3600|100|/g' -e 's/^BDEALL|86400|0|/BDEALL|86400|100|/g' /etc/csf/csf.blocklists >>"${vslog}" 2>&1 || vstacklet::clean::rollback 118
+		sed -i.bak -e 's/^SPAMDROP|86400|0|/SPAMDROP|86400|100|/g' -e 's/^SPAMEDROP|86400|0|/SPAMEDROP|86400|100|/g' -e 's/^DSHIELD|86400|0|/DSHIELD|86400|100|/g' -e 's/^TOR|86400|0|/TOR|86400|100|/g' -e 's/^ALTTOR|86400|0|/ALTTOR|86400|100|/g' -e 's/^BOGON|86400|0|/BOGON|86400|100|/g' -e 's/^HONEYPOT|86400|0|/HONEYPOT|86400|100|/g' -e 's/^CIARMY|86400|0|/CIARMY|86400|100|/g' -e 's/^BFB|86400|0|/BFB|86400|100|/g' -e 's/^OPENBL|86400|0|/OPENBL|86400|100|/g' -e 's/^AUTOSHUN|86400|0|/AUTOSHUN|86400|100|/g' -e 's/^MAXMIND|86400|0|/MAXMIND|86400|100|/g' -e 's/^BDE|3600|0|/BDE|3600|100|/g' -e 's/^BDEALL|86400|0|/BDEALL|86400|100|/g' /etc/csf/csf.blocklists >>"${vslog}" 2>&1 || vstacklet::clean::rollback 81
 		# @script-note: the following lines are commented out as they are currently WIP. (formatting is not correct)
 		# modify csf.ignore - ignore nginx, varnish, mysql, redis, postgresql, and phpmyadmin
 		#{
@@ -2552,7 +2528,7 @@ vstacklet::csf::install() {
 		#	echo "rsyslogd"
 		#	echo "systemd-timesyncd"
 		#	echo "systemd-resolved"
-		#} >>/etc/csf/csf.ignore || vstacklet::clean::rollback 119
+		#} >>/etc/csf/csf.ignore || vstacklet::clean::rollback 82
 		## modify csf.allow - allow ssh, http, https, mysql, mariadb, postgresql, redis, and varnish
 		#{
 		#	echo
@@ -2567,15 +2543,15 @@ vstacklet::csf::install() {
 		#	[[ -n ${redis_port} ]] && echo "${redis_port:-6379}"
 		#	[[ -n ${varnish_port} ]] && echo "${varnish_port:-6081}"
 		#	[[ -n ${sendmail_port} ]] && echo "${sendmail_port:-587}"
-		#} >>/etc/csf/csf.allow || vstacklet::clean::rollback 120
+		#} >>/etc/csf/csf.allow || vstacklet::clean::rollback 83
 		declare -a csf_allow_ports=("${ssh_port}" "${ftp_port}" "${http_port}" "${https_port}" "${mysql_port}" "${mariadb_port}" "${postgresql_port}" "${redis_port}" "${varnish_port}" "${sendmail_port}")
 		# @script-note: modify csf.conf - allow ssh, ftp, http, https, mysql, mariadb, postgresql, redis, sendmail, and varnish
 		for p in "${csf_allow_ports[@]}"; do
-			sed -i.bak -e "s/^TCP_IN = \"\$TCP_IN\"/TCP_IN = \"\$TCP_IN ${p}\"/g" -e "s/^TCP6_IN = \"\$TCP6_IN\"/TCP6_IN = \"\$TCP6_IN ${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 121
-			sed -i.bak -e "s/^TCP_OUT = \"\$TCP_OUT\"/TCP_OUT = \"\$TCP_OUT ${p}\"/g" -e "s/^TCP6_OUT = \"\$TCP6_OUT\"/TCP6_OUT = \"\$TCP6_OUT ${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 122
+			sed -i.bak -e "s/^TCP_IN = \"\$TCP_IN\"/TCP_IN = \"\$TCP_IN ${p}\"/g" -e "s/^TCP6_IN = \"\$TCP6_IN\"/TCP6_IN = \"\$TCP6_IN ${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 84
+			sed -i.bak -e "s/^TCP_OUT = \"\$TCP_OUT\"/TCP_OUT = \"\$TCP_OUT ${p}\"/g" -e "s/^TCP6_OUT = \"\$TCP6_OUT\"/TCP6_OUT = \"\$TCP6_OUT ${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 85
 		done
 		# @script-note: modify csf.conf - this is to be further refined
-		sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"1\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 123
+		sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"1\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 86
 		vs::stat::progress::stop # stop progress status
 		# @script-note: the following signals for sendmail to be installed
 		# if the `-sendmail` flag is not passed to the script. sendmail is a
@@ -2602,18 +2578,14 @@ vstacklet::csf::install() {
 # @noargs
 # @example: vstacklet -csfCf -csf -e "your@email.com"
 # @null
-# @return_code: 124 - CSF has not been enabled ' -csf ' (required). this is a component
-# of CSF for cloudflare configuration.
-# @return_code: 125 - CSF allow file does not exist.
+# @return_code: 87 - CSF allow file does not exist.
 # @break
 ##################################################################################
 vstacklet::cloudflare::csf() {
 	# @script-note: check if Cloudflare has been selected
 	if [[ -n ${csf_cloudflare} ]]; then
-		# @script-note: check if CSF has been selected
-		[[ -z ${csf} ]] && vstacklet::clean::rollback 124
 		# @script-note: check if the csf.allow file exists
-		[[ ! -f "/etc/csf/csf.allow" ]] || vstacklet::clean::rollback 125
+		[[ ! -f "/etc/csf/csf.allow" ]] || vstacklet::clean::rollback 87
 		# @script-note: add Cloudflare IP addresses to the allow list
 		vstacklet::shell::text::white "adding Cloudflare IP addresses to the allow list ... "
 		{
@@ -2644,21 +2616,18 @@ vstacklet::cloudflare::csf() {
 # @example: vstacklet --sendmail --email "your@email.com"
 # @example: vstacklet -csf -e "your@email.com"
 # @null
-# @return_code: 126 - an email address was not provided ' -e "your@email.com" '.
-# this is required for sendmail to be installed.
-# @return_code: 127 - failed to install sendmail dependencies.
-# @return_code: 128 - failed to edit aliases file.
-# @return_code: 129 - failed to edit sendmail.cf file.
-# @return_code: 130 - failed to edit main.cf file.
-# @return_code: 131 - failed to edit master.cf file.
-# @return_code: 132 - failed to create sasl_passwd file.
-# @return_code: 133 - postmap failed.
-# @return_code: 134 - failed to source new aliases.
+# @return_code: 88 - failed to install sendmail dependencies.
+# @return_code: 89 - failed to edit aliases file.
+# @return_code: 90 - failed to edit sendmail.cf file.
+# @return_code: 91 - failed to edit main.cf file.
+# @return_code: 92 - failed to edit master.cf file.
+# @return_code: 93 - failed to create sasl_passwd file.
+# @return_code: 94 - postmap failed.
+# @return_code: 95 - failed to source new aliases.
 # @break
 ##################################################################################
 vstacklet::sendmail::install() {
 	if [[ -n ${sendmail} || -n ${sendmail_skip} ]]; then
-		[[ -z ${email} ]] && vstacklet::clean::rollback 126
 		# @script-note: install sendmail
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring sendmail ... "
@@ -2676,7 +2645,7 @@ vstacklet::sendmail::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 127
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::clean::rollback 88
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -2688,31 +2657,31 @@ vstacklet::sendmail::install() {
 		vstacklet::shell::text::yellow::sl "configuring sendmail ... " &
 		vs::stat::progress::start # start progress status
 		# @script-note: modify aliases
-		sed -i.bak -e "s/^root:.*$/root: ${email}/g" /etc/aliases >>"${vslog}" 2>&1 || vstacklet::clean::rollback 128
+		sed -i.bak -e "s/^root:.*$/root: ${email}/g" /etc/aliases >>"${vslog}" 2>&1 || vstacklet::clean::rollback 89
 		# @script-note: modify /etc/mail/sendmail.cf
 		sed -i.bak -e "s/^DS.*$/DS${email}/g" \
 			-e "s/^O DaemonPortOptions=Addr=${sendmail_port:-587}, Name=MTA-v4/O DaemonPortOptions=Addr=${sendmail_port:-587}, Name=MTA-v4, Family=inet/g" \
 			-e "s/^O PrivacyOptions=authwarnings,novrfy,noexpnO PrivacyOptions=authwarnings,novrfy,noexpn/O PrivacyOptions=authwarnings,novrfy,noexpn,restrictqrun/g" \
 			-e "s/^O AuthInfo=.*/O AuthInfo=${email}:*:${email}/g" \
-			-e "s/^O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4/O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4, Family=inet/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 129
+			-e "s/^O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4/O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4, Family=inet/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 90
 		# @script-note: modify /etc/postfix/main.cf
 		sed -i.bak -e "s/^#myhostname = host.domain.tld/myhostname = ${hostname:-${server_hostname}}/g" \
 			-e "s/^#mydomain = domain.tld/mydomain = ${domain:-${server_ip}}/g" \
 			-e "s/^#myorigin = \$mydomain/myorigin = \$mydomain/g" \
 			-e "s/^#mydestination = \$myhostname, localhost.\$mydomain, localhost/mydestination = \$myhostname, localhost.\$mydomain, localhost/g" \
-			-e "s/^#relayhost =/relayhost = ${server_ip}:${sendmail_port:-587}/g" /etc/postfix/main.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 130
+			-e "s/^#relayhost =/relayhost = ${server_ip}:${sendmail_port:-587}/g" /etc/postfix/main.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 91
 		# @script-note: modify /etc/postfix/master.cf
 		sed -i.bak -e "s/^#submission/submission/g" \
 			-e "s/^#  -o syslog_name=postfix\/submission/  -o syslog_name=postfix\/submission/g" \
 			-e "s/^#  -o smtpd_tls_security_level=encrypt/  -o smtpd_tls_security_level=encrypt/g" \
 			-e "s/^#  -o smtpd_sasl_auth_enable=yes/  -o smtpd_sasl_auth_enable=yes/g" \
 			-e "s/^#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/g" \
-			-e "s/^#  -o milter_macro_daemon_name=ORIGINATING/  -o milter_macro_daemon_name=ORIGINATING/g" /etc/postfix/master.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 131
+			-e "s/^#  -o milter_macro_daemon_name=ORIGINATING/  -o milter_macro_daemon_name=ORIGINATING/g" /etc/postfix/master.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 92
 		# @script-note: modify /etc/postfix/sasl_passwd
-		echo "[${server_ip}]:${sendmail_port:-587} ${email}:${email}" >/etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || vstacklet::clean::rollback 132
+		echo "[${server_ip}]:${sendmail_port:-587} ${email}:${email}" >/etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || vstacklet::clean::rollback 93
 		# @script-note: modify /etc/postfix/sasl_passwd
-		postmap /etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || vstacklet::clean::rollback 133
-		newaliases >>"${vslog}" 2>&1 || vstacklet::clean::rollback 134
+		postmap /etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || vstacklet::clean::rollback 94
+		newaliases >>"${vslog}" 2>&1 || vstacklet::clean::rollback 95
 		vs::stat::progress::stop # stop progress status
 		# @script-note: sendmail installation complete
 		vstacklet::shell::text::green "sendmail installed and configured. see details below:"
@@ -2725,7 +2694,6 @@ vstacklet::sendmail::install() {
 		vstacklet::shell::text::white::sl "sendmail domain: "
 		vstacklet::shell::text::green "${domain:-${server_ip}}"
 	fi
-
 }
 
 ##################################################################################
@@ -2757,28 +2725,22 @@ vstacklet::sendmail::install() {
 # @example: vstacklet -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
 # @example: vstacklet -wp -mariadb -nginx -hhvm -wr "/var/www/html"
 # @null
-# @return_code: 135 - WordPress requires a database to be installed.
-# @return_code: 136 - WordPress requires a webserver to be installed.
-# @return_code: 137 - WordPress requires a php version to be installed.
-# @return_code: 138 - failed to download WordPress.
-# @return_code: 139 - failed to extract WordPress.
-# @return_code: 140 - failed to move WordPress to the web root.
-# @return_code: 141 - failed to create WordPress upload directory.
-# @return_code: 142 - failed to create WordPress configuration file.
-# @return_code: 143 - failed to modify WordPress configuration file.
-# @return_code: 144 - failed to create WordPress database.
-# @return_code: 145 - failed to create WordPress database user.
-# @return_code: 146 - failed to grant WordPress database user privileges.
-# @return_code: 147 - failed to flush WordPress database privileges.
-# @return_code: 148 - failed to remove WordPress installation files.
+# @return_code: 96 - failed to download WordPress.
+# @return_code: 97 - failed to extract WordPress.
+# @return_code: 98 - failed to move WordPress to the web root.
+# @return_code: 99 - failed to create WordPress upload directory.
+# @return_code: 100 - failed to create WordPress configuration file.
+# @return_code: 101 - failed to modify WordPress configuration file.
+# @return_code: 102 - failed to create WordPress database.
+# @return_code: 103 - failed to create WordPress database user.
+# @return_code: 104 - failed to grant WordPress database user privileges.
+# @return_code: 105 - failed to flush WordPress database privileges.
+# @return_code: 106 - failed to remove WordPress installation files.
 # @break
 ##################################################################################
 vstacklet::wordpress::install() {
 	# @script-note: check if WordPress has been selected
 	if [[ -n ${wordpress} ]]; then
-		[[ (-z ${mariadb}) && (-z ${mysql}) && (-z ${postgresql}) ]] && vstacklet::clean::rollback 135
-		[[ (-z ${nginx}) && (-z ${varnish}) ]] && vstacklet::clean::rollback 136
-		[[ (-z ${php}) && (-z ${hhvm}) ]] && vstacklet::clean::rollback 137
 		declare wp_db_name wp_db_user wp_db_password
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "please enter the following information for WordPress:"
@@ -2841,35 +2803,35 @@ vstacklet::wordpress::install() {
 		if [[ ${wp_input_continue} == "true" ]]; then
 			vstacklet::shell::text::white "installing and configuring WordPress ... "
 			# @script-note: download WordPress
-			vstacklet::log "wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz" || vstacklet::clean::rollback 138
+			vstacklet::log "wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz" || vstacklet::clean::rollback 96
 			# @script-note: extract WordPress
-			vstacklet::log "tar -xzf /tmp/wordpress.tar.gz -C /tmp" || vstacklet::clean::rollback 139
+			vstacklet::log "tar -xzf /tmp/wordpress.tar.gz -C /tmp" || vstacklet::clean::rollback 97
 			# @script-note: move WordPress to the web root
-			mv /tmp/wordpress/* "${web_root:-/var/www/html}/public" || vstacklet::clean::rollback 140
+			mv /tmp/wordpress/* "${web_root:-/var/www/html}/public" || vstacklet::clean::rollback 98
 			# @script-note: create the uploads directory
-			mkdir -p "${web_root:-/var/www/html}/public/wp-content/uploads" || vstacklet::clean::rollback 141
+			mkdir -p "${web_root:-/var/www/html}/public/wp-content/uploads" || vstacklet::clean::rollback 99
 			# @script-note: set the correct permissions
 			vstacklet::shell::text::yellow::sl "configuring WordPress ... " &
 			vs::stat::progress::start # @script-note: start progress status
 			# @script-note: create the wp-config.php file
-			vstacklet::log "cp -f ${web_root:-/var/www/html}/public/wp-config-sample.php ${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::clean::rollback 142
+			vstacklet::log "cp -f ${web_root:-/var/www/html}/public/wp-config-sample.php ${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::clean::rollback 100
 			# @script-note: modify the wp-config.php file
 			sed -i \
 				-e "s/database_name_here/${wp_db_name}/g" \
 				-e "s/username_here/${wp_db_user}/g" \
 				-e "s/password_here/${wp_db_password}/g" \
 				-e "s/utf8mb4/utf8/g" \
-				"${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::clean::rollback 143
+				"${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::clean::rollback 101
 			# @script-note: create the database
-			mysql -e "CREATE DATABASE ${wp_db_name};" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 144
+			mysql -e "CREATE DATABASE ${wp_db_name};" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 102
 			# @script-note: create the database user
-			mysql -e "CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 145
+			mysql -e "CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 103
 			# @script-note: grant privileges to the database user
-			mysql -e "GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 146
+			mysql -e "GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 104
 			# @script-note: flush privileges
-			mysql -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 147
+			mysql -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 105
 			# @script-note: remove the WordPress installation files
-			vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::clean::rollback 148
+			vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::clean::rollback 106
 			vs::stat::progress::stop # stop progress status
 			# @script-note: wordpress installation complete
 			vstacklet::shell::text::green "WordPress installed and configured. see details below:"
@@ -2903,25 +2865,21 @@ vstacklet::wordpress::install() {
 # @example: vstacklet -nginx -domain example.com -e "your@email.com"
 # @example: vstacklet --nginx --domain example.com --email "your@email.com"
 # @null
-# @return_code: 149 - the `-nginx|--nginx` option is required.
-# @return_code: 150 - the `-e|--email` option is required.
-# @return_code: 151 - failed to change directory to /root.
-# @return_code: 152 - failed to create directory ${web_root}/.well-known/acme-challenge.
-# @return_code: 153 - failed to clone acme.sh.
-# @return_code: 154 - failed to switch to /root/acme.sh directory.
-# @return_code: 155 - failed to install acme.sh.
-# @return_code: 156 - failed to reload nginx.
-# @return_code: 157 - failed to register the account with Let's Encrypt.
-# @return_code: 158 - failed to set the default CA to Let's Encrypt.
-# @return_code: 159 - failed to issue the certificate.
-# @return_code: 160 - failed to install the certificate.
-# @return_code: 161 - failed to edit /etc/nginx/sites-available/${domain}.conf.
+# @return_code: 107 - failed to change directory to /root.
+# @return_code: 108 - failed to create directory ${web_root}/.well-known/acme-challenge.
+# @return_code: 109 - failed to clone acme.sh.
+# @return_code: 110 - failed to switch to /root/acme.sh directory.
+# @return_code: 111 - failed to install acme.sh.
+# @return_code: 112 - failed to reload nginx.
+# @return_code: 113 - failed to register the account with Let's Encrypt.
+# @return_code: 114 - failed to set the default CA to Let's Encrypt.
+# @return_code: 115 - failed to issue the certificate.
+# @return_code: 116 - failed to install the certificate.
+# @return_code: 117 - failed to edit /etc/nginx/sites-available/${domain}.conf.
 # @break
 ##################################################################################
 vstacklet::domain::ssl() {
 	if [[ -n ${domain_ssl} ]]; then
-		[[ -z ${nginx} ]] && vstacklet::clean::rollback 149
-		[[ -z ${email} ]] && vstacklet::clean::rollback 150
 		# @script-note: signal a service daemon reload and restart nginx
 		[[ -f /run/nginx.pid ]] && rm -f /run/nginx.pid
 		systemctl daemon-reload >>"${vslog}" 2>&1
@@ -2933,14 +2891,14 @@ vstacklet::domain::ssl() {
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing SSL certificate for ${domain} ... "
 		# @script-note: build acme.sh for Let's Encrypt SSL
-		cd "/root" || vstacklet::clean::rollback 151
+		cd "/root" || vstacklet::clean::rollback 107
 		[[ -d "/root/.acme.sh" ]] && rm -rf "/root/.acme.sh" >>"${vslog}" 2>&1
-		mkdir -p "${web_root:-/var/www/html}/.well-known/acme-challenge" || vstacklet::clean::rollback 152
+		mkdir -p "${web_root:-/var/www/html}/.well-known/acme-challenge" || vstacklet::clean::rollback 108
 		chown -R root:www-data "${web_root:-/var/www/html}/.well-known" >>"${vslog}" 2>&1
 		chmod -R 755 "${web_root:-/var/www/html}/.well-known" >>"${vslog}" 2>&1
-		git clone "https://github.com/Neilpang/acme.sh.git" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 153
-		cd "/root/acme.sh" || vstacklet::clean::rollback 154
-		./acme.sh --install --home "/root/.acme.sh" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 155
+		git clone "https://github.com/Neilpang/acme.sh.git" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 109
+		cd "/root/acme.sh" || vstacklet::clean::rollback 110
+		./acme.sh --install --home "/root/.acme.sh" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 111
 		# @script-note: create nginx directory for SSL
 		mkdir -p "/etc/nginx/ssl/${domain:?}"
 		# @script-note: create SSL certificate
@@ -2948,10 +2906,10 @@ vstacklet::domain::ssl() {
 		# @script-note: post necessary edits to nginx acme file
 		wr_sanitize=$(echo "${web_root:-/var/www/html}" | sed 's/\//\\\//g')
 		sed -i -e "s|{{domain}}|${domain}|g" -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" /etc/nginx/sites-enabled/acme
-		systemctl reload nginx.service >>"${vslog}" 2>&1 || vstacklet::clean::rollback 156
-		./acme.sh --register-account -m "${email:?}" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 157
-		./acme.sh --set-default-ca --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 158
-		./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html}" --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 159
+		systemctl reload nginx.service >>"${vslog}" 2>&1 || vstacklet::clean::rollback 112
+		./acme.sh --register-account -m "${email:?}" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 113
+		./acme.sh --set-default-ca --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 114
+		./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html}" --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 115
 		(
 			./acme.sh --install-cert -d "${domain}" \
 				--keylength ec-256 \
@@ -2960,14 +2918,14 @@ vstacklet::domain::ssl() {
 				--fullchain-file "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" \
 				--log "/var/log/vstacklet/${domain}.log" \
 				--reloadcmd "systemctl reload nginx.service"
-		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 160
+		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 116
 		# @script-note: post necessary edits to nginx config file
 		crt_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" | sed 's/\//\\\//g')
 		key_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" | sed 's/\//\\\//g')
 		#chn_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" | sed 's/\//\\\//g')
 		[[ -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" ]] && cp -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "${vstacklet_base_path:?}/setup_temp/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1
 		# @script-note: place generated ssl to nginx config file
-		sed -i.bak -e "/ssl_certificate .*/c\        ssl_certificate ${crt_sanitize};" -e "/ssl_certificate_key .*/c\        ssl_certificate_key ${key_sanitize};" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 161
+		sed -i.bak -e "/ssl_certificate .*/c\        ssl_certificate ${crt_sanitize};" -e "/ssl_certificate_key .*/c\        ssl_certificate_key ${key_sanitize};" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 117
 		# @script-note: remove acme ssl template
 		[[ -f "/etc/nginx/sites-enabled/acme" ]] && rm -f "/etc/nginx/sites-enabled/acme" >>"${vslog}" 2>&1
 		# @script-note: ssl installation complete
@@ -3107,189 +3065,144 @@ vstacklet::clean::rollback() {
 		1) error="you must be root to run this script." ;;
 		# vstacklet::environment::checkdistro (8)
 		2) error="this script only supports Ubuntu 18.04/20.04 and Debian 9/10/11." ;;
-		# vstacklet::args::process (3)
-		3) error="please provide a valid email address. (required for '-csf', '-sendmail', and '-csfCf')" ;;
-		4) error="'-csfCf' requires '-csf'" ;;
-		5) error="please provide a valid domain name." ;;
-		6) error="please provide a valid port number for the FTP server." ;;
-		7) error="invalid FTP port number. please enter a number between 1 and 65535." ;;
-		8) error="the MariaDB password must be at least 8 characters long." ;;
-		9) error="please provide a valid port number for the MariaDB server." ;;
-		10) error="invalid MariaDB port number. please enter a number between 1 and 65535." ;;
-		11) error="the MySQL password must be at least 8 characters long." ;;
-		12) error="please provide a valid port number for the MySQL server." ;;
-		13) error="invalid MySQL port number. please enter a number between 1 and 65535." ;;
-		14) error="the PostgreSQL password must be at least 8 characters long." ;;
-		15) error="please provide a valid port number for the PostgreSQL server." ;;
-		16) error="invalid PostgreSQL port number. please enter a number between 1 and 65535." ;;
-		17) error="invalid PHP version. please enter either 7 (7.4), or 8 (8.1)." ;;
-		18) error="the HTTPS port must be a number." ;;
-		19) error="invalid HTTPS port number. please enter a number between 1 and 65535." ;;
-		20) error="the HTTP port must be a number." ;;
-		21) error="invalid HTTP port number. please enter a number between 1 and 65535." ;;
-		22) error="invalid hostname. please enter a valid hostname." ;;
-		23) error="the Redis password must be at least 8 characters long." ;;
-		24) error="please provide a valid port number for the Redis server." ;;
-		25) error="invalid Redis port number. please enter a number between 1 and 65535." ;;
-		26) error="an email is needed to register the server aliases. please set an email with '-e \"your@email.com\"'." ;;
-		27) error="the Sendmail port must be a number." ;;
-		28) error="invalid Sendmail port number. please enter a number between 1 and 65535." ;;
-		29) error="the SSH port must be a number." ;;
-		30) error="invalid SSH port number. please enter a number between 1 and 65535." ;;
-		31) error="the Varnish port must be a number." ;;
-		32) error="invalid Varnish port number. please enter a number between 1 and 65535." ;;
-		33) error="invalid web root. please enter a valid path. (e.g. '-wr \"/var/www/html\"')" ;;
-		34) error="invalid option(s): ${invalid_option[*]}" ;;
 		# vstacklet::dependencies::install (6)
-		35) error="failed to install script dependencies." ;;
+		3) error="failed to install script dependencies." ;;
 		# vstacklet::base::dependencies (12)
-		36) error="failed to install base dependencies." ;;
+		4) error="failed to install base dependencies." ;;
 		# vstacklet::source::dependencies (13)
-		37) error="failed to install source dependencies." ;;
+		5) error="failed to install source dependencies." ;;
 		# vstacklet::hostname::set (15)
-		38) error="failed to set hostname." ;;
+		6) error="failed to set hostname." ;;
 		# vstacklet::ssh::set (17)
-		39) error="failed to set SSH port." ;;
-		40) error="failed to restart SSH daemon service." ;;
+		7) error="failed to set SSH port." ;;
+		8) error="failed to restart SSH daemon service." ;;
 		# vstacklet::ftp::set (18)
-		41) error="failed to set FTP port." ;;
-		42) error="failed to restart FTP daemon service." ;;
+		9) error="failed to set FTP port." ;;
+		10) error="failed to restart FTP daemon service." ;;
 		# vstacklet::block::ssdp (19)
-		43) error="failed to block SSDP port." ;;
-		44) error="failed to save iptables rules." ;;
+		11) error="failed to block SSDP port." ;;
+		12) error="failed to save iptables rules." ;;
 		# vstacklet::locale::set (22)
-		45) error="failed to set locale." ;;
+		13) error="failed to set locale." ;;
 		# vstacklet::php::install (23)
-		46) error="PHP and HHVM cannot be installed at the same time. please choose one." ;;
-		47) error="failed to install PHP dependencies." ;;
-		48) error="failed to enable PHP memcached extension." ;;
-		49) error="failed to enable PHP redis extension." ;;
+		14) error="PHP and HHVM cannot be installed at the same time. please choose one." ;;
+		15) error="failed to install PHP dependencies." ;;
 		# vstacklet::hhvm::install (24)
-		50) error="HHVM and PHP cannot be installed at the same time. please choose one." ;;
-		51) error="failed to install HHVM dependencies." ;;
-		52) error="failed to install HHVM." ;;
-		53) error="failed to update PHP alternatives." ;;
+		16) error="HHVM and PHP cannot be installed at the same time. please choose one." ;;
+		17) error="failed to install HHVM dependencies." ;;
+		18) error="failed to install HHVM." ;;
+		19) error="failed to update PHP alternatives." ;;
 		# vstacklet::nginx::install (25)
-		54) error="failed to install NGINX dependencies." ;;
-		55) error="failed to edit NGINX configuration file." ;;
-		56) error="failed to enable NGINX configuration." ;;
-		57) error="failed to generate dhparam file." ;;
-		58) error="failed to stage checkinfo.php verification file." ;;
+		20) error="failed to install NGINX dependencies." ;;
+		21) error="failed to edit NGINX configuration file." ;;
+		22) error="failed to enable NGINX configuration." ;;
+		23) error="failed to generate dhparam file." ;;
+		24) error="failed to generate self-signed certificate." ;;
+		25) error="failed to stage checkinfo.php verification file." ;;
 		# vstacklet::varnish::install (26)
-		59) error="failed to install Varnish dependencies." ;;
-		60) error="could not switch to /etc/varnish directory." ;;
-		61) error="failed to reload the systemd daemon." ;;
-		62) error="failed to switch to ~/" ;;
+		26) error="failed to install Varnish dependencies." ;;
+		27) error="could not switch to /etc/varnish directory." ;;
+		28) error="failed to edit the Varnish default configuration file." ;;
+		29) error="failed to reload the systemd daemon." ;;
+		30) error="failed to switch to ~/" ;;
 		# vstacklet::ioncube::install (28)
-		63) error="failed to switch to /tmp directory." ;;
-		64) error="failed to download ionCube Loader." ;;
-		65) error="failed to extract ionCube Loader." ;;
-		66) error="failed to switch to /tmp/ioncube directory." ;;
-		67) error="failed to copy ionCube loader to /usr/lib/php/ directory." ;;
-		68) error="failed to enable ioncube loader php extension." ;;
+		31) error="failed to switch to /tmp directory." ;;
+		32) error="failed to download ionCube Loader." ;;
+		33) error="failed to extract ionCube Loader." ;;
+		34) error="failed to switch to /tmp/ioncube directory." ;;
+		35) error="failed to copy ionCube loader to /usr/lib/php/ directory." ;;
 		# vstacklet::mariadb::install (29)
-		69) error="failed to install MariaDB dependencies." ;;
-		70) error="failed to initialize MariaDB secure installation." ;;
-		71) error="failed to create MariaDB user." ;;
-		72) error="failed to create MariaDB user password." ;;
-		73) error="failed to create MariaDB user privileges." ;;
-		74) error="failed to flush MariaDB privileges." ;;
-		75) error="failed to set MariaDB client and server configuration." ;;
+		36) error="failed to install MariaDB dependencies." ;;
+		37) error="failed to initialize MariaDB secure installation." ;;
+		38) error="failed to set MariaDB client and server configuration." ;;
+		39) error="failed to set MariaDB .my.cnf configuration." ;;
+		40) error="failed to create MariaDB user." ;;
+		41) error="failed to create MariaDB user privileges." ;;
+		42) error="failed to flush MariaDB privileges." ;;
 		# vstacklet::mysql::install (30)
-		76) error="failed to download MySQL deb package." ;;
-		77) error="failed to install MySQL deb package." ;;
-		78) error="failed to install MySQL dependencies." ;;
-		79) error="failed to set MySQL password." ;;
-		80) error="failed to create MySQL user." ;;
-		81) error="failed to grant MySQL user privileges." ;;
-		82) error="failed to flush MySQL privileges." ;;
-		83) error="failed to set MySQL client and server configuration." ;;
+		43) error="failed to download MySQL deb package." ;;
+		44) error="failed to install MySQL deb package." ;;
+		45) error="failed to install MySQL dependencies." ;;
+		46) error="failed to set MySQL client and server configuration." ;;
+		47) error="failed to set MySQL .my.cnf file." ;;
+		48) error="failed to create MySQL user." ;;
+		49) error="failed to grant MySQL user privileges." ;;
+		50) error="failed to flush MySQL privileges." ;;
 		# vstacklet::postgresql::install (31)
-		84) error="failed to install PostgreSQL dependencies." ;;
-		85) error="could not switch to /etc/postgresql/${postgre_version}/main directory." ;;
-		86) error="failed to set PostgreSQL password." ;;
-		87) error="failed to create PostgreSQL user." ;;
-		88) error="failed to grant PostgreSQL user privileges." ;;
-		89) error="failed to edit /etc/postgresql/${postgre_version}/main/postgresql.conf file." ;;
-		90) error="failed to edit /etc/postgresql/${postgre_version}/main/pg_hba.conf file." ;;
+		51) error="failed to install PostgreSQL dependencies." ;;
+		52) error="could not switch to /etc/postgresql/${postgre_version}/main directory." ;;
+		53) error="failed to set PostgreSQL password." ;;
+		54) error="failed to create PostgreSQL user." ;;
+		55) error="failed to grant PostgreSQL user privileges." ;;
+		56) error="failed to edit /etc/postgresql/${postgre_version}/main/postgresql.conf file." ;;
+		57) error="failed to edit /etc/postgresql/${postgre_version}/main/pg_hba.conf file." ;;
 		# vstacklet::redis::install (32)
-		91) error="failed to install Redis dependencies." ;;
-		92) error="failed to backup the Redis configuration file." ;;
-		93) error="failed to import the Redis configuration file." ;;
-		94) error="failed to modify the Redis configuration file." ;;
-		95) error="failed to restart Redis service." ;;
-		96) error="failed to set the Redis password." ;;
+		58) error="failed to install Redis dependencies." ;;
+		59) error="failed to backup the Redis configuration file." ;;
+		60) error="failed to import the Redis configuration file." ;;
+		61) error="failed to modify the Redis configuration file." ;;
+		62) error="failed to restart Redis service." ;;
+		63) error="failed to set the Redis password." ;;
 		# vstacklet::phpmyadmin::install (33)
-		97) error="a database server was not selected." ;;
-		98) error="a web server was not selected." ;;
-		99) error="a php version was not selected." ;;
-		100) error="phpMyAdmin does not support HHVM." ;;
-		101) error="failed to install phpMyAdmin dependencies." ;;
-		102) error="failed to switch to /usr/share directory." ;;
-		103) error="failed to remove existing phpMyAdmin directory." ;;
-		104) error="failed to download phpMyAdmin." ;;
-		105) error="failed to extract phpMyAdmin." ;;
-		106) error="failed to move phpMyAdmin to /usr/share directory." ;;
-		107) error="failed to remove phpMyAdmin .tar.gz file." ;;
-		108) error="failed to set ownership of phpMyAdmin directory." ;;
-		109) error="failed to set permissions of phpMyAdmin directory." ;;
-		110) error="failed to create phpMyAdmin tmp directory." ;;
-		111) error="failed to set symlink of ./phpmyadmin to ${web_root:-/var/www/html}/public/phpmyadmin." ;;
-		112) error="failed to create phpMyAdmin configuration file." ;;
+		64) error="failed to install phpMyAdmin dependencies." ;;
+		65) error="failed to switch to /usr/share directory." ;;
+		66) error="failed to download phpMyAdmin." ;;
+		67) error="failed to extract phpMyAdmin." ;;
+		68) error="failed to move phpMyAdmin to /usr/share directory." ;;
+		69) error="failed to remove phpMyAdmin .tar.gz file." ;;
+		70) error="failed to set ownership of phpMyAdmin directory." ;;
+		71) error="failed to set permissions of phpMyAdmin directory." ;;
+		72) error="failed to create /usr/share/phpmyadmin/tmp directory." ;;
+		73) error="failed to set symlink of ./phpmyadmin to ${web_root}/public/phpmyadmin." ;;
+		74) error="failed to create htpasswd file." ;;
+		75) error="failed to create phpMyAdmin configuration file." ;;
 		# vstacklet::csf::install (34)
-		113) error="failed to install CSF firewall dependencies." ;;
-		114) error="failed to download CSF firewall." ;;
-		115) error="failed to switch to /usr/local/src/csf directory." ;;
-		116) error="failed to install CSF firewall." ;;
-		117) error="failed to initialize CSF firewall." ;;
-		118) error="failed to modify CSF blocklist." ;;
-		119) error="failed to modify CSF ignore list." ;;
-		120) error="failed to modify CSF allow list." ;;
-		121) error="failed to modify CSF allow ports (inbound4/6)." ;;
-		122) error="failed to modify CSF allow ports (outbound4/6)." ;;
-		123) error="failed to modify CSF configuration file (csf.conf)." ;;
+		76) error="failed to install CSF firewall dependencies." ;;
+		77) error="failed to download CSF firewall." ;;
+		78) error="failed to switch to /usr/local/src/csf directory." ;;
+		79) error="failed to install CSF firewall." ;;
+		80) error="failed to initialize CSF firewall." ;;
+		81) error="failed to modify CSF blocklist." ;;
+		82) error="failed to modify CSF ignore list." ;;
+		83) error="failed to modify CSF allow list." ;;
+		84) error="failed to modify CSF allow ports (inbound4/6)." ;;
+		85) error="failed to modify CSF allow ports (outbound4/6)." ;;
+		86) error="failed to modify CSF configuration file (csf.conf)." ;;
 		# vstacklet::cloudflare::csf (34.1)
-		124) error="CSF has not been enabled '-csf' (required). this is a component of CSF for cloudflare configuration." ;;
-		125) error="CSF allow file does not exist." ;;
+		87) error="CSF allow file does not exist." ;;
 		# vstacklet::sendmail::install (35)
-		126) error="an email address was not provided '-e \"your@email.com\"'. this is required for sendmail to be installed." ;;
-		127) error="failed to install sendmail dependencies." ;;
-		128) error="failed to edit aliases file." ;;
-		129) error="failed to edit sendmail.cf file." ;;
-		130) error="failed to edit main.cf file." ;;
-		131) error="failed to edit master.cf file." ;;
-		132) error="failed to create sasl_passwd file." ;;
-		133) error="postmap failed." ;;
-		134) error="failed to source new aliases." ;;
+		88) error="failed to install sendmail dependencies." ;;
+		89) error="failed to edit aliases file." ;;
+		90) error="failed to edit sendmail.cf file." ;;
+		91) error="failed to edit main.cf file." ;;
+		92) error="failed to edit master.cf file." ;;
+		93) error="failed to create sasl_passwd file." ;;
+		94) error="postmap failed." ;;
+		95) error="failed to source new aliases." ;;
 		# vstacklet::wordpress::install (36)
-		135) error="WordPress requires a database to be installed." ;;
-		136) error="WordPress requires a web server to be installed." ;;
-		137) error="WordPress requires a php version to be installed." ;;
-		138) error="failed to download WordPress." ;;
-		139) error="failed to extract WordPress." ;;
-		140) error="failed to move WordPress to ${web_root:-/var/www/html}/public directory." ;;
-		141) error="failed to create WordPress upload directory." ;;
-		142) error="failed to create WordPress configuration file." ;;
-		143) error="failed to modify WordPress configuration file." ;;
-		144) error="failed to create WordPress database." ;;
-		145) error="failed to create WordPress database user." ;;
-		146) error="failed to grant WordPress database user privileges." ;;
-		147) error="failed to flush WordPress database privileges." ;;
-		148) error="failed to remove WordPress installation files." ;;
+		96) error="failed to download WordPress." ;;
+		97) error="failed to extract WordPress." ;;
+		98) error="failed to move WordPress to ${web_root:-/var/www/html}/public directory." ;;
+		99) error="failed to create WordPress upload directory." ;;
+		100) error="failed to create WordPress configuration file." ;;
+		101) error="failed to modify WordPress configuration file." ;;
+		102) error="failed to create WordPress database." ;;
+		103) error="failed to create WordPress database user." ;;
+		104) error="failed to grant WordPress database user privileges." ;;
+		105) error="failed to flush WordPress database privileges." ;;
+		106) error="failed to remove WordPress installation files." ;;
 		# vstacklet::domain::ssl (37)
-		149) error="the '-nginx|--nginx' option is required." ;;
-		150) error="the '-e|--email' option is required." ;;
-		151) error="failed to change directory to /root." ;;
-		152) error="failed to create directory ${web_root:-/var/www/html}/.well-known/acme-challenge." ;;
-		153) error="failed to clone acme.sh." ;;
-		154) error="failed to switch to /root/acme.sh directory." ;;
-		155) error="failed to install acme.sh." ;;
-		156) error="failed to reload nginx." ;;
-		157) error="failed to register the account with Let's Encrypt." ;;
-		158) error="failed to set the default CA to Let's Encrypt." ;;
-		159) error="failed to issue the certificate." ;;
-		160) error="failed to install the certificate." ;;
-		161) error="failed to edit /etc/nginx/sites-available/${domain}.conf." ;;
+		107) error="failed to change directory to /root." ;;
+		108) error="failed to create directory ${web_root:-/var/www/html}/.well-known/acme-challenge." ;;
+		109) error="failed to clone acme.sh." ;;
+		110) error="failed to switch to /root/acme.sh directory." ;;
+		111) error="failed to install acme.sh." ;;
+		112) error="failed to reload nginx." ;;
+		113) error="failed to register the account with Let's Encrypt." ;;
+		114) error="failed to set the default CA to Let's Encrypt." ;;
+		115) error="failed to issue the certificate." ;;
+		116) error="failed to install the certificate." ;;
+		117) error="failed to edit /etc/nginx/sites-available/${domain}.conf." ;;
 		*) error="Unknown error" ;;
 		esac
 		vstacklet::shell::text::error "${error}"
@@ -3303,7 +3216,6 @@ vstacklet::clean::rollback() {
 	[[ -d ${web_root:-/var/www/html} ]] && rm -rf "${web_root:-/var/www/html}"/{public,logs,ssl}
 	#[[ -f /usr/local/bin/vstacklet ]] && rm -f "/usr/local/bin/vstacklet"
 	[[ -f /usr/local/bin/vs-backup ]] && rm -f "/usr/local/bin/vs-backup"
-	#rm -rf "/var/log/vstacklet"
 	if [[ -n ${install_list[*]} ]]; then
 		for installed in "${install_list[@]}"; do
 			# trunk-ignore(shellcheck/SC2046)
@@ -3320,13 +3232,13 @@ vstacklet::clean::rollback() {
 		vstacklet::log "apt-get -y autoclean"
 	fi
 	# @script-note: sources list locations
-	#rm -rf "/etc/apt/sources.list.d/hhvm.list" >/dev/null 2>&1
-	#rm -rf "/etc/apt/sources.list.d/nginx.list" >/dev/null 2>&1
-	#rm -rf "/etc/apt/sources.list.d/varnishcache_varnish72.list" >/dev/null 2>&1
-	#rm -rf "/etc/apt/sources.list.d/php-sury.list" >/dev/null 2>&1
-	#rm -rf "/etc/apt/sources.list.d/mariadb.list" >/dev/null 2>&1
-	#rm -rf "/etc/apt/sources.list.d/redis.list" >/dev/null 2>&1
-	#rm -rf "/etc/apt/sources.list.d/postgresql.list" >/dev/null 2>&1
+	#/etc/apt/sources.list.d/hhvm.list
+	#/etc/apt/sources.list.d/nginx.list
+	#/etc/apt/sources.list.d/varnishcache_varnish72.list
+	#/etc/apt/sources.list.d/php-sury.list
+	#/etc/apt/sources.list.d/mariadb.list
+	#/etc/apt/sources.list.d/redis.list
+	#/etc/apt/sources.list.d/postgresql.list
 	if [[ -n ${nginx} ]]; then
 		rm -rf "/etc/nginx-pre-vstacklet" "/etc/nignx" >/dev/null 2>&1
 		apt-get -y autopurge nginx* >/dev/null 2>&1

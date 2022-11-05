@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1847
+# vstacklet-server-stack.sh - v3.1.1867
 
 
 ---
@@ -201,41 +201,6 @@ Process the options and values passed to the script. [see function](https://gith
 
 -  $2 - the value of the option/flag
 
-#### return codes:
-
-- 3 - please provide a valid email address. (required for -csf, -sendmail, and -csfCf)
-- 4 - `-csfCf` requires `-csf`.
-- 5 - please provide a valid domain name.
-- 6 - please provide a valid port number for the FTP server.
-- 7 - invalid FTP port number. please enter a number between 1 and 65535.
-- 8 - the MariaDB password must be at least 8 characters long.
-- 9 - please provide a valid port number for the MariaDB server.
-- 10 - invalid MariaDB port number. please enter a number between 1 and 65535.
-- 11 - the MySQL password must be at least 8 characters long.
-- 12 - the MySQL port must be a number.
-- 13 - invalid MySQL port number. please enter a number between 1 and 65535.
-- 14 - the postgreSQL password must be at least 8 characters long.
-- 15 - please provide a valid port number for the postgreSQL server.
-- 16 - invalid postgreSQL port number. please enter a number between 1 and 65535.
-- 17 - invalid PHP version. please enter either 7 (7.4), or 8 (8.1).
-- 18 - the HTTPS port must be a number.
-- 19 - invalid HTTPS port number. please enter a number between 1 and 65535.
-- 20 - the HTTP port must be a number.
-- 21 - invalid HTTP port number. please enter a number between 1 and 65535.
-- 22 - invalid hostname. please enter a valid hostname.
-- 23 - the Redis password must be at least 8 characters long.
-- 24 - please provide a valid port number for the Redis server.
-- 25 - invalid Redis port number. please enter a number between 1 and 65535.
-- 26 - an email is needed to register the server aliases. please set an email with `-e your@email.com`.
-- 27 - the Sendmail port must be a number.
-- 28 - invalid Sendmail port number. please enter a number between 1 and 65535.
-- 29 - the SSH port must be a number.
-- 30 - invalid SSH port number. please enter a number between 1 and 65535.
-- 31 - the Varnish port must be a number.
-- 32 - invalid Varnish port number. please enter a number between 1 and 65535.
-- 33 - invalid web root. please enter a valid path. (e.g. /var/www/html)
-- 34 - invalid option(s): ${invalid_option[*]}
-
 #### examples:
 
 ```
@@ -285,7 +250,7 @@ Installs dependencies for vStacklet software. [see function](https://github.com/
 
 #### return codes:
 
-- 35 - failed to install script dependencies.
+- 3 - failed to install script dependencies.
 
 ---
 
@@ -331,7 +296,7 @@ Handles base dependencies for the vStacklet software. [see function](https://git
 
 #### return codes:
 
-- 36 - failed to install base dependencies.
+- 4 - failed to install base dependencies.
 
 ---
 
@@ -345,7 +310,7 @@ Installs required sources for vStacklet software. [see function](https://github.
 
 #### return codes:
 
-- 37 - failed to install source dependencies.
+- 5 - failed to install source dependencies.
 
 ---
 
@@ -434,8 +399,8 @@ Set ssh port to custom port (if nothing is set, default port is 22) [see functio
 
 #### return codes:
 
-- 39 - failed to set SSH port.
-- 40 - failed to restart SSH daemon service.
+- 7 - failed to set SSH port.
+- 8 - failed to restart SSH daemon service.
 
 #### examples:
 
@@ -460,8 +425,8 @@ Set ftp port to custom port (if nothing is set, default port is 21) [see functio
 
 #### return codes:
 
-- 41 - failed to set FTP port.
-- 42 - failed to restart FTP service.
+- 9 - failed to set FTP port.
+- 10 - failed to restart FTP service.
 
 #### examples:
 
@@ -484,8 +449,8 @@ need port 1900. In most cases, this is a junk port. [see function](https://githu
 
 #### return codes:
 
-- 43 - failed to block SSDP port.
-- 44 - failed to save iptables rules.
+- 11 - failed to block SSDP port.
+- 12 - failed to save iptables rules.
 
 ---
 
@@ -536,7 +501,7 @@ todo: This function is still a work in progress.
 
 #### return codes:
 
-- 45 - failed to set locale.
+- 13 - failed to set locale.
 
 ---
 
@@ -575,10 +540,8 @@ notes:
 
 #### return codes:
 
-- 46 - php and hhvm cannot be installed at the same time, please choose one.
-- 47 - failed to install php dependencies.
-- 48 - failed to enable php memcached extension.
-- 49 - failed to enable php redis extension.
+- 14 - PHP and HHVM cannot be installed at the same time, please choose one.
+- 15 - failed to install PHP dependencies.
 
 #### examples:
 
@@ -613,10 +576,10 @@ notes:
 
 #### return codes:
 
-- 50 - HHVM and PHP cannot be installed at the same time, please choose one.
-- 51 - failed to install HHVM dependencies.
-- 52 - failed to install HHVM.
-- 53 - failed to update PHP alternatives.
+- 16 - HHVM and PHP cannot be installed at the same time, please choose one.
+- 17 - failed to install HHVM dependencies.
+- 18 - failed to install HHVM.
+- 19 - failed to update PHP alternatives.
 
 #### examples:
 
@@ -658,11 +621,12 @@ notes:
 
 #### return codes:
 
-- 54 - failed to install NGINX dependencies.
-- 55 - failed to edit NGINX configuration file.
-- 56 - failed to enable NGINX configuration file.
-- 57 - failed to generate dhparam file.
-- 58 - failed to stage checkinfo.php verification file.
+- 20 - failed to install NGINX dependencies.
+- 21 - failed to edit NGINX configuration file.
+- 22 - failed to enable NGINX configuration file.
+- 23 - failed to generate dhparam file.
+- 24 - failed to generate self-signed certificate.
+- 25 - failed to stage checkinfo.php verification file.
 
 #### examples:
 
@@ -702,10 +666,11 @@ notes:
 
 #### return codes:
 
-- 59 - failed to install Varnish dependencies.
-- 60 - could not switch to /etc/varnish directory.
-- 61 - failed to reload the systemd daemon.
-- 62 - failed to switch to ~/
+- 26 - failed to install Varnish dependencies.
+- 27 - could not switch to /etc/varnish directory.
+- 28 - failed to edit the Varnish default config file.
+- 29 - failed to reload the systemd daemon.
+- 30 - failed to switch to ~/
 
 #### examples:
 
@@ -755,12 +720,11 @@ notes:
 
 #### return codes:
 
-- 63 - failed to switch to /tmp directory.
-- 64 - failed to download ionCube loader.
-- 65 - failed to extract ionCube loader.
-- 66 - failed to switch to /tmp/ioncube directory.
-- 67 - failed to copy ionCube loader to /usr/lib/php/ directory.
-- 68 - failed to enable ionCube loader php extension.
+- 31 - failed to switch to /tmp directory.
+- 32 - failed to download ionCube loader.
+- 33 - failed to extract ionCube loader.
+- 34 - failed to switch to /tmp/ioncube directory.
+- 35 - failed to copy ionCube loader to /usr/lib/php/ directory.
 
 #### examples:
 
@@ -796,13 +760,13 @@ notes:
 
 #### return codes:
 
-- 69 - failed to install MariaDB dependencies.
-- 70 - failed to initialize MariaDB secure installation.
-- 71 - failed to create MariaDB user.
-- 72 - failed to create MariaDB user password.
-- 73 - failed to create MariaDB user privileges.
-- 74 - failed to flush privileges.
-- 75 - failed to set MariaDB client and server configuration.
+- 36 - failed to install MariaDB dependencies.
+- 37 - failed to initialize MariaDB secure installation.
+- 38 - failed to set MariaDB client and server configuration.
+- 39 - failed to set MariaDB .my.cnf configuration.
+- 40 - failed to create MariaDB user.
+- 41 - failed to create MariaDB user privileges.
+- 42 - failed to flush privileges.
 
 #### examples:
 
@@ -843,14 +807,14 @@ notes:
 
 #### return codes:
 
-- 76 - failed to download MySQL deb package.
-- 77 - failed to install MySQL deb package.
-- 78 - failed to install MySQL dependencies.
-- 79 - failed to set MySQL password.
-- 80 - failed to create MySQL user.
-- 81 - failed to grant MySQL user privileges.
-- 82 - failed to flush MySQL privileges.
-- 83 - failed to set MySQL client and server configuration.
+- 43 - failed to download MySQL deb package.
+- 44 - failed to install MySQL deb package.
+- 45 - failed to install MySQL dependencies.
+- 46 - failed to set MySQL client and server configuration.
+- 47 - failed to set MySQL .my.cnf file.
+- 48 - failed to create MySQL user.
+- 49 - failed to grant MySQL user privileges.
+- 50 - failed to flush MySQL privileges.
 
 #### examples:
 
@@ -877,13 +841,13 @@ Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/v
 
 #### return codes:
 
-- 84 - failed to install PostgreSQL dependencies.
-- 85 - failed to switch to /etc/postgresql/${postgre_version}/main directory.
-- 86 - failed to set PostgreSQL password.
-- 87 - failed to create PostgreSQL user.
-- 88 - failed to grant PostgreSQL user privileges.
-- 89 - failed to edit /etc/postgresql/${postgre_version}/main/postgresql.conf file.
-- 90 - failed to edit /etc/postgresql/${postgre_version}/main/pg_hba.conf file.
+- 51 - failed to install PostgreSQL dependencies.
+- 52 - failed to switch to /etc/postgresql/${postgre_version}/main directory.
+- 53 - failed to set PostgreSQL password.
+- 54 - failed to create PostgreSQL user.
+- 55 - failed to grant PostgreSQL user privileges.
+- 56 - failed to edit /etc/postgresql/${postgre_version}/main/postgresql.conf file.
+- 57 - failed to edit /etc/postgresql/${postgre_version}/main/pg_hba.conf file.
 
 #### examples:
 
@@ -911,12 +875,12 @@ Install and configure Redis. [see function](https://github.com/JMSDOnline/vstack
 
 #### return codes:
 
-- 91 - failed to install Redis dependencies.
-- 92 - failed to backup the Redis configuration file.
-- 93 - failed to import the Redis configuration file.
-- 94 - failed to modify the Redis configuration file.
-- 95 - failed to restart the Redis service.
-- 96 - failed to set the Redis password.
+- 58 - failed to install Redis dependencies.
+- 59 - failed to backup the Redis configuration file.
+- 60 - failed to import the Redis configuration file.
+- 61 - failed to modify the Redis configuration file.
+- 62 - failed to restart the Redis service.
+- 63 - failed to set the Redis password.
 
 #### examples:
 
@@ -970,22 +934,18 @@ notes:
 
 #### return codes:
 
-- 97 - a database server was not selected.
-- 98 - a web server was not selected.
-- 99 - a php version was not selected.
-- 100 - phpMyAdmin does not support HHVM.
-- 101 - failed to install phpMyAdmin dependencies.
-- 102 - failed to switch to /usr/share directory.
-- 103 - failed to download phpMyAdmin.
-- 104 - failed to extract phpMyAdmin.
-- 105 - failed to move phpMyAdmin to /usr/share directory.
-- 106 - failed to remove phpMyAdmin .tar.gz file.
-- 107 - failed to set ownership of phpMyAdmin directory.
-- 108 - failed to set permissions of phpMyAdmin directory.
-- 109 - failed to create /usr/share/phpmyadmin/tmp directory.
-- 110 - failed to set symlink of ./phpmyadmin to ${web_root}/public/phpmyadmin.
-- 111 - failed to create htpasswd file.
-- 112 - failed to create phpMyAdmin configuration file.
+- 64 - failed to install phpMyAdmin dependencies.
+- 65 - failed to switch to /usr/share directory.
+- 66 - failed to download phpMyAdmin.
+- 67 - failed to extract phpMyAdmin.
+- 68 - failed to move phpMyAdmin to /usr/share directory.
+- 69 - failed to remove phpMyAdmin .tar.gz file.
+- 70 - failed to set ownership of phpMyAdmin directory.
+- 71 - failed to set permissions of phpMyAdmin directory.
+- 72 - failed to create /usr/share/phpmyadmin/tmp directory.
+- 73 - failed to set symlink of ./phpmyadmin to ${web_root}/public/phpmyadmin.
+- 74 - failed to create htpasswd file.
+- 75 - failed to create phpMyAdmin configuration file.
 
 #### examples:
 
@@ -1024,17 +984,17 @@ notes:
 
 #### return codes:
 
-- 113 - failed to install CSF firewall dependencies.
-- 114 - failed to download CSF firewall.
-- 115 - failed to switch to /usr/local/src/csf directory.
-- 116 - failed to install CSF firewall.
-- 117 - failed to initialize CSF firewall.
-- 118 - failed to modify CSF blocklist.
-- 119 - failed to modify CSF ignore list.
-- 120 - failed to modify CSF allow list.
-- 121 - failed to modify CSF allow ports (inbound).
-- 122 - failed to modify CSF allow ports (outbound).
-- 123 - failed to modify CSF configuration file (csf.conf).
+- 76 - failed to install CSF firewall dependencies.
+- 77 - failed to download CSF firewall.
+- 78 - failed to switch to /usr/local/src/csf directory.
+- 79 - failed to install CSF firewall.
+- 80 - failed to initialize CSF firewall.
+- 81 - failed to modify CSF blocklist.
+- 82 - failed to modify CSF ignore list.
+- 83 - failed to modify CSF allow list.
+- 84 - failed to modify CSF allow ports (inbound).
+- 85 - failed to modify CSF allow ports (outbound).
+- 86 - failed to modify CSF configuration file (csf.conf).
 
 #### examples:
 
@@ -1068,8 +1028,7 @@ notes:
 
 #### return codes:
 
-- 124 - CSF has not been enabled ' -csf ' (required). this is a component
-- 125 - CSF allow file does not exist.
+- 87 - CSF allow file does not exist.
 
 #### examples:
 
@@ -1102,15 +1061,14 @@ notes:
 
 #### return codes:
 
-- 126 - an email address was not provided ' -e "your@email.com" '.
-- 127 - failed to install sendmail dependencies.
-- 128 - failed to edit aliases file.
-- 129 - failed to edit sendmail.cf file.
-- 130 - failed to edit main.cf file.
-- 131 - failed to edit master.cf file.
-- 132 - failed to create sasl_passwd file.
-- 133 - postmap failed.
-- 134 - failed to source new aliases.
+- 88 - failed to install sendmail dependencies.
+- 89 - failed to edit aliases file.
+- 90 - failed to edit sendmail.cf file.
+- 91 - failed to edit main.cf file.
+- 92 - failed to edit master.cf file.
+- 93 - failed to create sasl_passwd file.
+- 94 - postmap failed.
+- 95 - failed to source new aliases.
 
 #### examples:
 
@@ -1151,20 +1109,17 @@ these arguments are:
 
 #### return codes:
 
-- 135 - WordPress requires a database to be installed.
-- 136 - WordPress requires a webserver to be installed.
-- 137 - WordPress requires a php version to be installed.
-- 138 - failed to download WordPress.
-- 139 - failed to extract WordPress.
-- 140 - failed to move WordPress to the web root.
-- 141 - failed to create WordPress upload directory.
-- 142 - failed to create WordPress configuration file.
-- 143 - failed to modify WordPress configuration file.
-- 144 - failed to create WordPress database.
-- 145 - failed to create WordPress database user.
-- 146 - failed to grant WordPress database user privileges.
-- 147 - failed to flush WordPress database privileges.
-- 148 - failed to remove WordPress installation files.
+- 96 - failed to download WordPress.
+- 97 - failed to extract WordPress.
+- 98 - failed to move WordPress to the web root.
+- 99 - failed to create WordPress upload directory.
+- 100 - failed to create WordPress configuration file.
+- 101 - failed to modify WordPress configuration file.
+- 102 - failed to create WordPress database.
+- 103 - failed to create WordPress database user.
+- 104 - failed to grant WordPress database user privileges.
+- 105 - failed to flush WordPress database privileges.
+- 106 - failed to remove WordPress installation files.
 
 #### examples:
 
@@ -1201,19 +1156,17 @@ notes:
 
 #### return codes:
 
-- 149 - the `-nginx|--nginx` option is required.
-- 150 - the `-e|--email` option is required.
-- 151 - failed to change directory to /root.
-- 152 - failed to create directory ${web_root}/.well-known/acme-challenge.
-- 153 - failed to clone acme.sh.
-- 154 - failed to switch to /root/acme.sh directory.
-- 155 - failed to install acme.sh.
-- 156 - failed to reload nginx.
-- 157 - failed to register the account with Let's Encrypt.
-- 158 - failed to set the default CA to Let's Encrypt.
-- 159 - failed to issue the certificate.
-- 160 - failed to install the certificate.
-- 161 - failed to edit /etc/nginx/sites-available/${domain}.conf.
+- 107 - failed to change directory to /root.
+- 108 - failed to create directory ${web_root}/.well-known/acme-challenge.
+- 109 - failed to clone acme.sh.
+- 110 - failed to switch to /root/acme.sh directory.
+- 111 - failed to install acme.sh.
+- 112 - failed to reload nginx.
+- 113 - failed to register the account with Let's Encrypt.
+- 114 - failed to set the default CA to Let's Encrypt.
+- 115 - failed to issue the certificate.
+- 116 - failed to install the certificate.
+- 117 - failed to edit /etc/nginx/sites-available/${domain}.conf.
 
 #### examples:
 
