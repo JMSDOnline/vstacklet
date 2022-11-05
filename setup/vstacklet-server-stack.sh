@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1835
+# @version: 3.1.1837
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2779,26 +2779,61 @@ vstacklet::wordpress::install() {
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "please enter the following information for WordPress:"
 		# @script-note: get WordPress database name
-		vstacklet::shell::text::white::sl "WordPress database name: "
-		vstacklet::shell::icon::arrow::white
-		while read -r wp_db_name; do
-			[[ -z ${wp_db_name} ]] && vstacklet::shell::text::error "WordPress database name cannot be empty." && vstacklet::shell::text::white::sl "WordPress database name: " && vstacklet::shell::icon::arrow::white && continue
-			break
-		done
+		vstacklet::wp::db() {
+			vstacklet::shell::text::white::sl "WordPress database name: "
+			vstacklet::shell::icon::arrow::white
+			while read -r wp_db_name; do
+				[[ -z ${wp_db_name} ]] && vstacklet::shell::text::error "WordPress database name cannot be empty." && vstacklet::shell::text::white::sl "WordPress database name: " && vstacklet::shell::icon::arrow::white && continue
+				break
+			done
+		}
 		# @script-note: get WordPress database user
-		vstacklet::shell::text::white::sl "WordPress database user: "
-		vstacklet::shell::icon::arrow::white
-		while read -r wp_db_user; do
-			[[ -z ${wp_db_user} ]] && vstacklet::shell::text::error "WordPress database user cannot be empty." && vstacklet::shell::text::white::sl "WordPress database user: " && vstacklet::shell::icon::arrow::white && continue
-			break
-		done
+		vstacklet::wp::user() {
+			vstacklet::shell::text::white::sl "WordPress database user: "
+			vstacklet::shell::icon::arrow::white
+			while read -r wp_db_user; do
+				[[ -z ${wp_db_user} ]] && vstacklet::shell::text::error "WordPress database user cannot be empty." && vstacklet::shell::text::white::sl "WordPress database user: " && vstacklet::shell::icon::arrow::white && continue
+				break
+			done
+		}
 		# @script-note: get WordPress database password
-		vstacklet::shell::text::white::sl "WordPress database password: "
+		vstacklet::wp::password() {
+			vstacklet::shell::text::white::sl "WordPress database password: "
+			vstacklet::shell::icon::arrow::white
+			while read -r wp_db_password; do
+				[[ -z ${wp_db_password} ]] && vstacklet::shell::text::error "WordPress database password cannot be empty." && vstacklet::shell::text::white::sl "WordPress database password: " && vstacklet::shell::icon::arrow::white && continue
+				break
+			done
+		}
+		# @script-note: call Wordpress information functions
+		vstacklet::wp::db
+		vstacklet::wp::user
+		vstacklet::wp::password
+		vstacklet::shell::misc::nl
+		vstacklet::shell::text::white::sl "Are the entered details correct?"
+		vstacklet::shell::text::green::sl "[y]"
+		vstacklet::shell::text::white::sl "es"
+		vstacklet::shell::text::white::sl " or "
+		vstacklet::shell::text::red::sl "[n]"
+		vstacklet::shell::text::white::sl "o: "
 		vstacklet::shell::icon::arrow::white
-		while read -r wp_db_password; do
-			[[ -z ${wp_db_password} ]] && vstacklet::shell::text::error "WordPress database password cannot be empty." && vstacklet::shell::text::white::sl "WordPress database password: " && vstacklet::shell::icon::arrow::white && continue
-			break
-		done
+		read -r input
+		case "${input,,}" in
+		y | yes)
+			return 0
+			;;
+		n | no)
+			vstacklet::wp::db
+			vstacklet::wp::user
+			vstacklet::wp::password
+			;;
+		*)
+			vstacklet::shell::text::error "invalid input."
+			vstacklet::wp::db
+			vstacklet::wp::user
+			vstacklet::wp::password
+			;;
+		esac
 		vstacklet::shell::text::white "installing and configuring WordPress ... "
 		# @script-note: download WordPress
 		vstacklet::log "wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz" || vstacklet::clean::rollback 138
