@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1868
+# @version: 3.1.1884
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -182,11 +182,11 @@ vstacklet::environment::init() {
 	server_hostname=$(hostname -s)
 	# vstacklet directories
 	local_setup_dir="${vstacklet_base_path:=/opt/vstacklet}/setup"
-	local_php8_dir="/opt/vstacklet/config/php8/"
-	local_php7_dir="/opt/vstacklet/config/php7/"
-	local_hhvm_dir="/opt/vstacklet/config/hhvm/"
-	local_nginx_dir="/opt/vstacklet/config/nginx/"
-	local_varnish_dir="/opt/vstacklet/config/varnish/"
+	local_php8_dir="/opt/vstacklet/config/php8"
+	local_php7_dir="/opt/vstacklet/config/php7"
+	local_hhvm_dir="/opt/vstacklet/config/hhvm"
+	local_nginx_dir="/opt/vstacklet/config/nginx"
+	local_varnish_dir="/opt/vstacklet/config/varnish"
 	# create vstacklet directories
 	mkdir -p "${vstacklet_base_path}/setup_temp"    # temporary setup directory - stores default files edited by vStacklet
 	mkdir -p "${vstacklet_base_path}/config/system" # system configuration directory - stores dependencies, keys, and other system files
@@ -403,12 +403,6 @@ vstacklet::args::process() {
 			declare -g php="${2}"
 			shift
 			shift
-			[[ ${php} == *"7"* ]] && declare -g php="7.4"
-			[[ ${php} == *"8"* ]] && declare -g php="8.1"
-			declare -a allowed_php=("7.4" "8.1")
-			if ! vstacklet::array::contains "${php}" "supported php versions" ${allowed_php[@]}; then
-				vstacklet::shell::text::error "please provide a valid php version. supported versions are: ${allowed_php[*]}"
-			fi
 			;;
 		-redis | --redis)
 			declare -gi redis="1"
@@ -494,6 +488,12 @@ vstacklet::args::process() {
 		[[ -z ${email} ]] && vstacklet::shell::text::error "please provide an email address with \`-e\`." && exit 1
 		[[ -z ${nginx} ]] && vstacklet::shell::text::error "please install nginx with \`-nginx\`." && exit 1
 		[[ -z ${php} ]] && vstacklet::shell::text::error "please install php with \`-php \"7.4\"\` or \`-php \"8.1\"\`." && exit 1
+	fi
+	[[ ${php} == *"7"* ]] && declare -g php="7.4"
+	[[ ${php} == *"8"* ]] && declare -g php="8.1"
+	declare -a allowed_php=("7.4" "8.1")
+	if ! vstacklet::array::contains "${php}" "supported php versions" ${allowed_php[@]}; then
+		vstacklet::shell::text::error "please provide a valid php version. supported versions are: ${allowed_php[*]}" && exit 1
 	fi
 	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::shell::text::error "invalid option(s): ${invalid_option[*]}" && exit 1
 	# default values
@@ -1243,18 +1243,35 @@ vstacklet::gpg::keys() {
 	fi
 	if [[ -n ${nginx} ]]; then
 		# @script-note: nginx
-		curl -fsSL https://nginx.org/keys/nginx_signing.key | gpg --dearmor -o /etc/apt/keyrings/nginx.gpg >>"${vslog}" 2>&1
-		echo "deb [signed-by=/etc/apt/keyrings/nginx.gpg] https://nginx.org/packages/mainline/${distro}/ ${codename} nginx" | tee /etc/apt/sources.list.d/nginx.list >>"${vslog}" 2>&1
+		if [[ ${distro,,} == "debian" ]]; then
+			curl -fsSL https://nginx.org/keys/nginx_signing.key | gpg --dearmor -o /etc/apt/keyrings/nginx.gpg >>"${vslog}" 2>&1
+			echo "deb [signed-by=/etc/apt/keyrings/nginx.gpg] https://nginx.org/packages/mainline/${distro} ${codename} nginx" | tee /etc/apt/sources.list.d/nginx.list >>"${vslog}" 2>&1
+		elif [[ ${distro,,} == "ubuntu" ]]; then
+			curl -fsSL https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >>"${vslog}" 2>&1
+			echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://nginx.org/packages/mainline/${distro} ${codename} nginx" | tee /etc/apt/sources.list.d/nginx.list >>"${vslog}" 2>&1
+		fi
 	fi
 	if [[ -n ${varnish} ]]; then
 		# @script-note: varnish
-		curl -fsSL "https://packagecloud.io/varnishcache/varnish72/gpgkey" | gpg --dearmor >"/etc/apt/keyrings/varnishcache_varnish72-archive-keyring.gpg" >>"${vslog}" 2>&1
-		curl -sSf "https://packagecloud.io/install/repositories/varnishcache/varnish72/config_file.list?os=${distro,,}&dist=${codename}&source=script" >"/etc/apt/sources.list.d/varnishcache_varnish72.list"
+		if [[ ${distro,,} == "debian" ]]; then
+			curl -fsSL "https://packagecloud.io/varnishcache/varnish72/gpgkey" | gpg --dearmor >"/etc/apt/keyrings/varnishcache_varnish72-archive-keyring.gpg" >>"${vslog}" 2>&1
+			curl -sSf "https://packagecloud.io/install/repositories/varnishcache/varnish72/config_file.list?os=${distro,,}&dist=${codename}&source=script" >"/etc/apt/sources.list.d/varnishcache_varnish72.list"
+		elif [[ ${distro,,} == "ubuntu" ]]; then
+			curl -fsSL "https://packagecloud.io/varnishcache/varnish72/gpgkey" | gpg --dearmor -o "/etc/apt/trusted.gpg.d/varnish.gpg" >>"${vslog}" 2>&1
+			sudo tee /etc/apt/sources.list.d/varnishcache_varnish72.list >/dev/null <<-EOF
+				deb https://packagecloud.io/varnishcache/varnish72/${distro,,}/ ${codename} main
+				deb-src https://packagecloud.io/varnishcache/varnish72/${distro,,}/ ${codename} main
+			EOF
+		fi
 	fi
 	if [[ -n ${php} ]]; then
 		# @script-note: php
-		curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /etc/apt/keyrings/php.gpg >>"${vslog}" 2>&1
-		echo "deb [signed-by=/etc/apt/keyrings/php.gpg] https://packages.sury.org/php/ ${codename} main" | tee /etc/apt/sources.list.d/php-sury.list >>"${vslog}" 2>&1
+		if [[ ${distro,,} == "debian" ]]; then
+			curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /etc/apt/keyrings/php.gpg >>"${vslog}" 2>&1
+			echo "deb [signed-by=/etc/apt/keyrings/php.gpg] https://packages.sury.org/php/ ${codename} main" | tee /etc/apt/sources.list.d/php-sury.list >>"${vslog}" 2>&1
+		elif [[ ${distro,,} == "ubuntu" ]]; then
+			LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php >>"${vslog}" 2>&1
+		fi
 	fi
 	if [[ -n ${mariadb} ]]; then
 		# @script-note: mariadb
@@ -1302,18 +1319,18 @@ vstacklet::locale::set() {
 		(
 			update-locale "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
 			dpkg-reconfigure --frontend noninteractive locales
-			vstacklet::log "locale-gen locales"
 		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 13
 	else
 		(
 			vstacklet::log "apt-get -y update"
-			vstacklet::log "apt-get -y install locales locale-gen"
+			[[ ${distro,,} == "debian" ]] && vstacklet::log "apt-get -y install locales locale-gen"
+			[[ ${distro,,} == "ubuntu" ]] && vstacklet::log "apt-get -y install locales"
 			update-locale "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
 			dpkg-reconfigure --frontend noninteractive locales
-			vstacklet::log "locale-gen locales"
 		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 13
-
 	fi
+	[[ ${distro,,} == "debian" ]] && vstacklet::log "locale-gen locales"
+	[[ ${distro,,} == "ubuntu" ]] && vstacklet::log "locale-gen en_US.UTF-8"
 	declare -xg LANGUAGE="en_US.UTF-8"
 }
 
@@ -1467,8 +1484,8 @@ vstacklet::hhvm::install() {
 		# @script-note: update php alternatives
 		/usr/bin/update-alternatives --install /usr/bin/php php /usr/bin/hhvm 60 >>"${vslog}" 2>&1 || vstacklet::clean::rollback 19
 		# @script-note: get off the port and use socket - vStacklet nginx configurations already know this
-		cp -f "${local_hhvm_dir}server.ini.template" /etc/hhvm/server.ini
-		cp -f "${local_hhvm_dir}php.ini.template" /etc/hhvm/php.ini
+		cp -f "${local_hhvm_dir}/server.ini.template" /etc/hhvm/server.ini
+		cp -f "${local_hhvm_dir}/php.ini.template" /etc/hhvm/php.ini
 		vs::stat::progress::stop # stop progress status
 		# @script-note: hhvm installation complete
 	fi
@@ -1673,21 +1690,21 @@ vstacklet::varnish::install() {
 		# - the custom.vcl file is a custom Varnish config file that can be used to override the default.vcl file.
 		# - the default.vcl file is the default Varnish config file that is used to configure Varnish.
 		# - the custom.vcl file imported from vStacklet is setup to function with phpmyadmin and wordpress.
-		cp -f "${local_varnish_dir}custom.vcl" "/etc/varnish/custom.vcl"
+		cp -f "${local_varnish_dir}/custom.vcl" "/etc/varnish/custom.vcl"
 		# adjust varnish config files
 		if [[ -n ${nginx} ]]; then
 			# @script-note: if nginx is installed, then use nginx as the backend. this is assigned by way of the http_port variable
-			(
-				sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{varnish_port}}|${http_port:-80}|g" -e "s|{{domain}}|${domain:-${server_ip}}|g" "/etc/varnish/custom.vcl"
-				sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish"
-			) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 28
+			sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{varnish_port}}|${http_port:-80}|g" -e "s|{{domain}}|${domain:-${server_ip}}|g" "/etc/varnish/custom.vcl"
+			if [[ ${distro,,} == "debian" ]]; then
+				sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish" || vstacklet::clean::rollback 28
+			fi
 		else
 			# @script-note: if nginx is not installed, then use varnish as the backend.
 			# this is assigned by way of the varnish_port variable (this is not useful for most people)
-			(
-				sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{varnish_port}}|${varnish_port:-6081}|g" -e "s|{{domain}}|${domain:-${server_ip}}|g" "/etc/varnish/custom.vcl"
-				sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish"
-			) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 28
+			sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{varnish_port}}|${varnish_port:-6081}|g" -e "s|{{domain}}|${domain:-${server_ip}}|g" "/etc/varnish/custom.vcl"
+			if [[ ${distro,,} == "debian" ]]; then
+				sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish" || vstacklet::clean::rollback 28
+			fi
 		fi
 		# @script-note: adjust varnish service
 		cp -f /lib/systemd/system/varnish.service /etc/systemd/system/

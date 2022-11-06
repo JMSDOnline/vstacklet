@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.667
-  Build: 667
+  Version: v3.1.1.668
+  Build: 668
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 
@@ -21,7 +21,7 @@ Ubuntu:
 
 [![Ubuntu 16.04 Failing](https://img.shields.io/badge/Ubuntu%2016.04-failing-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 [![Ubuntu 18.04 Testing](https://img.shields.io/badge/Ubuntu%2018.04-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
-[![Ubuntu 20.04 Testing](https://img.shields.io/badge/Ubuntu%2020.04-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
+[![Ubuntu 20.04 Passing](https://img.shields.io/badge/Ubuntu%2020.04-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 
 Debian:
 
