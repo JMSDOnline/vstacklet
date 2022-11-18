@@ -61,7 +61,7 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 - Full Kit functionality - backup scripts included.
 - Dynamic rollback built-in should the install fail. All dependencies and directories placed by vStacklet are removed on the rollback.
 - Actively maintained w/ updates added when stable.
-- HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="http://h2.nix-admin.com/" target="_blank">HTTP/2 Checker</a>
+- HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="https://tools.keycdn.com/http2-test" target="_blank">HTTP/2 Test via KeyCDN</a>
 - Everything you need to get that Nginx + Varnish server up and running!
 
 Total script install time on a General CPU <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 6/minutes installing everything. No Sendmail or CSF. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
