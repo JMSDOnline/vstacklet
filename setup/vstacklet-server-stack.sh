@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1885
+# @version: 3.1.1886
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1025,6 +1025,10 @@ vstacklet::hostname::set() {
 	elif [[ -n ${domain} && -z ${hostname} ]]; then
 		vstacklet::shell::text::white "setting hostname to ${domain} ... "
 		hostnamectl set-hostname "${domain}" >>${vslog} 2>&1 || vstacklet::clean::rollback 6
+		vstacklet::shell::misc::nl
+	else
+		vstacklet::shell::text::white "setting hostname to ${hostname} ... "
+		hostnamectl set-hostname "${hostname}" >>${vslog} 2>&1 || vstacklet::clean::rollback 6
 		vstacklet::shell::misc::nl
 	fi
 }
