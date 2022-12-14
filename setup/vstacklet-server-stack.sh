@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1886
+# @version: 3.1.1890
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1699,21 +1699,25 @@ vstacklet::varnish::install() {
 		if [[ -n ${nginx} ]]; then
 			# @script-note: if nginx is installed, then use nginx as the backend. this is assigned by way of the http_port variable
 			sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{varnish_port}}|${http_port:-80}|g" -e "s|{{domain}}|${domain:-${server_ip}}|g" "/etc/varnish/custom.vcl"
-			if [[ ${distro,,} == "debian" ]]; then
-				sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish" || vstacklet::clean::rollback 28
-			fi
+			#if [[ ${distro,,} == "debian" ]]; then
+			#	sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish" || vstacklet::clean::rollback 28
+			#fi
 		else
 			# @script-note: if nginx is not installed, then use varnish as the backend.
 			# this is assigned by way of the varnish_port variable (this is not useful for most people)
 			sed -i -e "s|{{server_ip}}|${server_ip}|g" -e "s|{{varnish_port}}|${varnish_port:-6081}|g" -e "s|{{domain}}|${domain:-${server_ip}}|g" "/etc/varnish/custom.vcl"
-			if [[ ${distro,,} == "debian" ]]; then
-				sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish" || vstacklet::clean::rollback 28
-			fi
+			#if [[ ${distro,,} == "debian" ]]; then
+			#	sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" -e "s|You probably want to change it|custom.vcl has been set by vStacklet|g" "/etc/default/varnish" || vstacklet::clean::rollback 28
+			#fi
 		fi
 		# @script-note: adjust varnish service
+		cp -f "${local_varnish_dir}/varnish.service" /lib/systemd/system/varnish.service
 		cp -f /lib/systemd/system/varnish.service /etc/systemd/system/
 		sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" "/etc/systemd/system/varnish.service"
 		sed -i -e "s|6081|${varnish_port:-6081}|g" -e "s|default.vcl|custom.vcl|g" -e "s|malloc,256m|malloc,${varnish_memory:-1g}|g" "/lib/systemd/system/varnish.service"
+		# @script-note: create varnish secret file
+		uuidgen | sudo tee /etc/varnish/secret >/dev/null
+		# @script-note: reload systemd=daemon
 		vstacklet::log "systemctl daemon-reload" || vstacklet::clean::rollback 29
 		cd "${HOME}" || vstacklet::clean::rollback 30
 		vs::stat::progress::stop # stop progress status
