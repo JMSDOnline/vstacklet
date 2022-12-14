@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1890
+# @version: 3.1.1891
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2847,6 +2847,11 @@ vstacklet::wordpress::install() {
 				-e "s/password_here/${wp_db_password}/g" \
 				-e "s/utf8mb4/utf8/g" \
 				"${web_root:-/var/www/html}/public/wp-config.php" || vstacklet::clean::rollback 101
+			# @script-note: remove old salt keys
+			sed -i -e "/define( 'AUTH_KEY',/d" -e "/define( 'SECURE_AUTH_KEY',/d" -e "/define( 'LOGGED_IN_KEY',/d" -e "/define( 'NONCE_KEY',/d" -e "/define( 'AUTH_SALT',/d" -e "/define( 'SECURE_AUTH_SALT',/d" -e "/define( 'LOGGED_IN_SALT',/d" -e "/define( 'NONCE_SALT',/d" "${web_root:-/var/www/html}/public/wp-config.php"
+			# @script-note: import updated salt keys
+			wp_salts=$(curl -s https://api.wordpress.org/secret-key/1.1/salt/)
+			sed -i "/#@-/r /dev/stdin" "${web_root:-/var/www/html}/public/wp-config.php" <<<"${wp_salts}"
 			# @script-note: create the database
 			mysql -e "CREATE DATABASE ${wp_db_name};" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 102
 			# @script-note: create the database user
@@ -2935,15 +2940,7 @@ vstacklet::domain::ssl() {
 		./acme.sh --register-account -m "${email:?}" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 113
 		./acme.sh --set-default-ca --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 114
 		./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html}" --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 115
-		(
-			./acme.sh --install-cert -d "${domain}" \
-				--keylength ec-256 \
-				--cert-file "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" \
-				--key-file "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" \
-				--fullchain-file "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" \
-				--log "/var/log/vstacklet/${domain}.log" \
-				--reloadcmd "systemctl reload nginx.service"
-		) >>"${vslog}" 2>&1 || vstacklet::clean::rollback 116
+		./acme.sh --install-cert -d "${domain}" --keylength ec-256 --cert-file "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" --key-file "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" --fullchain-file "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" --log "/var/log/vstacklet/${domain}.log" --reloadcmd "systemctl reload nginx.service" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 116
 		# @script-note: post necessary edits to nginx config file
 		crt_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" | sed 's/\//\\\//g')
 		key_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" | sed 's/\//\\\//g')
