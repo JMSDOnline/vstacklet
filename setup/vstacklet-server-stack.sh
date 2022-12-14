@@ -1414,9 +1414,9 @@ vstacklet::php::install() {
 		# @script-note: enable modules
 		vstacklet::shell::text::yellow::sl "enabling PHP modules ... " &
 		vs::stat::progress::start # start progress status
-		phpmods=("opcache" "xml" "igbinary" "imagick" "intl" "mbstring" "gmp" "bcmath" "msgpack" "memcached")
+		phpmods=("opcache" "xml" "igbinary" "imagick" "intl" "mbstring" "gmp" "bcmath" "msgpack" "memcached" "curl")
 		for i in "${phpmods[@]}"; do
-			phpenmod -v "${php}" "${i}"
+			phpenmod -v "${php}" "${i}" >>${vslog} 2>&1
 		done
 		[[ -n ${redis} ]] && phpmods+=("redis")
 		vs::stat::progress::stop # stop progress status
