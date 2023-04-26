@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: database-backup.sh
-# @version: 3.1.1119
+# @version: 3.1.1122
 # @description: This script will create a backup of all databases.
 # Please ensure you have read the documentation before continuing.
 #
@@ -13,14 +13,17 @@
 # @brief: Create a backup of specified databases
 #
 # This script will do the following:
+# - Create necessary directories
 # - Create a backup of all databases
+# - Compress the backup file
+# - Encrypt the backup file
 #
 # #### options:
 # | Short | Long                       | Description
 # | ----- | -------------------------- | ------------------------------------------
 # |  -tmp_dir | --tmp_dir             | Path to temporary directory
 # |  -backup_dir | --backup_dir       | Path to backup directory
-# |  -db | --databases                | Database name
+# |  -db | --database                 | Database name
 # |  -db_user | --database_user       | Database user
 # |  -db_pwd | --database_password    | Database password
 # |  -h | --help                      | Display this help message
@@ -48,7 +51,7 @@
 # <END METADATA>
 ##################################################################################
 # @name: vstacklet::environment::functions (2)
-# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L54-L134)
+# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L57-L136)
 # @break
 ##################################################################################
 vstacklet::environment::functions() {
@@ -134,7 +137,7 @@ vstacklet::environment::functions() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkroot (1)
-# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L140-L145)
+# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L143-L148)
 # @break
 ##################################################################################
 vstacklet::environment::checkroot() {
@@ -146,7 +149,7 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::backup::main (3)
-# @description: The main function of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L157-L358)
+# @description: The main function of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L160-L361)
 #
 # notes:
 # - The retention variables are only used if the backup file compression is set to gzip.
