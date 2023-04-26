@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1060
+# @version: 3.1.1061
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html}.
 # Please ensure you have read the documentation before continuing.
@@ -69,7 +69,6 @@ vstacklet::wwwperms::args() {
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
 		-wwwU* | --www_user*)
-
 			declare -g www_user="${2}"
 			shift 2
 			;;
