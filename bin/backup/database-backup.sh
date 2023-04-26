@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: database-backup.sh
-# @version: 3.1.1129
+# @version: 3.1.1131
 # @description: This script will create a backup of all databases.
 # Please ensure you have read the documentation before continuing.
 #
@@ -165,7 +165,7 @@ vstacklet::backup::main() {
 	# @description: The variables used in the backup script.
 	##################################################################################
 	# set the version of the backup script
-	VERSION="$(grep -E '^# @version:' "/opt/vstacklet/bin/backup/vs-backup.sh" | awk '{print $3}')"
+	VERSION="$(grep -E '^# @version:' "/opt/vstacklet/bin/backup/vs-backup" | awk '{print $3}')"
 	# set the date stamp format
 	DATE_STAMP=$(date +%Y-%m-%d-%H-%M-%S)
 	# set the backup directory
@@ -414,7 +414,7 @@ vstacklet::backup::example_cron() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  # Example Schedule"
 	vstacklet::shell::text::white "  # Backup Databases Daily @ 12:30 AM"
-	vstacklet::shell::text::white "  30 00 * * * root /opt/vstacklet/bin/backup/database-backup.sh -db=\"database\" -db_user=\"dbuser\" -db_pwd=\"dbpass\""
+	vstacklet::shell::text::white "  30 00 * * * root /opt/vstacklet/bin/backup/database-backup.sh -db=\"database\" -dbuser=\"database_user\" -dbpass=\"database_password\""
 	vstacklet::shell::misc::nl
 }
 
