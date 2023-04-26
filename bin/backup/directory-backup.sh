@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: directory-backup.sh
-# @version: 3.1.1115
+# @version: 3.1.1117
 # @description: This script will create a backup of specified directories.
 # Please ensure you have read the documentation before continuing.
 #
@@ -18,19 +18,13 @@
 # #### options:
 # | Short | Long                       | Description
 # | ----- | -------------------------- | ------------------------------------------
-#   `-t`, `--temporary_directory`    Path to temporary directory (default: /tmp/vstacklet/backup/directories/) [optional]
-# | ----- | -------------------------- | ------------------------------------------
-#   `-d`, `--destination_directory`  Path to backup directories (default: /backup/directories/) [optional]
-# | ----- | -------------------------- | ------------------------------------------
-#   `-f`, `--file`                   File/Directory to backup (default: /var/www/html)
-# | ----- | -------------------------- | ------------------------------------------
-#   `-a`, `--all`                    Backup all files in directory (default: false)
-# | ----- | -------------------------- | ------------------------------------------
-#   `-ec`, `--example_cron`          Display example cron entry
-# | ----- | -------------------------- | ------------------------------------------
-#   `-h`, `--help`                   Display this help message
-# | ----- | -------------------------- | ------------------------------------------
-#   `-V`, `--version`                Display version information
+# |  `-t` | `--temporary_directory`    | Path to temporary directory (default: /tmp/vstacklet/backup/directories/) [optional]
+# |  `-d` | `--destination_directory`  | Path to backup directories (default: /backup/directories/) [optional]
+# |  `-f` | `--file`                   | File/Directory to backup (default: /var/www/html)
+# |  `-a` | `--all`                    | Backup all files in directory (default: false)
+# |  `-ec`| `--example_cron`           | Display example cron entry
+# |  `-h` | `--help`                   | Display this help message
+# |  `-V` | `--version`                | Display version information
 #
 # #### examples:
 # ```bash

@@ -1,4 +1,4 @@
-# directory-backup.sh - v3.1.1115
+# directory-backup.sh - v3.1.1117
 
 
 ---
@@ -15,19 +15,13 @@ This script will do the following:
 #### options:
 | Short | Long                       | Description
 | ----- | -------------------------- | ------------------------------------------
-  `-t`, `--temporary_directory`    Path to temporary directory (default: /tmp/vstacklet/backup/directories/) [optional]
-| ----- | -------------------------- | ------------------------------------------
-  `-d`, `--destination_directory`  Path to backup directories (default: /backup/directories/) [optional]
-| ----- | -------------------------- | ------------------------------------------
-  `-f`, `--file`                   File/Directory to backup (default: /var/www/html)
-| ----- | -------------------------- | ------------------------------------------
-  `-a`, `--all`                    Backup all files in directory (default: false)
-| ----- | -------------------------- | ------------------------------------------
-  `-ec`, `--example_cron`          Display example cron entry
-| ----- | -------------------------- | ------------------------------------------
-  `-h`, `--help`                   Display this help message
-| ----- | -------------------------- | ------------------------------------------
-  `-V`, `--version`                Display version information
+|  `-t` | `--temporary_directory`    | Path to temporary directory (default: /tmp/vstacklet/backup/directories/) [optional]
+|  `-d` | `--destination_directory`  | Path to backup directories (default: /backup/directories/) [optional]
+|  `-f` | `--file`                   | File/Directory to backup (default: /var/www/html)
+|  `-a` | `--all`                    | Backup all files in directory (default: false)
+|  `-ec`| `--example_cron`           | Display example cron entry
+|  `-h` | `--help`                   | Display this help message
+|  `-V` | `--version`                | Display version information
 
 ---
 
