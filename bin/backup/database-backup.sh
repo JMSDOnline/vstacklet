@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: database-backup.sh
-# @version: 3.1.1127
+# @version: 3.1.1128
 # @description: This script will create a backup of all databases.
 # Please ensure you have read the documentation before continuing.
 #
@@ -17,8 +17,8 @@
 # - Create a backup of all databases
 # - Compress the backup file
 # - Encrypt the backup file
-#  - e.g. database_name-2016-01-01-00-00-00.sql.gz.enc
-#  - encryption password is the same as the database password
+#   - e.g. database_name-2016-01-01-00-00-00.sql.gz.enc
+#   - encryption password is the same as the database password
 #
 # #### options:
 # | Short | Long                       | Description

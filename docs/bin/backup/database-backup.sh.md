@@ -1,4 +1,4 @@
-# database-backup.sh - v3.1.1127
+# database-backup.sh - v3.1.1128
 
 
 ---
@@ -12,8 +12,8 @@ This script will do the following:
 - Create a backup of all databases
 - Compress the backup file
 - Encrypt the backup file
- - e.g. database_name-2016-01-01-00-00-00.sql.gz.enc
- - encryption password is the same as the database password
+  - e.g. database_name-2016-01-01-00-00-00.sql.gz.enc
+  - encryption password is the same as the database password
 
 ---
 
