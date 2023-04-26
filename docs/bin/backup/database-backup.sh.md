@@ -1,4 +1,4 @@
-# database-backup.sh - v3.1.1128
+# database-backup.sh - v3.1.1129
 
 
 ---
@@ -53,7 +53,7 @@ Check if the user is root. [see function](https://github.com/JMSDOnline/vstackle
 
 ### vstacklet::backup::main()
 
-The main function of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L162-L363
+The main function of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L162-L363)
 
 notes:
 - The retention variables are only used if the backup file compression is set to gzip.

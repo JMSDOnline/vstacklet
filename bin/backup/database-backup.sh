@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: database-backup.sh
-# @version: 3.1.1128
+# @version: 3.1.1129
 # @description: This script will create a backup of all databases.
 # Please ensure you have read the documentation before continuing.
 #
@@ -151,7 +151,7 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::backup::main (3)
-# @description: The main function of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L162-L363
+# @description: The main function of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L162-L363)
 #
 # notes:
 # - The retention variables are only used if the backup file compression is set to gzip.
