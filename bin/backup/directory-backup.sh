@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: directory-backup.sh
-# @version: 3.1.1117
+# @version: 3.1.1118
 # @description: This script will create a backup of specified directories.
 # Please ensure you have read the documentation before continuing.
 #
@@ -273,8 +273,6 @@ vstacklet::backup::main() {
 ##################################################################################
 # @name: vstacklet::backup::usage (5)
 # @description: Display the usage of the backup script.
-# @script-note: This function is required for the installation of the
-# vStacklet software.
 # @break
 ##################################################################################
 vstacklet::backup::usage() {

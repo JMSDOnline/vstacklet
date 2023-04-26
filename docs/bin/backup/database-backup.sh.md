@@ -1,55 +1,76 @@
-# database-backup.sh - v3.1.1094
+# database-backup.sh - v3.1.1119
 
 
 ---
 
-Create database backups
+Create a backup of specified databases
 
 ---
 
 This script will do the following:
-1. Create a backup of all databases
+- Create a backup of all databases
+
+---
+
+#### options:
+| Short | Long                       | Description
+| ----- | -------------------------- | ------------------------------------------
+|  -tmp_dir | --tmp_dir             | Path to temporary directory
+|  -backup_dir | --backup_dir       | Path to backup directory
+|  -db | --databases                | Database name
+|  -db_user | --database_user       | Database user
+|  -db_pwd | --database_password    | Database password
+|  -h | --help                      | Display this help message
+|  -V | --version                   | Display version information
+
+---
+
+#### examples:
+```bash
+ /opt/vstacklet/bin/backup/database-backup.sh -tmp_dir /tmp/backup/databases/ -backup_dir /backup/databases/ -db database_name -db_user database_user -db_pwd database_password
+```
 
 ---
 
 
-
-### vstacklet::backup::args()
-
-Process the options passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L67)
-
-notes:
-- This script function is responsible for processing the options passed to the
-script.
-
-#### parameters:
-
--  $1 (string) - The option to process.
--  $2 (string) - The value of the option to process.
-
----
 
 ### vstacklet::environment::functions()
 
-Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L123)
+Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L54-L134)
 
 ---
 
 ### vstacklet::environment::checkroot()
 
-Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L187-L192)
+Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L140-L145)
 
 ---
 
-### vstacklet::backup::database()
+### vstacklet::backup::main()
 
-Backup a database to a file.
+The main function of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/database-backup.sh#L157-L358)
+
+notes:
+- The retention variables are only used if the backup file compression is set to gzip.
+These values are currently not in use with this script. They are here for future use.
 
 ---
 
 ### vstacklet::backup::usage()
 
 Display the usage of the backup script.
+
+---
+
+### vstacklet::backup::example_cron()
+
+Example cron job for the backup script.
+
+---
+
+### vstacklet::backup::version()
+
+Display the version of the backup script.
 
 ---
 
