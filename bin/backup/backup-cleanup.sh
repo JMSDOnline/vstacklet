@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1074
+# @version: 3.1.1097
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html}.
 # Please ensure you have read the documentation before continuing.
@@ -14,22 +14,23 @@
 # @brief: Cleanup old backups
 #
 # This script will do the following:
-# 1. Remove backups older than X days
-# 2. Remove backups older than X weeks
+# - Remove backups older than X days
+# - Remove backups older than X weeks
 #
-# @usage: backup-cleanup [OPTIONS]
-#
-# Options:
-#   -dir, --directories  Path to backup directories
-#   -db, --databases     Path to backup databases
-#   -d, --days           Number of days to keep daily backups
-#   -w, --weeks          Number of days to keep weekly backups
-#   -h, --help           Display this help message
-#   -v, --version        Display version information
+# #### options:
+# | Short | Long                       | Description
+# | ----- | -------------------------- | ------------------------------------------
+# |  -dir | --directories              | Path to backup directories
+# |  -db  | --databases                | Path to backup databases
+# |  -d    | --days                    | Number of days to keep backups (default: 3)
+# |  -w    | --weeks                   | Number of weeks to keep backups (default: 4)
+# |  -ec   | --example_cron            | Display example cron entry
+# |  -h    | --help                    | Display this help message
+# |  -V    | --version                 | Display version information
 #
 # #### examples:
 # ```bash
-#  /opt/vstacklet/bin/backup/backup-cleanup.sh -dir /backup/directories/ -db /backup/databases/ -d 1 -w 30
+#  /opt/vstacklet/bin/backup/backup-cleanup.sh -dir /backup/directories/ -db /backup/databases/ [ -d 3 ] [ -w 4 ]
 # ```
 #
 # @dependencies: find, xargs, rm
@@ -50,11 +51,11 @@
 # All rights reserved.
 # <END METADATA>
 ################################################################################
-vsbackup_version="$(grep -E '^# @version:' "/opt/vstacklet/bin/backup/vs-backup.sh" | awk '{print $3}')"
+vsbackup_version="$(grep -E '^# @version:' "/opt/vstacklet/bin/backup/vs-backup" | awk '{print $3}')"
 ################################################################################
 # @name: vstacklet::backup::args() (3)
 # process options
-# @description: Process the options passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L67)
+# @description: Process the options passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L67-L113)
 #
 # notes:
 # - This script function is responsible for processing the options passed to the
@@ -90,16 +91,20 @@ vstacklet::backup::args() {
 			;;
 		-w | --weeks)
 			# Number of days to keep weekly backups
-			#WEEKS=30
+			#WEEKS=4
 			shift
 			WEEKS="$1"
 			shift
+			;;
+		-ec | --example_cron)
+			vstacklet::backup::example_cron
+			exit 0
 			;;
 		-h | --help)
 			vstacklet::backup::usage
 			exit 0
 			;;
-		-v | --version)
+		-V | --version)
 			echo "vStacklet Backup Version: ${vsbackup_version}"
 			exit 0
 			;;
@@ -114,7 +119,7 @@ vstacklet::backup::args() {
 
 ##################################################################################
 # @name: vstacklet::environment::functions (2)
-# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L121)
+# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L121-L200)
 # @script-note: This function is required for the installation of the vStacklet software.
 # @break
 ##################################################################################
@@ -201,8 +206,7 @@ vstacklet::environment::functions() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkroot (1)
-# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L208)
-# @script-note: This function is required for the installation of the vStacklet software.
+# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L207-L212)
 # @break
 ##################################################################################
 vstacklet::environment::checkroot() {
@@ -212,27 +216,82 @@ vstacklet::environment::checkroot() {
 	}
 }
 
+##################################################################################
+# @name: vstacklet::backup::clean (4)
+# @description: Main function for cleaning up backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L219-L239)
+# @break
+##################################################################################
 vstacklet::backup::clean() {
-	# Remove directory backups older than X days
-	vstacklet::shell::text::white "Removing directory backups older than ${DAYS:-3} days..."
-	find "${DIRS:-/backup/directories/}" -name '*.tgz' -mtime +"${DAYS:-3}" -exec rm -f {} \;
-	# Remove database backups older than X days
-	vstacklet::shell::text::white "Removing database backups older than ${DAYS:-3} days..."
-	find "${DBS:-/backup/databases/}" -name '*.gz' -mtime +"${DAYS:-3}" -exec rm -f {} \;
-	# Remove weekly backups older than X days
-	vstacklet::shell::text::white "Removing weekly backups older than ${WEEKS:-30} days..."
-	find "${WEEKLY:-/backup/weekly/}" -name '*.gz' -mtime +"${WEEKS:-30}" -exec rm -f {} \;
+	[[ -n "${DAYS}" ]] && {
+		declare -i DAYS
+		DAYS="${DAYS:-3}"
+		# Remove directory backups older than X days
+		vstacklet::shell::text::white "Removing directory backups older than ${DAYS:-3} days..."
+		find "${DIRS:-/backup/directories/}" -name '*.tgz' -mtime +"${DAYS:-3}" -exec rm -f {} \;
+		# Remove database backups older than X days
+		vstacklet::shell::text::white "Removing database backups older than ${DAYS:-3} days..."
+		find "${DBS:-/backup/databases/}" -name '*.gz' -mtime +"${DAYS:-3}" -exec rm -f {} \;
+	}
+	[[ -n "${WEEKS}" ]] && {
+		# Convert weeks to days
+		declare -i DAYS
+		DAYS=$(echo "(7 * ${WEEKS:-4})" | bc)
+		# Remove directory backups older than X days (converted from weeks)
+		vstacklet::shell::text::white "Removing daily backups older than ${DAYS:-7} weeks..."
+		find "${DIRS:-/backup/directories/}" -name '*.gz' -mtime +"${DAYS:-7}" -exec rm -f {} \;
+		vstacklet::shell::text::white "Removing database backups older than ${DAYS:-7} weeks..."
+		find "${DBS:-/backup/databases/}" -name '*.gz' -mtime +"${DAYS:-7}" -exec rm -f {} \;
+	}
 }
 
+##################################################################################
+# @name: vstacklet::backup::usage
+# @description: Display usage information for the script.
+# @break
+##################################################################################
 vstacklet::backup::usage() {
-	echo "Usage: backup-cleanup [OPTIONS]"
-	echo "Options:"
-	echo "  -dir, --directories  Path to backup directories"
-	echo "  -db, --databases     Path to backup databases"
-	echo "  -d, --days           Number of days to keep daily backups"
-	echo "  -w, --weeks          Number of days to keep weekly backups"
-	echo "  -h, --help           Display this help message"
-	echo "  -v, --version        Display version information"
+	vstacklet::shell::text::white "Usage: ${0} [OPTION]..."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "Clean up old backups older than X days or X weeks."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "Options:"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  -h, --help"
+	vstacklet::shell::text::white "    Display this help message."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  -dir, --directories"
+	vstacklet::shell::text::white "    Path to backup directories.
+	Default: /backup/directories/"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  -db, --databases"
+	vstacklet::shell::text::white "    Path to backup databases.
+	Default: /backup/databases/"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  -d, --days"
+	vstacklet::shell::text::white "    Number of days to keep backups.
+	Default: 3"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  -w, --weeks"
+	vstacklet::shell::text::white "    Number of weeks to keep backups.
+	Default: 4"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  -V, --version"
+	vstacklet::shell::text::white "    Display version information."
+	vstacklet::shell::misc::nl
+}
+
+##################################################################################
+# @name: vstacklet::backup::example_cron
+# @description: Example cron job for the backup script.
+# @break
+##################################################################################
+vstacklet::backup::example_cron() {
+	vstacklet::shell::text::white "Example Cron Job:"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  # Example Schedule"
+	vstacklet::shell::text::white "  # Remove Backups Greater than 3 Days Old Daily @ 10:00 PM"
+	vstacklet::shell::text::white "  0 22 * * * root /opt/vstacklet/bin/backup/backup-cleanup.sh -dir \"/backup/directories/\" -db \"/backup/databases/\" -d 3"
+	vstacklet::shell::misc::nl
 }
 
 ################################################################################
@@ -242,9 +301,3 @@ vstacklet::environment::checkroot #(1)
 vstacklet::environment::functions #(2)
 vstacklet::backup::args "$@"
 vstacklet::backup::clean
-
-################################################################################
-# Example Cronjob
-# Remove Backups Greater than 1 Days Old Daily @ 10:00 PM
-# 0 22 * * * root /opt/vstacklet/bin/backup/backup-cleanup.sh -dir /backup/directories/ -db /backup/databases/ -d 1 -w 30
-################################################################################

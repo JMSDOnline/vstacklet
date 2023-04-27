@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: database-backup.sh
-# @version: 3.1.1131
+# @version: 3.1.1132
 # @description: This script will create a backup of all databases.
 # Please ensure you have read the documentation before continuing.
 #
@@ -370,7 +370,7 @@ vstacklet::backup::main() {
 vstacklet::backup::usage() {
 	vstacklet::shell::text::white "Usage: ${0} [OPTION]..."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "Backup specified directories to a local directory."
+	vstacklet::shell::text::white "Backup specified database to a local directory."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "Options:"
 	vstacklet::shell::misc::nl
