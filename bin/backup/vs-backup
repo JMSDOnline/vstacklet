@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1108
+# @version: 3.1.1109
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 # VS-Backup can be used on any server to backup files, directories and mysql
@@ -270,7 +270,7 @@ vstacklet::backup::variables() {
 			DB_RETENTION_PATH_OPTIONS="${1}"
 			;;
 		*)
-			vstacklet::shell::text::red "Invalid argument: ${1}"
+			vstacklet::shell::text::error "Invalid argument: ${1}"
 			vstacklet::shell::misc::nl
 			vstacklet::backup::usage
 			exit 1
@@ -450,17 +450,17 @@ vstacklet::backup::files() {
 	# @description: The checks for files used in the backup script.
 	##################################################################################
 	# check if the destination directory exists
-	[ ! -d "${F_DIR_DEST}" ] && vstacklet::shell::text::red "Destination directory does not exist: ${F_DIR_DEST}" && vstacklet::shell::misc::nl && exit 1
+	[ ! -d "${F_DIR_DEST}" ] && vstacklet::shell::text::error "Destination directory does not exist: ${F_DIR_DEST}" && vstacklet::shell::misc::nl && exit 1
 	# check if the temporary directory exists
-	[ ! -d "${F_TMP_DIR_DEST}" ] && vstacklet::shell::text::red "Temporary directory does not exist: ${F_TMP_DIR_DEST}" && vstacklet::shell::misc::nl && exit 1
+	[ ! -d "${F_TMP_DIR_DEST}" ] && vstacklet::shell::text::error "Temporary directory does not exist: ${F_TMP_DIR_DEST}" && vstacklet::shell::misc::nl && exit 1
 	# check if the backup source directory exists
-	[ ! -d "${DIR_BFILES}" ] && vstacklet::shell::text::red "Backup source directory does not exist: ${DIR_BFILES}" && vstacklet::shell::misc::nl && exit 1
+	[ ! -d "${DIR_BFILES}" ] && vstacklet::shell::text::error "Backup source directory does not exist: ${DIR_BFILES}" && vstacklet::shell::misc::nl && exit 1
 	# check if the backup source directory is empty
-	[ -z "$(ls -A "${DIR_BFILES}")" ] && vstacklet::shell::text::red "Backup source directory is empty: ${DIR_BFILES}" && vstacklet::shell::misc::nl && exit 1
+	[ -z "$(ls -A "${DIR_BFILES}")" ] && vstacklet::shell::text::error "Backup source directory is empty: ${DIR_BFILES}" && vstacklet::shell::misc::nl && exit 1
 	# check if the destination backup package exists
-	[ -f "${F_DIR_DEST}/${F_PACKAGE}" ] && vstacklet::shell::text::red "Backup package already exists: ${F_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ -f "${F_DIR_DEST}/${F_PACKAGE}" ] && vstacklet::shell::text::error "Backup package already exists: ${F_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
 	# check if the temporary backup package exists
-	[ -f "${F_TMP_DIR_DEST}/${F_PACKAGE}" ] && vstacklet::shell::text::red "Backup package already exists: ${F_TMP_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ -f "${F_TMP_DIR_DEST}/${F_PACKAGE}" ] && vstacklet::shell::text::error "Backup package already exists: ${F_TMP_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
 	##################################################################################
 	# @name: vstacklet::backup::file::backup (c)
 	# @description: The backup process for files used in the backup script.
@@ -474,15 +474,15 @@ vstacklet::backup::files() {
 	# @description: The error checking for files used in the backup script.
 	##################################################################################
 	# check if the destination backup package exists
-	[ ! -f "${F_DIR_DEST}/${F_PACKAGE}" ] && vstacklet::shell::text::red "Backup package does not exist: ${F_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ ! -f "${F_DIR_DEST}/${F_PACKAGE}" ] && vstacklet::shell::text::error "Backup package does not exist: ${F_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
 	# check if the temporary backup package exists
-	[ ! -f "${F_TMP_DIR_DEST}/${F_PACKAGE}" ] && vstacklet::shell::text::red "Backup package does not exist: ${F_TMP_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ ! -f "${F_TMP_DIR_DEST}/${F_PACKAGE}" ] && vstacklet::shell::text::error "Backup package does not exist: ${F_TMP_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
 	# check if the destination backup package is empty
-	[ -z "$(ls -A "${F_DIR_DEST}/${F_PACKAGE}")" ] && vstacklet::shell::text::red "Backup package is empty: ${F_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ -z "$(ls -A "${F_DIR_DEST}/${F_PACKAGE}")" ] && vstacklet::shell::text::error "Backup package is empty: ${F_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
 	# check if the temporary backup package is empty
-	[ -z "$(ls -A "${F_TMP_DIR_DEST}/${F_PACKAGE}")" ] && vstacklet::shell::text::red "Backup package is empty: ${F_TMP_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ -z "$(ls -A "${F_TMP_DIR_DEST}/${F_PACKAGE}")" ] && vstacklet::shell::text::error "Backup package is empty: ${F_TMP_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
 	# check if the backup package is the correct size
-	[ "$(stat -c%s "${F_DIR_DEST}/${F_PACKAGE}")" != "$(stat -c%s "${F_TMP_DIR_DEST}/${F_PACKAGE}")" ] && vstacklet::shell::text::red "Backup package is the incorrect size: ${F_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ "$(stat -c%s "${F_DIR_DEST}/${F_PACKAGE}")" != "$(stat -c%s "${F_TMP_DIR_DEST}/${F_PACKAGE}")" ] && vstacklet::shell::text::error "Backup package is the incorrect size: ${F_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
 	##################################################################################
 	# @name: vstacklet::backup::file::success (e)
 	# @description: The backup process for files used in the backup script.
@@ -547,7 +547,7 @@ vstacklet::backup::database() {
 			vstacklet::shell::text::green "The backup of ${DB} was successful!"
 			vstacklet::shell::misc::nl
 		else
-			vstacklet::shell::text::red "The backup of ${DB} failed!"
+			vstacklet::shell::text::error "The backup of ${DB} failed!"
 			vstacklet::shell::misc::nl
 		fi
 	done
@@ -604,7 +604,7 @@ vstacklet::backup::retention() {
 			vstacklet::shell::misc::nl
 		fi
 	else
-		vstacklet::shell::text::red "The retention failed!"
+		vstacklet::shell::text::error "The retention failed!"
 		vstacklet::shell::misc::nl
 	fi
 }
