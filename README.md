@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.675
-  Build: 675
+  Version: v3.1.1.686
+  Build: 686
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 
@@ -198,7 +198,7 @@ cd /etc/vstacklet/packages/backup && ./vstacklet-backup-standalone.sh
 - [x] Sendmail
 - [x] IonCube Loader (w/ option prompt)
 - [x] Improve script structure
-- [x] FTP Server (w/ option prompt) `-fpt | --ftp_port` will set the port AND install vsftpd
+- [x] FTP Server (w/ option prompt) `-ftp | --ftp_port` will set the port AND install vsftpd
 - [x] phpMyAdmin (w/ option prompt) `-pma | --phpmyadmin`
 - [x] CSF (w/ option prompt) `-csf | --csf`
 - [x] VS-Backup standalone kit (included in FULL Kit also)

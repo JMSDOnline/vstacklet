@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1083
+# vs-backup - v3.1.1096
 
 
 ---
@@ -15,6 +15,9 @@ vStacklet Backup Script
 This script will do the following:
 - Backup your database.
 - Backup your files.
+- Compress the backup files. (default: tar.gz - for files and sql.gz - for database)
+- Automatically encrypt the backup files. (password: set to your database password by default - `-dbpass`)
+- Retain the backup files based on the retention options. (default: 7 days)
 
 ---
 
@@ -22,14 +25,17 @@ This script will do the following:
 | Short | Long                       | Description
 | ----- | -------------------------- | ------------------------------------------
 |  -db   | --database                 | Backup the database.
-|  -dbuser   | --database-user          | The database user.
-|  -dbpass   | --database-password      | The database password.
+|  -dbuser   | --database_user          | The database user.
+|  -dbpass   | --database_password      | The database password.
 |  -dbdbu   | --database_backup_directory   | The database destination backup directory. (default: /backup/databases)
 |  -dbtbu   | --database_temporary_directory  | The database temporary backup directory. (default: /tmp/vstacklet/backup/databases)
 |  -f   | --files                    | Backup files in the web root directory.
 |  -fdbu   | --file_backup_directory   | The files destination backup directory. (default: /backup/files)
 |  -ftbu   | --file_temporary_directory  | The files temporary backup directory. (default: /tmp/vstacklet/backup/files)
 |  -a   | --all                      | Backup all files in the web root directory.
+|  -r   | --retention                | Retention options. (default: 7)
+|  -frpo   | --file_retention_path_options  | Retention path options for the files. (default: `-type f -name '*.tar.gz'`)
+|  -dbrpo   | --database_retention_path_options  | Retention path options for the database. (default: `-type f -name '*.sql.gz'`)
 |  -h   | --help                     | Display the help menu.
 |  -V   | --version                  | Display the version.
 
@@ -46,85 +52,89 @@ This script will do the following:
 
 ### vstacklet::environment::functions()
 
-Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L67-L146)
+Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L72-L151)
 
 ---
 
 ### vstacklet::environment::checkroot()
 
-Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L153-L158)
+Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L158-L163)
 
 ---
 
 ### vstacklet::backup::variables()
 
-Set the variables for the backup.
+Set the variables for the backup. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L170-L288)
 
 ---
 
 ### vstacklet::backup::default::variables()
 
-The variables used in the backup script.
+The variables used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L295-L346)
 
 ---
 
 ### vstacklet::backup::main::checks()
 
-The checks used in the backup script.
+The checks used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L353-L402)
 
 ---
 
 ### vstacklet::intro()
 
-Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L201-L212)
+Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L409-L427)
 
 ---
 
 ### vstacklet::backup::files()
 
-Backup the specified files.
+Backup the specified files. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L435-L493)
 
 ---
 
 ### vstacklet::backup::database()
+
 
 ---
 
 ### vstacklet::backup::retention()
 
 The retention used in the backup script. This is used to delete
-old backups.
+old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L561-L587)
 
 note:
 - The retention is based on the modification time of the file.
-- Default retention is 7 days.
+- Default retention is 7 days. This can be changed by setting the `-r` variable.
+  - example: `-r 14` would set the retention to 14 days.
 - The retention path options are used to exclude directories from the retention.
 - Default retention paths are /backup/files/ and /backup/databases/. These can
 be changed by setting the `-fdbu` and `-dbdbu` variables.
+  - example: `-fdbu /backup/files/backup/` would create and set the file retention
+path to /backup/files/backup/.
 
 ---
 
 ### vstacklet::outro()
 
-Prints the outro message.
+Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L594-L599)
 
 ---
 
 ### vstacklet::backup::usage()
 
-Display the usage of the backup script.
+Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L606-L650)
 
 ---
 
 ### vstacklet::backup::example_cron()
 
-Example cron job for the backup script.
+Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L657-L665)
 
 ---
 
 ### vstacklet::backup::version()
 
-Display the version of the backup script.
+Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L672-L678)
 
 ---
 
