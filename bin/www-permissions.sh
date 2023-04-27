@@ -2,14 +2,14 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1061
+# @version: 3.1.1063
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html}.
 # Please ensure you have read the documentation before continuing.
 #
 # @project_name: vstacklet
 #
-# @path: setup/www-permissions.sh
+# @path: bin/www-permissions.sh
 #
 # @brief: Quickly create a new www-data group and set permissions for
 # ${www_root:-/var/www/html}.
@@ -100,8 +100,6 @@ vstacklet::wwwperms::args() {
 ##################################################################################
 # @name: vstacklet::environment::functions (2)
 # @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L108-L178)
-# @script-note: This function is required for the installation of
-# the vStacklet software.
 # @break
 ##################################################################################
 vstacklet::environment::functions() {
@@ -188,8 +186,6 @@ vstacklet::environment::functions() {
 ##################################################################################
 # @name: vstacklet::environment::checkroot (1)
 # @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L187-L192)
-# @script-note: This function is required for the installation of
-# the vStacklet software.
 # @break
 ##################################################################################
 vstacklet::environment::checkroot() {
@@ -202,8 +198,6 @@ vstacklet::environment::checkroot() {
 ##################################################################################
 # @name: vstacklet::intro (4)
 # @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L201-L212)
-# @script-note: This function is required for the installation of
-# the vStacklet software.
 # @break
 ##################################################################################
 vstacklet::intro() {

@@ -1,15 +1,15 @@
 #!/bin/bash
 ################################################################################
 # <START METADATA>
-# @file_name: www-permissions.sh
-# @version: 3.1.1097
+# @file_name: backup-cleanup.sh
+# @version: 3.1.1100
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html}.
 # Please ensure you have read the documentation before continuing.
 #
 # @project_name: vstacklet
 #
-# @path: bin/backup/backup-cleanup
+# @path: bin/backup/backup-cleanup.sh
 #
 # @brief: Cleanup old backups
 #
