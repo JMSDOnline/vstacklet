@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1107
+# @version: 3.1.1108
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 # VS-Backup can be used on any server to backup files, directories and mysql
@@ -493,7 +493,7 @@ vstacklet::backup::files() {
 
 ################################################################################
 # @name: vstacklet::backup::database (8)
-# @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L507-L560)
+# @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L512-L565)
 #
 # note: This function will additionally package the database backup into a tarball
 # and compress it on the fly, then encrypt it. The tarball will be moved to the
@@ -502,10 +502,11 @@ vstacklet::backup::files() {
 # ```
 # openssl enc -d -aes-256-cbc -in "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}.enc" -out "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}" -k "${DB_PASS}"
 # ```
-# - To decompress the tarball, use the following command example: (replace the variables)
+# - To extract the tarball, use the following command example: (replace the variables)
 # ```
-# pv -f -W -q "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}" -C "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}"
+# tar -xzf "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}" -C "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}"
 # ```
+#
 # @break
 ################################################################################
 vstacklet::backup::database() {
@@ -556,8 +557,8 @@ vstacklet::backup::database() {
 	# - dependency required: pv (pipe viewer) - https://www.ivarch.com/programs/pv.shtml
 	#   - install with: `sudo apt-get install pv`
 	##################################################################################
-	#DECOMPRESSION="pv"
-	#DECOMPRESSION_OPTIONS="-f -W -q"
+	#DECOMPRESSION="tar"
+	#DECOMPRESSION_OPTIONS="-xzf"
 	#openssl enc -d -aes-256-cbc -in "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}.enc" -out "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}" -k "${DB_PASS}" &&
 	#	${DECOMPRESSION} ${DECOMPRESSION_OPTIONS} "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}" &&
 	#	rm -f "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}"
@@ -566,7 +567,7 @@ vstacklet::backup::database() {
 ##################################################################################
 # @name: vstacklet::backup::retention (9)
 # @description: The retention used in the backup script. This is used to delete
-# old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L579-L605)
+# old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L584-L610)
 #
 # note:
 # - The retention is based on the modification time of the file.
@@ -610,7 +611,7 @@ vstacklet::backup::retention() {
 
 ##################################################################################
 # @name: vstacklet::outro (10)
-# @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L612-L617)
+# @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L617-L622)
 # @break
 ##################################################################################
 vstacklet::outro() {
@@ -622,7 +623,7 @@ vstacklet::outro() {
 
 ##################################################################################
 # @name: vstacklet::backup::usage
-# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L624-L668)
+# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L629-L673)
 # @break
 ##################################################################################
 vstacklet::backup::usage() {
@@ -673,7 +674,7 @@ vstacklet::backup::usage() {
 
 ##################################################################################
 # @name: vstacklet::backup::example_cron
-# @description: Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L675-L683)
+# @description: Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L680-L688)
 # @break
 ##################################################################################
 vstacklet::backup::example_cron() {
@@ -688,7 +689,7 @@ vstacklet::backup::example_cron() {
 
 ##################################################################################
 # @name: vstacklet::backup::version
-# @description: Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L690-L696)
+# @description: Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L695-L701)
 # @break
 ##################################################################################
 vstacklet::backup::version() {
