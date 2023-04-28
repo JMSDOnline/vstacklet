@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1139
+# @version: 3.1.1140
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -317,7 +317,7 @@ vstacklet::backup::default::variables() {
 	# @script-note: set the database list
 	db_list=("${db_list:-$(mysql -e "show databases;" | grep -Ev "(Database|information_schema|performance_schema|phpmyadmin|mysql|sys)")}")
 	# @script-note: set the backup file name
-	db_package="${db_package:-$(date +%Y-%m-%d-%H-%M-%S).sql.${compression_extension:-gz}}"
+	db_package="${db_package:-sql.$(date +%Y-%m-%d-%H-%M-%S).${compression_extension:-gz}}"
 	# @script-note: set the database user
 	db_user="${db_user:-root}"
 	# @script-note: set the database password
