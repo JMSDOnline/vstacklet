@@ -15,7 +15,8 @@ Please ensure you have read the documentation before continuing.
 ### vstacklet::vsbackup::standalone()
 
 This function will download the latest version of vs-backup
-and install it on your server.
+and install it on your server. It will also convert vs-backup shell scripts
+to executable. From there, you can run vs-backup from anywhere on your server.
 
 ---
 
