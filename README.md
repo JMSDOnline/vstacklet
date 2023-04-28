@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.719
-  Build: 719
+  Version: v3.1.1.720
+  Build: 720
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 
@@ -164,7 +164,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/developmen
 vstacklet -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -phpmyadmin -ioncube
 ```
 
-To view the available options, run the script with the `-h` option or better yet, view the documentation [here]!(https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
+To view the available options, run the script with the `-h` option or better yet, view the documentation [here](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)! ( *WIP* )
 
 
 ---
