@@ -1,72 +1,91 @@
 #!/bin/bash
+################################################################################
+# <START METADATA>
+# @file_name: vstacklet-backup-standalone.sh
+# @version: 3.1.1136
+# @description: This script will grab the latest version of vs-backup and
+# install it on your server.
 #
-# [VStacklet Varnish LEMP Stack Prep Script]
+# @project_name: vstacklet
 #
-# GitHub:   https://github.com/JMSDOnline/vstacklet
-# Author:   Jason Matthews
-# URL:      https://jmsolodesigns.com
+# @brief: vs-backup can be used on any server to backup files, directories and mysql
+# databases, but it is designed to work with the vStacklet server stack.
+# This script will backup your database and files.
+# Please ensure you have read the documentation before continuing.
 #
+# @path: bin/backup/vstacklet-backup-standalone.sh
+#
+# - [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
+# - [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
+#
+# This script will do the following:
+# - Download the latest version of vs-backup.
+# - Convert vs-backup shell scripts to executable.
+# - Move `vs-backup` to /usr/local/bin for system execution.
+# - From there, you can run `vs-backup` from anywhere on your server to do the following:
+#   - Backup your database.
+#   - Backup your files.
+#   - Compress the backup files. (default: tar.gz - for files and sql.gz - for database)
+#   - Automatically encrypt the backup files. (password: set to your database password by default - `-dbpass`)
+#   - Retain the backup files based on the retention options. (default: 7 days)
+#   - see `vs-backup -h` for more information.
+#
+# @save_tasks:
+#  automated_versioning: true
+#  automated_documentation: true
+#
+# @build_tasks:
+#  automated_comment_strip: false
+#  automated_encryption: false
+#
+# @author: Jason Matthews (JMSolo)
+# @author_contact: https://github.com/JMSDOnline/vstacklet
+#
+# @license: MIT License (Included in LICENSE)
+# Copyright (C) 2016-2023, Jason Matthews
+# All rights reserved.
+# <END METADATA>
+################################################################################
 
-#Script Console Colors
-normal=$(tput sgr0);
-underline=$(tput smul);
+################################################################################
+# @name: vstacklet::vsbackup::standalone
+# @description: This function will download the latest version of vs-backup
+# and install it on your server.
+# @args: none
+#
+# @break
+################################################################################
+vstacklet::vsbackup::standalone() {
+	# @script-note: download the latest version of vs-backup
+	curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/backup/vs-backup" > /usr/local/bin/vs-backup
+	# @script-note: convert vs-backup shell scripts to executable
+	chmod +x /usr/local/bin/vs-backup
+}
 
-sub_title=${bold}${yellow};
-repo_title=${black}${on_green};
+################################################################################
+# @name: vstacklet::vsbackup::outro
+# @description: This function will display the outro.
+# @args: none
+#
+# @break
+################################################################################
+vstacklet::vsbackup::outro() {
+	# @script-note: display the outro
+	echo "vs-backup has been installed on your server."
+	echo "You can now run vs-backup from anywhere on your server."
+	echo "Please see the documentation for more information."
+	echo ""
+	echo "Documentation can be found here:"
+	echo "https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/backup/vs-backup.md"
+	echo ""
+	echo "You can also run the following command for more information:"
+	echo "vs-backup -h"
+	echo ""
+}
 
-PROGNAME=${0##*/}
-VERSION="0.1"
-
-cat <<EOF
-  $PROGNAME ver. $VERSION
-  This is a standalone backup utility for vstacklet.
-  You do not need VStacklet (full) to use this utility.
-
-  The primary use of this script is for running
-  manual backups on user specified directories
-  and databases.
-
-  This script will also package your directories
-  and databases into one archive and perform a
-  backup cleanup.
-
-  Please review the following scripts and make the
-  necessary changes to ensure successful backups.
-
-  ${underline}Directory Backup:${normal}
-  /root/vstacklet/files-backup.sh
-
-  ${underline}Database Backup:${normal}
-  /root/vstacklet/database-backup.sh
-EOF
-
-# Create vstacklet & backup directory strucutre
-mkdir -p /etc/vstacklet /backup/{directories,databases}
-mkdir -p /tmp/vstacklet /tmp/vstacklet/backup/{directories,databases}
-
-# Download the needed scripts for VStacklet
-git clone https://github.com/JMSDOnline/vstacklet_packages.git /etc/vstacklet >/dev/null 2>&1;
-cd /etc/vstacklet/vstacklet_packages/backup
-
-# Convert all shell scripts to executable
-chmod +x *.sh
-chmod +x vs-backup
-
-# Move `vs-backup` executable to /usr/local/bin for system execution
-if [[ -f /etc/vstacklet/packages/backup/vs-backup ]]; then
-  ln -sf /etc/vstacklet/packages/backup/vs-backup /usr/local/bin/vs-backup
-  else
-  ln -s /etc/vstacklet/packages/backup/vs-backup /usr/local/bin/vs-backup
-fi
-
-###############################################################################
-echo
-echo
-echo "VS-Backup is now installed. Please make the needed changes in";
-echo "the required files.";
-echo
-echo "Once changes are perform, you can run the script by simply typing:";
-echo "${bold}${green}vs-backup${normal}";
-echo
-echo
-###############################################################################
+################################################################################
+# @description: Calls functions in required order.
+# @break
+################################################################################
+vstacklet::vsbackup::standalone
+vstacklet::vsbackup::outro
