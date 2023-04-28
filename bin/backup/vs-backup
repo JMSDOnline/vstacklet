@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1124
+# @version: 3.1.1128
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 # VS-Backup can be used on any server to backup files, directories and mysql
@@ -196,6 +196,7 @@ vstacklet::backup::variables() {
 			;;
 		-f | --file)
 			FILE="${2}"
+			declare -gi BACKUP_FILE_YES="1"
 			shift
 			shift
 			;;
@@ -212,6 +213,7 @@ vstacklet::backup::variables() {
 			;;
 		-db | --database)
 			DB="${2}"
+			declare -gi BACKUP_DB_YES="1"
 			shift
 			shift
 			;;
@@ -300,8 +302,8 @@ vstacklet::backup::variables() {
 ##################################################################################
 vstacklet::backup::default::variables() {
 	### FILES/DIRECTORIES TO BACKUP
-	F_TMP_DIR_DEST="${F_TMP_DIR_DEST:-/tmp/vstacklet/backup/files}"
-	F_DIR_DEST="${F_DIR_DEST:-/backup/files}"
+	F_TMP_DIR_DEST="${F_TMP_DIR_DEST:-/tmp/vstacklet/backup/files/}"
+	F_DIR_DEST="${F_DIR_DEST:-/backup/files/}"
 	DIR_BFILES="${DIR_BFILES:-/var/www/html}"
 	F_PACKAGE="${F_PACKAGE:-$(date +%Y-%m-%d-%H-%M-%S).tar.gz}"
 	DESTINATION="${DESTINATION:-false}"
@@ -574,20 +576,20 @@ vstacklet::backup::retention() {
 	vstacklet::shell::text::white "Checking retention..."
 	# Set the retention options.
 	# find files older than 7 days and delete them
-	[[ -n "${FILE}" ]] && find "${FILE_RETENTION_PATH:-${F_DIR_DEST:-/backup/files/}}" -type f -name *.${FILE_RETENTION_PATH_EXTENSION} -mtime +${RETENTION} -exec rm -f {} \;
-	[[ -n "${DB}" ]] && find "${DB_RETENTION_PATH:-${DB_DIR_DEST:-/backup/databases/}}" -type f -name *.${DB_RETENTION_PATH_EXTENSION} -mtime +${RETENTION} -exec rm -f {} \;
+	[[ "${BACKUP_FILE_YES}" -eq 1 ]] && find "${FILE_RETENTION_PATH:-${F_DIR_DEST:-/backup/files/}}" -type f -name *.${FILE_RETENTION_PATH_EXTENSION} -mtime +${RETENTION} -exec rm -f {} \;
+	[[ "${BACKUP_DB_YES}" -eq 1 ]] && find "${DB_RETENTION_PATH:-${DB_DIR_DEST:-/backup/databases/}}" -type f -name *.${DB_RETENTION_PATH_EXTENSION} -mtime +${RETENTION} -exec rm -f {} \;
 	# Check if the retention succeeded.
 	#if [[ "${?}" -eq 0 ]]; then
 	if [[ -z "$(find "${FILE_RETENTION_PATH:-${F_DIR_DEST:-/backup/files/}}" -type f -name *.${FILE_RETENTION_PATH_EXTENSION} -mtime +${RETENTION})" ]] && [[ -z "$(find "${DB_RETENTION_PATH:-${DB_DIR_DEST:-/backup/databases/}}" -type f -name *.${DB_RETENTION_PATH_EXTENSION} -mtime +${RETENTION})" ]]; then
 		vstacklet::shell::text::success "The retention was successful!"
 		vstacklet::shell::misc::nl
 		# Long listing of files in files and database backup directories to check file sizes.
-		if [[ -n "${FILE}" ]]; then
+		if [[ "${BACKUP_FILE_YES}" -eq 1 ]]; then
 			vstacklet::shell::text::white "The following files remain in ${F_DIR_DEST}:"
 			ls -lh "${F_DIR_DEST:-/backup/files/}"
 			vstacklet::shell::misc::nl
 		fi
-		if [[ -n "${DB}" ]]; then
+		if [[ "${BACKUP_DB_YES}" -eq 1 ]]; then
 			vstacklet::shell::text::white "The following files remain in ${DB_DIR_DEST}:"
 			ls -lh "${DB_DIR_DEST:-/backup/databases/}"
 			vstacklet::shell::misc::nl
@@ -690,13 +692,13 @@ vstacklet::backup::version() {
 # @description: Calls functions in required order.
 # @break
 ################################################################################
-vstacklet::environment::checkroot               #(1)
-vstacklet::environment::functions               #(2)
-vstacklet::backup::variables "${@}"             #(3)
-vstacklet::backup::default::variables           #(4)
-vstacklet::backup::main::checks                 #(5)
-vstacklet::intro                                #(6)
-[[ -n "${FILE}" ]] && vstacklet::backup::files  #(7)
-[[ -n "${DB}" ]] && vstacklet::backup::database #(8)
-vstacklet::backup::retention                    #(9)
-vstacklet::outro                                #(10)
+vstacklet::environment::checkroot                             #(1)
+vstacklet::environment::functions                             #(2)
+vstacklet::backup::variables "${@}"                           #(3)
+vstacklet::backup::default::variables                         #(4)
+vstacklet::backup::main::checks                               #(5)
+vstacklet::intro                                              #(6)
+[[ "${BACKUP_FILE_YES}" -eq 1 ]] && vstacklet::backup::file   #(7)
+[[ "${BACKUP_DB_YES}" -eq 1 ]] && vstacklet::backup::database #(8)
+vstacklet::backup::retention                                  #(9)
+vstacklet::outro                                              #(10)
