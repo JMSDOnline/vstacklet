@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.717
-  Build: 717
+  Version: v3.1.1.719
+  Build: 719
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 
@@ -37,6 +37,8 @@ Debian:
 > ### HEADS UP
 >
 > vStacklet for Ubuntu 16.04 and Debian 8 has been deprecated. This is due to Ubuntu 20.04 and Debian 11 now becoming more common place with at least 90% of the providers on the market. Additionally, SSL creation and install in the script has been disabled until I have LetsEncrypt fully integrated, which is currently an active WIP.
+>
+> vStacklet is a utility for quickly getting a server with wordpress installed deployed. As is the naure of this script, it is not intended to be a modular script. It is intended to be a full kit that installs everything you need to get a server up and running (not individual components 1 at a time - though it is in the pipeline). If you are looking for a modular script, I recommend [Quick LEMP](https://github.com/jbradach/quick-lemp/) as it is the script that inspired vStacklet.
 
 ## What is vStacklet?
 
@@ -79,7 +81,7 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Installs and enables Memcached Cache and fine-tuning for PHP7.4 *or* PHP8.1. (default)
 - Installs and enables IonCube Loader [*optional*]
 - Installs and configures phpMyAdmin
-- Installs choice of database: MariaDB, MySQL, PostgreSQL, or Redis [*optional*]
+- Installs choice of database: MariaDB or MySQL (PostgreSQL, or Redis - experimental) [*optional*]
 - Installs and configures CSF (Config Server Firewall) - prepares ports used for vStacklet as well as informing your entered email for security alerts.
 - Installs and enables (PHP) Sendmail [*optional*] (default to install if `-csf | --csf` is used)
 - Supports IPv6 by default.
@@ -88,14 +90,13 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Installs and stages database for WordPress. [*optional*] (active build - unlike other options that are passive with the flags used. This will change when the `--non-interactive` flag [WIP] is added.)
 - Easy to configure & run backup executable **vs-backup** for data-protection.
 
-**VS-Backup** - Installs scripts to help manage and automate server/site backups
-Updated: ~~(*coming soon as a single script*)~~ Added as standalone and included in full kit.
+**VS-Backup** - Installs a single script to help manage and automate server/site backups.
 
-- Backup your files in key locations (ex: /srv/www /etc /root)
-- Backup your databases
-- Package files & databases to one archive
-- Cleanup remaining individual archives
-- Simply configure and type '**vs-backup**' to backup important directories and databases - cron examples included.
+- Backup your files from key locations (ex: /srv/www /etc /root) - with the `-f` flag, you can specify directories to backup.
+- Backup your mysql/mariadb databases - with the `-db` flag, you can specify databases to backup.
+- Set the retention period for your backups - with the `-r` flag, you can specify the number of days to keep backups. (default is 7 days)
+- Cleanup remaining individual archives after the retention period has been reached.
+- Simply download the script below to start backing up important directories and databases - cron examples included with the `-ec` flag!
 
 ![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vs-backup-utility-preview.png "VStacklet VS-Backup Utility")
 
@@ -133,7 +134,7 @@ apt -y install git wget
 
 #### Main branch repository
 
-... then run our main installer ...
+... then run the main installer ...
 
 ```bash
 git clone --recursive https://github.com/JMSDOnline/vstacklet /etc/vstacklet &&
@@ -146,12 +147,11 @@ cd /etc/vstacklet/setup && ./vstacklet.sh
 #### Development branch repository
 
 ```bash
-sudo apt -y install wget &&
-wget -O vstacklet.sh https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/setup/vstacklet.sh &&
-chmod +x vstacklet.sh
+sudo apt -y install curl &&
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/setup/vstacklet.sh)
 ```
 
-... then run our main installer ...
+... then run the main installer ...
 
 > Notes:
 >
@@ -161,31 +161,26 @@ chmod +x vstacklet.sh
 ##### Example
 
 ```bash
-./vstacklet.sh -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -phpmyadmin -ioncube
+vstacklet -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -phpmyadmin -ioncube
 ```
 
-To view the available options, run the script with the -h option or view the documentation [here](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
+To view the available options, run the script with the `-h` option or better yet, view the documentation [here]!(https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
+
 
 ---
 
-### To compile Nginx with Pagespeed [standalone - or rebuild] (dev branch) (currently WIP)
-
-> Please be advised. Recently Nginx 1.11.3 has been released. This script will run the needed processes for build, however, compilation may fail due to newer versions etc. etc. being released.
+### VStacklet VS-Backup - Installs needed script for running directory and database backups
 
 ```bash
-curl -LO https://raw.githubusercontent.com/JMSDOnline/vstacklet_nginx_base/master/pagespeed/[wip]nginx-pagespeed.sh
-chmod +x nginx-pagespeed.sh
-./nginx-pagespeed.sh
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/backup/vstacklet-backup-standalone.sh)
 ```
 
 ---
 
-### VStacklet VS-Backup - Installs needed files for running complete system backups
+### VStacklet VS-Perms - Installs needed files for running www permissions fix
 
 ```bash
-git clone https://github.com/JMSDOnline/vstacklet_packages.git /etc/vstacklet
-chmod +x /etc/vstacklet/packages/backup/vstacklet-backup-standalone.sh
-cd /etc/vstacklet/packages/backup && ./vstacklet-backup-standalone.sh
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/www-permissions-standalone.sh)
 ```
 
 ---
@@ -203,7 +198,7 @@ cd /etc/vstacklet/packages/backup && ./vstacklet-backup-standalone.sh
 - [x] CSF (w/ option prompt) `-csf | --csf`
 - [x] VS-Backup standalone kit (included in FULL Kit also)
 - [ ] Full support for Ubuntu 18.04/20.04 & Debian 9/10/11 [wip]
-- [ ] Nginx + Page Speed building
+- [ ] Nginx with Pagespeed (w/ option prompt) `-pagespeed | --pagespeed`
 - [x] Build SSL with LetsEncrypt
 - [x] Automagically build and setup a WordPress site
 
