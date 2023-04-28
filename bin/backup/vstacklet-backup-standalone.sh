@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet-backup-standalone.sh
-# @version: 3.1.1136
+# @version: 3.1.1137
 # @description: This script will grab the latest version of vs-backup and
 # install it on your server.
 #
@@ -51,7 +51,6 @@
 # @name: vstacklet::vsbackup::standalone
 # @description: This function will download the latest version of vs-backup
 # and install it on your server.
-# @args: none
 #
 # @break
 ################################################################################
@@ -65,7 +64,6 @@ vstacklet::vsbackup::standalone() {
 ################################################################################
 # @name: vstacklet::vsbackup::outro
 # @description: This function will display the outro.
-# @args: none
 #
 # @break
 ################################################################################

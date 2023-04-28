@@ -1,4 +1,4 @@
-# vstacklet-backup-standalone.sh - v3.1.1136
+# vstacklet-backup-standalone.sh - v3.1.1137
 
 
 ---
@@ -17,19 +17,11 @@ Please ensure you have read the documentation before continuing.
 This function will download the latest version of vs-backup
 and install it on your server.
 
-#### arguments:
-
-- # @args: none
-
 ---
 
 ### vstacklet::vsbackup::outro()
 
 This function will display the outro.
-
-#### arguments:
-
-- # @args: none
 
 ---
 
