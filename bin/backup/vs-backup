@@ -163,7 +163,7 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::backup::variables (3)
-# @description: Set the variables for the backup. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L169-L294)
+# @description: Set the variables for the backup. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L169-L296)
 # @break
 ##################################################################################
 vstacklet::backup::variables() {
@@ -297,7 +297,7 @@ vstacklet::backup::variables() {
 
 ##################################################################################
 # @name: vstacklet::backup::default::variables (4)
-# @description: The variables used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L301-L347)
+# @description: The variables used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L303-L351)
 # @break
 ##################################################################################
 vstacklet::backup::default::variables() {
@@ -336,6 +336,8 @@ vstacklet::backup::default::variables() {
 	COMPRESSION="${COMPRESSION:-gzip}"
 	# set the backup file compression options
 	COMPRESSION_OPTIONS="${COMPRESSION_OPTIONS:--9}"
+	# set the compression file extension
+	COMPRESSION_EXTENSION="${COMPRESSION_EXTENSION:-gz}"
 	# set the backup file retention
 	RETENTION="${RETENTION:-7}"
 	# set the backup file retention path
@@ -350,7 +352,7 @@ vstacklet::backup::default::variables() {
 
 ##################################################################################
 # @name: vstacklet::backup::main::checks (5)
-# @description: The checks used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L354-L395)
+# @description: The checks used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L358-L399)
 # @break
 ##################################################################################
 vstacklet::backup::main::checks() {
@@ -398,7 +400,7 @@ vstacklet::backup::main::checks() {
 
 ##################################################################################
 # @name: vstacklet::intro (6)
-# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L402-L419)
+# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L406-L423)
 # @break
 ##################################################################################
 vstacklet::intro() {
@@ -422,7 +424,7 @@ vstacklet::ask::continue() {
 
 ##################################################################################
 # @name: vstacklet::backup::files (7)
-# @description: Backup the specified files. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L426-L483)
+# @description: Backup the specified files. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L430-L487)
 # @break
 ##################################################################################
 vstacklet::backup::files() {
@@ -486,18 +488,18 @@ vstacklet::backup::files() {
 
 ################################################################################
 # @name: vstacklet::backup::database (8)
-# @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L503-L553)
+# @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L507-L557)
 #
 # note: This function will additionally package the database backup into a tarball
 # and compress it on the fly, then encrypt it. The tarball will be moved to the
 # destination directory and the temporary directory will be cleaned up.
 # - To decrypt the tarball, use the following command example: (replace the variables)
 # ```
-# openssl enc -d -pbkdf2 -in "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}.enc" -out "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}" -k "${DB_PASS}"
+# openssl enc -d -pbkdf2 -in "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}.enc" -out "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" -k "${DB_PASS}"
 # ```
 # - To extract the tarball, use the following command example: (replace the variables)
 # ```
-# tar -xzf "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}" -C "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}"
+# tar -xzf "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" -C "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}"
 # ```
 #
 # @break
@@ -519,7 +521,7 @@ vstacklet::backup::database() {
 	# @name: vstacklet::backup::db::message (b)
 	# @description: The message used in the backup script to display the backup status.
 	##################################################################################
-	vstacklet::shell::text::white "Backing up ${DB_LIST[*]} database(s) to ${DB_DIR_DEST}${DATE_STAMP}..."
+	vstacklet::shell::text::white "Backing up ${DB_LIST[*]} database(s) to ${DB_DIR_DEST}${DATE_STAMP}.${COMPRESSION_EXTENSION}..."
 	##################################################################################
 	# @name: vstacklet::backup::db::backup (c)
 	# @description: The backup loop function used in the backup script.
@@ -528,12 +530,12 @@ vstacklet::backup::database() {
 		vstacklet::shell::text::white "Backing up ${DB}..."
 		# Create the backup and compress it on the fly, then encrypt it.
 		# shellcheck disable=SC2086
-		mysqldump ${DB_OPTIONS} -u"${DB_USER}" -p"${DB_PASS}" ${DB} | ${COMPRESSION} ${COMPRESSION_OPTIONS} >"${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}" &&
-			openssl enc -pbkdf2 -salt -in "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}" -out "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}.enc" -k "${DB_PASS}" &&
-			rm -f "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}"
+		mysqldump ${DB_OPTIONS} -u"${DB_USER}" -p"${DB_PASS}" ${DB} | ${COMPRESSION} ${COMPRESSION_OPTIONS} >"${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" &&
+			openssl enc -pbkdf2 -salt -in "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" -out "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}.enc" -k "${DB_PASS}" &&
+			rm -f "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}"
 		# Check if the backup succeeded.
 		#if [[ "${?}" -eq 0 ]]; then # use the below if statement instead of this one for proper success/failure reporting
-		if [[ -f "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}.enc" ]]; then
+		if [[ -f "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}.enc" ]]; then
 			vstacklet::shell::text::success "The backup of ${DB} was successful!"
 			vstacklet::shell::misc::nl
 		else
@@ -549,15 +551,15 @@ vstacklet::backup::database() {
 	##################################################################################
 	#DECOMPRESSION="tar"
 	#DECOMPRESSION_OPTIONS="-xzf"
-	#openssl enc -d -pbkdf2 -in "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}.enc" -out "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}" -k "${DB_PASS}" &&
-	#	${DECOMPRESSION} ${DECOMPRESSION_OPTIONS} "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}" &&
-	#	rm -f "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}${COMPRESSION_EXTENSION}"
+	#openssl enc -d -pbkdf2 -in "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}.enc" -out "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" -k "${DB_PASS}" &&
+	#	${DECOMPRESSION} ${DECOMPRESSION_OPTIONS} "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" &&
+	#	rm -f "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}"
 }
 
 ##################################################################################
 # @name: vstacklet::backup::retention (9)
 # @description: The retention used in the backup script. This is used to delete
-# old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L573-L599)
+# old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L577-L603)
 #
 # note:
 # - The retention is based on the modification time of the file.
@@ -602,7 +604,7 @@ vstacklet::backup::retention() {
 
 ##################################################################################
 # @name: vstacklet::outro (10)
-# @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L606-L611)
+# @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L610-L615)
 # @break
 ##################################################################################
 vstacklet::outro() {
@@ -614,7 +616,7 @@ vstacklet::outro() {
 
 ##################################################################################
 # @name: vstacklet::backup::usage
-# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L618-L659)
+# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L622-L663)
 # @break
 ##################################################################################
 vstacklet::backup::usage() {
@@ -662,7 +664,7 @@ vstacklet::backup::usage() {
 
 ##################################################################################
 # @name: vstacklet::backup::example_cron
-# @description: Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L666-L674)
+# @description: Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L670-L678)
 # @break
 ##################################################################################
 vstacklet::backup::example_cron() {
@@ -677,7 +679,7 @@ vstacklet::backup::example_cron() {
 
 ##################################################################################
 # @name: vstacklet::backup::version
-# @description: Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L681-L687)
+# @description: Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L685-L691)
 # @break
 ##################################################################################
 vstacklet::backup::version() {
