@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1133
+# @version: 3.1.1136
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -14,8 +14,6 @@
 # Please ensure you have read the documentation before continuing.
 #
 # @path: bin/backup/vs-backup
-#
-# @brief: vStacklet Backup Script
 #
 # - [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
 # - [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
@@ -66,7 +64,7 @@
 # <END METADATA>
 ################################################################################
 # @name: vstacklet::environment::functions (2)
-# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L71-L150)
+# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L72-L151)
 # @break
 ##################################################################################
 vstacklet::environment::functions() {
@@ -152,7 +150,7 @@ vstacklet::environment::functions() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkroot (1)
-# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L157-L162)
+# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L158-L163)
 # @break
 ##################################################################################
 vstacklet::environment::checkroot() {
@@ -164,20 +162,20 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::backup::variables (3)
-# @description: Set the variables for the backup. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L169-L296)
+# @description: Set the variables for the backup. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L170-L297)
 # @break
 ##################################################################################
 vstacklet::backup::variables() {
-	HELP="${HELP:-false}"
-	VERSION="${VERSION:-false}"
+	help="${help:-false}"
+	version="${version:-false}"
 	while [ $# -gt 0 ]; do
 		case "${1}" in
 		-V | --version)
-			VERSION=true
+			version=true
 			shift
 			;;
 		-h | --help)
-			HELP=true
+			help=true
 			shift
 			;;
 		-ec | --example_cron)
@@ -185,96 +183,96 @@ vstacklet::backup::variables() {
 			exit 0
 			;;
 		### FILES/DIRECTORIES TO BACKUP
-		-fdbu | --file_backup_directory)
-			DESTINATION="${2}"
+		-ftbu | --file_temporary_directory)
+			f_tmp_dir_dest="${2}"
 			shift
 			shift
 			;;
-		-ftbu | --file_temporary_directory)
-			TEMPORARY="${2}"
+		-fdbu | --file_backup_directory)
+			f_dir_dest="${2}"
 			shift
 			shift
 			;;
 		-f | --file)
-			FILE="${2}"
-			declare -gi BACKUP_FILE_YES="1"
+			file="${2}"
+			declare -gi backup_file_yes="1"
 			shift
 			shift
 			;;
 		### MYSQL TO BACKUP
 		-dbtbu | --database_temporary_directory)
-			DB_TMP_DIR_DEST="${2}"
+			db_tmp_dir_dest="${2}"
 			shift
 			shift
 			;;
 		-dbdbu | --database_backup_directory)
-			DB_DIR_DEST="${2}"
+			db_dir_dest="${2}"
 			shift
 			shift
 			;;
 		-db | --database)
-			DB="${2}"
-			declare -gi BACKUP_DB_YES="1"
+			db="${2}"
+			declare -gi backup_db_yes="1"
 			shift
 			shift
 			;;
 		-dbuser | --database_user)
-			DB_USER="${2}"
+			db_user="${2}"
 			shift
 			shift
 			;;
 		-dbpass | --database_password)
-			DB_PASS="${2}"
+			db_pass="${2}"
 			shift
 			shift
 			;;
 		-dblist | --database_list)
-			DB_LIST=("${2}")
+			db_list=("${2}")
 			shift
 			shift
 			;;
 		-dbop | --database_options)
-			DB_OPTIONS="${2}"
+			db_options="${2}"
 			shift
 			shift
 			;;
 		-dbdop | --database_dump_options)
-			DB_DUMP_OPTIONS="${2}"
+			db_dump_options="${2}"
 			shift
 			shift
 			;;
 		-c | --compression)
-			COMPRESSION="${2}"
+			compression="${2}"
 			shift
 			shift
 			;;
 		-co | --compression_options)
-			COMPRESSION_OPTIONS="${2}"
+			compression_options="${2}"
 			shift
 			shift
 			;;
 		-r | --retention)
-			RETENTION="${2}"
+			retention="${2}"
 			shift
 			shift
 			;;
 		-frp | --file_retention_path)
-			FILE_RETENTION_PATH="${2}"
+			file_retention_path="${2}"
 			shift
 			shift
 			;;
 		-frpe | --file_retention_path_extension)
-			FILE_RETENTION_PATH_EXTENSION="${2}"
+			file_retention_path_extension="${2}"
 			shift
 			shift
 			;;
 		-dbrp | --database_retention_path)
-			DB_RETENTION_PATH="${2}"
+			db_retention_path="${2}"
 			shift
 			shift
 			;;
 		-dbrpe | --database_retention_path_extension)
-			DB_RETENTION_PATH_EXTENSION="${2}"
+			db_retention_path_extension="${2}"
 			shift
 			shift
 			;;
@@ -287,121 +285,112 @@ vstacklet::backup::variables() {
 		esac
 	done
 	# @script-note: check if the user wants to see the version
-	if [[ ${VERSION} == "true" ]]; then
+	if [[ ${version} == "true" ]]; then
 		vstacklet::backup::version
 	fi
 	# @script-note: check if the user wants to see the help
-	if [[ ${HELP} == "true" ]]; then
+	if [[ ${help} == "true" ]]; then
 		vstacklet::backup::usage
 	fi
 }
 
 ##################################################################################
 # @name: vstacklet::backup::default::variables (4)
-# @description: The variables used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L303-L351)
+# @description: The variables used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L304-L351)
 # @break
 ##################################################################################
 vstacklet::backup::default::variables() {
-	### FILES/DIRECTORIES TO BACKUP
-	F_TMP_DIR_DEST="${F_TMP_DIR_DEST:-/tmp/vstacklet/backup/files/}"
-	F_DIR_DEST="${F_DIR_DEST:-/backup/files/}"
-	DIR_BFILES="${DIR_BFILES:-/var/www/html}"
-	F_PACKAGE="${F_PACKAGE:-$(date +%Y-%m-%d-%H-%M-%S).tar.gz}"
-	DESTINATION="${DESTINATION:-false}"
-	TEMPORARY="${TEMPORARY:-false}"
-	FILE="${FILE:-false}"
-	### MYSQL TO BACKUP
-	# @script-note: set the date stamp format
-	DATE_STAMP=$(date +%Y-%m-%d-%H-%M-%S)
-	# @script-note: set the backup directory
-	DB_DIR_DEST="${DB_DIR_DEST:-/backup/databases/}"
-	# @script-note: set the temporary directory
-	DB_TMP_DIR_DEST="${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}"
-	# @script-note: set the backup file name
-	BACKUP_FILE="${BACKUP_FILE:-${DATE_STAMP}.sql}"
-	# @script-note: set the destination backup file path
-	BACKUP_FILE_PATH="${DB_DIR_DEST}${BACKUP_FILE}"
-	# @script-note: set the temporary backup file path
-	BACKUP_FILE_PATH_TMP="${DB_TMP_DIR_DEST}${BACKUP_FILE}"
+	### DIRECTORY/FILE OPTIONS ####################################################
+	# @script-note: set the temporary backup directory for the files to backup
+	f_tmp_dir_dest="${f_tmp_dir_dest:-/tmp/vstacklet/backup/files/}"
+	# @script-note: set the destination backup directory for the files to backup
+	f_dir_dest="${f_dir_dest:-/backup/files/}"
+	# @script-note: set the backup file name for the files to backup
+	f_package="${f_package:-$(date +%Y-%m-%d-%H-%M-%S).tar.gz}"
+	# @script-note: set the source directory/file to backup
+	file="${file:-/var/www/html}"
+	### MYSQL OPTIONS #############################################################
+	# @script-note: set the temporary backup directory for the database to backup
+	db_tmp_dir_dest="${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}"
+	# @script-note: set the destination backup directory for the database to backup
+	db_dir_dest="${db_dir_dest:-/backup/databases/}"
 	# @script-note: set the database list
-	DB_LIST=("${DB_LIST:-$(mysql -e "show databases;" | grep -Ev "(Database|information_schema|performance_schema|phpmyadmin|mysql|sys)")}")
+	db_list=("${db_list:-$(mysql -e "show databases;" | grep -Ev "(Database|information_schema|performance_schema|phpmyadmin|mysql|sys)")}")
+	# @script-note: set the backup file name
+	db_package="${db_package:-$(date +%Y-%m-%d-%H-%M-%S).sql.${compression_extension:-gz}}"
 	# @script-note: set the database user
-	DB_USER="${DB_USER:-root}"
+	db_user="${db_user:-root}"
 	# @script-note: set the database password
-	DB_PASS="${DB_PASS:-$(grep 'password' <'/root/.my.cnf' | awk -F'=' '{print $2}' | head -n 1)}"
+	db_pass="${db_pass:-$(grep 'password' <'/root/.my.cnf' | awk -F'=' '{print $2}' | head -n 1)}"
 	# @script-note: set the database options
-	DB_OPTIONS="${DB_OPTIONS:---opt}"
+	db_options="${db_options:---opt}"
 	# @script-note: set the database dump options
-	DB_DUMP_OPTIONS="${DB_DUMP_OPTIONS:---add-drop-table --lock-tables --databases}"
+	db_dump_options="${db_dump_options:---add-drop-table --lock-tables --databases}"
+	### COMPRESSION OPTIONS #######################################################
 	# @script-note: set the backup file compression
-	COMPRESSION="${COMPRESSION:-gzip}"
+	compression="${compression:-gzip}"
 	# @script-note: set the backup file compression options
-	COMPRESSION_OPTIONS="${COMPRESSION_OPTIONS:--9}"
+	compression_options="${compression_options:--9}"
 	# @script-note: set the compression file extension
-	COMPRESSION_EXTENSION="${COMPRESSION_EXTENSION:-gz}"
+	compression_extension="${compression_extension:-gz}"
+	### RETENTION OPTIONS ########################################################
 	# @script-note: set the backup file retention
-	RETENTION="${RETENTION:-7}"
+	retention="${retention:-7}"
+	######### DIRECTORY/FILE RETENTION OPTIONS ###################################
 	# @script-note: set the backup file retention path
-	FILE_RETENTION_PATH="${FILE_RETENTION_PATH:-${F_DIR_DEST}}"
+	file_retention_path="${file_retention_path:-${f_dir_dest}}"
 	# @script-note: set the backup file retention path options for files
-	FILE_RETENTION_PATH_EXTENSION="${FILE_RETENTION_PATH_EXTENSION:-tar.gz}"
+	file_retention_path_extension="${file_retention_path_extension:-tar.gz}"
 	# @script-note: set the database backup file retention path
-	DB_RETENTION_PATH="${DB_RETENTION_PATH:-${DB_DIR_DEST}}"
+	######### MYSQL RETENTION OPTIONS ############################################
+	db_retention_path="${db_retention_path:-${db_dir_dest}}"
 	# @script-note: set the backup file retention path options for databases
-	DB_RETENTION_PATH_EXTENSION="${DB_RETENTION_PATH_EXTENSION:-enc}"
+	db_retention_path_extension="${db_retention_path_extension:-enc}"
 }
 
 ##################################################################################
 # @name: vstacklet::backup::main::checks (5)
-# @description: The checks used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L358-L399)
+# @description: The checks used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L358-L391)
 # @break
 ##################################################################################
 vstacklet::backup::main::checks() {
 	### FILES/DIRECTORIES TO BACKUP
-	# @script-note: check if the destination directory flag was set
-	[ "${DESTINATION}" != false ] && F_DIR_DEST="${DESTINATION}"
-	# @script-note: check if the temporary directory flag was set
-	[ "${TEMPORARY}" != false ] && F_TMP_DIR_DEST="${TEMPORARY}"
-	# @script-note: check if the file flag was set
-	[ "${FILE}" != false ] && DIR_BFILES="${FILE}"
+	# @script-note: check if the source file or directory exists
+	[ ! -e "${file}" ] && { vstacklet::shell::text::error "The source directory or file does not exist." && exit 1; }
 	### MYSQL TO BACKUP
-	# @script-note: check if the destination backup file exists
-	[[ -f "${BACKUP_FILE_PATH}" ]] && { vstacklet::shell::text::error "The backup file ${BACKUP_FILE_PATH} already exists." && exit 1; }
-	# @script-note: check if the temporary backup file exists
-	[[ -f "${BACKUP_FILE_PATH_TMP}" ]] && { vstacklet::shell::text::error "The backup file ${BACKUP_FILE_PATH_TMP} already exists." && exit 1; }
 	# @script-note: check if the database list is empty
-	[[ -z "${DB_LIST[*]}" ]] && { vstacklet::shell::text::error "The database list is empty." && exit 1; }
+	[[ -z "${db_list[*]}" ]] && { vstacklet::shell::text::error "The database list is empty." && exit 1; }
 	# @script-note: check if either the database or the database list is empty
-	[[ -z "${DB}" && -z "${DB_LIST[*]}" ]] && { vstacklet::shell::text::error "The database or the database list is empty." && exit 1; }
+	[[ -z "${db}" && -z "${db_list[*]}" ]] && { vstacklet::shell::text::error "The database or the database list is empty." && exit 1; }
 	# @script-note: if database is not empty, check if it exists in the database list
-	[[ -n "${DB}" && ! " ${DB_LIST[*]} " =~ ${DB} ]] && { vstacklet::shell::text::error "The database ${DB} does not exist in the database list." && exit 1; }
+	[[ -n "${db}" && ! " ${db_list[*]} " =~ ${db} ]] && { vstacklet::shell::text::error "The database ${db} does not exist in the database list." && exit 1; }
 	# @script-note: check if the database user is empty
-	[[ -z "${DB_USER}" ]] && { vstacklet::shell::text::error "The database user is empty." && exit 1; }
+	[[ -z "${db_user}" ]] && { vstacklet::shell::text::error "The database user is empty." && exit 1; }
 	# @script-note: check if the database password is empty
-	[[ -z "${DB_PASS}" ]] && { vstacklet::shell::text::error "The database password is empty." && exit 1; }
+	[[ -z "${db_pass}" ]] && { vstacklet::shell::text::error "The database password is empty." && exit 1; }
 	# @script-note: check if the database options is empty
-	[[ -z "${DB_OPTIONS}" ]] && { vstacklet::shell::text::error "The database options is empty." && exit 1; }
+	[[ -z "${db_options}" ]] && { vstacklet::shell::text::error "The database options is empty." && exit 1; }
 	# @script-note: check if the database dump options is empty
-	[[ -z "${DB_DUMP_OPTIONS}" ]] && { vstacklet::shell::text::error "The database dump options is empty." && exit 1; }
+	[[ -z "${db_dump_options}" ]] && { vstacklet::shell::text::error "The database dump options is empty." && exit 1; }
 	# @script-note: check if the compression is empty
-	[[ -z "${COMPRESSION}" ]] && { vstacklet::shell::text::error "The compression is empty." && exit 1; }
+	[[ -z "${compression}" ]] && { vstacklet::shell::text::error "The compression is empty." && exit 1; }
 	# @script-note: check if the compression options is empty
-	[[ -z "${COMPRESSION_OPTIONS}" ]] && { vstacklet::shell::text::error "The compression options is empty." && exit 1; }
+	[[ -z "${compression_options}" ]] && { vstacklet::shell::text::error "The compression options is empty." && exit 1; }
 	# @script-note: check if the retention is empty
-	[[ -z "${RETENTION}" ]] && { vstacklet::shell::text::error "The retention is empty." && exit 1; }
+	[[ -z "${retention}" ]] && { vstacklet::shell::text::error "The retention is empty." && exit 1; }
 	# @script-note: check if the file retention path is empty
-	[[ -z "${FILE_RETENTION_PATH}" ]] && { vstacklet::shell::text::error "The retention path is empty." && exit 1; }
+	[[ -z "${file_retention_path}" ]] && { vstacklet::shell::text::error "The retention path is empty." && exit 1; }
 	# @script-note: check if the file retention path extension is empty
-	[[ -z "${FILE_RETENTION_PATH_EXTENSION}" ]] && { vstacklet::shell::text::error "The file retention path extension is empty." && exit 1; }
+	[[ -z "${file_retention_path_extension}" ]] && { vstacklet::shell::text::error "The file retention path extension is empty." && exit 1; }
 	# @script-note: check if the database retention path is empty
-	[[ -z "${DB_RETENTION_PATH}" ]] && { vstacklet::shell::text::error "The retention path is empty." && exit 1; }
+	[[ -z "${db_retention_path}" ]] && { vstacklet::shell::text::error "The retention path is empty." && exit 1; }
 	# @script-note: check if the database retention path extension is empty
-	[[ -z "${DB_RETENTION_PATH_EXTENSION}" ]] && { vstacklet::shell::text::error "The database retention path extension is empty." && exit 1; }
+	[[ -z "${db_retention_path_extension}" ]] && { vstacklet::shell::text::error "The database retention path extension is empty." && exit 1; }
 }
 
 ##################################################################################
 # @name: vstacklet::intro (6)
-# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L406-L423)
+# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L398-L415)
 # @break
 ##################################################################################
 vstacklet::intro() {
@@ -425,7 +414,7 @@ vstacklet::ask::continue() {
 
 ##################################################################################
 # @name: vstacklet::backup::files (7)
-# @description: Backup the specified files. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L430-L487)
+# @description: Backup the specified files. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L422-L465)
 # @break
 ##################################################################################
 vstacklet::backup::files() {
@@ -434,61 +423,59 @@ vstacklet::backup::files() {
 	# @description: The directories for files used in the backup script.
 	# note: The directories are created if they don't exist.
 	##################################################################################
-	if [[ ! -d "${F_TMP_DIR_DEST:-/tmp/vstacklet/backup/files}" ]] || [[ ! -d "${F_DIR_DEST:-/backup/files}" ]]; then
+	if [[ ! -d "${f_tmp_dir_dest:-/tmp/vstacklet/backup/files}" ]] || [[ ! -d "${f_dir_dest:-/backup/files}" ]]; then
 		vstacklet::shell::text::white "Creating backup directories for files..."
-		mkdir -p "${F_TMP_DIR_DEST:-/tmp/vstacklet/backup/files}" 2>&1
-		mkdir -p "${F_DIR_DEST:-/backup/files}" 2>&1
+		mkdir -p "${f_tmp_dir_dest:-/tmp/vstacklet/backup/files}" 2>&1
+		mkdir -p "${f_dir_dest:-/backup/files}" 2>&1
 		# @script-note: check if the destination directory exists
-		[ ! -d "${F_DIR_DEST}" ] && vstacklet::shell::text::error "Destination directory does not exist: ${F_DIR_DEST}" && vstacklet::shell::misc::nl && exit 1
+		[ ! -d "${f_dir_dest}" ] && vstacklet::shell::text::error "Destination directory does not exist: ${f_dir_dest}" && vstacklet::shell::misc::nl && exit 1
 		# @script-note: check if the temporary directory exists
-		[ ! -d "${F_TMP_DIR_DEST}" ] && vstacklet::shell::text::error "Temporary directory does not exist: ${F_TMP_DIR_DEST}" && vstacklet::shell::misc::nl && exit 1
-		# @script-note: check if the backup source directory exists
-		[ ! -d "${DIR_BFILES}" ] && vstacklet::shell::text::error "Backup source directory does not exist: ${DIR_BFILES}" && vstacklet::shell::misc::nl && exit 1
+		[ ! -d "${f_tmp_dir_dest}" ] && vstacklet::shell::text::error "Temporary directory does not exist: ${f_tmp_dir_dest}" && vstacklet::shell::misc::nl && exit 1
 		vstacklet::shell::text::success "Backup directories created successfully."
 		vstacklet::shell::misc::nl
 	fi
 	# @script-note: check if the backup source directory is empty
-	[ -z "$(ls -A "${DIR_BFILES}")" ] && vstacklet::shell::text::error "Backup source directory is empty: ${DIR_BFILES}" && vstacklet::shell::misc::nl && exit 1
+	[ -z "$(ls -A "${file}")" ] && vstacklet::shell::text::error "Backup source directory is empty: ${file}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: check if the destination backup package exists
-	[ -f "${F_DIR_DEST}/${F_PACKAGE}" ] && vstacklet::shell::text::error "Backup package already exists: ${F_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ -f "${f_dir_dest}/${f_package}" ] && vstacklet::shell::text::error "Backup package already exists: ${f_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: check if the temporary backup package exists
-	[ -f "${F_TMP_DIR_DEST}/${F_PACKAGE}" ] && vstacklet::shell::text::error "Backup package already exists: ${F_TMP_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ -f "${f_tmp_dir_dest}/${f_package}" ] && vstacklet::shell::text::error "Backup package already exists: ${f_tmp_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: create the backup package
-	vstacklet::shell::text::white "Creating backup of ${DIR_BFILES}..."
-	tar -czf "${F_TMP_DIR_DEST}/${F_PACKAGE}" -C "${DIR_BFILES}" .
+	vstacklet::shell::text::white "Creating backup of ${file}..."
+	tar -czf "${f_tmp_dir_dest}/${f_package}" -C "${file}" .
 	# @script-note: check if the temporary backup package exists
-	[ ! -f "${F_TMP_DIR_DEST}/${F_PACKAGE}" ] && vstacklet::shell::text::error "Temporary backup package does not exist: ${F_TMP_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ ! -f "${f_tmp_dir_dest}/${f_package}" ] && vstacklet::shell::text::error "Temporary backup package does not exist: ${f_tmp_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: check if the temporary backup package is empty
-	[ -z "$(ls -A "${F_TMP_DIR_DEST}/${F_PACKAGE}")" ] && vstacklet::shell::text::error "Backup package is empty: ${F_TMP_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ -z "$(ls -A "${f_tmp_dir_dest}/${f_package}")" ] && vstacklet::shell::text::error "Backup package is empty: ${f_tmp_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: move the backup package to the destination directory
-	vstacklet::shell::text::white "Moving backup of ${DIR_BFILES} to ${F_DIR_DEST}/${F_PACKAGE}..."
-	\cp -f "${F_TMP_DIR_DEST}/${F_PACKAGE}" "${F_DIR_DEST}/${F_PACKAGE}"
+	vstacklet::shell::text::white "Moving backup of ${file} to ${f_dir_dest}/${f_package}..."
+	\cp -f "${f_tmp_dir_dest}/${f_package}" "${f_dir_dest}/${f_package}"
 	# @script-note: check if the destination backup package exists
-	[ ! -f "${F_DIR_DEST}/${F_PACKAGE}" ] && vstacklet::shell::text::error "Backup package does not exist: ${F_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ ! -f "${f_dir_dest}/${f_package}" ] && vstacklet::shell::text::error "Backup package does not exist: ${f_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: check if the destination backup package is empty
-	[ -z "$(ls -A "${F_DIR_DEST}/${F_PACKAGE}")" ] && vstacklet::shell::text::error "Backup package is empty: ${F_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ -z "$(ls -A "${f_dir_dest}/${f_package}")" ] && vstacklet::shell::text::error "Backup package is empty: ${f_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: check if the backup package is the correct size
-	[ "$(stat -c%s "${F_DIR_DEST}/${F_PACKAGE}")" != "$(stat -c%s "${F_TMP_DIR_DEST}/${F_PACKAGE}")" ] && vstacklet::shell::text::error "Backup package is the incorrect size: ${F_DIR_DEST}/${F_PACKAGE}" && vstacklet::shell::misc::nl && exit 1
+	[ "$(stat -c%s "${f_dir_dest}/${f_package}")" != "$(stat -c%s "${f_tmp_dir_dest}/${f_package}")" ] && vstacklet::shell::text::error "Backup package is the incorrect size: ${f_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: remove the backup package from the temporary directory
-	rm -f "${F_TMP_DIR_DEST}/${F_PACKAGE}"
-	vstacklet::shell::text::success "The backup of ${DIR_BFILES} was successful!"
+	rm -f "${f_tmp_dir_dest}/${f_package}"
+	vstacklet::shell::text::success "The backup of ${file} was successful!"
 	vstacklet::shell::misc::nl
 }
 
 ################################################################################
 # @name: vstacklet::backup::database (8)
-# @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L507-L557)
+# @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L485-L524)
 #
 # note: This function will additionally package the database backup into a tarball
 # and compress it on the fly, then encrypt it. The tarball will be moved to the
 # destination directory and the temporary directory will be cleaned up.
 # - To decrypt the tarball, use the following command example: (replace the variables)
 # ```
-# openssl enc -d -pbkdf2 -in "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}.enc" -out "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" -k "${DB_PASS}"
+# openssl enc -d -pbkdf2 -in "${db_dir_dest:-/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}.enc" -out "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}" -k "${db_pass}"
 # ```
 # - To extract the tarball, use the following command example: (replace the variables)
 # ```
-# tar -xzf "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" -C "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}"
+# tar -xzf "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}" -C "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}"
 # ```
 #
 # @break
@@ -499,48 +486,45 @@ vstacklet::backup::database() {
 	# @description: The directories for databases used in the backup script.
 	# note: The directories are created if they don't exist.
 	##################################################################################
-	if [[ ! -d "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}" || ! -d "${DB_DIR_DEST:-/backup/databases/}" ]]; then
+	if [[ ! -d "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}" || ! -d "${db_dir_dest:-/backup/databases/}" ]]; then
 		vstacklet::shell::text::white "Creating backup directories for databases..."
-		[[ ! -d "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}" ]] && mkdir -p "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}"
-		[[ ! -d "${DB_DIR_DEST:-/backup/databases/}" ]] && mkdir -p "${DB_DIR_DEST:-/backup/databases/}"
+		[[ ! -d "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}" ]] && mkdir -p "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}"
+		[[ ! -d "${db_dir_dest:-/backup/databases/}" ]] && mkdir -p "${db_dir_dest:-/backup/databases/}"
 		vstacklet::shell::text::success "Backup directories created successfully."
 		vstacklet::shell::misc::nl
 	fi
-	vstacklet::shell::text::white "Backing up ${DB_LIST[*]} database(s) to ${DB_DIR_DEST}${DATE_STAMP}.${COMPRESSION_EXTENSION}..."
-	for DB in "${DB_LIST[@]}"; do
-		vstacklet::shell::text::white "Backing up ${DB}..."
+	for dbs in "${db_list[@]}"; do
+		vstacklet::shell::text::white "Backing up ${dbs} database to ${db_dir_dest}${dbs}.${db_package}..."
 		# @script-note: create the backup and compress it on the fly, then encrypt it
 		# shellcheck disable=SC2086
-		mysqldump ${DB_OPTIONS} -u"${DB_USER}" -p"${DB_PASS}" ${DB_DUMP_OPTIONS} ${DB} | ${COMPRESSION} ${COMPRESSION_OPTIONS} >"${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" &&
-			openssl enc -pbkdf2 -salt -in "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" -out "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}.enc" -k "${DB_PASS}" &&
-			rm -f "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}"
+		mysqldump ${db_options} -u"${db_user}" -p"${db_pass}" ${db_dump_options} ${dbs} | ${compression} ${compression_options} >"${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${dbs}.${db_package}" &&
+			openssl enc -pbkdf2 -salt -in "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${dbs}.${db_package}" -out "${db_dir_dest:-/backup/databases/}${dbs}.${db_package}.enc" -k "${db_pass}" &&
+			rm -f "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${dbs}.${db_package}"
 		# @script-note: check if the backup succeeded
 		#if [[ "${?}" -eq 0 ]]; then # @dev-note: use the below if statement instead of this one for proper success/failure reporting
-		if [[ -f "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}.enc" ]]; then
-			vstacklet::shell::text::success "The backup of ${DB} was successful!"
+		if [[ -f "${db_dir_dest:-/backup/databases/}${dbs}.${db_package}.enc" ]]; then
+			vstacklet::shell::text::success "The backup of ${dbs} was successful!"
 			vstacklet::shell::misc::nl
 		else
-			vstacklet::shell::text::error "The backup of ${DB} failed!"
+			vstacklet::shell::text::error "The backup of ${dbs} failed!"
 			vstacklet::shell::misc::nl
 		fi
 	done
 	##################################################################################
 	# Decrypt the backup and decompress it on the fly.
 	# note: This is an example of how to decrypt and decompress the backup
-	# - dependency required: pv (pipe viewer) - https://www.ivarch.com/programs/pv.shtml
-	#   - install with: `sudo apt-get install pv`
 	##################################################################################
 	#DECOMPRESSION="tar"
 	#DECOMPRESSION_OPTIONS="-xzf"
-	#openssl enc -d -pbkdf2 -in "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}.enc" -out "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" -k "${DB_PASS}" &&
-	#	${DECOMPRESSION} ${DECOMPRESSION_OPTIONS} "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" &&
-	#	rm -f "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}"
+	#openssl enc -d -pbkdf2 -in "${db_dir_dest:-/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}.enc" -out "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}" -k "${db_pass}" &&
+	#	${DECOMPRESSION} ${DECOMPRESSION_OPTIONS} "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}" &&
+	#	rm -f "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}"
 }
 
 ##################################################################################
 # @name: vstacklet::backup::retention (9)
 # @description: The retention used in the backup script. This is used to delete
-# old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L577-L603)
+# old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L544-L568)
 #
 # notes:
 # - The retention is based on the modification time of the file.
@@ -558,21 +542,21 @@ vstacklet::backup::database() {
 vstacklet::backup::retention() {
 	vstacklet::shell::text::white "Checking retention..."
 	# @script-note: find files older than X days and delete them
-	[[ "${BACKUP_FILE_YES}" -eq 1 ]] && find "${FILE_RETENTION_PATH:-${F_DIR_DEST:-/backup/files/}}" -type f -name *.${FILE_RETENTION_PATH_EXTENSION} -mtime +${RETENTION} -exec rm -f {} \;
-	[[ "${BACKUP_DB_YES}" -eq 1 ]] && find "${DB_RETENTION_PATH:-${DB_DIR_DEST:-/backup/databases/}}" -type f -name *.${DB_RETENTION_PATH_EXTENSION} -mtime +${RETENTION} -exec rm -f {} \;
+	[[ "${backup_file_yes}" -eq 1 ]] && find "${file_retention_path:-${f_dir_dest:-/backup/files/}}" -type f -name *.${file_retention_path_extension} -mtime +${retention} -exec rm -f {} \;
+	[[ "${backup_db_yes}" -eq 1 ]] && find "${db_retention_path:-${db_dir_dest:-/backup/databases/}}" -type f -name *.${db_retention_path_extension} -mtime +${retention} -exec rm -f {} \;
 	# @script-note: check if the retention succeeded
-	if [[ -z "$(find "${FILE_RETENTION_PATH:-${F_DIR_DEST:-/backup/files/}}" -type f -name *.${FILE_RETENTION_PATH_EXTENSION} -mtime +${RETENTION})" ]] && [[ -z "$(find "${DB_RETENTION_PATH:-${DB_DIR_DEST:-/backup/databases/}}" -type f -name *.${DB_RETENTION_PATH_EXTENSION} -mtime +${RETENTION})" ]]; then
+	if [[ -z "$(find "${file_retention_path:-${f_dir_dest:-/backup/files/}}" -type f -name *.${file_retention_path_extension} -mtime +${retention})" ]] && [[ -z "$(find "${db_retention_path:-${db_dir_dest:-/backup/databases/}}" -type f -name *.${db_retention_path_extension} -mtime +${retention})" ]]; then
 		vstacklet::shell::text::success "The retention was successful!"
 		vstacklet::shell::misc::nl
 		# @script-note: long listing of files in files and database backup directories to check file sizes
-		if [[ "${BACKUP_FILE_YES}" -eq 1 ]]; then
-			vstacklet::shell::text::white "The following files remain in ${F_DIR_DEST}:"
-			ls -lh "${F_DIR_DEST:-/backup/files/}"
+		if [[ "${backup_file_yes}" -eq 1 ]]; then
+			vstacklet::shell::text::white "The following files remain in ${f_dir_dest}:"
+			ls -lh "${f_dir_dest:-/backup/files/}"
 			vstacklet::shell::misc::nl
 		fi
-		if [[ "${BACKUP_DB_YES}" -eq 1 ]]; then
-			vstacklet::shell::text::white "The following files remain in ${DB_DIR_DEST}:"
-			ls -lh "${DB_DIR_DEST:-/backup/databases/}"
+		if [[ "${backup_db_yes}" -eq 1 ]]; then
+			vstacklet::shell::text::white "The following files remain in ${db_dir_dest}:"
+			ls -lh "${db_dir_dest:-/backup/databases/}"
 			vstacklet::shell::misc::nl
 		fi
 	else
@@ -583,7 +567,7 @@ vstacklet::backup::retention() {
 
 ##################################################################################
 # @name: vstacklet::outro (10)
-# @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L610-L615)
+# @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L575-L580)
 # @break
 ##################################################################################
 vstacklet::outro() {
@@ -595,7 +579,7 @@ vstacklet::outro() {
 
 ##################################################################################
 # @name: vstacklet::backup::usage
-# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L622-L663)
+# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L587-L628)
 # @break
 ##################################################################################
 vstacklet::backup::usage() {
@@ -643,7 +627,7 @@ vstacklet::backup::usage() {
 
 ##################################################################################
 # @name: vstacklet::backup::example_cron
-# @description: Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L670-L678)
+# @description: Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L635-L643)
 # @break
 ##################################################################################
 vstacklet::backup::example_cron() {
@@ -658,13 +642,13 @@ vstacklet::backup::example_cron() {
 
 ##################################################################################
 # @name: vstacklet::backup::version
-# @description: Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L685-L691)
+# @description: Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L650-L656)
 # @break
 ##################################################################################
 vstacklet::backup::version() {
 	# @script-note: set the version of the backup script
-	VERSION="$(grep -E '^# @version:' "/opt/vstacklet/bin/backup/vs-backup" | awk '{print $3}')"
-	vstacklet::shell::text::white "vStacklet Backup Utility v${VERSION}"
+	version="$(grep -E '^# @version:' "/opt/vstacklet/bin/backup/vs-backup" | awk '{print $3}')"
+	vstacklet::shell::text::white "vStacklet Backup Utility v${version}"
 	vstacklet::shell::misc::nl
 	exit 0
 }
@@ -679,7 +663,7 @@ vstacklet::backup::variables "${@}"                           #(3)
 vstacklet::backup::default::variables                         #(4)
 vstacklet::backup::main::checks                               #(5)
 vstacklet::intro                                              #(6)
-[[ "${BACKUP_FILE_YES}" -eq 1 ]] && vstacklet::backup::file   #(7)
-[[ "${BACKUP_DB_YES}" -eq 1 ]] && vstacklet::backup::database #(8)
+[[ "${backup_file_yes}" -eq 1 ]] && vstacklet::backup::file   #(7)
+[[ "${backup_db_yes}" -eq 1 ]] && vstacklet::backup::database #(8)
 vstacklet::backup::retention                                  #(9)
 vstacklet::outro                                              #(10)
