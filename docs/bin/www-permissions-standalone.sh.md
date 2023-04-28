@@ -1,4 +1,4 @@
-# www-permissions-standalone.sh - v3.1.1004
+# www-permissions-standalone.sh - v3.1.1066
 
 
 ---
@@ -7,9 +7,6 @@ vs-perms can be used on any server to backup files, directories and mysql
 databases, but it is designed to work with the vStacklet server stack.
 This script will backup your database and files.
 Please ensure you have read the documentation before continuing.
-
----
-
 
 ---
 

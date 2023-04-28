@@ -2,17 +2,18 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions-standalone.sh
-# @version: 3.1.1004
+# @version: 3.1.1066
 # @description: This script will grab the latest version of vs-perms and
 # install it on your server.
 #
 # @project_name: vstacklet
 #
+# @path: bin/www-permissions-standalone.sh
+#
 # @brief: vs-perms can be used on any server to backup files, directories and mysql
 # databases, but it is designed to work with the vStacklet server stack.
 # This script will backup your database and files.
 # Please ensure you have read the documentation before continuing.
-#
 #
 # - [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
 # - [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
@@ -29,8 +30,6 @@
 #   - Check the user is a member of the www-data group, if not, add them.
 #   - Set the correct permissions for the web root directory.
 #   - see `vs-perms -h` for more information.
-#
-# @path: bin/www-permissions.sh
 #
 # @save_tasks:
 #  automated_versioning: true
