@@ -1,4 +1,4 @@
-# www-permissions-standalone.sh - v3.1.1002
+# www-permissions-standalone.sh - v3.1.1003
 
 
 ---
@@ -17,13 +17,13 @@ Please ensure you have read the documentation before continuing.
 This function will download the latest version of vs-perms
 and install it on your server. It will also convert vs-perms shell scripts
 to executable. From there, you can run vs-perms from anywhere on your server.
-[see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L60-L65)
+[see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions-standalone.sh#L60-L65)
 
 ---
 
 ### vstacklet::vsperms::outro()
 
-This function will display the outro. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L73-L85)
+This function will display the outro. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions-standalone.sh#L73-L85)
 
 ---
 
