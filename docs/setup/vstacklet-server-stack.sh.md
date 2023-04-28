@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1892
+# vstacklet-server-stack.sh - v3.1.1903
 
 
 ---
@@ -156,7 +156,7 @@ Important Links:
 
 ### vstacklet::environment::init()
 
-Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L178-L195)
+Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L180-L197)
 
 ---
 
@@ -165,48 +165,42 @@ Setup the environment and set variables. [see function](https://github.com/JMSDO
 Process the options and values passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L252-L512)
 
 #### options:
-
--  $1 - the option/flag to process
--  `--help` - show help
--  `--version` - show version
--  `--non-interactive` - run in non-interactive mode
--  `-e | --email` - mail address to use for the Let's Encrypt SSL certificate
--  `-ftp | --ftp_port` - port to use for the FTP server
--  `-ssh | --ssh_port` - port to use for the SSH server
--  `-http | --http_port` - port to use for the HTTP server
--  `-https | --https_port` - port to use for the HTTPS server
--  `-hn | --hostname` - hostname to use for the server
--  `-d | --domain` - domain name to use for the server
--  `-php | --php` - PHP version to install (7.4, 8.1)
--  `-hhvm | --hhvm` - install HHVM
--  `-nginx | --nginx` - install Nginx
--  `-varnish | --varnish` - install Varnish
--  `-varnishP | --varnish_port` - port to use for the Varnish server
--  `-mariadb | --mariadb` - install MariaDB
--  `-mariadbP | --mariadb_port` - port to use for the MariaDB server
--  `-mariadbU | --mariadb_user` - user to use for the MariaDB server
--  `-mariadbPw | --mariadb-password` - password to use for the MariaDB user
--  `-redis | --redis` - install Redis
--  `-postgre | --postgre` - install PostgreSQL
--  `-pma | --phpmyadmin` - install phpMyAdmin
--  `-csf | --csf` - install CSF firewall
--  `-csfCf | --csf_cloudflare` - enable Cloudflare support in CSF
--  `-sendmail | --sendmail` - install Sendmail
--  `-sendmailP | --sendmail_port` - port to use for the Sendmail server
--  `-wr | --web_root` - the web root directory to use for the server
--  `-wp | --wordpress` - install WordPress
--  `--reboot` - reboot the server after the installation
-
-#### arguments:
-
--  $2 - the value of the option/flag
+| Short | Long                       | Description
+| ----- | -------------------------- | ------------------------------------------
+| -h    | --help                     | show help
+| -V    | --version                  | show version
+| -e    | --email                    | mail address to use for the Let's Encrypt SSL certificate
+| -ftp  | --ftp_port                 | port to use for the FTP server
+| -ssh  | --ssh_port                 | port to use for the SSH server
+| -http | --http_port                | port to use for the HTTP server
+| -https| --https_port               | port to use for the HTTPS server
+| -i | --ioncube               | install IonCube Loader
+| -hn   | --hostname                 | hostname to use for the server
+| -d    | --domain                   | domain name to use for the server
+| -php  | --php                      | PHP version to install (7.4, 8.1)
+| -hhvm | --hhvm                     | install HHVM
+| -nginx| --nginx                    | install Nginx
+| -varnish | --varnish               | install Varnish
+| -varnishP | --varnish_port         | port to use for the Varnish server
+| -mariadb | --mariadb               | install MariaDB
+| -mariadbP | --mariadb_port         | port to use for the MariaDB server
+| -mariadbU | --mariadb_user         | user to use for the MariaDB server
+| -mariadbPw | --mariadb-password    | password to use for the MariaDB user
+| -pma | --phpmyadmin                | install phpMyAdmin
+| -csf | --csf                       | install CSF firewall
+| -csfCf | --csf_cloudflare          | enable Cloudflare support in CSF
+| -sendmail | --sendmail              | install Sendmail
+| -sendmailP | --sendmail_port        | port to use for the Sendmail server
+| -wr | --web_root				   | web root to use for the server
+| -wp | --wordpress				   | install WordPress
+| -r | --reboot					   | reboot the server after installation
 
 #### examples:
 
 ```
  vstacklet --help
- vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
- vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
+ vstacklet -e "your@email.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -i -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
+ vstacklet -e "your@email.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
 ```
 
 ---
@@ -276,7 +270,7 @@ Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11 [see function](https:
 
 ### vstacklet::intro()
 
-Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L830-L846)
+Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L830-L853)
 
 ---
 
@@ -634,7 +628,7 @@ notes:
  vstacklet -nginx
  vstacklet --nginx
  vstacklet -nginx -php 8.1 -varnish -varnishP 80 -http 8080 -https 443
-vstacklet --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
+ vstacklet --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
 ```
 
 ---
@@ -716,7 +710,7 @@ notes:
 
 #### options:
 
--  $1 - `-ioncube | --ioncube` (optional) (takes no arguments)
+-  $1 - `-i | --ioncube` (optional) (takes no arguments)
 
 #### return codes:
 
@@ -729,9 +723,9 @@ notes:
 #### examples:
 
 ```
- vstacklet -ioncube -php 8.1
+ vstacklet -i -php 8.1
  vstacklet --ioncube --php 8.1
- vstacklet -ioncube -php 7.4
+ vstacklet -i -php 7.4
  vstacklet --ioncube --php 7.4
 ```
 
@@ -829,6 +823,8 @@ notes:
 
 Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L2129-L2217)
 
+note: postgre is not installed by default and is currently untested.
+
 #### options:
 
 -  $1 - `-postgre | --postgresql` (optional)
@@ -861,6 +857,8 @@ Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/v
 ### vstacklet::redis::install()
 
 Install and configure Redis. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L2240-L2294)
+
+note: redis is not installed by default and is currently untested.
 
 #### options:
 
@@ -1087,7 +1085,7 @@ the database that was created during the installation process. [see function](ht
 
 notes:
 - this function is only called under the following conditions:
-  - the option `-wordpress` is used directly
+  - the option `-wp` is used directly
 - this function will install wordpress and configure the database.
 - wordpress is an active build option and requires active intput from the user (for now).
 these arguments are:
@@ -1095,7 +1093,7 @@ these arguments are:
   - wordpress database user
   - wordpress database password
 - this function requires the following options to be used:
-  - database: `-mariadb | --mariadb`, `-mysql | --mysql`, or `-postgresql | --postgresql` (only one can be used)
+  - database: `-mariadb | --mariadb` or `-mysql | --mysql` (only one can be used)
   - webserver: `-nginx | --nginx` or `-varnish | --varnish` (both can be used)
   - php: `-php | --php` or `-hhvm | --hhvm` (only one can be used)
 - this function will optionally use the following options:
@@ -1103,7 +1101,7 @@ these arguments are:
 
 #### options:
 
--  $1 - `-wordpress | --wordpress` (optional)
+-  $1 - `-wp | --wordpress` (optional)
 
 *function has no arguments*
 
@@ -1126,7 +1124,6 @@ these arguments are:
 ```
  vstacklet -wp -mariadb -nginx -php "8.1" -wr "/var/www/html"
  vstacklet -wp -mysql -nginx -php "8.1"
- vstacklet -wp -postgresql -nginx -php "8.1"
  vstacklet -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
  vstacklet -wp -mariadb -nginx -hhvm -wr "/var/www/html"
 ```
@@ -1196,6 +1193,26 @@ Outputs success message on completion of setup. This function
   is called after the installation is complete. It outputs a success message
   to the user and provides them with the necessary information to access their
   new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L3001-L3039)
+
+*function has no options*
+
+*function has no arguments*
+
+---
+
+### vstacklet::help::display()
+
+Displays the help menu for vStacklet.
+
+*function has no options*
+
+*function has no arguments*
+
+---
+
+### vstacklet::version::display()
+
+Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L3174-L3179)
 
 *function has no options*
 

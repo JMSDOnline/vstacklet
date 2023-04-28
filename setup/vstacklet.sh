@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1049
+# @version: 3.1.1059
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -10,14 +10,21 @@
 #
 # @project_name: vstacklet
 #
+# @path: /usr/local/bin/vstacklet
+#
 # @brief: This script is designed to be run on a fresh Ubuntu 18.04/20.04 or
 # Debian 9/10/11 server. I have done my best to keep it tidy and with as much
 # error checking as possible. Couple this with loads of comments and you should
 # have a pretty good idea of what is going on. If you have any questions,
 # comments, or suggestions, please feel free to open an issue on GitHub.
 #
-# - [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
-# - [vStacklet www-permissions.sh Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/www-permissions.sh.md)
+# - Documentation is available at: [/docs/](https://github.com/JMSDOnline/vstacklet/tree/development/docs)
+#   - :book: [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
+#   - :book: [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
+#   - :book: [vStacklet VS-Perms (www-permissions.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/www-permissions.sh.md)
+#     - :book: [vStacklet vs-perms (www-permissions-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/www-permissions-standalone.sh.md)
+#   - :book: [vStacklet VS-Backup (vs-backup) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/backup/vs-backup.md)
+#     - :book: [vStacklet vs-backup (vstacklet-backup-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/backup/vstacklet-backup-standalone.sh.md)
 #
 # vStacklet will install and configure the following:
 # - NGinx 1.23.+ (HTTP Server)
@@ -40,38 +47,32 @@
 # @author_contact: https://github.com/JMSDOnline/vstacklet
 #
 # @license: MIT License (Included in LICENSE)
-# Copyright (C) 2016-2022, Jason Matthews
+# Copyright (C) 2016-2023, Jason Matthews
 # All rights reserved.
 # <END METADATA>
 ################################################################################
 # shellcheck disable=SC2068,SC2034,SC1091
 ################################################################################
-
-################################################################################
 # @name: setup::download() (1)
-# @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L71-L118)
+# @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L78-L148)
 #
 # notes:
 # - This script function is responsible for downloading vStacklet from GitHub
 # and setting up the environment for the installation.
-#   - vStacklet will be downloaded to `/opt/vstacklet`.
+#   - VStacklet will be downloaded to `/opt/vstacklet`.
 #   - `vstacklet-server-stack.sh` will be loaded to `/usr/local/bin/vstacklet`. This
 # will allow you to run `vstacklet [options] [args]` from anywhere on the server.
 #   - `vs-backup` will be loaded to `/usr/local/bin/vs-backup`. This
 # will allow you to run `vs-backup` from anywhere on the server.
+#   - `www-permissions.sh` will be loaded to `/usr/local/bin/vs-perms`. This
+# will allow you to run `vs-perms` from anywhere on the server.
 # - This script function will also check for the existence of the required
 # packages and install them if they are not found.
 #   - these include:
 #     ```bash
 #     curl sudo wget git apt-transport-https lsb-release dnsutils openssl
 #     ```
-# - This script function will additionally call the server stack installation
-# and process the given options/flags and arguments.
-# - For the various setup options available: [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
-
-# @option: $1 - the option/flag to process
-# @arg: $2 - the value of the option/flag
-# @example: vstacklet -e "your@email.com" -nginx -php "8.1" -mariadb -mariadbU "mariadbuser" -mariadbPw "mariadbpassword" -varnish -varnishP 80 -http 8080 -csf
+#
 # @break
 ################################################################################
 setup::download() {
@@ -126,8 +127,21 @@ setup::download() {
 	# Make the installation script executable
 	cp -f "${vstacklet_server_stack_script}" /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to copy vstacklet to /usr/local/bin" && exit 1; }
 	chmod +x /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to make the installation script executable." && exit 1; }
-	# Execute the installation script
-	[[ -f "/usr/local/bin/vstacklet" ]] && "/usr/local/bin/vstacklet" "$@" && exit 0
+	# Execute the installation script (let's get this party started!)
+	# Allow for the installation script to be run from anywhere on the server
+	# by the user through calling `vstacklet [options] [args]`
+	#[[ -f "/usr/local/bin/vstacklet" ]] && "/usr/local/bin/vstacklet" "$@" && exit 0
+	# @script-note: display the outro
+	echo "vstacklet has been installed on your server."
+	echo "You can now run vstacklet from anywhere on your server."
+	echo "Please see the documentation for more information."
+	echo ""
+	echo "Documentation can be found here:"
+	echo "https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/setup/vstacklet-server-stack.sh.md"
+	echo ""
+	echo "You can also run the following command for more information:"
+	echo "vstacklet -h"
+	echo ""
 }
 
 setup::download "$@"

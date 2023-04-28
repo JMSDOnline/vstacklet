@@ -2,13 +2,15 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1892
+# @version: 3.1.1903
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
 # website-based server applications.
 #
 # @project_name: vstacklet
+#
+# @path: setup/vstacklet-server-stack.sh
 #
 # @brief: This script is designed to be run on a fresh Ubuntu 18.04/20.04 or
 # Debian 9/10/11 server. I have done my best to keep it tidy and with as much
@@ -170,7 +172,7 @@
 # shellcheck disable=1091,2068,2119,2312
 ##################################################################################
 # @name: vstacklet::environment::init (1)
-# @description: Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L178-L195)
+# @description: Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L180-L197)
 # @note: This function is required for the installation of
 # the vStacklet software.
 # @break
@@ -197,55 +199,41 @@ vstacklet::environment::init() {
 ##################################################################################
 # @name: vstacklet::args::process (3)
 # @description: Process the options and values passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L252-L512)
-# @option: $1 - the option/flag to process
-# @arg: $2 - the value of the option/flag
-# @script-note: This function is required for the installation of
-# the vStacklet software.
-##################################################################################
-# @option: `--help` - show help
-# @option: `--version` - show version
-# @option: `--non-interactive` - run in non-interactive mode
 #
-# @option: `-e | --email` - mail address to use for the Let's Encrypt SSL certificate
+# #### options:
+# | Short | Long                       | Description
+# | ----- | -------------------------- | ------------------------------------------
+# | -h    | --help                     | show help
+# | -V    | --version                  | show version
+# | -e    | --email                    | mail address to use for the Let's Encrypt SSL certificate
+# | -ftp  | --ftp_port                 | port to use for the FTP server
+# | -ssh  | --ssh_port                 | port to use for the SSH server
+# | -http | --http_port                | port to use for the HTTP server
+# | -https| --https_port               | port to use for the HTTPS server
+# | -i | --ioncube               | install IonCube Loader
+# | -hn   | --hostname                 | hostname to use for the server
+# | -d    | --domain                   | domain name to use for the server
+# | -php  | --php                      | PHP version to install (7.4, 8.1)
+# | -hhvm | --hhvm                     | install HHVM
+# | -nginx| --nginx                    | install Nginx
+# | -varnish | --varnish               | install Varnish
+# | -varnishP | --varnish_port         | port to use for the Varnish server
+# | -mariadb | --mariadb               | install MariaDB
+# | -mariadbP | --mariadb_port         | port to use for the MariaDB server
+# | -mariadbU | --mariadb_user         | user to use for the MariaDB server
+# | -mariadbPw | --mariadb-password    | password to use for the MariaDB user
+# | -pma | --phpmyadmin                | install phpMyAdmin
+# | -csf | --csf                       | install CSF firewall
+# | -csfCf | --csf_cloudflare          | enable Cloudflare support in CSF
+# | -sendmail | --sendmail              | install Sendmail
+# | -sendmailP | --sendmail_port        | port to use for the Sendmail server
+# | -wr | --web_root				   | web root to use for the server
+# | -wp | --wordpress				   | install WordPress
+# | -r | --reboot					   | reboot the server after installation
 #
-# @option: `-ftp | --ftp_port` - port to use for the FTP server
-# @option: `-ssh | --ssh_port` - port to use for the SSH server
-# @option: `-http | --http_port` - port to use for the HTTP server
-# @option: `-https | --https_port` - port to use for the HTTPS server
-#
-# @option: `-hn | --hostname` - hostname to use for the server
-# @option: `-d | --domain` - domain name to use for the server
-#
-# @option: `-php | --php` - PHP version to install (7.4, 8.1)
-# @option: `-hhvm | --hhvm` - install HHVM
-#
-# @option: `-nginx | --nginx` - install Nginx
-#
-# @option: `-varnish | --varnish` - install Varnish
-# @option: `-varnishP | --varnish_port` - port to use for the Varnish server
-#
-# @option: `-mariadb | --mariadb` - install MariaDB
-# @option: `-mariadbP | --mariadb_port` - port to use for the MariaDB server
-# @option: `-mariadbU | --mariadb_user` - user to use for the MariaDB server
-# @option: `-mariadbPw | --mariadb-password` - password to use for the MariaDB user
-#
-# @option: `-redis | --redis` - install Redis
-# @option: `-postgre | --postgre` - install PostgreSQL
-#
-# @option: `-pma | --phpmyadmin` - install phpMyAdmin
-# @option: `-csf | --csf` - install CSF firewall
-# @option: `-csfCf | --csf_cloudflare` - enable Cloudflare support in CSF
-# @option: `-sendmail | --sendmail` - install Sendmail
-# @option: `-sendmailP | --sendmail_port` - port to use for the Sendmail server
-#
-# @option: `-wr | --web_root` - the web root directory to use for the server
-# @option: `-wp | --wordpress` - install WordPress
-#
-# @option: `--reboot` - reboot the server after the installation
-##################################################################################
 # @example: vstacklet --help
-# @example: vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
-# @example: vstacklet -e "youremail.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
+# @example: vstacklet -e "your@email.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -i -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
+# @example: vstacklet -e "your@email.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
 # @null
 # @break
 ##################################################################################
@@ -260,12 +248,17 @@ vstacklet::args::process() {
 		#	declare -gi non_interactive="1"
 		#	shift
 		#	;;
-		--reboot)
+		-V | --version)
+			declare -gi skip_checks="1"
+			vstacklet::version::display
+			;;
+		-r | --reboot)
 			declare -gi setup_reboot="1"
 			shift
 			;;
-		--help)
-			script::help::print
+		-h | --help)
+			declare -gi skip_checks="1"
+			vstacklet::help::display
 			;;
 		-csf | --csf)
 			declare -gi sendmail_skip="1"
@@ -320,7 +313,7 @@ vstacklet::args::process() {
 			[[ -n ${http_port} && ${http_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for the HTTP server." && exit 1
 			[[ -n ${http_port} && ${http_port} -lt 1 || ${http_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid HTTP port number. please enter a number between 1 and 65535." && exit 1
 			;;
-		-ioncube | --ioncube)
+		-i | --ioncube)
 			declare -gi ioncube="1"
 			shift
 			;;
@@ -459,12 +452,6 @@ vstacklet::args::process() {
 			shift
 			shift
 			[[ -n ${web_root} && $(sed -e 's/[\\/]/\\/g;s/[\/\/]/\\\//g;' <<<"${web_root}") == "" ]] && vstacklet::shell::text::error "invalid web root. please provide a valid web root. (e.g. /var/www/html)" && exit 1
-			;;
-		-www-perms* | --www_permissions*)
-			declare -g www_permissions="1"
-			shift
-			#"${local_setup_dir}/www-permissions.sh" "$@"
-			#exit $?
 			;;
 		*)
 			invalid_option+=("$1")
@@ -822,7 +809,7 @@ vstacklet::environment::checkdistro() {
 
 ##################################################################################
 # @name: vstacklet::intro (9)
-# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L830-L846)
+# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L830-L853)
 # @script-note: This function is required for the installation of
 # the vStacklet software.
 # @break
@@ -1523,7 +1510,7 @@ vstacklet::hhvm::install() {
 # @example: vstacklet -nginx
 # @example: vstacklet --nginx
 # @example: vstacklet -nginx -php 8.1 -varnish -varnishP 80 -http 8080 -https 443
-# @example:vstacklet --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
+# @example: vstacklet --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
 # @null
 # @return_code: 20 - failed to install NGINX dependencies.
 # @return_code: 21 - failed to edit NGINX configuration file.
@@ -1694,6 +1681,7 @@ vstacklet::varnish::install() {
 		# - the custom.vcl file is a custom Varnish config file that can be used to override the default.vcl file.
 		# - the default.vcl file is the default Varnish config file that is used to configure Varnish.
 		# - the custom.vcl file imported from vStacklet is setup to function with phpmyadmin and wordpress.
+		# - the commented out lines of code below are for reference only.
 		cp -f "${local_varnish_dir}/custom.vcl" "/etc/varnish/custom.vcl"
 		# adjust varnish config files
 		if [[ -n ${nginx} ]]; then
@@ -1769,10 +1757,10 @@ vstacklet::permissions::adjust() {
 # notes:
 # - the ioncube loader will be available for the php version specified
 #   from the `-php | --php` option.
-# @option: $1 - `-ioncube | --ioncube` (optional) (takes no arguments)
-# @example: vstacklet -ioncube -php 8.1
+# @option: $1 - `-i | --ioncube` (optional) (takes no arguments)
+# @example: vstacklet -i -php 8.1
 # @example: vstacklet --ioncube --php 8.1
-# @example: vstacklet -ioncube -php 7.4
+# @example: vstacklet -i -php 7.4
 # @example: vstacklet --ioncube --php 7.4
 # @null
 # @return_code: 31 - failed to switch to /tmp directory.
@@ -2136,6 +2124,9 @@ vstacklet::mysql::install() {
 ##################################################################################
 # @name: vstacklet::postgre::install (31)
 # @description: Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L2129-L2217)
+#
+# note: postgre is not installed by default and is currently untested.
+#
 # @option: $1 - `-postgre | --postgresql` (optional)
 # @arg: $2 - `[postgresql_port]` (optional) (default: 5432)
 # @arg: $3 - `[postgresql_user]` (optional) (default: admin)
@@ -2244,6 +2235,9 @@ vstacklet::postgre::install() {
 ##################################################################################
 # @name: vstacklet::redis::install (32)
 # @description: Install and configure Redis. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L2240-L2294)
+#
+# note: redis is not installed by default and is currently untested.
+#
 # @option: $1 - `-redis | --redis` (optional)
 # @option: $2 - `-redisP | --redis_port` (optional)
 # @option: $3 - `-redisPw | --redis_password` (optional)
@@ -2728,7 +2722,7 @@ vstacklet::sendmail::install() {
 #
 # notes:
 # - this function is only called under the following conditions:
-#   - the option `-wordpress` is used directly
+#   - the option `-wp` is used directly
 # - this function will install wordpress and configure the database.
 # - wordpress is an active build option and requires active intput from the user (for now).
 # these arguments are:
@@ -2736,17 +2730,16 @@ vstacklet::sendmail::install() {
 #   - wordpress database user
 #   - wordpress database password
 # - this function requires the following options to be used:
-#   - database: `-mariadb | --mariadb`, `-mysql | --mysql`, or `-postgresql | --postgresql` (only one can be used)
+#   - database: `-mariadb | --mariadb` or `-mysql | --mysql` (only one can be used)
 #   - webserver: `-nginx | --nginx` or `-varnish | --varnish` (both can be used)
 #   - php: `-php | --php` or `-hhvm | --hhvm` (only one can be used)
 # - this function will optionally use the following options:
 #   - web root: `-wr | --web_root` (default: /var/www/html)
 #
-# @option: $1 - `-wordpress | --wordpress` (optional)
+# @option: $1 - `-wp | --wordpress` (optional)
 # @noargs
 # @example: vstacklet -wp -mariadb -nginx -php "8.1" -wr "/var/www/html"
 # @example: vstacklet -wp -mysql -nginx -php "8.1"
-# @example: vstacklet -wp -postgresql -nginx -php "8.1"
 # @example: vstacklet -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
 # @example: vstacklet -wp -mariadb -nginx -hhvm -wr "/var/www/html"
 # @null
@@ -3029,7 +3022,7 @@ vstacklet::message::complete() {
 	vstacklet_total_time_minutes="$((vstacklet_total_time / 60))"
 	# display success message
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::green "vStacklet Installation Complete! (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"
+	vstacklet::shell::text::green "vStacklet Server Installation Complete! (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"
 	vstacklet::shell::text::green " - Installation Completed in: ${vstacklet_total_time_minutes}/min"
 	vstacklet::shell::text::white " - SSH port: ${ssh_port:-22}"
 	vstacklet::shell::text::white " - FTP port: ${ftp_port:-21}"
@@ -3061,9 +3054,127 @@ vstacklet::message::complete() {
 }
 
 ################################################################################
+# @name: vstacklet::help::display (40)
+# @description: Displays the help menu for vStacklet.
+# @nooptions
+# @noargs
+# @break
+################################################################################
+vstacklet::help::display() {
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "vStacklet Help Menu"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -h, --help"
+	vstacklet::shell::text::white "    Displays this help menu."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -V, --version"
+	vstacklet::shell::text::white "    Displays the current version of vStacklet."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -r, --reboot"
+	vstacklet::shell::text::white "    Reboots the server after installation is complete."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -csf, --csf"
+	vstacklet::shell::text::white "    Installs and configures CSF."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -csfCf, --csf_cloudfare"
+	vstacklet::shell::text::white "    Installs and configures CSF with CloudFlare support."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -d, --domain"
+	vstacklet::shell::text::white "    Sets the domain name for the server."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -e, --email"
+	vstacklet::shell::text::white "    Sets the email address for the server."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -f, --ftp"
+	vstacklet::shell::text::white "    Installs and configures FTP."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -hhvm, --hhvm"
+	vstacklet::shell::text::white "    Installs and configures HHVM."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -hn, --hostname"
+	vstacklet::shell::text::white "    Sets the hostname for the server."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -https, --https_port"
+	vstacklet::shell::text::white "    Sets the HTTPS port for the server."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -http, --http_port"
+	vstacklet::shell::text::white "    Sets the HTTP port for the server."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -i, --ioncube"
+	vstacklet::shell::text::white "    Installs IonCube."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -m, --mariadb"
+	vstacklet::shell::text::white "    Installs and configures MariaDB."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -mariadbU, --mariadb_user"
+	vstacklet::shell::text::white "    Sets the MariaDB username."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -mariadbPw, --mariadb_password"
+	vstacklet::shell::text::white "    Sets the MariaDB password."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -mariadbP, --mariadb_port"
+	vstacklet::shell::text::white "    Sets the MariaDB port."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -mysql, --mysql"
+	vstacklet::shell::text::white "    Installs and configures MySQL."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -mysqlU, --mysql_user"
+	vstacklet::shell::text::white "    Sets the MySQL username."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -mysqlPw, --mysql_password"
+	vstacklet::shell::text::white "    Sets the MySQL password."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -mysqlP, --mysql_port"
+	vstacklet::shell::text::white "    Sets the MySQL port."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -nginx, --nginx"
+	vstacklet::shell::text::white "    Installs and configures Nginx."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -pma, --phpmyadmin"
+	vstacklet::shell::text::white "    Installs and configures phpMyAdmin."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -php, --php"
+	vstacklet::shell::text::white "    Installs and configures PHP."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -sendmail, --sendmail"
+	vstacklet::shell::text::white "    Installs and configures Sendmail."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -sendmailP, --sendmail_port"
+	vstacklet::shell::text::white "    Sets the Sendmail port."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -ssh, --ssh_port"
+	vstacklet::shell::text::white "    Sets the SSH port."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -varnish, --varnish"
+	vstacklet::shell::text::white "    Installs and configures Varnish."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -varnishP, --varnish_port"
+	vstacklet::shell::text::white "    Sets the Varnish port."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -wp, --wordpress"
+	vstacklet::shell::text::white "    Installs and configures WordPress."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -wr, --web_root"
+	vstacklet::shell::text::white "    Sets the web root for the server."
+	vstacklet::shell::misc::nl
+}
 
 ################################################################################
-# @name: vstacklet::clean::rollback - vStacklet Rollback (40/return_code)
+# @name: vstacklet::version::display (41)
+# @description: Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L3174-L3179)
+# @nooptions
+# @noargs
+# @break
+################################################################################
+vstacklet::version::display() {
+	vstacklet_version="$(grep -E '^# @version:' "${vstacklet_base_path}/setup/vstacklet-server-stack.sh" | awk '{print $3}')"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "vStacklet Version: ${vstacklet_version}"
+	vstacklet::shell::misc::nl
+}
+
+################################################################################
+# @name: vstacklet::clean::rollback - vStacklet Rollback (42/return_code)
 # @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L3060-L3303)
 #
 # notes:
@@ -3315,9 +3426,15 @@ vstacklet::clean::rollback() {
 		rm -rf ~/.acme.sh/"${domain}"* ~/acme.sh >/dev/null 2>&1
 	fi
 	vstacklet::log "systemctl daemon-reload"
-	# should the above purge be too aggressive, the following will restore the system to a working state.
+	# @script-note: should the above purge be too aggressive, the following will restore the system to a working state.
 	# the following commands are not logged, but are here to ensure that the system is
-	# in a clean state after a failed installation attempt.
+	# in a clean state after a failed installation attempt. if the system is not in a
+	# clean state, the installer will not be able to detect it and will not be able to
+	# install the software correctly.
+	# due to the nature of this script, it is intended to be run on a fresh server [one](1) time.
+	# if you wish to run this script again, you should first restore the system to a clean state as
+	# a failed installation attempt may leave the system in an unknown state.
+	# again, be advised that running this on an already configured server could result in data loss.
 	vstacklet::log "apt-get -yf install --reinstall ssh openssh-server openssh-client sudo curl wget ca-certificates apt-transport-https lsb-release gnupg2 software-properties-common"
 	vstacklet::shell::text::success "server setup has been rolled back. you may attempt to run the installer again."
 	exit "${1:-1}"
@@ -3333,8 +3450,8 @@ trap 'vstacklet::clean::rollback' SIGINT
 vstacklet::environment::init      #(1)
 vstacklet::environment::functions #(2)
 vstacklet::args::process "$@"     #(3)
-[[ "$*" =~ "-h" ]] || [[ "$*" =~ "--help" ]] && vstacklet::help && exit 0
-[[ "${www_permissions}" -eq 1 ]] && "${local_setup_dir}"/www-permissions.sh "--www_help" && exit 0
+[[ "$*" =~ "-h" ]] || [[ "$*" =~ "--help" ]] && vstacklet::help::display && exit 0
+[[ "$*" =~ "-V" ]] || [[ "$*" =~ "--version" ]] && vstacklet::version::display && exit 0
 vstacklet::log::check                                 #(4)
 vstacklet::apt::update                                #(5)
 vstacklet::dependencies::install                      #(6)
