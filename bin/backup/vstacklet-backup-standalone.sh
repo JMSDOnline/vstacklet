@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet-backup-standalone.sh
-# @version: 3.1.1140
+# @version: 3.1.1141
 # @description: This script will grab the latest version of vs-backup and
 # install it on your server.
 #
@@ -12,8 +12,6 @@
 # databases, but it is designed to work with the vStacklet server stack.
 # This script will backup your database and files.
 # Please ensure you have read the documentation before continuing.
-#
-# @path: bin/backup/vstacklet-backup-standalone.sh
 #
 # - [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
 # - [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
@@ -30,6 +28,8 @@
 #   - Automatically encrypt the backup files. (password: set to your database password by default - `-dbpass`)
 #   - Retain the backup files based on the retention options. (default: 7 days)
 #   - see `vs-backup -h` for more information.
+#
+# @path: bin/backup/vstacklet-backup-standalone.sh
 #
 # @save_tasks:
 #  automated_versioning: true
