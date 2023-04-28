@@ -1,4 +1,4 @@
-# www-permissions.sh - v3.1.1065
+# www-permissions.sh - v3.1.1066
 
 
 ---
@@ -41,7 +41,7 @@ This script will do the following:
 
 ### vstacklet::wwwperms::args()
 
-Process the options passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L68-L98)
+Process the options passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L66-L107)
 
 notes:
 - This script function is responsible for processing the options passed to the
@@ -56,25 +56,25 @@ script.
 
 ### vstacklet::environment::functions()
 
-Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L105-L184)
+Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L114-L193)
 
 ---
 
 ### vstacklet::environment::checkroot()
 
-Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L191-L196)
+Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L200-L205)
 
 ---
 
 ### vstacklet::intro()
 
-Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L203-L214)
+Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L212-L223)
 
 ---
 
 ### vstacklet::wwwdata::create()
 
-Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L231-L262)
+Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L240-L271)
 
 #### options:
 
@@ -96,7 +96,7 @@ Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [
 
 ### vstacklet::permissions::adjust()
 
-Adjust permissions for the web root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L284-L322)
+Adjust permissions for the web root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L293-L331)
 
 notes:
 - Permissions are adjusted based the following variables:
@@ -119,7 +119,7 @@ notes:
 
 ### vstacklet::permissions::complete()
 
-Complete the permissions adjustment process. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L331-L334)
+Complete the permissions adjustment process. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L340-L343)
 
 *function has no options*
 
@@ -129,7 +129,7 @@ Complete the permissions adjustment process. [see function](https://github.com/J
 
 ### vstacklet::wwwperms::help()
 
-Prints the help message for the www-data group. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L343-L372)
+Prints the help message for the www-data group. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L352-L389)
 
 *function has no options*
 
@@ -139,7 +139,7 @@ Prints the help message for the www-data group. [see function](https://github.co
 
 ### vstacklet::wwwperms::version()
 
-Prints the version of the www-permissions script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L381-L384)
+Prints the version of the www-permissions script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L398-L405)
 
 *function has no options*
 
