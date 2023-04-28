@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet-backup-standalone.sh
-# @version: 3.1.1139
+# @version: 3.1.1140
 # @description: This script will grab the latest version of vs-backup and
 # install it on your server.
 #
@@ -17,6 +17,7 @@
 #
 # - [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
 # - [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
+# - [vStacklet VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/backup/vs-backup.md)
 #
 # This script will do the following:
 # - Download the latest version of vs-backup.
@@ -52,20 +53,20 @@
 # @description: This function will download the latest version of vs-backup
 # and install it on your server. It will also convert vs-backup shell scripts
 # to executable. From there, you can run vs-backup from anywhere on your server.
-# [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vstacklet-backup-standalone.sh#L59-L64)
+# [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vstacklet-backup-standalone.sh#L60-L65)
 #
 # @break
 ################################################################################
 vstacklet::vsbackup::standalone() {
 	# @script-note: download the latest version of vs-backup
-	curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/backup/vs-backup" > /usr/local/bin/vs-backup
+	curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/backup/vs-backup" >/usr/local/bin/vs-backup
 	# @script-note: convert vs-backup shell scripts to executable
 	chmod +x /usr/local/bin/vs-backup
 }
 
 ################################################################################
 # @name: vstacklet::vsbackup::outro
-# @description: This function will display the outro. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vstacklet-backup-standalone.sh#L72-L84)
+# @description: This function will display the outro. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vstacklet-backup-standalone.sh#L73-L85)
 #
 # @break
 ################################################################################

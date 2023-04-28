@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1140
+# @version: 3.1.1141
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -516,9 +516,9 @@ vstacklet::backup::database() {
 	##################################################################################
 	#DECOMPRESSION="tar"
 	#DECOMPRESSION_OPTIONS="-xzf"
-	#openssl enc -d -pbkdf2 -in "${db_dir_dest:-/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}.enc" -out "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}" -k "${db_pass}" &&
+	#openssl enc -d -pbkdf2 -in "${db_dir_dest:-/backup/databases/}${db}.sql.${date_stamp}.${compression_extension:-gz}.enc" -out "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension:-gz}" -k "${db_pass}" &&
 	#	${DECOMPRESSION} ${DECOMPRESSION_OPTIONS} "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}" &&
-	#	rm -f "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}"
+	#	rm -f "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension:-gz}"
 }
 
 ##################################################################################
