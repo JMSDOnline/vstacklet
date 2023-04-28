@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1132
+# @version: 3.1.1133
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -511,7 +511,7 @@ vstacklet::backup::database() {
 		vstacklet::shell::text::white "Backing up ${DB}..."
 		# @script-note: create the backup and compress it on the fly, then encrypt it
 		# shellcheck disable=SC2086
-		mysqldump ${DB_OPTIONS} -u"${DB_USER}" -p"${DB_PASS}" "${DB_DUMP_OPTIONS}" ${DB} | ${COMPRESSION} ${COMPRESSION_OPTIONS} >"${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" &&
+		mysqldump ${DB_OPTIONS} -u"${DB_USER}" -p"${DB_PASS}" ${DB_DUMP_OPTIONS} ${DB} | ${COMPRESSION} ${COMPRESSION_OPTIONS} >"${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" &&
 			openssl enc -pbkdf2 -salt -in "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}" -out "${DB_DIR_DEST:-/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}.enc" -k "${DB_PASS}" &&
 			rm -f "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_STAMP}.${COMPRESSION_EXTENSION}"
 		# @script-note: check if the backup succeeded
