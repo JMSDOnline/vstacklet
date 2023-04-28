@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1891
+# @version: 3.1.1892
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -163,7 +163,7 @@
 # @author_contact: https://github.com/JMSDOnline/vstacklet
 #
 # @license: MIT License (Included in LICENSE)
-# Copyright (C) 2016-2022, Jason Matthews
+# Copyright (C) 2016-2023, Jason Matthews
 # All rights reserved.
 # <END METADATA>
 ##################################################################################
@@ -2885,12 +2885,12 @@ vstacklet::wordpress::install() {
 #
 # notes:
 # - This function is only called under the following conditions:
-#   - the option for `-domain` is used (optional)
+#   - the option for `-d` is used (optional)
 # - The following options are required for this function:
-#   - `-domain` or `--domain`
+#   - `-d` or `--domain`
 #   - `-e` or `--email`
 #   - `-nginx` or `--nginx`
-# @option: $1 - `-domain | --domain` - The domain to install the SSL certificate for.
+# @option: $1 - `-d | --domain` - The domain to install the SSL certificate for.
 # @arg: $1 - `[domain]` (required)
 # @example: vstacklet -nginx -domain example.com -e "your@email.com"
 # @example: vstacklet --nginx --domain example.com --email "your@email.com"

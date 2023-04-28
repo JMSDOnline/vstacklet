@@ -1,4 +1,14 @@
-# vs-backup - v3.1.1129
+# vs-backup - v3.1.1132
+
+
+---
+
+vs-backup can be used on any server to backup files, directories and mysql
+databases, but it is designed to work with the vStacklet server stack.
+This script will backup your database and files.
+Please ensure you have read the documentation before continuing.
+
+---
 
 
 ---
@@ -114,7 +124,7 @@ tar -xzf "${DB_TMP_DIR_DEST:-/tmp/vstacklet/backup/databases/}${DB}.sql.${DATE_S
 The retention used in the backup script. This is used to delete
 old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L577-L603)
 
-note:
+notes:
 - The retention is based on the modification time of the file.
 - Default retention is 7 days. This can be changed by setting the `-r` variable.
   - example: `-r 14` would set the retention to 14 days.

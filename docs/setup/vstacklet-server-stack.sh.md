@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1891
+# vstacklet-server-stack.sh - v3.1.1892
 
 
 ---
@@ -1140,15 +1140,15 @@ The following function installs the SSL certificate
 
 notes:
 - This function is only called under the following conditions:
-  - the option for `-domain` is used (optional)
+  - the option for `-d` is used (optional)
 - The following options are required for this function:
-  - `-domain` or `--domain`
+  - `-d` or `--domain`
   - `-e` or `--email`
   - `-nginx` or `--nginx`
 
 #### options:
 
--  $1 - `-domain | --domain` - The domain to install the SSL certificate for.
+-  $1 - `-d | --domain` - The domain to install the SSL certificate for.
 
 #### arguments:
 
