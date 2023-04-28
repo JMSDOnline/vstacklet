@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet-backup-standalone.sh
-# @version: 3.1.1138
+# @version: 3.1.1139
 # @description: This script will grab the latest version of vs-backup and
 # install it on your server.
 #

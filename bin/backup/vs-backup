@@ -2,18 +2,18 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1138
+# @version: 3.1.1139
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
 # @project_name: vstacklet
 #
+# @path: bin/backup/vs-backup
+#
 # @brief: vs-backup can be used on any server to backup files, directories and mysql
 # databases, but it is designed to work with the vStacklet server stack.
 # This script will backup your database and files.
 # Please ensure you have read the documentation before continuing.
-#
-# @path: bin/backup/vs-backup
 #
 # - [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
 # - [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)

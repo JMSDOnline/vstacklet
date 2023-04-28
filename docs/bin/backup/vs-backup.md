@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1138
+# vs-backup - v3.1.1139
 
 
 ---
@@ -7,6 +7,46 @@ vs-backup can be used on any server to backup files, directories and mysql
 databases, but it is designed to work with the vStacklet server stack.
 This script will backup your database and files.
 Please ensure you have read the documentation before continuing.
+
+---
+
+- [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
+- [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
+
+---
+
+This script will do the following:
+- Backup your database.
+- Backup your files.
+- Compress the backup files. (default: tar.gz - for files and sql.gz - for database)
+- Automatically encrypt the backup files. (password: set to your database password by default - `-dbpass`)
+- Retain the backup files based on the retention options. (default: 7 days)
+
+---
+
+#### options:
+| Short | Long                       | Description
+| ----- | -------------------------- | ------------------------------------------
+|  -db   | --database                 | Backup the database.
+|  -dbuser   | --database_user          | The database user. (default: `root`)
+|  -dbpass   | --database_password      | The database password. (default: pulled from `/root/.my.cnf`)
+|  -dbdbu   | --database_backup_directory   | The database destination backup directory. (default: `/backup/databases`)
+|  -dbtbu   | --database_temporary_directory  | The database temporary backup directory. (default: `/tmp/vstacklet/backup/databases`)
+|  -f   | --files                    | Backup files in the web root directory.
+|  -fdbu   | --file_backup_directory   | The files destination backup directory. (default: `/backup/files`)
+|  -ftbu   | --file_temporary_directory  | The files temporary backup directory. (default: `/tmp/vstacklet/backup/files`)
+|  -r   | --retention                | Retention options. (default: `7`)
+|  -frpe   | --file_retention_path_extension  | Retention path extension for the files. (default: `tar.gz`)
+|  -dbrpe   | --database_retention_path_extension  | Retention path extension for the database. (default: `enc`)
+|  -h   | --help                     | Display the help menu.
+|  -V   | --version                  | Display the version.
+
+---
+
+#### examples:
+```bash
+ /opt/vstacklet/bin/backup/vs-backup -db "database" -f "/var/www/html"
+```
 
 ---
 
