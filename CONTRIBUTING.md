@@ -10,7 +10,10 @@
 Documentation is available at: [/docs/](https://github.com/JMSDOnline/vstacklet/tree/development/docs)
  - :book: [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
  - :book: [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
- - :book: [vStacklet www-permissions.sh Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/www-permissions.sh.md)
+ - :book: [vStacklet www-permissions.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/www-permissions.sh.md)
+   - :book: [vStacklet VS-Perms (www-permissions-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/www-permissions-standalone.sh.md)
+ - :book: [vStacklet VS-Backup (vs-backup) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/backup/vs-backup.md)
+   - :book: [vStacklet VS-Backup (vstacklet-backup-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/backup/vstacklet-backup-standalone.sh.md)
 
 ## How to Contribute
 
