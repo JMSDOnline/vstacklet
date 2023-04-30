@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.720
-  Build: 720
+  Version: v3.1.1.721
+  Build: 721
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 
@@ -148,7 +148,7 @@ cd /etc/vstacklet/setup && ./vstacklet.sh
 
 ```bash
 sudo apt -y install curl &&
-bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/setup/vstacklet.sh)
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/setup/vstacklet.sh)
 ```
 
 ... then run the main installer ...
