@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1975
+# @version: 3.1.1978
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2491,8 +2491,12 @@ vstacklet::phpmyadmin::install() {
 ##################################################################################
 vstacklet::csf::install() {
 	if [[ -n ${csf} ]]; then
-		# @script-note: check if csf is installed
-		vstacklet::shell::misc::nl
+		# @script-note: the following signals for sendmail to be installed
+		# if the `-sendmail` flag is not passed to the script. sendmail is a
+		# dependency for csf to function properly.
+		[[ -z ${sendmail} || ${sendmail_skip} -eq 1 ]] && vstacklet::sendmail::install &&
+			# @script-note: check if csf is installed
+			vstacklet::shell::misc::nl
 		[[ -f /etc/csf/csf.conf ]] && vstacklet::shell::text::yellow "CSF is already installed. skipping ... " && return 0
 		# @script-note: install csf
 		vstacklet::shell::text::white "installing and configuring CSF (ConfigServer Security & Firewall) firewall ... "
@@ -2580,7 +2584,7 @@ vstacklet::csf::install() {
 		grep "# csf SSH installation/upgrade IP address" <"/etc/csf/csf.allow" | awk '{print $1}' >"/etc/csf/ui/ui.allow"
 		# @script-note: run cloudflare ip allow function if the `--csf_cloudflare` flag is set
 		[[ -n ${csf_cloudflare} ]] && vstacklet::cloudflare::csf &&
-		vs::stat::progress::stop # stop progress status
+			vs::stat::progress::stop # stop progress status
 		# @script-note: show csf installation summary
 		vstacklet::shell::text::green "CSF firewall has been installed and configured successfully. see details below:"
 		vstacklet::shell::text::white::sl "CSF configuration file: "
@@ -2613,10 +2617,6 @@ vstacklet::csf::install() {
 		vstacklet::shell::text::green "Restart LFD: systemctl restart lfd"
 		vstacklet::shell::text::white::sl "    4. "
 		vstacklet::shell::text::green "Access the CSF UI at https://${server_ip}:${csf_ui_port:-1043}"
-		# @script-note: the following signals for sendmail to be installed
-		# if the `-sendmail` flag is not passed to the script. sendmail is a
-		# dependency for csf to function properly.
-		[[ -z ${sendmail} || ${sendmail_skip} -eq 1 ]] && vstacklet::sendmail::install
 	fi
 }
 
@@ -2757,6 +2757,7 @@ vstacklet::sendmail::install() {
 		else
 			vstacklet::shell::text::green "$(hostname --fqdn)"
 		fi
+		[[ ${sendmail_skip} -eq 1 ]] && return 0
 	fi
 }
 
