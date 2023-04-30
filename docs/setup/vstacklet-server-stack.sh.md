@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.1903
+# vstacklet-server-stack.sh - v3.1.1906
 
 
 ---
@@ -174,7 +174,7 @@ Process the options and values passed to the script. [see function](https://gith
 | -ssh  | --ssh_port                 | port to use for the SSH server
 | -http | --http_port                | port to use for the HTTP server
 | -https| --https_port               | port to use for the HTTPS server
-| -i | --ioncube               | install IonCube Loader
+| -ioncube | --ioncube               | install IonCube Loader
 | -hn   | --hostname                 | hostname to use for the server
 | -d    | --domain                   | domain name to use for the server
 | -php  | --php                      | PHP version to install (7.4, 8.1)
@@ -199,7 +199,7 @@ Process the options and values passed to the script. [see function](https://gith
 
 ```
  vstacklet --help
- vstacklet -e "your@email.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -i -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
+ vstacklet -e "your@email.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
  vstacklet -e "your@email.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
 ```
 
@@ -710,7 +710,7 @@ notes:
 
 #### options:
 
--  $1 - `-i | --ioncube` (optional) (takes no arguments)
+-  $1 - `-ioncube | --ioncube` (optional) (takes no arguments)
 
 #### return codes:
 
@@ -723,9 +723,9 @@ notes:
 #### examples:
 
 ```
- vstacklet -i -php 8.1
+ vstacklet -ioncube -php 8.1
  vstacklet --ioncube --php 8.1
- vstacklet -i -php 7.4
+ vstacklet -ioncube -php 7.4
  vstacklet --ioncube --php 7.4
 ```
 

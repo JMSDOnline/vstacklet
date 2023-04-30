@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1903
+# @version: 3.1.1906
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -210,7 +210,7 @@ vstacklet::environment::init() {
 # | -ssh  | --ssh_port                 | port to use for the SSH server
 # | -http | --http_port                | port to use for the HTTP server
 # | -https| --https_port               | port to use for the HTTPS server
-# | -i | --ioncube               | install IonCube Loader
+# | -ioncube | --ioncube               | install IonCube Loader
 # | -hn   | --hostname                 | hostname to use for the server
 # | -d    | --domain                   | domain name to use for the server
 # | -php  | --php                      | PHP version to install (7.4, 8.1)
@@ -232,7 +232,7 @@ vstacklet::environment::init() {
 # | -r | --reboot					   | reboot the server after installation
 #
 # @example: vstacklet --help
-# @example: vstacklet -e "your@email.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -i -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
+# @example: vstacklet -e "your@email.com" -ftp 2133 -ssh 2244 -http 80 -https 443 -hn "yourhostname" -php 8.1 -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "user" -mariadbPw "mariadbpasswd" -pma -csf -sendmail -wr "/var/www/html" -wp
 # @example: vstacklet -e "your@email.com" -ftp 2133 -ssh 2244 -http 8080 -https 443 -d "yourdomain.com" -hhvm -nginx -varnish -varnishP 80 -mariadb -mariadbU "user" -mariadbPw "mariadbpasswd" -sendmail -wr "/var/www/html" -wp --reboot
 # @null
 # @break
@@ -313,7 +313,7 @@ vstacklet::args::process() {
 			[[ -n ${http_port} && ${http_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for the HTTP server." && exit 1
 			[[ -n ${http_port} && ${http_port} -lt 1 || ${http_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid HTTP port number. please enter a number between 1 and 65535." && exit 1
 			;;
-		-i | --ioncube)
+		-ioncube | --ioncube)
 			declare -gi ioncube="1"
 			shift
 			;;
@@ -1757,10 +1757,10 @@ vstacklet::permissions::adjust() {
 # notes:
 # - the ioncube loader will be available for the php version specified
 #   from the `-php | --php` option.
-# @option: $1 - `-i | --ioncube` (optional) (takes no arguments)
-# @example: vstacklet -i -php 8.1
+# @option: $1 - `-ioncube | --ioncube` (optional) (takes no arguments)
+# @example: vstacklet -ioncube -php 8.1
 # @example: vstacklet --ioncube --php 8.1
-# @example: vstacklet -i -php 7.4
+# @example: vstacklet -ioncube -php 7.4
 # @example: vstacklet --ioncube --php 7.4
 # @null
 # @return_code: 31 - failed to switch to /tmp directory.
@@ -3085,8 +3085,8 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white " -e, --email"
 	vstacklet::shell::text::white "    Sets the email address for the server."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white " -f, --ftp"
-	vstacklet::shell::text::white "    Installs and configures FTP."
+	vstacklet::shell::text::white " -ftp, --ftp"
+	vstacklet::shell::text::white "    Sets the FTP port for the server."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -hhvm, --hhvm"
 	vstacklet::shell::text::white "    Installs and configures HHVM."
@@ -3100,10 +3100,10 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white " -http, --http_port"
 	vstacklet::shell::text::white "    Sets the HTTP port for the server."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white " -i, --ioncube"
+	vstacklet::shell::text::white " -ioncube, --ioncube"
 	vstacklet::shell::text::white "    Installs IonCube."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white " -m, --mariadb"
+	vstacklet::shell::text::white " -mariadb, --mariadb"
 	vstacklet::shell::text::white "    Installs and configures MariaDB."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -mariadbU, --mariadb_user"
@@ -3157,6 +3157,10 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white " -wr, --web_root"
 	vstacklet::shell::text::white "    Sets the web root for the server."
 	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "example: "
+	vstacklet::shell::text::white "vstacklet -nginx -php '8.1' -mariadb -mariadbU 'username' -mariadbPw 'password' -varnish -csf -wp -pma -sendmail -ioncube -wr '/var/www/html' -d 'example.com' -e 'your@email.com'"
+	vstacklet::shell::misc::nl
+	exit 0
 }
 
 ################################################################################
@@ -3171,6 +3175,7 @@ vstacklet::version::display() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "vStacklet Version: ${vstacklet_version}"
 	vstacklet::shell::misc::nl
+	exit 0
 }
 
 ################################################################################
@@ -3450,8 +3455,8 @@ trap 'vstacklet::clean::rollback' SIGINT
 vstacklet::environment::init      #(1)
 vstacklet::environment::functions #(2)
 vstacklet::args::process "$@"     #(3)
-[[ "$*" =~ "-h" ]] || [[ "$*" =~ "--help" ]] && vstacklet::help::display && exit 0
-[[ "$*" =~ "-V" ]] || [[ "$*" =~ "--version" ]] && vstacklet::version::display && exit 0
+[[ "$*" =~ "-h" ]] || [[ "$*" =~ "--help" ]] && vstacklet::help::display
+[[ "$*" =~ "-V" ]] || [[ "$*" =~ "--version" ]] && vstacklet::version::display
 vstacklet::log::check                                 #(4)
 vstacklet::apt::update                                #(5)
 vstacklet::dependencies::install                      #(6)
