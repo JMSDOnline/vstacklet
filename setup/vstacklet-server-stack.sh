@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1986
+# @version: 3.1.1988
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2561,7 +2561,9 @@ vstacklet::csf::install() {
 		[[ -n ${varnish_port} ]] && varnish_port="${varnish_port:-6081}"
 		[[ -n ${sendmail_port} ]] && sendmail_port="${sendmail_port:-587}"
 		[[ -n ${csf_ui_port} ]] && csf_ui_port="${csf_ui_port:-1043}"
-		[[ -z "${csf_ui_pass}" ]] && declare -g csf_ui_pass && csf_ui_pass="$(openssl rand -base64 32)"
+		[[ -z "${csf_ui_pass}" ]] && csf_ui_pass="$(openssl rand -base64 32)"
+		# @script-note: sanitize csf_ui_pass for use in sed
+		declare -g csf_ui_pass_sanitzied && csf_ui_pass_sanitzied="$(sed -e 's/[\/&]/\\&/g' <<<"${csf_ui_pass}")"
 		# @script-note: declare default TCP ports. these are the ports that will be allowed through CSF.
 		# the ports seen below are the deault ports as defined by CSF on a fresh install.
 		TCP_IN="20,25,53,853,110,143,465,993,995,"
@@ -2575,7 +2577,7 @@ vstacklet::csf::install() {
 			sed -i.orig -e "s/^TCP_IN = .*/TCP_IN = \"${TCP_IN}${p}\"/g" -e "s/^TCP6_IN = .*/TCP6_IN = \"${TCP6_IN}${p}\"/g" -e "s/^TCP_OUT = .*/TCP_OUT = \"${TCP_OUT}${p}\"/g" -e "s/^TCP6_OUT = .*/TCP6_OUT = \"${TCP6_OUT}${p}\"/g" /etc/csf/csf.conf || vstacklet::clean::rollback 85
 		done
 		# @script-note: modify csf.conf - set csf configuration options
-		sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"3\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" -e "s/^UI = \"0\"/UI = \"1\"/g" -e "s/^UI_USER = \"username\"/UI_USER = \"${csf_ui_user:-sysop}\"/g" -e "s/^UI_PASS = \"password\"/UI_PASS = \"${csf_ui_pass}\"/g" -e "s/^UI_PORT = \"6666\"/UI_PORT = \"${csf_ui_port:-1043}\"/g" /etc/csf/csf.conf || vstacklet::clean::rollback 86
+		sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"3\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" -e "s/^UI = \"0\"/UI = \"1\"/g" -e "s/^UI_USER = \"username\"/UI_USER = \"${csf_ui_user:-sysop}\"/g" -e "s/^UI_PASS = \"password\"/UI_PASS = \"${csf_ui_pass_sanitzied}\"/g" -e "s/^UI_PORT = \"6666\"/UI_PORT = \"${csf_ui_port:-1043}\"/g" /etc/csf/csf.conf || vstacklet::clean::rollback 86
 		# @script-note: unset csf_allow_ports variable for security purposes
 		unset csf_allow_ports
 		# @script-note: grab local installed IP and set to /etc/csf/ui/ui.allow
