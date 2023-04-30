@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1937
+# @version: 3.1.1942
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2568,37 +2568,42 @@ vstacklet::csf::install() {
 		declare csf_allow_ports
 		IFS=" " read -r -a csf_allow_ports <<<"$(tr ',' '\n,' <<<"${csf_allow_ports:-${ssh_port:-22},${ftp_port:-21},${http_port:-80},${https_port:-443},${mysql_port:-3306},${mariadb_port:-3306},${varnish_port:-6081},${sendmail_port:-587},${csf_ui_port:-1043}}" | sort -u | tr '\n' ',' | sed 's/,$//g')"
 		for p in "${csf_allow_ports[@]}"; do
-			sed -i.orig -e "s/^TCP_IN = .*/TCP_IN = \"${TCP_IN}${p}\"/g" -e "s/^TCP6_IN = .*/TCP6_IN = \"${TCP6_IN}${p}\"/g" -e "s/^TCP_OUT = .*/TCP_OUT = \"${TCP_OUT}${p}\"/g" -e "s/^TCP6_OUT = .*/TCP6_OUT = \"${TCP6_OUT}${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 85
+			sed -i.orig -e "s/^TCP_IN = .*/TCP_IN = \"${TCP_IN}${p}\"/g" -e "s/^TCP6_IN = .*/TCP6_IN = \"${TCP6_IN}${p}\"/g" -e "s/^TCP_OUT = .*/TCP_OUT = \"${TCP_OUT}${p}\"/g" -e "s/^TCP6_OUT = .*/TCP6_OUT = \"${TCP6_OUT}${p}\"/g" /etc/csf/csf.conf || vstacklet::clean::rollback 85
 		done
 		# @script-note: modify csf.conf - set csf configuration options
-		sed -i.bak -e "s/^TESTING = .*/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = .*/RESTRICT_SYSLOG = \"3\"/g" -e "s/^DENY_TEMP_IP_LIMIT = .*/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = .*/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = .*/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = .*/PT_USERTIME = \"7200\"/g" -e "s/^UI = .*/UI = \"1\"/g" -e "s/^UI_USER = .*/UI_USER = \"${csf_ui_user:-sysop}\"/g" -e "s/^UI_PASS = .*/UI_PASS = \"${csf_ui_pass}\"/g" -e "s/^UI_PORT = .*/UI_PORT = \"${csf_ui_port:-1043}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 86
+		sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"3\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" -e "s/^UI = \"0\"/UI = \"1\"/g" -e "s/^UI_USER = \"\"/UI_USER = \"${csf_ui_user:-sysop}\"/g" -e "s/^UI_PASS = \"\"/UI_PASS = \"${csf_ui_pass}\"/g" -e "s/^UI_PORT = \"6666\"/UI_PORT = \"${csf_ui_port:-1043}\"/g" "/etc/csf/csf.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 86
 		# @script-note: unset csf_allow_ports variable for security purposes
 		unset csf_allow_ports
+		# @script-note: grab local installed IP and set to /etc/csf/ui/ui.allow
+		# this is to prevent unauthorized access to the CSF UI
+		[[ -z "${csf_authorized_ip}" ]] && csf_authorized_ip="$(grep "# csf SSH installation/upgrade IP address" <"/etc/csf/csf.allow" | awk '{print $1}')"
+		grep "# csf SSH installation/upgrade IP address" <"/etc/csf/csf.allow" | awk '{print $1}' >"/etc/csf/ui/ui.allow"
 		vs::stat::progress::stop # stop progress status
 		# @script-note: show csf installation summary
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::green "CSF firewall has been installed and configured successfully."
-		vstacklet::shell::text::white "CSF installation summary:"
-		vstacklet::shell::text::white::sl "  - CSF configuration file: "
+		vstacklet::shell::text::white::sl "CSF configuration file: "
 		vstacklet::shell::text::green "/etc/csf/csf.conf"
-		vstacklet::shell::text::white::sl "  - CSF allow file: "
+		vstacklet::shell::text::white::sl "CSF allow file: "
 		vstacklet::shell::text::green "/etc/csf/csf.allow"
-		vstacklet::shell::text::white::sl "  - CSF ignore file: "
+		vstacklet::shell::text::white::sl "CSF ignore file: "
 		vstacklet::shell::text::green "/etc/csf/csf.ignore"
-		vstacklet::shell::text::white::sl "  - CSF blocklist file: "
+		vstacklet::shell::text::white::sl "CSF blocklist file: "
 		vstacklet::shell::text::green "/etc/csf/csf.blocklists"
-		vstacklet::shell::text::white::sl "  - CSF UI enabled: "
+		vstacklet::shell::text::white::sl "CSF UI enabled: "
 		vstacklet::shell::text::green "true"
-		vstacklet::shell::text::white::sl "  - CSF UI port: "
+		vstacklet::shell::text::white::sl "CSF UI port: "
 		vstacklet::shell::text::green "${csf_ui_port:-1043}"
-		vstacklet::shell::text::white::sl "  - CSF UI user: "
+		vstacklet::shell::text::white::sl "CSF UI user: "
 		vstacklet::shell::text::green "${csf_ui_user:-sysop}"
-		vstacklet::shell::text::white::sl "  - CSF UI password: "
+		vstacklet::shell::text::white::sl "CSF UI password: "
 		vstacklet::shell::text::green "${csf_ui_pass}"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "Note: You can access the CSF UI using the credentials provided above."
-		vstacklet::shell::text::white "  UI access is currently restricted. You can allow your IP address"
-		vstacklet::shell::text::white "  to access the UI by doing the following:"
+		vstacklet::shell::text::white "  UI access is currently restricted."
+		vstacklet::shell::text::white "  Your installation IP address (${csf_authorized_ip}) has"
+		vstacklet::shell::text::white "  been added to the /etc/csf/ui/ui.allow file."
+		vstacklet::shell::text::white "  You can allow more IP addresses to access the UI by doing the following:"
 		vstacklet::shell::text::white::sl "    1. "
 		vstacklet::shell::text::green "Add your IP address to the /etc/csf/ui/ui.allow file."
 		vstacklet::shell::text::white::sl "    2. "
@@ -2814,38 +2819,35 @@ vstacklet::wordpress::install() {
 			vstacklet::shell::text::white::sl "WordPress database user: "
 			vstacklet::shell::icon::arrow::white
 			while read -r wp_db_user; do
-				# @script-note: check if WordPress database user is empty
-				[[ -z ${wp_db_user} ]] && vstacklet::shell::text::error "WordPress database user cannot be empty."
 				# @script-note: check if WordPress database user already exists, if so, use current user
-				if [[ $(mysql -u root -e "SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = '${wp_db_user}')") == "1" ]]; then
-					vstacklet::shell::text::error "WordPress database user already exists. Using previously created user."
-					declare -i wp_db_user_exists=1
+				db_user_present="$(mysql -u root -e "SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = '${wp_db_user}')" | tail -n 1)"
+				if [[ "${db_user_present}" == "1" ]]; then
+					vstacklet::shell::text::error "Database user already exists. Using previously created user."
+					declare -i db_user_exists=1
 					[[ -n "${mysql_user}" ]] && wp_db_user="${mysql_user}"
 					[[ -n "${mariadb_user}" ]] && wp_db_user="${mariadb_user}"
 					break
-				else
-					vstacklet::shell::text::white::sl "WordPress database user: " && vstacklet::shell::icon::arrow::white && continue
-					break
 				fi
+				# @script-note: check if WordPress database user is empty
+				[[ -z ${wp_db_user} ]] && vstacklet::shell::text::error "WordPress database user cannot be empty." && vstacklet::shell::text::white::sl "WordPress database user: " && vstacklet::shell::icon::arrow::white && continue
+				break
 			done
 		}
 		# @script-note: get WordPress database password
 		vstacklet::wp::password() {
-			# @script-note: check if user_exists is set, if so, use current password
-			if [[ ${wp_db_user_exists} -eq 1 ]]; then
-				vstacklet::shell::text::error "Using previously created password."
-				[[ -n "${mysql_password}" ]] && wp_db_password="${mysql_password}"
-				[[ -n "${mariadb_password}" ]] && wp_db_password="${mariadb_password}"
-				return
-			else
-				vstacklet::shell::text::white::sl "WordPress database password: "
-				vstacklet::shell::icon::arrow::white
-				while read -r wp_db_password; do
-					[[ -z ${wp_db_password} ]] && vstacklet::shell::text::error "WordPress database password cannot be empty."
-					vstacklet::shell::text::white::sl "WordPress database password: " && vstacklet::shell::icon::arrow::white && continue
+			vstacklet::shell::text::white::sl "WordPress database password: "
+			vstacklet::shell::icon::arrow::white
+			while read -r wp_db_password; do
+				# @script-note: check if user_exists is set, if so, use current password
+				if [[ ${db_user_exists} -eq 1 ]]; then
+					vstacklet::shell::text::error "Using previously created password."
+					[[ -n "${mysql_password}" ]] && wp_db_password="${mysql_password}"
+					[[ -n "${mariadb_password}" ]] && wp_db_password="${mariadb_password}"
 					break
-				done
-			fi
+				fi
+				[[ -z ${wp_db_password} ]] && vstacklet::shell::text::error "WordPress database password cannot be empty." && vstacklet::shell::text::white::sl "WordPress database password: " && vstacklet::shell::icon::arrow::white && continue
+				break
+			done
 		}
 		# @script-note: call Wordpress information functions
 		vstacklet::wp::db
