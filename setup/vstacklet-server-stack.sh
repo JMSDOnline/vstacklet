@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1906
+# @version: 3.1.1918
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -179,9 +179,8 @@
 ##################################################################################
 vstacklet::environment::init() {
 	shopt -s extglob
-	declare -g vstacklet_base_path server_ip server_hostname local_setup_dir local_php8_dir local_php7_dir local_hhvm_dir local_varnish_dir
+	declare -g vstacklet_base_path server_ip local_setup_dir local_php8_dir local_php7_dir local_hhvm_dir local_varnish_dir
 	server_ip=$(ip addr show | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | cut -d/ -f1 | head -n 1)
-	server_hostname=$(hostname -s)
 	# vstacklet directories
 	local_setup_dir="${vstacklet_base_path:=/opt/vstacklet}/setup"
 	local_php8_dir="/opt/vstacklet/config/php8"
@@ -249,7 +248,6 @@ vstacklet::args::process() {
 		#	shift
 		#	;;
 		-V | --version)
-			declare -gi skip_checks="1"
 			vstacklet::version::display
 			;;
 		-r | --reboot)
@@ -257,7 +255,6 @@ vstacklet::args::process() {
 			shift
 			;;
 		-h | --help)
-			declare -gi skip_checks="1"
 			vstacklet::help::display
 			;;
 		-csf | --csf)
@@ -2522,7 +2519,7 @@ vstacklet::csf::install() {
 		done
 		unset depend depend_list install
 		# @script-note: install csf
-		wget -O - https://download.configserver.com/csf.tgz | tar -xz -C /usr/local/src >>${vslog} 2>&1 || vstacklet::clean::rollback 77
+		wget -qO - https://download.configserver.com/csf.tgz | tar -xz -C /usr/local/src >>${vslog} 2>&1 || vstacklet::clean::rollback 77
 		cd /usr/local/src/csf || vstacklet::clean::rollback 78
 		sh install.sh >>"${vslog}" 2>&1 || vstacklet::clean::rollback 79
 		# @script-note: configure csf
@@ -2531,7 +2528,7 @@ vstacklet::csf::install() {
 		perl /usr/local/csf/bin/csftest.pl >>"${vslog}" 2>&1 || vstacklet::clean::rollback 80
 		# @script-note: modify csf blocklists - essentiallly like cloudflare, but for csf
 		# https://www.configserver.com/cp/csf.html#blocklists
-		sed -i.bak -e 's/^SPAMDROP|86400|0|/SPAMDROP|86400|100|/g' -e 's/^SPAMEDROP|86400|0|/SPAMEDROP|86400|100|/g' -e 's/^DSHIELD|86400|0|/DSHIELD|86400|100|/g' -e 's/^TOR|86400|0|/TOR|86400|100|/g' -e 's/^ALTTOR|86400|0|/ALTTOR|86400|100|/g' -e 's/^BOGON|86400|0|/BOGON|86400|100|/g' -e 's/^HONEYPOT|86400|0|/HONEYPOT|86400|100|/g' -e 's/^CIARMY|86400|0|/CIARMY|86400|100|/g' -e 's/^BFB|86400|0|/BFB|86400|100|/g' -e 's/^OPENBL|86400|0|/OPENBL|86400|100|/g' -e 's/^AUTOSHUN|86400|0|/AUTOSHUN|86400|100|/g' -e 's/^MAXMIND|86400|0|/MAXMIND|86400|100|/g' -e 's/^BDE|3600|0|/BDE|3600|100|/g' -e 's/^BDEALL|86400|0|/BDEALL|86400|100|/g' /etc/csf/csf.blocklists >>"${vslog}" 2>&1 || vstacklet::clean::rollback 81
+		sed -i.bak -e 's/#SPAMDROP|86400|0|/SPAMDROP|86400|100|/g' -e 's/#SPAMDROPV6|86400|0|/SPAMDROPV6|86400|100|/g' -e 's/#SPAMEDROP|86400|0|/SPAMEDROP|86400|100|/g' -e 's/#DSHIELD|86400|0|/DSHIELD|86400|100|/g' -e 's/#TOR|86400|0|/TOR|86400|100|/g' -e 's/#ALTTOR|86400|0|/ALTTOR|86400|100|/g' -e 's/#BOGON|86400|0|/BOGON|86400|100|/g' -e 's/#HONEYPOT|86400|0|/HONEYPOT|86400|100|/g' -e 's/#CIARMY|86400|0|/CIARMY|86400|100|/g' -e 's/#BFB|86400|0|/BFB|86400|100|/g' -e 's/#OPENBL|86400|0|/OPENBL|86400|100|/g' -e 's/#AUTOSHUN|86400|0|/AUTOSHUN|86400|100|/g' -e 's/#MAXMIND|86400|0|/MAXMIND|86400|100|/g' -e 's/#BDE|3600|0|/BDE|3600|100|/g' -e 's/#BDEALL|86400|0|/BDEALL|86400|100|/g' /etc/csf/csf.blocklists >>"${vslog}" 2>&1 || vstacklet::clean::rollback 81
 		# @script-note: the following lines are commented out as they are currently WIP. (formatting is not correct)
 		# modify csf.ignore - ignore nginx, varnish, mysql, redis, postgresql, and phpmyadmin
 		#{
@@ -2548,30 +2545,59 @@ vstacklet::csf::install() {
 		#	echo "systemd-timesyncd"
 		#	echo "systemd-resolved"
 		#} >>/etc/csf/csf.ignore || vstacklet::clean::rollback 82
-		## modify csf.allow - allow ssh, http, https, mysql, mariadb, postgresql, redis, and varnish
-		#{
-		#	echo
-		#	echo "[ vStacklet Additions ]"
-		#	echo "${ssh_port:-22}"
-		#	echo "${ftp_port:-21}"
-		#	echo "${http_port:-80}"
-		#	echo "${https_port:-443}"
-		#	[[ -n ${mysql_port} ]] && echo "${mysql_port:-3306}"
-		#	[[ -n ${mariadb_port} ]] && echo "${mariadb_port:-3306}"
-		#	[[ -n ${postgresql_port} ]] && echo "${postgresql_port:-5432}"
-		#	[[ -n ${redis_port} ]] && echo "${redis_port:-6379}"
-		#	[[ -n ${varnish_port} ]] && echo "${varnish_port:-6081}"
-		#	[[ -n ${sendmail_port} ]] && echo "${sendmail_port:-587}"
-		#} >>/etc/csf/csf.allow || vstacklet::clean::rollback 83
-		declare -a csf_allow_ports=("${ssh_port}" "${ftp_port}" "${http_port}" "${https_port}" "${mysql_port}" "${mariadb_port}" "${postgresql_port}" "${redis_port}" "${varnish_port}" "${sendmail_port}")
-		# @script-note: modify csf.conf - allow ssh, ftp, http, https, mysql, mariadb, postgresql, redis, sendmail, and varnish
+		# @script-note: set defaults for ports
+		[[ -n ${ssh_port} ]] && ssh_port="${ssh_port:-22}"
+		[[ -n ${ftp_port} ]] && ftp_port="${ftp_port:-21}"
+		[[ -n ${http_port} ]] && http_port="${http_port:-80}"
+		[[ -n ${https_port} ]] && https_port="${https_port:-443}"
+		[[ -n ${mysql_port} ]] && mysql_port="${mysql_port:-3306}"
+		[[ -n ${mariadb_port} ]] && mariadb_port="${mariadb_port:-3306}"
+		#[[ -n ${postgresql_port} ]] && postgresql_port="${postgresql_port:-5432}"
+		#[[ -n ${redis_port} ]] && redis_port="${redis_port:-6379}"
+		[[ -n ${varnish_port} ]] && varnish_port="${varnish_port:-6081}"
+		[[ -n ${sendmail_port} ]] && sendmail_port="${sendmail_port:-587}"
+		[[ -n ${csf_ui_port} ]] && csf_ui_port="${csf_ui_port:-8443}"
+		# @script-note: declare default TCP ports. these are the ports that will be allowed through CSF.
+		# the ports seen below are the deault ports as defined by CSF on a fresh install.
+		TCP_IN="20,25,53,853,110,143,465,993,995,"
+		TCP_OUT="20,25,53,853,110,113,993,995,"
+		TCP6_IN="20,25,53,853,110,143,465,993,995,"
+		TCP6_OUT="20,25,53,853,110,113,993,995,"
+		# @script-note: modify csf.conf - allow ssh, ftp, http, https, mysql, mariadb, sendmail, and varnish
+		declare csf_allow_ports
+		IFS=" " read -r -a csf_allow_ports <<<"$(tr ',' '\n,' <<<"${csf_allow_ports:-${ssh_port:-22},${ftp_port:-21},${http_port:-80},${https_port:-443},${mysql_port:-3306},${mariadb_port:-3306},${varnish_port:-6081},${sendmail_port:-587},${csf_ui_port:-8443}}" | sort -u | tr '\n' ',' | sed 's/,$//g')"
 		for p in "${csf_allow_ports[@]}"; do
-			sed -i.bak -e "s/^TCP_IN = \"\$TCP_IN\"/TCP_IN = \"\$TCP_IN ${p}\"/g" -e "s/^TCP6_IN = \"\$TCP6_IN\"/TCP6_IN = \"\$TCP6_IN ${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 84
-			sed -i.bak -e "s/^TCP_OUT = \"\$TCP_OUT\"/TCP_OUT = \"\$TCP_OUT ${p}\"/g" -e "s/^TCP6_OUT = \"\$TCP6_OUT\"/TCP6_OUT = \"\$TCP6_OUT ${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 85
+			sed -i.bak -e "s/^TCP_IN = .*/TCP_IN = \"${TCP_IN}${p}\"/g" -e "s/^TCP6_IN = .*/TCP6_IN = \"${TCP6_IN}${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 84
+			sed -i.bak -e "s/^TCP_OUT = .*/TCP_OUT = \"${TCP_OUT}${p}\"/g" -e "s/^TCP6_OUT = .*/TCP6_OUT = \"${TCP6_OUT}${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 85
 		done
+		# @script-note: unset csf_allow_ports variable for security purposes
+		unset csf_allow_ports
 		# @script-note: modify csf.conf - this is to be further refined
-		sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"1\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 86
+		[[ -z "${csf_ui_pass}" ]] && declare -g csf_ui_pass && csf_ui_pass="$(openssl rand -base64 32)"
+		sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"1\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" -e "s/^UI = \"0\"/UI = \"1\"/g" -e "s/^UI_USER = \"\"/UI_USER = \"${csf_ui_user:-sysop}\"/g" -e "s/^UI_PASS = \"\"/UI_PASS = \"${csf_ui_pass}\"/g" -e "s/^UI_PORT =.*/UI_PORT = \"${csf_ui_port:-8443}\"" "/etc/csf/csf.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 86
 		vs::stat::progress::stop # stop progress status
+		# @script-note: show csf installation summary
+		vstacklet::shell::misc::nl
+		vstacklet::shell::text::green "CSF firewall has been installed and configured successfully."
+		vstacklet::shell::text::green "CSF installation summary:"
+		vstacklet::shell::text::green "  - CSF configuration file: /etc/csf/csf.conf"
+		vstacklet::shell::text::green "  - CSF allow file: /etc/csf/csf.allow"
+		vstacklet::shell::text::green "  - CSF ignore file: /etc/csf/csf.ignore"
+		vstacklet::shell::text::green "  - CSF blocklist file: /etc/csf/csf.blocklists"
+		vstacklet::shell::text::green "  - CSF UI enabled: true"
+		vstacklet::shell::text::green "  - CSF UI port: ${csf_ui_port:-8443}"
+		vstacklet::shell::text::green "  - CSF UI user: ${csf_ui_user:-sysop}"
+		vstacklet::shell::text::green "  - CSF UI password: ${csf_ui_pass}"
+		vstacklet::shell::misc::nl
+		vstacklet::shell::text::green "Note: You can access the CSF UI at https://${server_ip}:${csf_ui_port:-8443}"
+		vstacklet::shell::text::green "  using the username and password provided above."
+		vstacklet::shell::text::green "  UI access is currently restricted. You can allow your IP address"
+		vstacklet::shell::text::green "  to access the UI by doing the following:"
+		vstacklet::shell::text::green "    1. Add your IP address to the /etc/csf/ui/ui.allow file."
+		vstacklet::shell::text::green "    2. Restart CSF: csf -r"
+		vstacklet::shell::text::green "    3. Restart LFD: systemctl restart lfd"
+		vstacklet::shell::text::green "    4. Access the UI at https://${server_ip}:${csf_ui_port:-8443}"
+		vstacklet::shell::misc::nl
 		# @script-note: the following signals for sendmail to be installed
 		# if the `-sendmail` flag is not passed to the script. sendmail is a
 		# dependency for csf to function properly.
@@ -2675,31 +2701,31 @@ vstacklet::sendmail::install() {
 		# @script-note: configure sendmail
 		vstacklet::shell::text::yellow::sl "configuring sendmail ... " &
 		vs::stat::progress::start # start progress status
+		# @script-note: begin initial sendmail configuration - auto-configure sendmail by answering yes to all questions
+		y | sendmailconfig >>"${vslog}" 2>&1 || vstacklet::clean::rollback 89
 		# @script-note: modify aliases
-		sed -i.bak -e "s/^root:.*$/root: ${email}/g" /etc/aliases >>"${vslog}" 2>&1 || vstacklet::clean::rollback 89
+		if [[ -f "/etc/aliases" ]]; then
+			# @script-note: backup aliases
+			cp /etc/aliases /etc/aliases.bak >>"${vslog}" 2>&1 || vstacklet::clean::rollback 89
+			# @script-note: check if root alias exists in /etc/aliases - if not, add it
+			if [[ $(grep -c "^root:" /etc/aliases) -eq 0 ]]; then
+				echo "root: ${email}" >>/etc/aliases >>"${vslog}" 2>&1 || vstacklet::clean::rollback 89
+			fi
+		fi
 		# @script-note: modify /etc/mail/sendmail.cf
-		sed -i.bak -e "s/^DS.*$/DS${email}/g" \
-			-e "s/^O DaemonPortOptions=Addr=${sendmail_port:-587}, Name=MTA-v4/O DaemonPortOptions=Addr=${sendmail_port:-587}, Name=MTA-v4, Family=inet/g" \
-			-e "s/^O PrivacyOptions=authwarnings,novrfy,noexpnO PrivacyOptions=authwarnings,novrfy,noexpn/O PrivacyOptions=authwarnings,novrfy,noexpn,restrictqrun/g" \
-			-e "s/^O AuthInfo=.*/O AuthInfo=${email}:*:${email}/g" \
-			-e "s/^O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4/O Mailer=smtp, Addr=${server_ip}, Port=smtp, Name=MTA-v4, Family=inet/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 90
-		# @script-note: modify /etc/postfix/main.cf
-		sed -i.bak -e "s/^#myhostname = host.domain.tld/myhostname = ${hostname:-${server_hostname}}/g" \
-			-e "s/^#mydomain = domain.tld/mydomain = ${domain:-${server_ip}}/g" \
-			-e "s/^#myorigin = \$mydomain/myorigin = \$mydomain/g" \
-			-e "s/^#mydestination = \$myhostname, localhost.\$mydomain, localhost/mydestination = \$myhostname, localhost.\$mydomain, localhost/g" \
-			-e "s/^#relayhost =/relayhost = ${server_ip}:${sendmail_port:-587}/g" /etc/postfix/main.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 91
-		# @script-note: modify /etc/postfix/master.cf
-		sed -i.bak -e "s/^#submission/submission/g" \
-			-e "s/^#  -o syslog_name=postfix\/submission/  -o syslog_name=postfix\/submission/g" \
-			-e "s/^#  -o smtpd_tls_security_level=encrypt/  -o smtpd_tls_security_level=encrypt/g" \
-			-e "s/^#  -o smtpd_sasl_auth_enable=yes/  -o smtpd_sasl_auth_enable=yes/g" \
-			-e "s/^#  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/  -o smtpd_client_restrictions=permit_sasl_authenticated,reject/g" \
-			-e "s/^#  -o milter_macro_daemon_name=ORIGINATING/  -o milter_macro_daemon_name=ORIGINATING/g" /etc/postfix/master.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 92
-		# @script-note: modify /etc/postfix/sasl_passwd
-		echo "[${server_ip}]:${sendmail_port:-587} ${email}:${email}" >/etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || vstacklet::clean::rollback 93
-		# @script-note: modify /etc/postfix/sasl_passwd
-		postmap /etc/postfix/sasl_passwd >>"${vslog}" 2>&1 || vstacklet::clean::rollback 94
+		sed -i.bak -e "s/^DS.*$/DS${email}/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 90
+		# @script-note: modify for sendmail to use domain or hostname
+		if [[ -n ${domain} ]]; then
+			# @script-note: check if MASQUERADE_AS is present in sendmail config - if not, add it
+			if [[ $(grep -c "^MASQUERADE_AS" /etc/mail/sendmail.cf) -eq 0 ]]; then
+				sed -i -e "s/#CL root/CL root\nMASQUERADE_AS(${domain})/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 90
+			else
+				sed -i -e "s/#CL root/CL root/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 90
+				sed -i -e "s/^MASQUERADE_AS.*$/MASQUERADE_AS(${domain})/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 90
+			fi
+		else
+			sed -i.bak -e "s/^#MASQUERADE_AS($(hostname --fqdn))/MASQUERADE_AS($(hostname --fqdn))/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 90
+		fi
 		newaliases >>"${vslog}" 2>&1 || vstacklet::clean::rollback 95
 		vs::stat::progress::stop # stop progress status
 		# @script-note: sendmail installation complete
@@ -2709,9 +2735,11 @@ vstacklet::sendmail::install() {
 		vstacklet::shell::text::white::sl "sendmail email: "
 		vstacklet::shell::text::green "${email}"
 		vstacklet::shell::text::white::sl "sendmail hostname: "
-		vstacklet::shell::text::green "${hostname:-${server_hostname}}"
-		vstacklet::shell::text::white::sl "sendmail domain: "
-		vstacklet::shell::text::green "${domain:-${server_ip}}"
+		if [[ -n ${domain} ]]; then
+			vstacklet::shell::text::green "${domain}"
+		else
+			vstacklet::shell::text::green "$(hostname --fqdn)"
+		fi
 	fi
 }
 
@@ -3408,6 +3436,10 @@ vstacklet::clean::rollback() {
 	if [[ -n ${phpmyadmin} ]]; then
 		apt-get -y autopurge phpmyadmin* >/dev/null 2>&1
 		apt-get -y autoremove phpmyadmin* >/dev/null 2>&1
+	fi
+	if [[ -n ${csf} ]]; then
+		sh /usr/local/src/csf/uninstall.sh >>"${vslog}" 2>&1
+		rm -rf /etc/csf/ /usr/local/src/csf/
 	fi
 	if [[ -n ${redis} ]]; then
 		rm -rf "/var/lib/redis" "/var/run/redis" "/etc/redis" >/dev/null 2>&1
