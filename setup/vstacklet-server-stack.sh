@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1935
+# @version: 3.1.1937
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2590,14 +2590,13 @@ vstacklet::csf::install() {
 		vstacklet::shell::text::white::sl "  - CSF UI enabled: "
 		vstacklet::shell::text::green "true"
 		vstacklet::shell::text::white::sl "  - CSF UI port: "
-		vstacklet::shell::text::green "${csf_ui_port:-8443}"
+		vstacklet::shell::text::green "${csf_ui_port:-1043}"
 		vstacklet::shell::text::white::sl "  - CSF UI user: "
 		vstacklet::shell::text::green "${csf_ui_user:-sysop}"
 		vstacklet::shell::text::white::sl "  - CSF UI password: "
 		vstacklet::shell::text::green "${csf_ui_pass}"
 		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "Note: You can access the CSF UI at https://${server_ip}:${csf_ui_port:-8443}"
-		vstacklet::shell::text::white "  using the username and password provided above."
+		vstacklet::shell::text::white "Note: You can access the CSF UI using the credentials provided above."
 		vstacklet::shell::text::white "  UI access is currently restricted. You can allow your IP address"
 		vstacklet::shell::text::white "  to access the UI by doing the following:"
 		vstacklet::shell::text::white::sl "    1. "
@@ -2607,7 +2606,7 @@ vstacklet::csf::install() {
 		vstacklet::shell::text::white::sl "    3. "
 		vstacklet::shell::text::green "Restart LFD: systemctl restart lfd"
 		vstacklet::shell::text::white::sl "    4. "
-		vstacklet::shell::text::green "Access the CSF UI at https://${server_ip}:${csf_ui_port:-8443}"
+		vstacklet::shell::text::green "Access the CSF UI at https://${server_ip}:${csf_ui_port:-1043}"
 		vstacklet::shell::misc::nl
 		# @script-note: the following signals for sendmail to be installed
 		# if the `-sendmail` flag is not passed to the script. sendmail is a
