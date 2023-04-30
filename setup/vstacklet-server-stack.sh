@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1918
+# @version: 3.1.1934
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -887,7 +887,7 @@ vstacklet::dependencies::array() {
 	# @script-note: install phpmyadmin dependencies
 	declare -ga phpmyadmin_dependencies=("phpmyadmin")
 	# @script-note: install csf dependencies
-	declare -ga csf_dependencies=("e2fsprogs" "libwww-perl" "liblwp-protocol-https-perl" "libgd-graph-perl")
+	declare -ga csf_dependencies=("e2fsprogs" "libwww-perl" "liblwp-protocol-https-perl" "libgd-graph-perl" "libio-socket-ssl-perl" "libcrypt-ssleay-perl" "perl" "libnet-libidn-perl" "libio-socket-inet6-perl" "libsocket6-perl")
 	# @script-note: install sendmail dependencies
 	declare -ga sendmail_dependencies=("sendmail" "sendmail-bin" "sendmail-cf" "mailutils" "libsasl2-modules")
 }
@@ -2556,7 +2556,8 @@ vstacklet::csf::install() {
 		#[[ -n ${redis_port} ]] && redis_port="${redis_port:-6379}"
 		[[ -n ${varnish_port} ]] && varnish_port="${varnish_port:-6081}"
 		[[ -n ${sendmail_port} ]] && sendmail_port="${sendmail_port:-587}"
-		[[ -n ${csf_ui_port} ]] && csf_ui_port="${csf_ui_port:-8443}"
+		[[ -n ${csf_ui_port} ]] && csf_ui_port="${csf_ui_port:-1043}"
+		[[ -z "${csf_ui_pass}" ]] && declare -g csf_ui_pass && csf_ui_pass="$(openssl rand -base64 32)"
 		# @script-note: declare default TCP ports. these are the ports that will be allowed through CSF.
 		# the ports seen below are the deault ports as defined by CSF on a fresh install.
 		TCP_IN="20,25,53,853,110,143,465,993,995,"
@@ -2565,38 +2566,48 @@ vstacklet::csf::install() {
 		TCP6_OUT="20,25,53,853,110,113,993,995,"
 		# @script-note: modify csf.conf - allow ssh, ftp, http, https, mysql, mariadb, sendmail, and varnish
 		declare csf_allow_ports
-		IFS=" " read -r -a csf_allow_ports <<<"$(tr ',' '\n,' <<<"${csf_allow_ports:-${ssh_port:-22},${ftp_port:-21},${http_port:-80},${https_port:-443},${mysql_port:-3306},${mariadb_port:-3306},${varnish_port:-6081},${sendmail_port:-587},${csf_ui_port:-8443}}" | sort -u | tr '\n' ',' | sed 's/,$//g')"
+		IFS=" " read -r -a csf_allow_ports <<<"$(tr ',' '\n,' <<<"${csf_allow_ports:-${ssh_port:-22},${ftp_port:-21},${http_port:-80},${https_port:-443},${mysql_port:-3306},${mariadb_port:-3306},${varnish_port:-6081},${sendmail_port:-587},${csf_ui_port:-1043}}" | sort -u | tr '\n' ',' | sed 's/,$//g')"
 		for p in "${csf_allow_ports[@]}"; do
-			sed -i.bak -e "s/^TCP_IN = .*/TCP_IN = \"${TCP_IN}${p}\"/g" -e "s/^TCP6_IN = .*/TCP6_IN = \"${TCP6_IN}${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 84
-			sed -i.bak -e "s/^TCP_OUT = .*/TCP_OUT = \"${TCP_OUT}${p}\"/g" -e "s/^TCP6_OUT = .*/TCP6_OUT = \"${TCP6_OUT}${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 85
+			sed -i.orig -e "s/^TCP_IN = .*/TCP_IN = \"${TCP_IN}${p}\"/g" -e "s/^TCP6_IN = .*/TCP6_IN = \"${TCP6_IN}${p}\"/g" -e "s/^TCP_OUT = .*/TCP_OUT = \"${TCP_OUT}${p}\"/g" -e "s/^TCP6_OUT = .*/TCP6_OUT = \"${TCP6_OUT}${p}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 85
 		done
+		# @script-note: modify csf.conf - set csf configuration options
+		sed -i.bak -e "s/^TESTING = .*/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = .*/RESTRICT_SYSLOG = \"3\"/g" -e "s/^DENY_TEMP_IP_LIMIT = .*/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = .*/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = .*/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = .*/PT_USERTIME = \"7200\"/g" -e "s/^UI = .*/UI = \"1\"/g" -e "s/^UI_USER = .*/UI_USER = \"${csf_ui_user:-sysop}\"/g" -e "s/^UI_PASS = .*/UI_PASS = \"${csf_ui_pass}\"/g" -e "s/^UI_PORT = .*/UI_PORT = \"${csf_ui_port:-1043}\"/g" /etc/csf/csf.conf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 86
 		# @script-note: unset csf_allow_ports variable for security purposes
 		unset csf_allow_ports
-		# @script-note: modify csf.conf - this is to be further refined
-		[[ -z "${csf_ui_pass}" ]] && declare -g csf_ui_pass && csf_ui_pass="$(openssl rand -base64 32)"
-		sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"1\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" -e "s/^UI = \"0\"/UI = \"1\"/g" -e "s/^UI_USER = \"\"/UI_USER = \"${csf_ui_user:-sysop}\"/g" -e "s/^UI_PASS = \"\"/UI_PASS = \"${csf_ui_pass}\"/g" -e "s/^UI_PORT =.*/UI_PORT = \"${csf_ui_port:-8443}\"" "/etc/csf/csf.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 86
 		vs::stat::progress::stop # stop progress status
 		# @script-note: show csf installation summary
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::green "CSF firewall has been installed and configured successfully."
-		vstacklet::shell::text::green "CSF installation summary:"
-		vstacklet::shell::text::green "  - CSF configuration file: /etc/csf/csf.conf"
-		vstacklet::shell::text::green "  - CSF allow file: /etc/csf/csf.allow"
-		vstacklet::shell::text::green "  - CSF ignore file: /etc/csf/csf.ignore"
-		vstacklet::shell::text::green "  - CSF blocklist file: /etc/csf/csf.blocklists"
-		vstacklet::shell::text::green "  - CSF UI enabled: true"
-		vstacklet::shell::text::green "  - CSF UI port: ${csf_ui_port:-8443}"
-		vstacklet::shell::text::green "  - CSF UI user: ${csf_ui_user:-sysop}"
-		vstacklet::shell::text::green "  - CSF UI password: ${csf_ui_pass}"
+		vstacklet::shell::text::white "CSF installation summary:"
+		vstacklet::shell::text::white::sl "  - CSF configuration file: "
+		vstacklet::shell::text::green "/etc/csf/csf.conf"
+		vstacklet::shell::text::white::sl "  - CSF allow file: "
+		vstacklet::shell::text::green "/etc/csf/csf.allow"
+		vstacklet::shell::text::white::sl "  - CSF ignore file: "
+		vstacklet::shell::text::green "/etc/csf/csf.ignore"
+		vstacklet::shell::text::white::sl "  - CSF blocklist file: "
+		vstacklet::shell::text::green "/etc/csf/csf.blocklists"
+		vstacklet::shell::text::white::sl "  - CSF UI enabled: "
+		vstacklet::shell::text::green "true"
+		vstacklet::shell::text::white::sl "  - CSF UI port: "
+		vstacklet::shell::text::green "${csf_ui_port:-8443}"
+		vstacklet::shell::text::white::sl "  - CSF UI user: "
+		vstacklet::shell::text::green "${csf_ui_user:-sysop}"
+		vstacklet::shell::text::white::sl "  - CSF UI password: "
+		vstacklet::shell::text::green "${csf_ui_pass}"
 		vstacklet::shell::misc::nl
-		vstacklet::shell::text::green "Note: You can access the CSF UI at https://${server_ip}:${csf_ui_port:-8443}"
-		vstacklet::shell::text::green "  using the username and password provided above."
-		vstacklet::shell::text::green "  UI access is currently restricted. You can allow your IP address"
-		vstacklet::shell::text::green "  to access the UI by doing the following:"
-		vstacklet::shell::text::green "    1. Add your IP address to the /etc/csf/ui/ui.allow file."
-		vstacklet::shell::text::green "    2. Restart CSF: csf -r"
-		vstacklet::shell::text::green "    3. Restart LFD: systemctl restart lfd"
-		vstacklet::shell::text::green "    4. Access the UI at https://${server_ip}:${csf_ui_port:-8443}"
+		vstacklet::shell::text::white "Note: You can access the CSF UI at https://${server_ip}:${csf_ui_port:-8443}"
+		vstacklet::shell::text::white "  using the username and password provided above."
+		vstacklet::shell::text::white "  UI access is currently restricted. You can allow your IP address"
+		vstacklet::shell::text::white "  to access the UI by doing the following:"
+		vstacklet::shell::text::white::sl "    1. "
+		vstacklet::shell::text::green "Add your IP address to the /etc/csf/ui/ui.allow file."
+		vstacklet::shell::text::white::sl "    2. "
+		vstacklet::shell::text::green "Restart CSF: csf -r"
+		vstacklet::shell::text::white::sl "    3. "
+		vstacklet::shell::text::green "Restart LFD: systemctl restart lfd"
+		vstacklet::shell::text::white::sl "    4. "
+		vstacklet::shell::text::green "Access the CSF UI at https://${server_ip}:${csf_ui_port:-8443}"
 		vstacklet::shell::misc::nl
 		# @script-note: the following signals for sendmail to be installed
 		# if the `-sendmail` flag is not passed to the script. sendmail is a
@@ -2630,7 +2641,7 @@ vstacklet::cloudflare::csf() {
 	# @script-note: check if Cloudflare has been selected
 	if [[ -n ${csf_cloudflare} ]]; then
 		# @script-note: check if the csf.allow file exists
-		[[ ! -f "/etc/csf/csf.allow" ]] || vstacklet::clean::rollback 87
+		[[ ! -f "/etc/csf/csf.allow" ]] && vstacklet::clean::rollback 87
 		# @script-note: add Cloudflare IP addresses to the allow list
 		vstacklet::shell::text::white "adding Cloudflare IP addresses to the allow list ... "
 		{
@@ -2640,7 +2651,7 @@ vstacklet::cloudflare::csf() {
 			# trunk-ignore(shellcheck/SC2005)
 			echo "$(curl -s https://www.cloudflare.com/ips-v6)"
 			echo "# End Cloudflare IP addresses"
-		} >>/tmp/csf.allow
+		} >>/etc/csf/csf.allow
 	fi
 }
 
@@ -2702,14 +2713,14 @@ vstacklet::sendmail::install() {
 		vstacklet::shell::text::yellow::sl "configuring sendmail ... " &
 		vs::stat::progress::start # start progress status
 		# @script-note: begin initial sendmail configuration - auto-configure sendmail by answering yes to all questions
-		y | sendmailconfig >>"${vslog}" 2>&1 || vstacklet::clean::rollback 89
+		"yes" | sendmailconfig >>"${vslog}" 2>&1 || vstacklet::clean::rollback 88
 		# @script-note: modify aliases
 		if [[ -f "/etc/aliases" ]]; then
 			# @script-note: backup aliases
-			cp /etc/aliases /etc/aliases.bak >>"${vslog}" 2>&1 || vstacklet::clean::rollback 89
+			cp /etc/aliases /etc/aliases.orig >>"${vslog}" 2>&1 || vstacklet::clean::rollback 89
 			# @script-note: check if root alias exists in /etc/aliases - if not, add it
 			if [[ $(grep -c "^root:" /etc/aliases) -eq 0 ]]; then
-				echo "root: ${email}" >>/etc/aliases >>"${vslog}" 2>&1 || vstacklet::clean::rollback 89
+				echo "root: ${email}" >>/etc/aliases || vstacklet::clean::rollback 89
 			fi
 		fi
 		# @script-note: modify /etc/mail/sendmail.cf
@@ -2804,18 +2815,38 @@ vstacklet::wordpress::install() {
 			vstacklet::shell::text::white::sl "WordPress database user: "
 			vstacklet::shell::icon::arrow::white
 			while read -r wp_db_user; do
-				[[ -z ${wp_db_user} ]] && vstacklet::shell::text::error "WordPress database user cannot be empty." && vstacklet::shell::text::white::sl "WordPress database user: " && vstacklet::shell::icon::arrow::white && continue
-				break
+				# @script-note: check if WordPress database user is empty
+				[[ -z ${wp_db_user} ]] && vstacklet::shell::text::error "WordPress database user cannot be empty."
+				# @script-note: check if WordPress database user already exists, if so, use current user
+				if [[ $(mysql -u root -e "SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = '${wp_db_user}')") == "1" ]]; then
+					vstacklet::shell::text::error "WordPress database user already exists. Using previously created user."
+					declare -i wp_db_user_exists=1
+					[[ -n "${mysql_user}" ]] && wp_db_user="${mysql_user}"
+					[[ -n "${mariadb_user}" ]] && wp_db_user="${mariadb_user}"
+					break
+				else
+					vstacklet::shell::text::white::sl "WordPress database user: " && vstacklet::shell::icon::arrow::white && continue
+					break
+				fi
 			done
 		}
 		# @script-note: get WordPress database password
 		vstacklet::wp::password() {
-			vstacklet::shell::text::white::sl "WordPress database password: "
-			vstacklet::shell::icon::arrow::white
-			while read -r wp_db_password; do
-				[[ -z ${wp_db_password} ]] && vstacklet::shell::text::error "WordPress database password cannot be empty." && vstacklet::shell::text::white::sl "WordPress database password: " && vstacklet::shell::icon::arrow::white && continue
-				break
-			done
+			# @script-note: check if user_exists is set, if so, use current password
+			if [[ ${wp_db_user_exists} -eq 1 ]]; then
+				vstacklet::shell::text::error "Using previously created password."
+				[[ -n "${mysql_password}" ]] && wp_db_password="${mysql_password}"
+				[[ -n "${mariadb_password}" ]] && wp_db_password="${mariadb_password}"
+				return
+			else
+				vstacklet::shell::text::white::sl "WordPress database password: "
+				vstacklet::shell::icon::arrow::white
+				while read -r wp_db_password; do
+					[[ -z ${wp_db_password} ]] && vstacklet::shell::text::error "WordPress database password cannot be empty."
+					vstacklet::shell::text::white::sl "WordPress database password: " && vstacklet::shell::icon::arrow::white && continue
+					break
+				done
+			fi
 		}
 		# @script-note: call Wordpress information functions
 		vstacklet::wp::db
