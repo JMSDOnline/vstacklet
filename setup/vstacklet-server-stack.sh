@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1942
+# @version: 3.1.1943
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2820,7 +2820,7 @@ vstacklet::wordpress::install() {
 			vstacklet::shell::icon::arrow::white
 			while read -r wp_db_user; do
 				# @script-note: check if WordPress database user already exists, if so, use current user
-				db_user_present="$(mysql -u root -e "SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = '${wp_db_user}')" | tail -n 1)"
+				db_user_present="$(mysql -u root -sse "SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = '${wp_db_user}')")"
 				if [[ "${db_user_present}" == "1" ]]; then
 					vstacklet::shell::text::error "Database user already exists. Using previously created user."
 					declare -i db_user_exists=1
