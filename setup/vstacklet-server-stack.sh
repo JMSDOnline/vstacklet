@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1978
+# @version: 3.1.1986
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -294,7 +294,7 @@ vstacklet::args::process() {
 			shift
 			shift
 			[[ -n ${hostname} && $(echo "${hostname}" | grep -P '(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)') == "" ]] && vstacklet::shell::text::error "please provide a valid hostname." && exit 1
-			[[ -z ${hostname} ]] && declare -g hostname="localhost"
+			[[ -z ${hostname} ]] && declare -g hostname && hostname="$(hostname --fqdn)"
 			;;
 		-https* | --https_port*)
 			declare -gi https_port="${2}"
@@ -1011,8 +1011,8 @@ vstacklet::hostname::set() {
 		hostnamectl set-hostname "${domain}" >>${vslog} 2>&1 || vstacklet::clean::rollback 6
 		vstacklet::shell::misc::nl
 	else
-		vstacklet::shell::text::white "setting hostname to ${hostname} ... "
-		hostnamectl set-hostname "${hostname}" >>${vslog} 2>&1 || vstacklet::clean::rollback 6
+		vstacklet::shell::text::white "setting hostname to $(hostname --fqdn) ... "
+		hostnamectl set-hostname "$(hostname --fqdn)" >>${vslog} 2>&1 || vstacklet::clean::rollback 6
 		vstacklet::shell::misc::nl
 	fi
 }
@@ -2647,7 +2647,6 @@ vstacklet::cloudflare::csf() {
 		# @script-note: check if the csf.allow file exists
 		[[ ! -f "/etc/csf/csf.allow" ]] && vstacklet::clean::rollback 87
 		# @script-note: add Cloudflare IP addresses to the allow list
-		vstacklet::shell::text::white "adding Cloudflare IP addresses to the allow list ... "
 		{
 			echo "# Cloudflare IP addresses"
 			# trunk-ignore(shellcheck/SC2005)
@@ -3527,41 +3526,41 @@ vstacklet::environment::functions #(2)
 vstacklet::args::process "$@"     #(3)
 [[ "$*" =~ "-h" ]] || [[ "$*" =~ "--help" ]] && vstacklet::help::display
 [[ "$*" =~ "-V" ]] || [[ "$*" =~ "--version" ]] && vstacklet::version::display
-vstacklet::log::check                                 #(4)
-vstacklet::apt::update                                #(5)
-vstacklet::dependencies::install                      #(6)
-vstacklet::environment::checkroot                     #(7)
-vstacklet::environment::checkdistro                   #(8)
-vstacklet::intro                                      #(9)
-vstacklet::ask::continue                              #(10)
-vstacklet::dependencies::array                        #(11)
-vstacklet::base::dependencies                         #(12)
-vstacklet::source::dependencies                       #(13)
-vstacklet::bashrc::set                                #(14)
-vstacklet::hostname::set                              #(15)
-vstacklet::webroot::set                               #(16)
-vstacklet::ssh::set                                   #(17)
-vstacklet::ftp::set                                   #(18)
-vstacklet::block::ssdp                                #(19)
-vstacklet::sources::update                            #(20)
-vstacklet::gpg::keys                                  #(21)
-vstacklet::apt::update                                #(5)
-vstacklet::locale::set                                #(22)
-vstacklet::php::install                               #(23)
-vstacklet::hhvm::install                              #(24)
-vstacklet::nginx::install                             #(25)
-vstacklet::varnish::install                           #(26)
-vstacklet::permissions::adjust                        #(27)
-vstacklet::ioncube::install                           #(28)
-vstacklet::mariadb::install                           #(29)
-vstacklet::mysql::install                             #(30)
-vstacklet::postgre::install                           #(31)
-vstacklet::redis::install                             #(32)
-vstacklet::phpmyadmin::install                        #(33)
-vstacklet::csf::install                               #(34)
-vstacklet::sendmail::install                          #(35)
-vstacklet::wordpress::install                         #(36)
-vstacklet::domain::ssl                                #(37)
-vstacklet::clean::complete                            #(38)
-vstacklet::message::complete && rm -rf ~/vstacklet.sh #(39)
+vstacklet::log::check                                                           #(4)
+vstacklet::apt::update                                                          #(5)
+vstacklet::dependencies::install                                                #(6)
+vstacklet::environment::checkroot                                               #(7)
+vstacklet::environment::checkdistro                                             #(8)
+vstacklet::intro                                                                #(9)
+vstacklet::ask::continue                                                        #(10)
+vstacklet::dependencies::array                                                  #(11)
+vstacklet::base::dependencies                                                   #(12)
+vstacklet::source::dependencies                                                 #(13)
+vstacklet::bashrc::set                                                          #(14)
+vstacklet::hostname::set                                                        #(15)
+vstacklet::webroot::set                                                         #(16)
+vstacklet::ssh::set                                                             #(17)
+vstacklet::ftp::set                                                             #(18)
+vstacklet::block::ssdp                                                          #(19)
+vstacklet::sources::update                                                      #(20)
+vstacklet::gpg::keys                                                            #(21)
+vstacklet::apt::update                                                          #(5)
+vstacklet::locale::set                                                          #(22)
+vstacklet::php::install                                                         #(23)
+vstacklet::hhvm::install                                                        #(24)
+vstacklet::nginx::install                                                       #(25)
+vstacklet::varnish::install                                                     #(26)
+vstacklet::permissions::adjust                                                  #(27)
+vstacklet::ioncube::install                                                     #(28)
+vstacklet::mariadb::install                                                     #(29)
+vstacklet::mysql::install                                                       #(30)
+vstacklet::postgre::install                                                     #(31)
+vstacklet::redis::install                                                       #(32)
+vstacklet::phpmyadmin::install                                                  #(33)
+vstacklet::csf::install                                                         #(34)
+[[ -n ${sendmail} && ${sendmail_skip} != "1" ]] && vstacklet::sendmail::install #(35)
+vstacklet::wordpress::install                                                   #(36)
+vstacklet::domain::ssl                                                          #(37)
+vstacklet::clean::complete                                                      #(38)
+vstacklet::message::complete && rm -rf ~/vstacklet.sh                           #(39)
 ################################################################################
