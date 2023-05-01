@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1066
+# @version: 3.1.1071
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html}.
 # Please ensure you have read the documentation before continuing.
@@ -88,16 +88,6 @@ vstacklet::wwwperms::args() {
 			declare -g www_root="${2}"
 			shift 2
 			;;
-		-wwwh | --www_help)
-			declare -gi skip_intro="1"
-			vstacklet::wwwperms::help
-			exit 0
-			;;
-		-wwwv | --www_version)
-			declare -gi skip_intro="1"
-			vstacklet::wwwperms::version
-			exit 0
-			;;
 		*)
 			vstacklet::shell::text::error "Unknown option: $1"
 			exit 1
@@ -108,7 +98,7 @@ vstacklet::wwwperms::args() {
 
 ##################################################################################
 # @name: vstacklet::environment::functions (2)
-# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L114-L193)
+# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L104-L183)
 # @break
 ##################################################################################
 vstacklet::environment::functions() {
@@ -194,7 +184,7 @@ vstacklet::environment::functions() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkroot (1)
-# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L200-L205)
+# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L190-L195)
 # @break
 ##################################################################################
 vstacklet::environment::checkroot() {
@@ -206,25 +196,31 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::intro (4)
-# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L212-L223)
+# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L202-L219)
 # @break
 ##################################################################################
 vstacklet::intro() {
 	vstacklet::shell::text::white "Welcome to the vStacklet Web Root Permissions Utility."
+	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "This script will add a new www-data group on your server and set permissions for ${www_root:-/var/www/html}."
 	vstacklet::shell::text::white "Please ensure you have read the documentation before continuing."
+	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "Documentation can be found at:"
 	vstacklet::shell::text::white "https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/www-permissions.sh.md"
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "Press any key to continue..."
+	vstacklet::ask::continue
+}
+
+# shall we continue? function (6.a)
+vstacklet::ask::continue() {
+	vstacklet::shell::text::green "Press any key to continue $(tput setaf 7)(${shell_reset}$(tput setaf 3)ctrl+C${shell_reset} $(tput setaf 7)on PC or $(tput setaf 7)${shell_reset}$(tput setaf 3)⌘+C${shell_reset} $(tput setaf 7)on Mac to ${shell_reset}$(tput setaf 1)exit${shell_reset}$(tput setaf 7)) ..."
 	read -r -n 1
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "checking permissions ... " && vstacklet::environment::checkroot
 }
 
 ##################################################################################
 # @name: vstacklet::wwwdata::create (5)
-# @description: Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L240-L271)
+# @description: Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L236-L267)
 # @option: $1 `-wwwU | --www_user` - The user to add to the www-data group. (default: www-data)
 # @option: $2 `-wwwG | --www_group` - The group to create. (default: www-data) (optional)
 # @option: $3 `-wwwR | --www_root` - The root directory to set permissions for. (default: /var/www/html) (optional)
@@ -238,7 +234,7 @@ vstacklet::intro() {
 # @break
 ##################################################################################
 vstacklet::wwwdata::create() {
-	# check if the www-data group exists
+	# @script-note: check if the www-data group exists
 	if ! getent group www-data >/dev/null 2>&1; then
 		vstacklet::shell::text::white "adding www-data group ... "
 		groupadd www-data || {
@@ -246,7 +242,7 @@ vstacklet::wwwdata::create() {
 			exit 1
 		}
 	fi
-	# check if the group exists
+	# @script-note: check if the group exists
 	if ! getent group "${www_group:-www-data}" >/dev/null 2>&1; then
 		vstacklet::shell::text::white "adding ${www_group:-www-data} group ... "
 		groupadd "${www_group:-www-data}" || {
@@ -254,7 +250,7 @@ vstacklet::wwwdata::create() {
 			exit 1
 		}
 	fi
-	# check if the user exists
+	# @script-note: check if the user exists
 	if ! getent passwd "${www_user:-www-data}" >/dev/null 2>&1; then
 		vstacklet::shell::text::white "adding ${www_user:-www-data} user ... "
 		useradd -m -g "${www_group:-www-data}" "${www_user:-www-data}" || {
@@ -262,7 +258,7 @@ vstacklet::wwwdata::create() {
 			exit 1
 		}
 	fi
-	# add the user to the www-data group
+	# @script-note: add the user to the www-data group
 	vstacklet::shell::text::white "adding ${www_user:-www-data} to www-data group ... "
 	usermod -a -G www-data "${www_user:-www-data}" || {
 		vstacklet::shell::text::error "failed to add ${www_user:-www-data} to www-data group."
@@ -272,7 +268,7 @@ vstacklet::wwwdata::create() {
 
 ##################################################################################
 # @name: vstacklet::permissions::adjust (6)
-# @description: Adjust permissions for the web root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L293-L331)
+# @description: Adjust permissions for the web root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L289-L327)
 #
 # notes:
 # - Permissions are adjusted based the following variables:
@@ -292,37 +288,37 @@ vstacklet::wwwdata::create() {
 ##################################################################################
 vstacklet::permissions::adjust() {
 	vstacklet::shell::text::white "adjusting permissions ... "
-	# change the ownership of everything under web root to root:${www_group:-www-data}
+	# @script-note: change the ownership of everything under web root to root:${www_group:-www-data}
 	vstacklet::shell::text::white "changing ownership of ${www_root:-/var/www/html} recursively to ${www_user:-www-data}:${www_group:-www-data} ... "
 	chown "${www_user:-www-data}":"${www_group:-www-data}" -R "${www_root:-/var/www/html}" || {
 		vstacklet::shell::text::error "failed to change ownership of ${www_root:-/var/www/html} to ${www_user:-www-data}:${www_group:-www-data}."
 		exit 1
 	}
-	# change the ownership of web root to root:${www_group:-www-data}
+	# @script-note: change the ownership of web root to root:${www_group:-www-data}
 	vstacklet::shell::text::white "changing ownership of ${www_root:-/var/www/html} to root:${www_group:-www-data} ... "
 	chown root:"${www_group:-www-data}" "${www_root:-/var/www/html}" || {
 		vstacklet::shell::text::error "failed to change ownership of ${www_root:-/var/www/html} to root:${www_group:-www-data}."
 		exit 1
 	}
-	# change the permissions of directories under web root ${www_root} to 2775
+	# @script-note: change the permissions of directories under web root ${www_root} to 2775
 	vstacklet::shell::text::white "changing permissions of ${www_root:-/var/www/html} to 2775 ... "
 	find "${www_root:-/var/www/html}" -type d -exec chmod 2775 {} + || {
 		vstacklet::shell::text::error "failed to change directory permissions of ${www_root:-/var/www/html} to 2775."
 		exit 1
 	}
-	# change the permissions of files under web root ${www_root} to 0664
+	# @script-note: change the permissions of files under web root ${www_root} to 0664
 	vstacklet::shell::text::white "changing permissions of ${www_root:-/var/www/html} to 0664 ... "
 	find "${www_root:-/var/www/html}" -type f -exec chmod 0664 {} + || {
 		vstacklet::shell::text::error "failed to change file permissions of ${www_root:-/var/www/html} to 0664."
 		exit 1
 	}
-	# sticky group permissions
+	# @script-note: sticky group permissions
 	vstacklet::shell::text::white "setting sticky group permissions ... "
 	find "${www_root:-/var/www/html}" -type d -exec chmod g+s {} + || {
 		vstacklet::shell::text::error "failed to set sticky group permissions."
 		exit 1
 	}
-	# sticky group read/write permissions
+	# @script-note: sticky group read/write permissions
 	vstacklet::shell::text::white "setting sticky group read/write permissions ... "
 	chmod -R g+rw "${www_root:-/var/www/html}" || {
 		vstacklet::shell::text::error "failed to set sticky group read/write permissions."
@@ -332,56 +328,66 @@ vstacklet::permissions::adjust() {
 
 ##################################################################################
 # @name: vstacklet::permissions::complete (7)
-# @description: Complete the permissions adjustment process. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L340-L343)
+# @description: Prints completion of the permissions adjustment process. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L336-L339)
 # @nooptions
 # @noargs
 # @break
 ##################################################################################
 vstacklet::permissions::complete() {
-	vstacklet::shell::text::success "permissions adjustment complete."
+	vstacklet::shell::text::success "permissions adjustment complete!"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "Thank you for using the vStacklet Web Root Permissions Utility."
 	vstacklet::shell::misc::nl
 }
 
 ##################################################################################
-# @name: vstacklet::wwwperms::help (8)
-# @description: Prints the help message for the www-data group. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L352-L389)
+# @name: vstacklet::wwwperms::help
+# @description: Prints the help message for the vs-perms script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L348-L393)
 # @nooptions
 # @noargs
 # @break
 ##################################################################################
 vstacklet::wwwperms::help() {
-	vstacklet::shell::text::white "usage: vstacklet -www-perms [options] [args]"
-	vstacklet::shell::text::white "file version: ${www_permissions_version}"
+	vstacklet::shell::text::white "Usage: ${0} [OPTION] [ARGUMENT]"
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "options:"
+	vstacklet::shell::text::white "Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "  -wwwU | --www_user"
-	vstacklet::shell::text::white "  -wwwG | --www_group"
-	vstacklet::shell::text::white "  -wwwR | --www_root"
-	vstacklet::shell::text::white "  -wwwh | --www_help"
-	vstacklet::shell::text::white "  -wwwv | --www_version"
+	vstacklet::shell::text::white "Options:"
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "standalone:"
-	vstacklet::shell::text::white "  vs-perms [options] [args]"
-	vstacklet::shell::text::white "  -h | --help"
-	vstacklet::shell::text::white "  -V | --version"
-	vstacklet::shell::text::white "  -wwwU | --www_user"
-	vstacklet::shell::text::white "  -wwwG | --www_group"
-	vstacklet::shell::text::white "  -wwwR | --www_root"
+	vstacklet::shell::text::white "  -h, --help"
+	vstacklet::shell::text::white "    Display this help message."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "args:"
+	vstacklet::shell::text::white "  -V, --version"
+	vstacklet::shell::text::white "    Display the version of this script."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "  [www_user] - the user to add to the www-data group"
-	vstacklet::shell::text::white "  [www_group] - the group to add to the www-data group"
-	vstacklet::shell::text::white "  [www_root] - the web root to adjust permissions for"
+	vstacklet::shell::text::white "  -wwwU, --www_user"
+	vstacklet::shell::text::white "    The user to add to the www-data group. (default: www-data)"
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "examples:"
+	vstacklet::shell::text::white "  -wwwG, --www_group"
+	vstacklet::shell::text::white "    The group to create. (default: www-data)"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  -wwwR, --www_root"
+	vstacklet::shell::text::white "    The root directory to set permissions for. (default: /var/www/html)"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "Args:"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  [www_user]"
+	vstacklet::shell::text::white "    The username to add to the www-data group."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  [www_group]"
+	vstacklet::shell::text::white "    The groupname to add to the www-data group."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  [www_root]"
+	vstacklet::shell::text::white "    The web root directory to set permissions for."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "Examples:"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  /opt/vstacklet/bin/www-permissions.sh -wwwU \"www-data\" -wwwG \"www-data\" -wwwR \"/var/www/html\""
-	vstacklet::shell::text::white "  /opt/vstacklet/bin/www-permissions.sh --www_help"
-	vstacklet::shell::text::white "  /opt/vstacklet/bin/www-permissions.sh --www_version"
+	vstacklet::shell::text::white "  /opt/vstacklet/bin/www-permissions.sh -h"
+	vstacklet::shell::text::white "  /opt/vstacklet/bin/www-permissions.sh -V"
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "standalone:"
+	vstacklet::shell::text::white "Standalone:"
+	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  vs-perms -wwwU \"www-data\" -wwwG \"www-data\" -wwwR \"/var/www/html\""
 	vstacklet::shell::text::white "  vs-perms -h"
 	vstacklet::shell::text::white "  vs-perms -V"
@@ -389,8 +395,8 @@ vstacklet::wwwperms::help() {
 }
 
 ##################################################################################
-# @name: vstacklet::wwwperms::version (9)
-# @description: Prints the version of the www-permissions script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L398-L405)
+# @name: vstacklet::wwwperms::version
+# @description: Prints the version of the vs-perms (www-permissions) script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L402-L409)
 # @nooptions
 # @noargs
 # @break
@@ -411,10 +417,8 @@ vstacklet::environment::checkroot #(1)
 vstacklet::environment::functions #(2)
 vstacklet::wwwperms::args "$@"    #(3)
 if [[ -z ${skip_intro} ]]; then
-	vstacklet::intro #(4)
+	vstacklet::intro              #(4)
 fi
-vstacklet::wwwdata::create                                                             #(5)
-vstacklet::permissions::adjust                                                         #(6)
-vstacklet::permissions::complete                                                       #(7)
-[[ "$*" =~ "-wwwv" ]] || [[ "$*" =~ "--www_version" ]] && vstacklet::wwwperms::version #(8)
-[[ "$*" =~ "-wwwh" ]] || [[ "$*" =~ "--www_help" ]] && vstacklet::wwwperms::help       #(9)
+vstacklet::wwwdata::create        #(5)
+vstacklet::permissions::adjust    #(6)
+vstacklet::permissions::complete  #(7)

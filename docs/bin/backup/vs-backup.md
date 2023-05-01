@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1142
+# vs-backup - v3.1.1147
 
 
 ---
@@ -66,37 +66,37 @@ Check if the user is root. [see function](https://github.com/JMSDOnline/vstackle
 
 ### vstacklet::backup::variables()
 
-Set the variables for the backup. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L168-L295)
+Set the variables for the backup. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L168-L297)
 
 ---
 
 ### vstacklet::backup::default::variables()
 
-The variables used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L302-L349)
+The variables used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L304-L351)
 
 ---
 
 ### vstacklet::backup::main::checks()
 
-The checks used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L356-L389)
+The checks used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L358-L391)
 
 ---
 
 ### vstacklet::intro()
 
-Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L396-L413)
+Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L398-L415)
 
 ---
 
 ### vstacklet::backup::files()
 
-Backup the specified files. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L420-L463)
+Backup the specified files. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L422-L465)
 
 ---
 
 ### vstacklet::backup::database()
 
-Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L483-L522)
+Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L485-L524)
 
 note: This function will additionally package the database backup into a tarball
 and compress it on the fly, then encrypt it. The tarball will be moved to the
@@ -115,7 +115,7 @@ tar -xzf "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_s
 ### vstacklet::backup::retention()
 
 The retention used in the backup script. This is used to delete
-old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L542-L566)
+old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L544-L568)
 
 notes:
 - The retention is based on the modification time of the file.
@@ -131,25 +131,25 @@ path to /backup/files/backup/.
 
 ### vstacklet::outro()
 
-Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L573-L578)
+Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L575-L580)
 
 ---
 
 ### vstacklet::backup::usage()
 
-Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L585-L626)
+Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L587-L640)
 
 ---
 
 ### vstacklet::backup::example_cron()
 
-Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L633-L641)
+Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L647-L655)
 
 ---
 
 ### vstacklet::backup::version()
 
-Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L648-L654)
+Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vs-backup#L662-L668)
 
 ---
 
