@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.744
-  Build: 744
+  Version: v3.1.1.745
+  Build: 745
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -47,8 +47,6 @@ vStacklet is a kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish
 Components include a recent mainline version of Nginx (mainline (1.23.x)) using configurations from the HTML 5 Boilerplate team (*and modified/customized for use with mainline*), Varnish 7.2.x, and MariaDB 10.6.x (drop-in replacement for MySQL), PHP8.1, PHP7.4 or HHVM 4.x **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall), Wordpress and more to be added soon. (see [To-Do List](#the-to-do-list))
 
 Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
-
-> Lets Encrypt will be the standard SSL installer in the coming versions.
 
 ## Script Features
 
