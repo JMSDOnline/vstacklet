@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.741
-  Build: 741
+  Version: v3.1.1.742
+  Build: 742
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 
@@ -141,9 +141,16 @@ First you will need to download the vStacklet installation script and make it ex
 > - The `-h` option will display the help menu for the vStacklet installer script.
 > - The `-V` option will display the version of the vStacklet installer script.
 
+** Grab the latest stable release **
 ```bash
 sudo apt -y install curl &&
-bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/setup/vstacklet.sh) -b development
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh)
+```
+
+** Grab the latest development release **
+```bash
+sudo apt -y install curl &&
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh) -b development
 ```
 
 Once the script has been downloaded and made executable, you can then run the script to install the vStacklet kit, as seen in the example below.
