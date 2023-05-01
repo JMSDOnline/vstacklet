@@ -4,14 +4,14 @@
 
 <div align="center">
 
-| ![vStacklet - A Buff LEMP Stack Kit](https://github.com/JMSDOnline/vstacklet/blob/main/images/vstacklet-lemp-kit.png "vstacklet") |
+| ![vStacklet - A Buff LEMP Stack Kit](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vstacklet-lemp-kit.png "vStacklet") |
 | ----------------------------------------------------------------------------------------------------------------------------------- |
 | **vStacklet - A Buff LEMP Stack Kit**                                                                                               |
 
 ## Script status
 
-  Version: v3.1.1.743
-  Build: 743
+  Version: v3.1.1.744
+  Build: 744
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -68,11 +68,11 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 
 Total script install time on a General CPU <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 6/minutes installing everything. No Sendmail or CSF. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
 
-![preview 1](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet_install_preview.png "vstacklet preview 1")
+![preview 1](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vstacklet_install_preview.png "vstacklet preview 1")
 
 ## Meet the Scripts
 
-#### **vStacklet** - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments.
+### **vStacklet** - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments
 
 - Adds repositories for the latest stable versions of MariaDB (10.6.x), mainline (1.23.x) versions of Nginx, and Varnish 7.2.x.
 - Installs choice of PHP8.1, PHP7.4 or HHVM 4.x
@@ -90,7 +90,7 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Installs and stages database for WordPress. [*optional*] (active build - unlike other options that are passive with the flags used. This will change when the `--non-interactive` flag [WIP] is added.)
 - Easy to configure & run backup executable **vs-backup** for data-protection.
 
-##### **VS-Backup** - Installs a single script to help manage and automate server/site backups.
+### **VS-Backup** - Installs a single script to help manage and automate server/site backups
 
 - Backup your files from key locations ( ex: /var/www/html ) - with the `-f` flag, you can specify directories to backup.
 - Backup your mysql/mariadb databases - with the `-db` flag, you can specify databases to backup.
@@ -98,9 +98,9 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Cleanup remaining individual archives after the retention period has been reached.
 - Simply download the script below to start backing up important directories and databases - cron examples included with the `-ec` flag!
 
-![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vs-backup-utility-preview.png "vStacklet VS-Backup Utility")
+![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vs-backup-utility-preview.png "vStacklet VS-Backup Utility")
 
-##### **VS-Perms** - Installs a single script to help manage and automate www directory permissions.
+### **VS-Perms** - Installs a single script to help manage and automate www directory permissions
 
 - Checks the www-data group exists, if not, create it. (default: www-data)
 - Checks the user group exists, if not, create it. (default: www-data)
@@ -108,7 +108,7 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Checks the user is a member of the www-data group, if not, add them.
 - Set the correct permissions for the web root directory. (default: /var/www/html)
 
-![VS-Perms](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vs-backup-utility-preview.png "vStacklet VS-Perms Utility")
+![VS-Perms](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vs-backup-utility-preview.png "vStacklet VS-Perms Utility")
 
 ---
 
@@ -117,7 +117,7 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 *You should read these scripts before running them so you know what they're
 doing.* Changes may be necessary to meet your needs.
 
-**You can review the setup script documentation [here](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)**
+**You can review the setup script documentation [here](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md)**
 
 **Setup** should be run as **root** on a fresh **Ubuntu** or **Debian** installation.
 **Stack** should be run on a server without any existing LEMP or LAMP components.
@@ -165,7 +165,7 @@ Once the script has been downloaded and made executable, you can then run the sc
 vstacklet -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -mariadbU "db_username" -mariadbPw "db_password" -pma -ioncube -csf -sendmail
 ```
 
-To view the available options, run the script with the `-h` option (`vstacklet -h`) or better yet, view the documentation [here](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)!
+To view the available options, run the script with the `-h` option (`vstacklet -h`) or better yet, view the documentation [here](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md)!
 
 
 ---
@@ -173,7 +173,7 @@ To view the available options, run the script with the `-h` option (`vstacklet -
 ### vStacklet VS-Backup - Installs needed script for running directory and database backups (included in FULL Kit also)
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/backup/vstacklet-backup-standalone.sh)
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/backup/vstacklet-backup-standalone.sh)
 ```
 
 ---
@@ -181,7 +181,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/developmen
 ### vStacklet VS-Perms - Installs needed files for running www permissions fix (included in FULL Kit also)
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/www-permissions-standalone.sh)
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/www-permissions-standalone.sh)
 ```
 
 ---
