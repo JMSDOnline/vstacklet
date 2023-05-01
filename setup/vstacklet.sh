@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1061
+# @version: 3.1.1062
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -90,7 +90,7 @@ vstacklet::setup::variables() {
 			shift
 			;;
 		-b | --branch)
-			branch="${2}"
+			vstacklet_git_branch="${2}"
 			shift
 			shift
 			;;
