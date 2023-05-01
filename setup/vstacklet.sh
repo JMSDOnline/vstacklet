@@ -2,11 +2,14 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1059
-# @description: Lightweight script to quickly install a LEMP stack with Nginx,
-# Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
-# and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
-# website-based server applications.
+# @version: 3.1.1060
+# @description: This script will download and install the vStacklet server stack
+# on your server (this only handles downloading and setting up the vStacklet scripts).
+# It will also download and install the vStacklet VS-Perms
+# (www-permissions.sh) and VS-Backup (vs-backup) scripts. Please ensure you have
+# read the documentation before continuing. You can find documentation on the main
+# vStacklet script, the vStacklet server stack, and the vStacklet VS-Perms and
+# VS-Backup scripts at the links seen below.
 #
 # @project_name: vstacklet
 #
@@ -53,8 +56,83 @@
 ################################################################################
 # shellcheck disable=SC2068,SC2034,SC1091
 ################################################################################
-# @name: setup::download() (1)
-# @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L78-L148)
+
+##################################################################################
+# @name: vstacklet::environment::checkroot (1)
+# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L65-L70)
+# @break
+##################################################################################
+vstacklet::environment::checkroot() {
+	[[ $(whoami) != "root" ]] && {
+		vstacklet::shell::text::error "you must be root to run this script."
+		exit 1
+	}
+}
+
+##################################################################################
+# @name: vstacklet::setup::variables (2)
+# @description: Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L79-L131)
+#
+# notes: this script function is responsible for setting the variables for the setup.
+# @break
+##################################################################################
+vstacklet::setup::variables() {
+	help="${help:-false}"
+	version="${version:-false}"
+	while [ $# -gt 0 ]; do
+		case "${1}" in
+		-V | --version)
+			version=true
+			shift
+			;;
+		-h | --help)
+			help=true
+			shift
+			;;
+		-b | --branch)
+			branch="${2}"
+			shift
+			shift
+			;;
+		*)
+			printf -- "%s\n" "Invalid argument: ${1}"
+			exit 1
+			;;
+		esac
+	done
+	# @script-note: Set the necessary declarations
+	declare -g vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_php7_path vstacklet_config_hhvm_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname
+	# @script-note: Set the vstacklet base path
+	vstacklet_base_path="${vstacklet_base_path:-/opt/vstacklet}"
+	# @script-note: Set the vstacklet setup path
+	vstacklet_setup_path="${vstacklet_setup_path:-${vstacklet_base_path}/setup}"
+	# @script-note: Set the vstacklet config path
+	vstacklet_config_path="${vstacklet_config_path:-${vstacklet_base_path}/config}"
+	# @script-note: Set the vstacklet config php8 path
+	vstacklet_config_php8_path="${vstacklet_config_php8_path:-${vstacklet_config_path}/php8}"
+	# @script-note: Set the vstacklet config php7 path
+	vstacklet_config_php7_path="${vstacklet_config_php7_path:-${vstacklet_config_path}/php7}"
+	# @script-note: Set the vstacklet config hhvm path
+	vstacklet_config_hhvm_path="${vstacklet_config_hhvm_path:-${vstacklet_config_path}/hhvm}"
+	# @script-note: Set the vstacklet config nginx path
+	vstacklet_config_nginx_path="${vstacklet_config_nginx_path:-${vstacklet_config_path}/nginx}"
+	# @script-note: Set the vstacklet config varnish path
+	vstacklet_config_varnish_path="${vstacklet_config_varnish_path:-${vstacklet_config_path}/varnish}"
+	# @script-note: Set the IP address of the server
+	server_ip="${server_ip:-$(ip addr show | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | cut -d/ -f1 | head -n 1)}"
+	# @script-note: Set the hostname of the server
+	server_hostname="${server_hostname:-$(hostname --fqdn)}"
+	# @script-note: Set the local vstacklet server stack script
+	local -r vstacklet_server_stack_script="/opt/vstacklet/setup/vstacklet-server-stack.sh"
+	# @script-note: Set the vstacklet github repository url
+	local -r vstacklet_git="https://github.com/JMSDOnline/vstacklet.git"
+	# @script-note: Set the vstacklet github repository branch (default: master)
+	local -r vstacklet_git_branch="${vstacklet_git_branch:-master}"
+}
+
+################################################################################
+# @name: vstacklet::setup::download() (3)
+# @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L156-L213)
 #
 # notes:
 # - This script function is responsible for downloading vStacklet from GitHub
@@ -75,64 +153,54 @@
 #
 # @break
 ################################################################################
-setup::download() {
-	whoami=$(whoami)
-	declare -g vstacklet_base_path server_ip server_hostname local_setup_dir local_php8_dir local_php7_dir local_hhvm_dir local_varnish_dir
-	server_ip=$(ip addr show | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | cut -d/ -f1 | head -n 1)
-	server_hostname=$(hostname -s)
-	# vstacklet directories
-	local_setup_dir="${vstacklet_base_path:=/opt/vstacklet}/setup"
-	local_php8_dir="/opt/vstacklet/config/php8/"
-	local_php7_dir="/opt/vstacklet/config/php7/"
-	local_hhvm_dir="/opt/vstacklet/config/hhvm/"
-	local_nginx_dir="/opt/vstacklet/config/nginx/"
-	local_varnish_dir="/opt/vstacklet/config/varnish/"
-	# create vstacklet directories
+vstacklet::setup::download() {
+	# @script-note: create vstacklet directories
 	mkdir -p "${vstacklet_base_path}/setup_temp"    # temporary setup directory - stores default files edited by vStacklet
 	mkdir -p "${vstacklet_base_path}/config/system" # system configuration directory - stores dependencies, keys, and other system files
-	local -r vstacklet_server_stack_script="/opt/vstacklet/setup/vstacklet-server-stack.sh"
-	local -r vstacklet_git="https://github.com/JMSDOnline/vstacklet.git"
-	[[ ${whoami} != "root" ]] && { printf -- "%s\n" "Error: Install as root or via sudo." && exit 1; }
+	# @script-note: move to the home directory (as root, this would be `/root`)
 	cd "${HOME}" || { printf -- "%s\n" "Error: Unable to move to ${HOME}" && exit 1; }
-	# Run apt update and upgrade
+	# @script-note: run apt update and upgrade (quietly and non-interactive)
 	DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update >/dev/null 2>&1
 	DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to run apt-upgrade, please check your apt with 'apt -y update && apt -y upgrade'" && exit 1; }
-	# Install curl, sudo, wget, and git
+	# @script-note: install the essential dependencies
 	apt-get -yqq install curl sudo wget git apt-transport-https lsb-release dnsutils openssl bc --allow-unauthenticated >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to install script dependencies" && exit 1; }
-	# Adjust .bashrc TERM
+	# @script-note: adjust .bashrc TERM variable if not set (fixes some issues with nano)
 	if ! grep -q "export TERM=xterm" /root/.bashrc; then
 		echo -en "export TERM=xterm" >>"/root/.bashrc"
 	fi
+	# @script-note: source the .bashrc
 	source "${HOME}/.bashrc"
-	# Create vstacklet & backup directory strucutre
+	# @script-note: create vstacklet & backup directory strucutre
 	mkdir -p /backup/{directories,databases} || { printf -- "%s\n" "Error: Unable to create /backup/{directories,databases}" && exit 1; }
-	# Download vStacklet
+	# @script-note: download vStacklet
 	rm -rf /tmp/vstacklet
 	if [[ -d /opt/vstacklet/.git ]]; then
-		git clone --quiet --branch "development" "${vstacklet_git}" /tmp/vstacklet || { printf -- "%s\n" "Error: Unable to update vStacklet from GitHub" && exit 1; }
+		# @script-note: update vStacklet
+		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" /tmp/vstacklet || { printf -- "%s\n" "Error: Unable to update vStacklet from GitHub" && exit 1; }
 		cp -rf /tmp/vstacklet/* /opt/vstacklet || { printf -- "%s\n" "Error: Unable to copy vStacklet files to /opt/vstacklet" && exit 1; }
 		rm -rf /tmp/vstacklet
 	else
-		# Remove old install script
+		# @script-note: install vStacklet
 		[[ -d ${vstacklet_base_path} ]] && rm -rf "${vstacklet_base_path}"
-		git clone --quiet --branch "development" "${vstacklet_git}" /opt/vstacklet || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
+		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" /opt/vstacklet || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
 	fi
-	# Send vStacklet backup (www-permissions.sh) to /usr/local/bin
+	# @script-note: send vStacklet backup (www-permissions.sh) to /usr/local/bin
 	cp -f /opt/vstacklet/bin/www-permissions.sh /usr/local/bin/vs-perms || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
-	# Make www-permissions.sh executable
+	# @script-note: make vs-perms executable
 	chmod +x /usr/local/bin/vs-perms || { printf -- "%s\n" "Error: Unable to make vs-perms executable" && exit 1; }
-	# Send vStacklet backup (vs-backup) to /usr/local/bin
+	# @script-note: send vStacklet backup (vs-backup) to /usr/local/bin
 	cp -f /opt/vstacklet/bin/backup/vs-backup /usr/local/bin/vs-backup || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
+	# @script-note: make vs-backup executable
 	chmod +x /usr/local/bin/vs-backup || { printf -- "%s\n" "Error: Unable to chmod +x /usr/local/bin/vs-backup" && exit 1; }
-	# Make the installation script executable
+	# @script-note: send vStacklet server stack script to /usr/local/bin
 	cp -f "${vstacklet_server_stack_script}" /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to copy vstacklet to /usr/local/bin" && exit 1; }
+	# @script-note: make vstacklet executable
 	chmod +x /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to make the installation script executable." && exit 1; }
 	# Execute the installation script (let's get this party started!)
 	# Allow for the installation script to be run from anywhere on the server
 	# by the user through calling `vstacklet [options] [args]`
-	#[[ -f "/usr/local/bin/vstacklet" ]] && "/usr/local/bin/vstacklet" "$@" && exit 0
 	# @script-note: display the outro
-	echo "vstacklet has been installed on your server."
+	echo "The vStacklet installer has been installed on your server."
 	echo "You can now run vstacklet from anywhere on your server."
 	echo "Please see the documentation for more information."
 	echo ""
@@ -144,5 +212,59 @@ setup::download() {
 	echo ""
 }
 
-setup::download "$@"
+##################################################################################
+# @name: vstacklet::setup::help()
+# @description: Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L220-L240)
+# @break
+##################################################################################
+vstacklet::setup::help() {
+	cat <<EOF
+Usage: vstacklet [options] [args]
+
+Options:
+  -V, --version   Display the version of vStacklet
+  -h, --help      Display this help menu
+  -b, --branch    Specify the branch to install from (default: master)
+
+Examples:
+  # Install vStacklet from the master branch
+  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh -b master)
+
+  # Install vStacklet from the development branch
+  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh -b development)
+
+  # Display the help menu
+  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh -h)
+
+EOF
+}
+
+##################################################################################
+# @name: vstacklet::setup::version()
+# @description: Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L247-L253)
+# @break
+##################################################################################
+vstacklet::version::display() {
+	vstacklet_version="$(grep -E '^# @version:' "${vstacklet_base_path}/setup/vstacklet-server-stack.sh" | awk '{print $3}')"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "vStacklet Version: ${vstacklet_version}"
+	vstacklet::shell::misc::nl
+	exit 0
+}
+
+################################################################################
+# @description: Calls functions in required order.
+# @break
+################################################################################
+vstacklet::setup::main() {
+	vstacklet::environment::checkroot
+	vstacklet::setup::variables "$@"
+	[[ "${help}" == "true" ]] && vstacklet::setup::help && exit 0
+	[[ "${version}" == "true" ]] && vstacklet::version::display && exit 0
+	vstacklet::setup::download
+}
+
+# @script-note: Call the main function
+vstacklet::setup::main "$@"
+# @script-note: Exit the script
 exit 0

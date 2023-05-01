@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.737
-  Build: 737
+  Version: v3.1.1.738
+  Build: 738
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 
@@ -72,7 +72,7 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 
 ## Meet the Scripts
 
-**VStacklet** - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments.
+#### **vStacklet** - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments.
 
 - Adds repositories for the latest stable versions of MariaDB (10.6.x), mainline (1.23.x) versions of Nginx, and Varnish 7.2.x.
 - Installs choice of PHP8.1, PHP7.4 or HHVM 4.x
@@ -90,15 +90,25 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Installs and stages database for WordPress. [*optional*] (active build - unlike other options that are passive with the flags used. This will change when the `--non-interactive` flag [WIP] is added.)
 - Easy to configure & run backup executable **vs-backup** for data-protection.
 
-**VS-Backup** - Installs a single script to help manage and automate server/site backups.
+##### **VS-Backup** - Installs a single script to help manage and automate server/site backups.
 
-- Backup your files from key locations (ex: /srv/www /etc /root) - with the `-f` flag, you can specify directories to backup.
+- Backup your files from key locations ( ex: /var/www/html ) - with the `-f` flag, you can specify directories to backup.
 - Backup your mysql/mariadb databases - with the `-db` flag, you can specify databases to backup.
 - Set the retention period for your backups - with the `-r` flag, you can specify the number of days to keep backups. (default is 7 days)
 - Cleanup remaining individual archives after the retention period has been reached.
 - Simply download the script below to start backing up important directories and databases - cron examples included with the `-ec` flag!
 
-![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vs-backup-utility-preview.png "VStacklet VS-Backup Utility")
+![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vs-backup-utility-preview.png "vStacklet VS-Backup Utility")
+
+##### **VS-Perms** - Installs a single script to help manage and automate www directory permissions.
+
+- Checks the www-data group exists, if not, create it. (default: www-data)
+- Checks the user group exists, if not, create it. (default: www-data)
+- Checks the user exists, if not, create it. (default: www-data)
+- Checks the user is a member of the www-data group, if not, add them.
+- Set the correct permissions for the web root directory. (default: /var/www/html)
+
+![VS-Perms](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vs-backup-utility-preview.png "vStacklet VS-Perms Utility")
 
 ---
 
@@ -112,17 +122,9 @@ doing.* Changes may be necessary to meet your needs.
 **Setup** should be run as **root** on a fresh **Ubuntu** or **Debian** installation.
 **Stack** should be run on a server without any existing LEMP or LAMP components.
 
-If components are already installed, the core packages can be removed with:
-
-```bash
-apt-get autoremove -y apache2* mysql* php* \
-apt-get autopurge -y apache2* mysql* php* \
-apt-get -y autoremove && apt-get -y autoclean
-```
-
 ---
 
-### VStacklet FULL Kit - Installs and configures the VStacklet LEMP kit stack
+### vStacklet FULL Kit - Installs and configures the vStacklet LEMP kit stack
 
 ( *includes backup scripts* )
 
@@ -137,9 +139,8 @@ apt -y install git wget
 ... then run the main installer ...
 
 ```bash
-git clone --recursive https://github.com/JMSDOnline/vstacklet /etc/vstacklet &&
-chmod +x /etc/vstacklet/setup/vstacklet.sh
-cd /etc/vstacklet/setup && ./vstacklet.sh
+sudo apt -y install curl &&
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh -b master)
 ```
 
 ---
@@ -148,7 +149,7 @@ cd /etc/vstacklet/setup && ./vstacklet.sh
 
 ```bash
 sudo apt -y install curl &&
-bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/setup/vstacklet.sh)
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/setup/vstacklet.sh -b development)
 ```
 
 ... then run the main installer ...
@@ -164,12 +165,12 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/developmen
 vstacklet -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -mariadbU "db_username" -mariadbPw "db_password" -pma -ioncube -csf -sendmail
 ```
 
-To view the available options, run the script with the `-h` option or better yet, view the documentation [here](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)! ( *WIP* )
+To view the available options, run the script with the `-h` option or better yet, view the documentation [here](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)!
 
 
 ---
 
-### VStacklet VS-Backup - Installs needed script for running directory and database backups (included in FULL Kit also)
+### vStacklet VS-Backup - Installs needed script for running directory and database backups (included in FULL Kit also)
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/backup/vstacklet-backup-standalone.sh)
@@ -177,7 +178,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/developmen
 
 ---
 
-### VStacklet VS-Perms - Installs needed files for running www permissions fix (included in FULL Kit also)
+### vStacklet VS-Perms - Installs needed files for running www permissions fix (included in FULL Kit also)
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/www-permissions-standalone.sh)
@@ -206,7 +207,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/developmen
 
 ### Additional Notes and honorable mentions
 
-This is a modification of it's original branch provided by <a href="https://github.com/jbradach/quick-lemp/" target="_blank">quick-lemp</a>. The scripts within VStacklet LEMP Kit come with heavy modifications to the origianl quick-lemp script... in this regards, these two scripts are entirely separate and not similar to one another. Quick-LEMP is mentioned as it started the VStacklet Kit Project... what was to be a simple pull request to it's original repository, took on a new scope and thus became a new project. The changes include ushering in **CSF**, **Varnish** as well as installing and configuring **Sendmail** and **phpMyAdmin** for ease of use... and many other changes. The original quick-lemp script is still available and can be found at the link above. Although, it is no longer being maintained.
+This is a modification of it's original branch provided by <a href="https://github.com/jbradach/quick-lemp/" target="_blank">quick-lemp</a>. The scripts within vStacklet LEMP Kit come with heavy modifications to the origianl quick-lemp script... in this regards, these two scripts are entirely separate and not similar to one another. Quick-LEMP is mentioned as it started the vStacklet Kit Project... what was to be a simple pull request to it's original repository, took on a new scope and thus became a new project. The changes include ushering in **CSF**, **Varnish** as well as installing and configuring **Sendmail** and **phpMyAdmin** for ease of use... and many other changes. The original quick-lemp script is still available and can be found at the link above. Although, it is no longer being maintained.
 
 Quick-Lemp is geared towards python based application installs and using default Boilerplate templates on Nginx/stable versions of no higher than 1.8. This limits the use of new functions and features in Nginx, nothing wrong with that, but some of us are sticklers for a recent version.
 

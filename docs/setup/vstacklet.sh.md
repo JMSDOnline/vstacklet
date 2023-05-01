@@ -1,4 +1,4 @@
-# vstacklet.sh - v3.1.1059
+# vstacklet.sh - v3.1.1060
 
 
 ---
@@ -34,9 +34,23 @@ vStacklet will install and configure the following:
 
 
 
-### setup::download()
+### vstacklet::environment::checkroot()
 
-Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L78-L148)
+Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L65-L70)
+
+---
+
+### vstacklet::setup::variables()
+
+Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L79-L131)
+
+notes: this script function is responsible for setting the variables for the setup.
+
+---
+
+### vstacklet::setup::download()
+
+Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L156-L213)
 
 notes:
 - This script function is responsible for downloading vStacklet from GitHub
@@ -54,6 +68,24 @@ packages and install them if they are not found.
     ```bash
     curl sudo wget git apt-transport-https lsb-release dnsutils openssl
     ```
+
+---
+
+### vstacklet::setup::help()
+
+Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L220-L240)
+
+---
+
+### vstacklet::version::display()
+
+Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L247-L253)
+
+---
+
+### vstacklet::setup::main()
+
+Calls functions in required order.
 
 ---
 
