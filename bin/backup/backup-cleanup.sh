@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: backup-cleanup.sh
-# @version: 3.1.1105
+# @version: 3.1.1106
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html}.
 # Please ensure you have read the documentation before continuing.
@@ -53,7 +53,7 @@
 ################################################################################
 # @name: vstacklet::backup::args() (3)
 # process options
-# @description: Process the options passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L66-L117)
+# @description: Process the options passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/backup-cleanup.sh#L66-L117)
 #
 # notes:
 # - This script function is responsible for processing the options passed to the
@@ -118,7 +118,7 @@ vstacklet::backup::args() {
 
 ##################################################################################
 # @name: vstacklet::environment::functions (2)
-# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L125-L204)
+# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/backup-cleanup.sh#L125-L204)
 # @script-note: This function is required for the installation of the vStacklet software.
 # @break
 ##################################################################################
@@ -205,7 +205,7 @@ vstacklet::environment::functions() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkroot (1)
-# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L211-L216)
+# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/backup-cleanup.sh#L211-L216)
 # @break
 ##################################################################################
 vstacklet::environment::checkroot() {
@@ -217,7 +217,7 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::backup::clean (4)
-# @description: Main function for cleaning up backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L223-L244)
+# @description: Main function for cleaning up backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/backup-cleanup.sh#L223-L244)
 # @break
 ##################################################################################
 vstacklet::backup::clean() {
@@ -245,7 +245,7 @@ vstacklet::backup::clean() {
 
 ##################################################################################
 # @name: vstacklet::backup::usage
-# @description: Display usage information for the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L251-L280)
+# @description: Display usage information for the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/backup-cleanup.sh#L251-L280)
 # @break
 ##################################################################################
 vstacklet::backup::usage() {

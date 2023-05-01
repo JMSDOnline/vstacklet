@@ -1,4 +1,4 @@
-# www-permissions.sh - v3.1.1071
+# www-permissions.sh - v3.1.1072
 
 
 ---
@@ -8,8 +8,8 @@ ${www_root:-/var/www/html}.
 
 ---
 
-- [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
-- [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
+- [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet.sh.md)
+- [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md)
 
 ---
 
@@ -41,7 +41,7 @@ This script will do the following:
 
 ### vstacklet::wwwperms::args()
 
-Process the options passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L66-L107)
+Process the options passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions.sh#L66-L107)
 
 notes:
 - This script function is responsible for processing the options passed to the
@@ -56,25 +56,25 @@ script.
 
 ### vstacklet::environment::functions()
 
-Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L104-L183)
+Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions.sh#L104-L183)
 
 ---
 
 ### vstacklet::environment::checkroot()
 
-Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L190-L195)
+Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions.sh#L190-L195)
 
 ---
 
 ### vstacklet::intro()
 
-Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L202-L219)
+Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions.sh#L202-L219)
 
 ---
 
 ### vstacklet::wwwdata::create()
 
-Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L236-L267)
+Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions.sh#L236-L267)
 
 #### options:
 
@@ -96,7 +96,7 @@ Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [
 
 ### vstacklet::permissions::adjust()
 
-Adjust permissions for the web root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L289-L327)
+Adjust permissions for the web root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions.sh#L289-L327)
 
 notes:
 - Permissions are adjusted based the following variables:
@@ -119,7 +119,7 @@ notes:
 
 ### vstacklet::permissions::complete()
 
-Prints completion of the permissions adjustment process. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L336-L339)
+Prints completion of the permissions adjustment process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions.sh#L336-L339)
 
 *function has no options*
 
@@ -129,7 +129,7 @@ Prints completion of the permissions adjustment process. [see function](https://
 
 ### vstacklet::wwwperms::help()
 
-Prints the help message for the vs-perms script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L348-L393)
+Prints the help message for the vs-perms script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions.sh#L348-L393)
 
 *function has no options*
 
@@ -139,7 +139,7 @@ Prints the help message for the vs-perms script. [see function](https://github.c
 
 ### vstacklet::wwwperms::version()
 
-Prints the version of the vs-perms (www-permissions) script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions.sh#L402-L409)
+Prints the version of the vs-perms (www-permissions) script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions.sh#L402-L409)
 
 *function has no options*
 

@@ -11,6 +11,12 @@ else
 fi
 export PATH
 
+if [ "$BASH" ]; then
+	if [ -f ~/.bashrc ]; then
+		. ~/.bashrc
+	fi
+fi
+
 if [ "${PS1-}" ]; then
 	if [ "${BASH-}" ] && [ "$BASH" != "/bin/sh" ]; then
 		# The file bash.bashrc already sets the default PS1.

@@ -32,8 +32,9 @@ esac
 if [[ -x "/usr/bin/dircolors" ]]; then
 	# shellcheck disable=SC2015
 	test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-	alias l='ls -al --color=auto'
 	alias ls='ls --color=auto'
+	alias ll='ls --color=auto -l'
+	alias la='ls --color=auto -lA'
 	alias grep='grep --color=auto'
 	alias fgrep='fgrep --color=auto'
 	alias egrep='egrep --color=auto'

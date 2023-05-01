@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2002
+# @version: 3.1.2004
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -172,7 +172,7 @@
 # shellcheck disable=1091,2068,2119,2312
 ##################################################################################
 # @name: vstacklet::environment::init (1)
-# @description: Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L180-L196)
+# @description: Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L180-L196)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 # @break
@@ -197,7 +197,7 @@ vstacklet::environment::init() {
 
 ##################################################################################
 # @name: vstacklet::args::process (3)
-# @description: Process the options and values passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L242-L501)
+# @description: Process the options and values passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L242-L501)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 #
@@ -235,7 +235,6 @@ vstacklet::environment::init() {
 # @example: vstacklet --help
 # @example: vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -hn "yourhostname" -php "8.1" -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "db_user" -mariadbPw "db_password" -pma -csf -wr "/var/www/html" -wp
 # @example: vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -http "8080" -d "yourdomain.com" -php "8.1" -nginx -varnish -varnishP "80" -mariadb -mariadbU "db_user" -mariadbPw "db_password" -sendmail -wr "/var/www/html" -wp --reboot
-#
 # @null
 # @break
 ##################################################################################
@@ -502,7 +501,7 @@ vstacklet::args::process() {
 
 ##################################################################################
 # @name: vstacklet::environment::functions (2)
-# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L510-L693)
+# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L510-L693)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 # @break
@@ -694,7 +693,7 @@ vs::stat::progress::stop() {
 
 ##################################################################################
 # @name: vstacklet::log::check (4)
-# @description: Check if the log file exists and create it if it doesn't. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L707-L727)
+# @description: Check if the log file exists and create it if it doesn't. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L707-L727)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 #
@@ -728,7 +727,7 @@ vstacklet::log::check() {
 
 ##################################################################################
 # @name: vstacklet::apt::update (5)
-# @description: Updates server via apt-get. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L738-L747)
+# @description: Updates server via apt-get. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L738-L747)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 # @nooptions
@@ -748,7 +747,7 @@ vstacklet::apt::update() {
 
 ##################################################################################
 # @name: vstacklet::dependencies::install (6)
-# @description: Installs dependencies for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L759-L781)
+# @description: Installs dependencies for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L759-L781)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 # @nooptions
@@ -782,7 +781,7 @@ vstacklet::dependencies::install() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkroot (7)
-# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L791-L793)
+# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L791-L793)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 # @return_code: 1 - you must be root to run this script.
@@ -794,7 +793,7 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkdistro (8)
-# @description: Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11 [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L803-L814)
+# @description: Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11 [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L803-L814)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 # @return_code: 2 - this script only supports Ubuntu 18.04/20.04 | Debian 9/10/11
@@ -815,7 +814,7 @@ vstacklet::environment::checkdistro() {
 
 ##################################################################################
 # @name: vstacklet::intro (9)
-# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L823-L846)
+# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L823-L846)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 # @break
@@ -831,7 +830,7 @@ vstacklet::intro() {
 	vstacklet::shell::text::white "Please ensure you have read the documentation before continuing."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "Documentation can be found at:"
-	vstacklet::shell::text::white "https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md"
+	vstacklet::shell::text::white "https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "vStacklet installation log can be found at:"
 	vstacklet::shell::text::yellow "${vslog}"
@@ -847,7 +846,7 @@ vstacklet::ask::continue() {
 
 ################################################################################
 # @name: vstacklet::dependencies::array (11)
-# @description: Handles various dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L875-L904)
+# @description: Handles various dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L875-L904)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 # @nooptions
@@ -905,7 +904,7 @@ vstacklet::dependencies::array() {
 
 ################################################################################
 # @name: vstacklet::base::dependencies (12)
-# @description: Handles base dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L914-L939)
+# @description: Handles base dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L914-L939)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 # @return_code: 4 - failed to install base dependencies.
@@ -940,7 +939,7 @@ vstacklet::base::dependencies() {
 
 ##################################################################################
 # @name: vstacklet::source::dependencies (13)
-# @description: Installs required sources for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L951-L978)
+# @description: Installs required sources for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L951-L978)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 # @nooptions
@@ -979,7 +978,7 @@ vstacklet::source::dependencies() {
 
 ##################################################################################
 # @name: vstacklet::bashrc::set (14)
-# @description: Set ~/.bashrc and ~/.profile for vstacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L989-L997)
+# @description: Set ~/.bashrc and ~/.profile for vstacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L989-L997)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 # @nooptions
@@ -998,7 +997,7 @@ vstacklet::bashrc::set() {
 
 ##################################################################################
 # @name: vstacklet::hostname::set (15)
-# @description: Set system hostname. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1018-L1032)
+# @description: Set system hostname. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1018-L1032)
 #
 # notes:
 # - hostname must be a valid hostname.
@@ -1033,7 +1032,7 @@ vstacklet::hostname::set() {
 
 ##################################################################################
 # @name: vstacklet::webroot::set (16)
-# @description: Set main web root directory. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1054-L1061)
+# @description: Set main web root directory. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1054-L1061)
 #
 # notes:
 # - if the directory already exists, it will be used.
@@ -1062,7 +1061,7 @@ vstacklet::webroot::set() {
 
 ##################################################################################
 # @name: vstacklet::ssh::set (17)
-# @description: Set ssh port to custom port (if nothing is set, default port is 22) [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1075-L1082)
+# @description: Set ssh port to custom port (if nothing is set, default port is 22) [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1075-L1082)
 # @option: $1 - `-ssh | --ssh_port` (optional) (takes one argument)
 # @arg: $2 - `[port]` (default: 22) - the port to set for ssh
 # @example: vstacklet -ssh 2222
@@ -1083,7 +1082,7 @@ vstacklet::ssh::set() {
 
 ##################################################################################
 # @name: vstacklet::ftp::set (18)
-# @description: Set ftp port to custom port (if nothing is set, default port is 21) [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1096-L1107)
+# @description: Set ftp port to custom port (if nothing is set, default port is 21) [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1096-L1107)
 # @option: $1 - `-ftp | --ftp_port` (optional) (takes one argument)
 # @arg: $2 - `[port]` (default: 21) - the port to set for ftp
 # @example: vstacklet -ftp 2121
@@ -1110,7 +1109,7 @@ vstacklet::ftp::set() {
 # @name: vstacklet::block::ssdp (19)
 # @description: Blocks an insecure port 1900 that may lead to
 # DDoS masked attacks. Only remove this function if you absolutely
-# need port 1900. In most cases, this is a junk port. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1120-L1125)
+# need port 1900. In most cases, this is a junk port. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1120-L1125)
 # @noargs
 # @nooptions
 # @return_code: 11 - failed to block SSDP port.
@@ -1126,7 +1125,7 @@ vstacklet::block::ssdp() {
 
 ##################################################################################
 # @name: vstacklet::sources::update (20)
-# @description: This function updates the package list and upgrades the system. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1136-L1212)
+# @description: This function updates the package list and upgrades the system. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1136-L1212)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 # @noargs
@@ -1214,7 +1213,7 @@ EOF
 ##################################################################################
 # @name: vstacklet::gpg::keys (21)
 # @description: This function sets the required software package keys
-# required by added sources. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1235-L1297)
+# required by added sources. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1235-L1297)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 #
@@ -1299,7 +1298,7 @@ EOF
 ##################################################################################
 # @name: vstacklet::locale::set (22)
 # @description: This function sets the locale to en_US.UTF-8
-# and sets the timezone to UTC. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1314-L1334)
+# and sets the timezone to UTC. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1314-L1334)
 # @dev-note: This function is required for the installation of
 # the vStacklet software.
 #
@@ -1335,7 +1334,7 @@ vstacklet::locale::set() {
 
 ##################################################################################
 # @name: vstacklet::php::install (23)
-# @description: Install PHP and PHP modules. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1369-L1420)
+# @description: Install PHP and PHP modules. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1369-L1420)
 #
 # notes:
 # - versioning:
@@ -1421,7 +1420,7 @@ vstacklet::php::install() {
 
 ##################################################################################
 # @name: vstacklet::hhvm::install (24)
-# @description: Install HHVM and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1449-L1491)
+# @description: Install HHVM and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1449-L1491)
 #
 # notes:
 # - not familiar with HHMV?
@@ -1492,7 +1491,7 @@ vstacklet::hhvm::install() {
 
 ##################################################################################
 # @name: vstacklet::nginx::install (25)
-# @description: Install NGinx and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1531-L1626)
+# @description: Install NGinx and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1531-L1626)
 #
 # notes:
 # - The following profiles are included:
@@ -1513,7 +1512,7 @@ vstacklet::hhvm::install() {
 #     - sec-php-easter-eggs
 #     - server-security-options
 #     - socket-settings
-# - These config can be found at [/etc/nginx/server.configs/](https://github.com/JMSDOnline/vstacklet/tree/development/config/nginx/server.configs)
+# - These config can be found at [/etc/nginx/server.configs/](https://github.com/JMSDOnline/vstacklet/tree/main/config/nginx/server.configs)
 # @option: $1 - `-nginx | --nginx` (optional) (takes no arguments)
 # @example: vstacklet -nginx
 # @example: vstacklet --nginx
@@ -1627,7 +1626,7 @@ vstacklet::nginx::install() {
 
 ##################################################################################
 # @name: vstacklet::varnish::install (26)
-# @description: Install Varnish and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1658-L1728)
+# @description: Install Varnish and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1658-L1728)
 #
 # notes:
 # - varnish is installed based on the following variables:
@@ -1729,7 +1728,7 @@ vstacklet::varnish::install() {
 
 ##################################################################################
 # @name: vstacklet::permissions::adjust (27)
-# @description: Adjust permissions for the web root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1750-L1758)
+# @description: Adjust permissions for the web root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1750-L1758)
 #
 # notes:
 # - Permissions are adjusted based the following variables:
@@ -1759,7 +1758,7 @@ vstacklet::permissions::adjust() {
 
 ##################################################################################
 # @name: vstacklet::ioncube::install (28)
-# @description: Install ionCube loader. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1780-L1808)
+# @description: Install ionCube loader. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1780-L1808)
 #
 # notes:
 # - the ioncube loader will be available for the php version specified
@@ -1809,7 +1808,7 @@ vstacklet::ioncube::install() {
 
 ##################################################################################
 # @name: vstacklet::mariadb::install (29)
-# @description: Install mariaDB and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1842-L1964)
+# @description: Install mariaDB and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1842-L1964)
 #
 # notes:
 # - if `-mysql | --mysql` is specified, then mariadb will not be installed. choose either mariadb or mysql.
@@ -1965,7 +1964,7 @@ DOD
 
 ##################################################################################
 # @name: vstacklet::mysql::install (30)
-# @description: Install mySQL and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L1994-L2129)
+# @description: Install mySQL and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1994-L2129)
 #
 # notes:
 # - if `-mariadb | --mariadb` is specified, then mysql will not be installed. choose either mysql or mariadb.
@@ -2130,7 +2129,7 @@ vstacklet::mysql::install() {
 
 ##################################################################################
 # @name: vstacklet::postgre::install (31)
-# @description: Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L2153-L2240)
+# @description: Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2153-L2240)
 #
 # note: postgresql is not installed by default and is currently untested.
 # this function is a work in progress. it is intended as a future feature.
@@ -2241,7 +2240,7 @@ vstacklet::postgre::install() {
 
 ##################################################################################
 # @name: vstacklet::redis::install (32)
-# @description: Install and configure Redis. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L2267-L2321)
+# @description: Install and configure Redis. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2267-L2321)
 #
 # note: redis is not installed by default and is currently untested.
 # this function is a work in progress. it is intended as a future feature.
@@ -2322,7 +2321,7 @@ vstacklet::redis::install() {
 
 ##################################################################################
 # @name: vstacklet::phpmyadmin::install (33)
-# @description: Install phpMyAdmin and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L2372-L2466)
+# @description: Install phpMyAdmin and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2372-L2466)
 #
 # notes:
 # - phpMyAdmin no longer supports HHVM due to the project now just focusing on
@@ -2467,7 +2466,7 @@ vstacklet::phpmyadmin::install() {
 
 ##################################################################################
 # @name: vstacklet::csf::install (34)
-# @description: Install CSF firewall. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L2503-L2631)
+# @description: Install CSF firewall. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2503-L2631)
 #
 # notes:
 # - https://configserver.com/cp/csf.html
@@ -2634,7 +2633,7 @@ vstacklet::csf::install() {
 # @name: vstacklet::cloudflare::csf (34.1)
 # @description: Configure Cloudflare IP addresses in CSF. This is to be used
 # when Cloudflare is used as a CDN. This will allow CSF to
-# recognize Cloudflare IPs as trusted. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L2654-L2671)
+# recognize Cloudflare IPs as trusted. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2654-L2671)
 #
 # notes:
 # - This function is only called under the following conditions:
@@ -2673,7 +2672,7 @@ vstacklet::cloudflare::csf() {
 ##################################################################################
 # @name: vstacklet::sendmail::install (35)
 # @description: Install and configure sendmail. This is a required component for
-# CSF to function properly. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L2700-L2771)
+# CSF to function properly. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2700-L2771)
 #
 # notes:
 # - The `-e | --email` option is required for this function to run properly.
@@ -2773,7 +2772,7 @@ vstacklet::sendmail::install() {
 ##################################################################################
 # @name: vstacklet::wordpress::install (36)
 # @description: Install WordPress. This will also configure WordPress to use
-# the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L2814-L2946)
+# the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2814-L2946)
 #
 # notes:
 # - this function is only called under the following conditions:
@@ -2948,7 +2947,7 @@ vstacklet::wordpress::install() {
 ##################################################################################
 # @name: vstacklet::domain::ssl (37)
 # @description: The following function installs the SSL certificate
-#   for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L2978-L3037)
+#   for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2978-L3037)
 #
 # notes:
 # - This function is only called under the following conditions:
@@ -3041,7 +3040,7 @@ vstacklet::domain::ssl() {
 # @description: Cleans up the system after a successful installation. This
 #   function is called after the installation is complete. It removes the
 #   temporary files and directories created during the installation process.
-#   This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L3049-L3076)
+#   This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3049-L3076)
 # @nooptions
 # @noargs
 # @break
@@ -3080,7 +3079,7 @@ vstacklet::clean::complete() {
 # @description: Outputs success message on completion of setup. This function
 #   is called after the installation is complete. It outputs a success message
 #   to the user and provides them with the necessary information to access their
-#   new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L3088-L3126)
+#   new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3088-L3126)
 # @nooptions
 # @noargs
 # @break
@@ -3127,7 +3126,7 @@ vstacklet::message::complete() {
 
 ################################################################################
 # @name: vstacklet::help::display (40)
-# @description: Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L3135-L3236)
+# @description: Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3135-L3236)
 # @nooptions
 # @noargs
 # @break
@@ -3237,7 +3236,7 @@ vstacklet::help::display() {
 
 ################################################################################
 # @name: vstacklet::version::display (41)
-# @description: Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L3245-L3251)
+# @description: Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3245-L3251)
 # @nooptions
 # @noargs
 # @break
@@ -3252,7 +3251,7 @@ vstacklet::version::display() {
 
 ################################################################################
 # @name: vstacklet::clean::rollback - vStacklet Rollback (42/return_code)
-# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet-server-stack.sh#L3270-L3523)
+# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3270-L3523)
 #
 # notes:
 # - it will remove the temporary files and directories created during the installation

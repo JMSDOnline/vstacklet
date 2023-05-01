@@ -1,4 +1,4 @@
-# backup-cleanup.sh - v3.1.1105
+# backup-cleanup.sh - v3.1.1106
 
 
 ---
@@ -37,7 +37,7 @@ This script will do the following:
 
 ### vstacklet::backup::args()
 
-Process the options passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L66-L117)
+Process the options passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/backup-cleanup.sh#L66-L117)
 
 notes:
 - This script function is responsible for processing the options passed to the
@@ -52,25 +52,25 @@ script.
 
 ### vstacklet::environment::functions()
 
-Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L125-L204)
+Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/backup-cleanup.sh#L125-L204)
 
 ---
 
 ### vstacklet::environment::checkroot()
 
-Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L211-L216)
+Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/backup-cleanup.sh#L211-L216)
 
 ---
 
 ### vstacklet::backup::clean()
 
-Main function for cleaning up backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L223-L244)
+Main function for cleaning up backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/backup-cleanup.sh#L223-L244)
 
 ---
 
 ### vstacklet::backup::usage()
 
-Display usage information for the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/backup-cleanup.sh#L251-L280)
+Display usage information for the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/backup-cleanup.sh#L251-L280)
 
 ---
 

@@ -1,4 +1,4 @@
-# www-permissions-standalone.sh - v3.1.1068
+# www-permissions-standalone.sh - v3.1.1069
 
 
 ---
@@ -11,9 +11,9 @@ Please ensure you have read the documentation before continuing.
 
 ---
 
-- [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
-- [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
-- [vStacklet www-permissions](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/www-permissions.sh.md)
+- [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet.sh.md)
+- [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md)
+- [vStacklet www-permissions](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/www-permissions.sh.md)
 
 ---
 
@@ -38,13 +38,13 @@ This script will do the following:
 This function will download the latest version of vs-perms
 and install it on your server. It will also convert vs-perms shell scripts
 to executable. From there, you can run vs-perms from anywhere on your server.
-[see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions-standalone.sh#L61-L66)
+[see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions-standalone.sh#L61-L66)
 
 ---
 
 ### vstacklet::vsperms::outro()
 
-This function will display the outro. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions-standalone.sh#L74-L86)
+This function will display the outro. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions-standalone.sh#L74-L86)
 
 ---
 

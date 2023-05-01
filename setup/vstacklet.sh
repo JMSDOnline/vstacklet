@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1071
+# @version: 3.1.1072
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -21,13 +21,13 @@
 # have a pretty good idea of what is going on. If you have any questions,
 # comments, or suggestions, please feel free to open an issue on GitHub.
 #
-# - Documentation is available at: [/docs/](https://github.com/JMSDOnline/vstacklet/tree/development/docs)
-#   - :book: [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
-#   - :book: [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
-#   - :book: [vStacklet VS-Perms (www-permissions.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/www-permissions.sh.md)
-#     - :book: [vStacklet vs-perms (www-permissions-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/www-permissions-standalone.sh.md)
-#   - :book: [vStacklet VS-Backup (vs-backup) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/backup/vs-backup.md)
-#     - :book: [vStacklet vs-backup (vstacklet-backup-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/backup/vstacklet-backup-standalone.sh.md)
+# - Documentation is available at: [/docs/](https://github.com/JMSDOnline/vstacklet/tree/main/docs)
+#   - :book: [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet.sh.md)
+#   - :book: [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md)
+#   - :book: [vStacklet VS-Perms (www-permissions.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/www-permissions.sh.md)
+#     - :book: [vStacklet vs-perms (www-permissions-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/www-permissions-standalone.sh.md)
+#   - :book: [vStacklet VS-Backup (vs-backup) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/backup/vs-backup.md)
+#     - :book: [vStacklet vs-backup (vstacklet-backup-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/backup/vstacklet-backup-standalone.sh.md)
 #
 # vStacklet will install and configure the following:
 # - NGinx 1.23.+ (HTTP Server)
@@ -59,7 +59,7 @@
 
 ##################################################################################
 # @name: vstacklet::environment::checkroot (1)
-# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L65-L70)
+# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L65-L70)
 # @break
 ##################################################################################
 vstacklet::environment::checkroot() {
@@ -71,7 +71,7 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::setup::variables (2)
-# @description: Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L79-L131)
+# @description: Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L79-L131)
 #
 # notes: this script function is responsible for setting the variables for the setup.
 # @break
@@ -132,7 +132,7 @@ vstacklet::setup::variables() {
 
 ################################################################################
 # @name: vstacklet::setup::download() (3)
-# @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L156-L213)
+# @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L156-L213)
 #
 # notes:
 # - This script function is responsible for downloading vStacklet from GitHub
@@ -205,7 +205,7 @@ vstacklet::setup::download() {
 	echo "Please see the documentation for more information."
 	echo ""
 	echo "Documentation can be found here:"
-	echo "https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/setup/vstacklet-server-stack.sh.md"
+	echo "https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/setup/vstacklet-server-stack.sh.md"
 	echo ""
 	echo "You can also run the following command for more information:"
 	echo "vstacklet -h"
@@ -214,7 +214,7 @@ vstacklet::setup::download() {
 
 ##################################################################################
 # @name: vstacklet::setup::help()
-# @description: Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L220-L240)
+# @description: Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L220-L240)
 # @break
 ##################################################################################
 vstacklet::setup::help() {
@@ -241,7 +241,7 @@ EOF
 
 ##################################################################################
 # @name: vstacklet::setup::version()
-# @description: Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L247-L253)
+# @description: Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L247-L253)
 # @break
 ##################################################################################
 vstacklet::version::display() {

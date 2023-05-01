@@ -1,4 +1,4 @@
-# vstacklet-backup-standalone.sh - v3.1.1142
+# vstacklet-backup-standalone.sh - v3.1.1143
 
 
 ---
@@ -10,9 +10,9 @@ Please ensure you have read the documentation before continuing.
 
 ---
 
-- [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
-- [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
-- [vStacklet VS-Backup Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/backup/vs-backup.md)
+- [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet.sh.md)
+- [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md)
+- [vStacklet VS-Backup Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/backup/vs-backup.md)
 
 ---
 
@@ -37,13 +37,13 @@ This script will do the following:
 This function will download the latest version of vs-backup
 and install it on your server. It will also convert vs-backup shell scripts
 to executable. From there, you can run vs-backup from anywhere on your server.
-[see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vstacklet-backup-standalone.sh#L60-L65)
+[see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vstacklet-backup-standalone.sh#L60-L65)
 
 ---
 
 ### vstacklet::vsbackup::outro()
 
-This function will display the outro. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/backup/vstacklet-backup-standalone.sh#L73-L85)
+This function will display the outro. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vstacklet-backup-standalone.sh#L73-L85)
 
 ---
 

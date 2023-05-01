@@ -1,4 +1,4 @@
-# vstacklet.sh - v3.1.1071
+# vstacklet.sh - v3.1.1072
 
 
 ---
@@ -11,13 +11,13 @@ comments, or suggestions, please feel free to open an issue on GitHub.
 
 ---
 
-- Documentation is available at: [/docs/](https://github.com/JMSDOnline/vstacklet/tree/development/docs)
-  - :book: [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
-  - :book: [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
-  - :book: [vStacklet VS-Perms (www-permissions.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/www-permissions.sh.md)
-    - :book: [vStacklet vs-perms (www-permissions-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/www-permissions-standalone.sh.md)
-  - :book: [vStacklet VS-Backup (vs-backup) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/backup/vs-backup.md)
-    - :book: [vStacklet vs-backup (vstacklet-backup-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/backup/vstacklet-backup-standalone.sh.md)
+- Documentation is available at: [/docs/](https://github.com/JMSDOnline/vstacklet/tree/main/docs)
+  - :book: [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet.sh.md)
+  - :book: [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md)
+  - :book: [vStacklet VS-Perms (www-permissions.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/www-permissions.sh.md)
+    - :book: [vStacklet vs-perms (www-permissions-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/www-permissions-standalone.sh.md)
+  - :book: [vStacklet VS-Backup (vs-backup) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/backup/vs-backup.md)
+    - :book: [vStacklet vs-backup (vstacklet-backup-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/backup/vstacklet-backup-standalone.sh.md)
 
 ---
 
@@ -36,13 +36,13 @@ vStacklet will install and configure the following:
 
 ### vstacklet::environment::checkroot()
 
-Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L65-L70)
+Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L65-L70)
 
 ---
 
 ### vstacklet::setup::variables()
 
-Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L79-L131)
+Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L79-L131)
 
 notes: this script function is responsible for setting the variables for the setup.
 
@@ -50,7 +50,7 @@ notes: this script function is responsible for setting the variables for the set
 
 ### vstacklet::setup::download()
 
-Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L156-L213)
+Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L156-L213)
 
 notes:
 - This script function is responsible for downloading vStacklet from GitHub
@@ -73,13 +73,13 @@ packages and install them if they are not found.
 
 ### vstacklet::setup::help()
 
-Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L220-L240)
+Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L220-L240)
 
 ---
 
 ### vstacklet::version::display()
 
-Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/vstacklet.sh#L247-L253)
+Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L247-L253)
 
 ---
 

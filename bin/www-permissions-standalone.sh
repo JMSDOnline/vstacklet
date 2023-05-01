@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions-standalone.sh
-# @version: 3.1.1068
+# @version: 3.1.1069
 # @description: This script will grab the latest version of vs-perms and
 # install it on your server.
 #
@@ -16,9 +16,9 @@
 # directory.
 # Please ensure you have read the documentation before continuing.
 #
-# - [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet.sh.md)
-# - [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)
-# - [vStacklet www-permissions](https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/www-permissions.sh.md)
+# - [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet.sh.md)
+# - [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md)
+# - [vStacklet www-permissions](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/www-permissions.sh.md)
 #
 # This script will do the following:
 # - Download the latest version of vs-perms.
@@ -54,20 +54,20 @@
 # @description: This function will download the latest version of vs-perms
 # and install it on your server. It will also convert vs-perms shell scripts
 # to executable. From there, you can run vs-perms from anywhere on your server.
-# [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions-standalone.sh#L61-L66)
+# [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions-standalone.sh#L61-L66)
 #
 # @break
 ################################################################################
 vstacklet::vsperms::standalone() {
 	# @script-note: download the latest version of vs-perms and move it to /usr/local/bin
-	curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/www-permissions.sh" >/usr/local/bin/vs-perms
+	curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/www-permissions.sh" >/usr/local/bin/vs-perms
 	# @script-note: convert vs-perms shell scripts to executable
 	chmod +x /usr/local/bin/vs-perms
 }
 
 ################################################################################
 # @name: vstacklet::vsperms::outro
-# @description: This function will display the outro. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/bin/www-permissions-standalone.sh#L74-L86)
+# @description: This function will display the outro. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/www-permissions-standalone.sh#L74-L86)
 #
 # @break
 ################################################################################
@@ -78,7 +78,7 @@ vstacklet::vsperms::outro() {
 	echo "Please see the documentation for more information."
 	echo ""
 	echo "Documentation can be found here:"
-	echo "https://github.com/JMSDOnline/vstacklet/blob/development/docs/bin/www-permissions.sh.md"
+	echo "https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/www-permissions.sh.md"
 	echo ""
 	echo "You can also run the following command for more information:"
 	echo "vs-perms -h"
