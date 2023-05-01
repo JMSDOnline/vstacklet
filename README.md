@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.732
-  Build: 732
+  Version: v3.1.1.733
+  Build: 733
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 
@@ -161,7 +161,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/developmen
 ##### Example
 
 ```bash
-vstacklet -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -phpmyadmin -ioncube
+vstacklet -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -mariadbU "db_username" -mariadbPw "db_password" -phpmyadmin -ioncube -csf -sendmail
 ```
 
 To view the available options, run the script with the `-h` option or better yet, view the documentation [here](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)! ( *WIP* )
@@ -169,7 +169,7 @@ To view the available options, run the script with the `-h` option or better yet
 
 ---
 
-### VStacklet VS-Backup - Installs needed script for running directory and database backups
+### VStacklet VS-Backup - Installs needed script for running directory and database backups (included in FULL Kit also)
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/backup/vstacklet-backup-standalone.sh)
@@ -177,7 +177,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/developmen
 
 ---
 
-### VStacklet VS-Perms - Installs needed files for running www permissions fix
+### VStacklet VS-Perms - Installs needed files for running www permissions fix (included in FULL Kit also)
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/bin/www-permissions-standalone.sh)

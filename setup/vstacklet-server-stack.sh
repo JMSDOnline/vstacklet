@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1988
+# @version: 3.1.1992
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2558,7 +2558,7 @@ vstacklet::csf::install() {
 		[[ -n ${mariadb_port} ]] && mariadb_port="${mariadb_port:-3306}"
 		#[[ -n ${postgresql_port} ]] && postgresql_port="${postgresql_port:-5432}"
 		#[[ -n ${redis_port} ]] && redis_port="${redis_port:-6379}"
-		[[ -n ${varnish_port} ]] && varnish_port="${varnish_port:-6081}"
+		[[ -n ${varnish_port} ]] && varnish_port="${varnish_port:-6081}" && varnish_https_port="${varnish_https_port:-8443}"
 		[[ -n ${sendmail_port} ]] && sendmail_port="${sendmail_port:-587}"
 		[[ -n ${csf_ui_port} ]] && csf_ui_port="${csf_ui_port:-1043}"
 		[[ -z "${csf_ui_pass}" ]] && csf_ui_pass="$(openssl rand -base64 32)"
@@ -2572,7 +2572,7 @@ vstacklet::csf::install() {
 		TCP6_OUT="20,25,53,853,110,113,993,995,"
 		# @script-note: modify csf.conf - allow ssh, ftp, http, https, mysql, mariadb, sendmail, and varnish
 		declare csf_allow_ports
-		IFS=" " read -r -a csf_allow_ports <<<"$(tr ',' '\n,' <<<"${csf_allow_ports:-${ssh_port:-22},${ftp_port:-21},${http_port:-80},${https_port:-443},${mysql_port:-3306},${mariadb_port:-3306},${varnish_port:-6081},${sendmail_port:-587},${csf_ui_port:-1043}}" | sort -u | tr '\n' ',' | sed 's/,$//g')"
+		IFS=" " read -r -a csf_allow_ports <<<"$(tr ',' '\n,' <<<"${csf_allow_ports:-${ssh_port:-22},${ftp_port:-21},${http_port:-80},${https_port:-443},${mysql_port:-3306},${mariadb_port:-3306},${varnish_port:-6081},${varnish_https_port:-8443},${sendmail_port:-587},${csf_ui_port:-1043}}" | sort -u | tr '\n' ',' | sed 's/,$//g')"
 		for p in "${csf_allow_ports[@]}"; do
 			sed -i.orig -e "s/^TCP_IN = .*/TCP_IN = \"${TCP_IN}${p}\"/g" -e "s/^TCP6_IN = .*/TCP6_IN = \"${TCP6_IN}${p}\"/g" -e "s/^TCP_OUT = .*/TCP_OUT = \"${TCP_OUT}${p}\"/g" -e "s/^TCP6_OUT = .*/TCP6_OUT = \"${TCP6_OUT}${p}\"/g" /etc/csf/csf.conf || vstacklet::clean::rollback 85
 		done
@@ -3056,15 +3056,13 @@ vstacklet::clean::complete() {
 	services+=("sshd")
 	rm -rf "${vstacklet_base_path}/setup_temp"
 	for service in "${services[@]}"; do
-		vstacklet::log "systemctl restart ${service}.service"
 		vstacklet::log "systemctl enable ${service}.service"
+		vstacklet::log "systemctl restart ${service}.service"
 	done
 	# csf requires a restart with its own command
 	# this will effectively stop/start csf and lfd
 	# and reload the firewall and rules
-	[[ -n ${csf} ]] && vstacklet::log "csf -x"
-	[[ -n ${csf} ]] && vstacklet::log "csf -e"
-	[[ -n ${csf} ]] && vstacklet::log "csf -r"
+	[[ -n ${csf} ]] && vstacklet::log "csf -x" && vstacklet::log "csf -e" && vstacklet::log "csf -r"
 	[[ -n ${nginx} ]] && rm -rf /etc/apache2 && rm -rf /usr/sbin/apache2
 	vstacklet::log "iptables-save > /etc/iptables/rules.v4"
 	unset service services
