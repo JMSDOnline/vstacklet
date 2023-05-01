@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1141
+# @version: 3.1.1142
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -419,7 +419,7 @@ vstacklet::ask::continue() {
 ##################################################################################
 vstacklet::backup::files() {
 	##################################################################################
-	# @name: vstacklet::backup::file::directories (a)
+	# @name: vstacklet::backup::files::directories (a)
 	# @description: The directories for files used in the backup script.
 	# note: The directories are created if they don't exist.
 	##################################################################################
@@ -663,7 +663,7 @@ vstacklet::backup::variables "${@}"                           #(3)
 vstacklet::backup::default::variables                         #(4)
 vstacklet::backup::main::checks                               #(5)
 vstacklet::intro                                              #(6)
-[[ "${backup_file_yes}" -eq 1 ]] && vstacklet::backup::file   #(7)
+[[ "${backup_file_yes}" -eq 1 ]] && vstacklet::backup::files   #(7)
 [[ "${backup_db_yes}" -eq 1 ]] && vstacklet::backup::database #(8)
 vstacklet::backup::retention                                  #(9)
 vstacklet::outro                                              #(10)
