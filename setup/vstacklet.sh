@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1062
+# @version: 3.1.1070
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -64,7 +64,7 @@
 ##################################################################################
 vstacklet::environment::checkroot() {
 	[[ $(whoami) != "root" ]] && {
-		vstacklet::shell::text::error "you must be root to run this script."
+		printf -- "%s\n" "Please run this script as root. Elevate your privileges with (sudo su -) and try again."
 		exit 1
 	}
 }
@@ -90,7 +90,7 @@ vstacklet::setup::variables() {
 			shift
 			;;
 		-b | --branch)
-			vstacklet_git_branch="${2}"
+			branch="${2}"
 			shift
 			shift
 			;;
@@ -101,7 +101,7 @@ vstacklet::setup::variables() {
 		esac
 	done
 	# @script-note: Set the necessary declarations
-	declare -g vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_php7_path vstacklet_config_hhvm_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname
+	declare -g vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_php7_path vstacklet_config_hhvm_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname vstacklet_server_stack_script vstacklet_git vstacklet_git_branch
 	# @script-note: Set the vstacklet base path
 	vstacklet_base_path="${vstacklet_base_path:-/opt/vstacklet}"
 	# @script-note: Set the vstacklet setup path
@@ -122,12 +122,12 @@ vstacklet::setup::variables() {
 	server_ip="${server_ip:-$(ip addr show | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | cut -d/ -f1 | head -n 1)}"
 	# @script-note: Set the hostname of the server
 	server_hostname="${server_hostname:-$(hostname --fqdn)}"
-	# @script-note: Set the local vstacklet server stack script
-	local -r vstacklet_server_stack_script="/opt/vstacklet/setup/vstacklet-server-stack.sh"
+	# @script-note: Set the local vstacklet server stack script (this is the script that will be loaded to /usr/local/bin/vstacklet)
+	vstacklet_server_stack_script="/opt/vstacklet/setup/vstacklet-server-stack.sh"
 	# @script-note: Set the vstacklet github repository url
-	local -r vstacklet_git="https://github.com/JMSDOnline/vstacklet.git"
+	vstacklet_git="https://github.com/JMSDOnline/vstacklet.git"
 	# @script-note: Set the vstacklet github repository branch (default: master)
-	local -r vstacklet_git_branch="${vstacklet_git_branch:-master}"
+	vstacklet_git_branch="${vstacklet_git_branch:-${branch:-master}}"
 }
 
 ################################################################################
@@ -264,7 +264,9 @@ vstacklet::setup::main() {
 	vstacklet::setup::download
 }
 
-# @script-note: Call the main function
+# @script-note: call the main function
 vstacklet::setup::main "$@"
-# @script-note: Exit the script
+# @script-note: unset the variables
+unset vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_php7_path vstacklet_config_hhvm_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname vstacklet_git vstacklet_git_branch vstacklet_server_stack_script vstacklet_version help version branch
+# @script-note: exit the script
 exit 0
