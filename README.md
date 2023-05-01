@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.738
-  Build: 738
+  Version: v3.1.1.739
+  Build: 739
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
 
@@ -38,7 +38,7 @@ Debian:
 >
 > vStacklet for Ubuntu 16.04 and Debian 8 has been deprecated. This is due to Ubuntu 20.04 and Debian 11 now becoming more common place with at least 90% of the providers on the market. Additionally, SSL creation and install in the script has been disabled until I have LetsEncrypt fully integrated, which is currently an active WIP.
 >
-> vStacklet is a utility for quickly getting a server with wordpress installed deployed. As is the naure of this script, it is not intended to be a modular script. It is intended to be a full kit that installs everything you need to get a server up and running (not individual components 1 at a time - though it is in the pipeline). If you are looking for a modular script, I recommend [Quick LEMP](https://github.com/jbradach/quick-lemp/) as it is the script that inspired vStacklet.
+> vStacklet is a utility for quickly getting a server with wordpress installed deployed. As is the nature of this script, it is not intended to be a modular script. It is intended to be a full kit that installs everything you need to get a server up and running (not individual components 1 at a time - though it is in the pipeline). If you are looking for a modular script, I recommend [Quick LEMP](https://github.com/jbradach/quick-lemp/) as it is the script that inspired vStacklet. Do note that Quick LEMP is not actively maintained and I wouldn't recommend using it for production use.
 
 ## What is vStacklet?
 
@@ -126,46 +126,39 @@ doing.* Changes may be necessary to meet your needs.
 
 ### vStacklet FULL Kit - Installs and configures the vStacklet LEMP kit stack
 
-( *includes backup scripts* )
+( *includes backup (`vs-backup`) and www-permissions (`vs-perms`) scripts* )
 
-#### Install needed dependencies for script grabbing and execution
-
-```bash
-apt -y install git wget
-```
-
-#### Main branch repository
-
-... then run the main installer ...
-
-```bash
-sudo apt -y install curl &&
-bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh -b master)
-```
-
----
-
-#### Development branch repository
-
-```bash
-sudo apt -y install curl &&
-bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/setup/vstacklet.sh -b development)
-```
-
-... then run the main installer ...
+**This script is to be ran first**.
+First you will need to download the vStacklet installation script and make it executable. You can do this by running the following command:
 
 > Notes:
 >
 > - **The development branch is not recommended for production use.**
-> - The following example will set the admin email, stage a verified Let's Encrypt SSL cert, install PHP8.1, NGinx, Varnish, MariaDB, phpMyAdmin, CSF, Sendmail, and IonCube Loader. Where NGinx and Varnish are installed, we will set the standard web port for nginx to 8080 and Varnish to 80. This is to allow for SSL termination on port 443 with nginx and Varnish caching on port 80.
+> - This script will only download the vStacklet kit installer script and make it executable. (contains the `vstacklet` script and `vs-backup` and `vs-perms` scripts)
+> - Use the `-b` option to specify the branch you wish to install. (default: master)
+> If no branch is specified, the master branch will be used.
+> - The `-b` option is only available for the vStacklet installer script.
+> - The `-h` option will display the help menu for the vStacklet installer script.
+> - The `-V` option will display the version of the vStacklet installer script.
 
-##### Example
+```bash
+sudo apt -y install curl &&
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/development/setup/vstacklet.sh) -b development
+```
+
+Once the script has been downloaded and made executable, you can then run the script to install the vStacklet kit, as seen in the example below.
+
+#### Example
+
+> Notes:
+>
+> - The following example will set the admin email, stage a verified Let's Encrypt SSL cert, install PHP8.1, NGinx, Varnish, MariaDB, phpMyAdmin, CSF, Sendmail, and IonCube Loader. Where NGinx and Varnish are installed, we will set the standard web port for nginx to 8080 and Varnish to 80. This is to allow for SSL termination on port 443 with nginx and Varnish caching on port 80.
 
 ```bash
 vstacklet -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -mariadbU "db_username" -mariadbPw "db_password" -pma -ioncube -csf -sendmail
 ```
 
-To view the available options, run the script with the `-h` option or better yet, view the documentation [here](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)!
+To view the available options, run the script with the `-h` option (`vstacklet -h`) or better yet, view the documentation [here](https://github.com/JMSDOnline/vstacklet/blob/development/docs/setup/vstacklet-server-stack.sh.md)!
 
 
 ---

@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1060
+# @version: 3.1.1061
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -228,13 +228,13 @@ Options:
 
 Examples:
   # Install vStacklet from the master branch
-  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh -b master)
+  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh) -b master
 
   # Install vStacklet from the development branch
-  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh -b development)
+  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh) -b development
 
   # Display the help menu
-  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh -h)
+  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh) -h
 
 EOF
 }
