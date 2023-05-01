@@ -4,16 +4,16 @@
 
 <div align="center">
 
-| ![vStacklet - A Buff LEMP Stack Kit](https://github.com/JMSDOnline/vstacklet/blob/master/images/vstacklet-lemp-kit.png "vstacklet") |
+| ![vStacklet - A Buff LEMP Stack Kit](https://github.com/JMSDOnline/vstacklet/blob/main/images/vstacklet-lemp-kit.png "vstacklet") |
 | ----------------------------------------------------------------------------------------------------------------------------------- |
 | **vStacklet - A Buff LEMP Stack Kit**                                                                                               |
 
 ## Script status
 
-  Version: v3.1.1.742
-  Build: 742
+  Version: v3.1.1.743
+  Build: 743
 
-[![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/master/LICENSE)
+[![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
 ### Supported OS/Distro
 
@@ -135,8 +135,8 @@ First you will need to download the vStacklet installation script and make it ex
 >
 > - **The development branch is not recommended for production use.**
 > - This script will only download the vStacklet kit installer script and make it executable. (contains the `vstacklet` script and `vs-backup` and `vs-perms` scripts)
-> - Use the `-b` option to specify the branch you wish to install. (default: master)
-> If no branch is specified, the master branch will be used.
+> - Use the `-b` option to specify the branch you wish to install. (default: main)
+> If no branch is specified, the main branch will be used.
 > - The `-b` option is only available for the vStacklet installer script.
 > - The `-h` option will display the help menu for the vStacklet installer script.
 > - The `-V` option will display the version of the vStacklet installer script.
@@ -144,13 +144,13 @@ First you will need to download the vStacklet installation script and make it ex
 ** Grab the latest stable release **
 ```bash
 sudo apt -y install curl &&
-bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh)
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh)
 ```
 
 ** Grab the latest development release **
 ```bash
 sudo apt -y install curl &&
-bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh) -b development
+bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh) -b development
 ```
 
 Once the script has been downloaded and made executable, you can then run the script to install the vStacklet kit, as seen in the example below.

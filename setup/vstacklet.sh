@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1070
+# @version: 3.1.1071
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -126,8 +126,8 @@ vstacklet::setup::variables() {
 	vstacklet_server_stack_script="/opt/vstacklet/setup/vstacklet-server-stack.sh"
 	# @script-note: Set the vstacklet github repository url
 	vstacklet_git="https://github.com/JMSDOnline/vstacklet.git"
-	# @script-note: Set the vstacklet github repository branch (default: master)
-	vstacklet_git_branch="${vstacklet_git_branch:-${branch:-master}}"
+	# @script-note: Set the vstacklet github repository branch (default: main)
+	vstacklet_git_branch="${vstacklet_git_branch:-${branch:-main}}"
 }
 
 ################################################################################
@@ -224,17 +224,17 @@ Usage: vstacklet [options] [args]
 Options:
   -V, --version   Display the version of vStacklet
   -h, --help      Display this help menu
-  -b, --branch    Specify the branch to install from (default: master)
+  -b, --branch    Specify the branch to install from (default: main)
 
 Examples:
-  # Install vStacklet from the master branch
-  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh) -b master
+  # Install vStacklet from the main branch
+  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh)
 
   # Install vStacklet from the development branch
-  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh) -b development
+  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh) -b development
 
   # Display the help menu
-  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/master/setup/vstacklet.sh) -h
+  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh) -h
 
 EOF
 }
