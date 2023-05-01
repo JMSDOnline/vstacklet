@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.747
-  Build: 747
+  Version: v3.1.1.748
+  Build: 748
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -106,7 +106,7 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Checks the user is a member of the www-data group, if not, add them.
 - Set the correct permissions for the web root directory. (default: /var/www/html)
 
-![VS-Perms](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vs-backup-utility-preview.png "vStacklet VS-Perms Utility")
+![VS-Perms](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vs-perms-utility-preview.png "vStacklet VS-Perms Utility")
 
 ---
 
