@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.1992
+# @version: 3.1.1998
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -481,6 +481,7 @@ vstacklet::args::process() {
 	fi
 	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::shell::text::error "invalid option(s): ${invalid_option[*]}" && exit 1
 	# default values
+	[[ -z ${csf_ui_port} ]] && declare -gi csf_ui_port="1043"
 	[[ -z ${ftp_port} ]] && declare -gi ftp_port="21"
 	[[ -z ${https_port} ]] && declare -gi https_port="443"
 	[[ -z ${http_port} ]] && declare -gi http_port="80"
@@ -492,6 +493,7 @@ vstacklet::args::process() {
 	[[ -z ${sendmail_port} ]] && declare -gi sendmail_port="587"
 	[[ -z ${ssh_port} ]] && declare -gi ssh_port="22"
 	[[ -z ${varnish_port} ]] && declare -gi varnish_port="6081"
+	[[ -z ${varnish_https_port} ]] && declare -gi varnish_https_port="8443"
 	[[ -z ${web_root} ]] && declare -g web_root="/var/www/html"
 }
 
@@ -2550,17 +2552,20 @@ vstacklet::csf::install() {
 		#	echo "systemd-resolved"
 		#} >>/etc/csf/csf.ignore || vstacklet::clean::rollback 82
 		# @script-note: set defaults for ports
-		[[ -n ${ssh_port} ]] && ssh_port="${ssh_port:-22}"
-		[[ -n ${ftp_port} ]] && ftp_port="${ftp_port:-21}"
-		[[ -n ${http_port} ]] && http_port="${http_port:-80}"
-		[[ -n ${https_port} ]] && https_port="${https_port:-443}"
-		[[ -n ${mysql_port} ]] && mysql_port="${mysql_port:-3306}"
-		[[ -n ${mariadb_port} ]] && mariadb_port="${mariadb_port:-3306}"
-		#[[ -n ${postgresql_port} ]] && postgresql_port="${postgresql_port:-5432}"
-		#[[ -n ${redis_port} ]] && redis_port="${redis_port:-6379}"
-		[[ -n ${varnish_port} ]] && varnish_port="${varnish_port:-6081}" && varnish_https_port="${varnish_https_port:-8443}"
-		[[ -n ${sendmail_port} ]] && sendmail_port="${sendmail_port:-587}"
-		[[ -n ${csf_ui_port} ]] && csf_ui_port="${csf_ui_port:-1043}"
+		declare csf_allow_port
+		declare -a csf_allow_ports=()
+		[[ -n ${ssh_port} ]] && csf_allow_ports+=("${ssh_port:-22}")
+		[[ -n ${ftp_port} ]] && csf_allow_ports+=("${ftp_port:-21}")
+		[[ -n ${http_port} ]] && csf_allow_ports+=("${http_port:-80}")
+		[[ -n ${https_port} ]] && csf_allow_ports+=("${https_port:-443}")
+		[[ -n ${mysql_port} ]] && csf_allow_ports+=("${mysql_port:-3306}")
+		[[ -n ${mariadb_port} ]] && csf_allow_ports+=("${mariadb_port:-3306}")
+		#[[ -n ${postgresql_port} ]] && csf_allow_ports+=("${postgresql_port:-5432}")
+		#[[ -n ${redis_port} ]] && csf_allow_ports+=("${redis_port:-6379}")
+		[[ -n ${varnish_port} ]] && csf_allow_ports+=("${varnish_port:-6081}")
+		[[ -n ${varnish_https_port} ]] && csf_allow_ports+=("${varnish_https_port:-8443}")
+		[[ -n ${sendmail_port} ]] && csf_allow_ports+=("${sendmail_port:-587}")
+		[[ -n ${csf_ui_port} ]] && csf_allow_ports+=("${csf_ui_port:-1043}")
 		[[ -z "${csf_ui_pass}" ]] && csf_ui_pass="$(openssl rand -base64 32)"
 		# @script-note: sanitize csf_ui_pass for use in sed
 		declare -g csf_ui_pass_sanitzied && csf_ui_pass_sanitzied="$(sed -e 's/[\/&]/\\&/g' <<<"${csf_ui_pass}")"
@@ -2570,12 +2575,22 @@ vstacklet::csf::install() {
 		TCP_OUT="20,25,53,853,110,113,993,995,"
 		TCP6_IN="20,25,53,853,110,143,465,993,995,"
 		TCP6_OUT="20,25,53,853,110,113,993,995,"
-		# @script-note: modify csf.conf - allow ssh, ftp, http, https, mysql, mariadb, sendmail, and varnish
-		declare csf_allow_ports
-		IFS=" " read -r -a csf_allow_ports <<<"$(tr ',' '\n,' <<<"${csf_allow_ports:-${ssh_port:-22},${ftp_port:-21},${http_port:-80},${https_port:-443},${mysql_port:-3306},${mariadb_port:-3306},${varnish_port:-6081},${varnish_https_port:-8443},${sendmail_port:-587},${csf_ui_port:-1043}}" | sort -u | tr '\n' ',' | sed 's/,$//g')"
-		for p in "${csf_allow_ports[@]}"; do
-			sed -i.orig -e "s/^TCP_IN = .*/TCP_IN = \"${TCP_IN}${p}\"/g" -e "s/^TCP6_IN = .*/TCP6_IN = \"${TCP6_IN}${p}\"/g" -e "s/^TCP_OUT = .*/TCP_OUT = \"${TCP_OUT}${p}\"/g" -e "s/^TCP6_OUT = .*/TCP6_OUT = \"${TCP6_OUT}${p}\"/g" /etc/csf/csf.conf || vstacklet::clean::rollback 85
+		for csf_allow_port in "${csf_allow_ports[@]}"; do
+			TCP_IN+="${csf_allow_port},"
+			TCP_OUT+="${csf_allow_port},"
+			TCP6_IN+="${csf_allow_port},"
+			TCP6_OUT+="${csf_allow_port},"
 		done
+		# @script-note: remove duplicate ports, sort by unique numerics, remove trailing and leading commas
+		TCP_IN="$(tr ',' '\n,' <<<"${TCP_IN}" | sort -un | tr '\n' ',' | sed 's/,$//g' | sed 's/^,//g')"
+		TCP_OUT="$(tr ',' '\n,' <<<"${TCP_OUT}" | sort -un | tr '\n' ',' | sed 's/,$//g' | sed 's/^,//g')"
+		TCP6_IN="$(tr ',' '\n,' <<<"${TCP6_IN}" | sort -un | tr '\n' ',' | sed 's/,$//g' | sed 's/^,//g')"
+		TCP6_OUT="$(tr ',' '\n,' <<<"${TCP6_OUT}" | sort -un | tr '\n' ',' | sed 's/,$//g' | sed 's/^,//g')"
+		# @script-note: remove csf_ui_port from TCP_OUT and TCP6_OUT
+		TCP_OUT="${TCP_OUT//${csf_ui_port},/}"
+		TCP6_OUT="${TCP6_OUT//${csf_ui_port},/}"
+		# @script-note: modify csf.conf - allow ssh, ftp, http, https, mysql, mariadb, sendmail, and varnish
+		sed -i.orig -e "s/^TCP_IN = .*/TCP_IN = \"${TCP_IN}\"/g" -e "s/^TCP6_IN = .*/TCP6_IN = \"${TCP6_IN}\"/g" -e "s/^TCP_OUT = .*/TCP_OUT = \"${TCP_OUT}\"/g" -e "s/^TCP6_OUT = .*/TCP6_OUT = \"${TCP6_OUT}\"/g" /etc/csf/csf.conf || vstacklet::clean::rollback 85
 		# @script-note: modify csf.conf - set csf configuration options
 		sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"3\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" -e "s/^UI = \"0\"/UI = \"1\"/g" -e "s/^UI_USER = \"username\"/UI_USER = \"${csf_ui_user:-sysop}\"/g" -e "s/^UI_PASS = \"password\"/UI_PASS = \"${csf_ui_pass_sanitzied}\"/g" -e "s/^UI_PORT = \"6666\"/UI_PORT = \"${csf_ui_port:-1043}\"/g" /etc/csf/csf.conf || vstacklet::clean::rollback 86
 		# @script-note: unset csf_allow_ports variable for security purposes
