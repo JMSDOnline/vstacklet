@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.755
-  Build: 755
+  Version: v3.1.1.758
+  Build: 758
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -67,7 +67,7 @@ Debian: [![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-red
 
 > **Warning**
 >
-> vStacklet for Ubuntu 16.04 and Debian 8 has been deprecated. This is due to Ubuntu 20.04 and Debian 11 now becoming more common place with at least 90% of the providers on the market. Additionally, SSL creation and install in the script has been disabled until I have LetsEncrypt fully integrated, which is currently an active WIP.
+> vStacklet for Ubuntu 16.04 and Debian 8 has been deprecated. This is due to Ubuntu 20.04 and Debian 11 now becoming more common place with at least 90% of the providers on the market.
 >
 > vStacklet is a utility for quickly getting a server with wordpress installed deployed. As is the nature of this script, it is not intended to be a modular script. It is intended to be a full kit that installs everything you need to get a server up and running (not individual components 1 at a time - though it is in the pipeline). If you are looking for a modular script, I recommend [Quick LEMP](https://github.com/jbradach/quick-lemp/) as it is the script that inspired vStacklet. Do note that Quick LEMP is not actively maintained and I wouldn't recommend using it for production use.
 
@@ -75,7 +75,7 @@ Debian: [![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-red
 
 vStacklet is a kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 18.04/20.04 and Debian 9/10/11 servers.
 
-Components include a recent mainline version of Nginx (mainline (1.23.x)) using configurations from the HTML 5 Boilerplate team (*and modified/customized for use with mainline*), Varnish 7.2.x, and MariaDB 10.6.x (drop-in replacement for MySQL), PHP8.1, PHP7.4 or HHVM 4.x **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall), Wordpress and more to be added soon. (see [To-Do List](#the-to-do-list))
+Components include a recent mainline version of Nginx (mainline (1.23.x)) using configurations from the HTML 5 Boilerplate team (*and modified/customized for use with mainline*), Varnish 7.2.x, and MariaDB 10.6.x (drop-in replacement for MySQL), PHP8.1, PHP7.4 or HHVM 4.x **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall), Wordpress and more to be added soon. (see [To-Do List](#the-to-do-list-back-to-top))
 
 Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
