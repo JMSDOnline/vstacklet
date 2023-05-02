@@ -10,22 +10,18 @@
 
 ## Script status
 
-  Version: v3.1.1.752
-  Build: 752
+  Version: v3.1.1.753
+  Build: 753
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
 ### Supported OS/Distro
 
-Ubuntu:
-
-[![Ubuntu 16.04 Failing](https://img.shields.io/badge/Ubuntu%2016.04-failing-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
+Ubuntu: [![Ubuntu 16.04 Failing](https://img.shields.io/badge/Ubuntu%2016.04-failing-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 [![Ubuntu 18.04 Testing](https://img.shields.io/badge/Ubuntu%2018.04-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 [![Ubuntu 20.04 Passing](https://img.shields.io/badge/Ubuntu%2020.04-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 
-Debian:
-
-[![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
+Debian: [![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 [![Debian 9 Testing](https://img.shields.io/badge/Debian%209-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 [![Debian 10 Testing](https://img.shields.io/badge/Debian%2010-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
 [![Debian 11 Passing](https://img.shields.io/badge/Debian%2011-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
@@ -40,20 +36,14 @@ Debian:
   <ol>
     <li><a href="#what-is-vstacklet-back-to-top">What is vStacklet?</a></li>
     <li><a href="#script-features-back-to-top">Script Features</a></li>
-    <li>
-      <ul>
-        <li><a href="#meet-the-scripts-back-to-top">Meet the Scripts</a>
+    <li><a href="#meet-the-scripts-back-to-top">Meet the Scripts</a>
           <ul>
             <li><a href="#vstacklet---full-kit-installs-and-configures-lemp-stack-with-support-for-website-based-server-environments-back-to-top">vStacklet</a> - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments</li>
             <li><a href="#vs-backup---installs-a-single-script-to-help-manage-and-automate-serversite-backups-back-to-top">VS-Backup</a> - Installs a single script to help manage and automate server/site backups</li>
             <li><a href="#vs-perms---installs-a-single-script-to-help-manage-and-automate-www-directory-permissions-back-to-top">VS-Perms</a> - Installs a single script to help manage and automate www directory permissions</li>
           </ul>
         </li>
-      </ul>
-    </li>
-     <li>
-      <ul>
-        <li><a href="#getting-started-back-to-top">Getting Started</a>
+     <li><a href="#getting-started-back-to-top">Getting Started</a>
           <ul>
             <li><a href="#prerequisites-back-to-top">Prerequisites</a></li>
             <li><a href="#installation-back-to-top">Installation</a></li>
@@ -61,18 +51,12 @@ Debian:
             <li><a href="#additional-options--usage-back-to-top">Additional Options & Usage</a></li>
           </ul>
         </li>
-      </ul>
-    </li>
-    <li>
-      <ul>
         <li><a href="#standalone-scripts-back-to-top">Standalone Scripts</a>
           <ul>
             <li><a href="#vstacklet-vs-backup---installs-needed-script-for-running-directory-and-database-backups-included-in-full-kit-also-back-to-top">VS-Backup</a></li>
             <li><a href="#vstacklet-vs-perms---installs-needed-files-for-running-www-permissions-fix-included-in-full-kit-also-back-to-top">VS-Perms</a></li>
           </ul>
         </li>
-      </ul>
-    </li>
     <li><a href="#the-to-do-list-back-to-top">The TO-DO List</a></li>
     <li><a href="#additional-notes-and-honorable-mentions-back-to-top">Additional Notes and honorable mentions</a></li>
     <li><a href="#contributing-back-to-top">Contributing</a></li>
@@ -113,7 +97,12 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 
 Total script install time on a General CPU <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 6/minutes installing everything. No Sendmail or CSF. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
 
+<details>
+  <summary><b>vStacklet Script Preview</b></summary>
+
 ![preview 1](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vstacklet_install_preview.png "vstacklet preview 1")
+
+</details>
 
 ## Meet the Scripts <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
@@ -143,7 +132,12 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Cleanup remaining individual archives after the retention period has been reached.
 - Simply download the script below to start backing up important directories and databases - cron examples included with the `-ec` flag!
 
+<details>
+  <summary><b>VS-Backup Script Preview</b></summary>
+
 ![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vs-backup-utility-preview.png "vStacklet VS-Backup Utility")
+
+</details>
 
 ### **VS-Perms** - Installs a single script to help manage and automate www directory permissions <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
@@ -153,7 +147,12 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Checks the user is a member of the www-data group, if not, add them.
 - Set the correct permissions for the web root directory. (default: /var/www/html)
 
+<details>
+  <summary><b>VS-Perms Script Preview</b></summary>
+
 ![VS-Perms](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vs-perms-utility-preview.png "vStacklet VS-Perms Utility")
+
+</details>
 
 ---
 
@@ -180,7 +179,7 @@ doing.* Changes may be necessary to meet your needs.
 **This script is to be ran first**.
 First you will need to download the vStacklet installation script and make it executable. You can do this by running the following command:
 
-> **Notes**
+> **Note**
 >
 > - **The development branch is not recommended for production use.**
 > - This script will only download the vStacklet kit installer script and make it executable. (contains the `vstacklet` script and `vs-backup` and `vs-perms` scripts)
@@ -190,13 +189,13 @@ First you will need to download the vStacklet installation script and make it ex
 > - The `-h` option will display the help menu for the vStacklet installer script.
 > - The `-V` option will display the version of the vStacklet installer script.
 
-** Grab the latest stable release **
+**Grab the latest *`stable`* release**
 ```bash
 sudo apt -y install curl &&
 bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh)
 ```
 
-** Grab the latest development release **
+**Grab the latest *`development`* release**
 ```bash
 sudo apt -y install curl &&
 bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh) -b development
@@ -208,9 +207,9 @@ Once the script has been downloaded and made executable, you can then run the sc
 
 #### Example <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
-> **Notes**
+> **Note**
 >
-> - The following example will set the admin email, stage a verified Let's Encrypt SSL cert, install PHP8.1, NGinx, Varnish, MariaDB, phpMyAdmin, CSF, Sendmail, and IonCube Loader. Where NGinx and Varnish are installed, we will set the standard web port for nginx to 8080 and Varnish to 80. This is to allow for SSL termination on port 443 with nginx and Varnish caching on port 80.
+> The following example will set the admin email, stage a verified Let's Encrypt SSL cert, install PHP8.1, NGinx, Varnish, MariaDB, phpMyAdmin, CSF, Sendmail, and IonCube Loader. Where NGinx and Varnish are installed, we will set the standard web port for nginx to 8080 and Varnish to 80. This is to allow for SSL termination on port 443 with nginx and Varnish caching on port 80.
 
 ```bash
 vstacklet -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -mariadbU "db_username" -mariadbPw "db_password" -pma -ioncube -csf -sendmail
