@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2009
+# @version: 3.1.2010
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2833,10 +2833,11 @@ vstacklet::wordpress::install() {
 				# @script-note: check if WordPress database user already exists, if so, use current user
 				db_user_present="$(mysql -u root -sse "SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = '${wp_db_user}')")"
 				if [[ "${db_user_present}" == "1" ]]; then
-					vstacklet::shell::text::warning "Database user already exists. Using previously created user."
+					vstacklet::shell::text::magenta::sl "Database user already exists: "
+					vstacklet::shell::text::white "Using previously created database ${wp_db_user} user."
 					[[ -n "${mysql_user}" ]] && wp_db_user="${mysql_user}"
 					[[ -n "${mariadb_user}" ]] && wp_db_user="${mariadb_user}"
-					break
+					#break
 				fi
 				# @script-note: check if WordPress database user is empty
 				[[ -z ${wp_db_user} ]] && vstacklet::shell::text::error "WordPress database user cannot be empty." && vstacklet::shell::text::white::sl "WordPress database user: " && vstacklet::shell::icon::arrow::white && continue
@@ -2847,7 +2848,8 @@ vstacklet::wordpress::install() {
 		vstacklet::wp::password() {
 			# @script-note: check if user_exists is set, if so, use current password
 			if [[ "${db_user_present}" == "1" ]]; then
-				vstacklet::shell::text::warning "Using previously created database password from existing user."
+				vstacklet::shell::text::magenta::sl "Database user already exists: "
+				vstacklet::shell::text::white "Using previously created database password for ${wp_db_user}."
 				[[ -n "${mysql_password}" ]] && wp_db_password="${mysql_password}"
 				[[ -n "${mariadb_password}" ]] && wp_db_password="${mariadb_password}"
 			else
