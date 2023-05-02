@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.753
-  Build: 753
+  Version: v3.1.1.754
+  Build: 754
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -97,13 +97,6 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 
 Total script install time on a General CPU <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 6/minutes installing everything. No Sendmail or CSF. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
 
-<details>
-  <summary><b>vStacklet Script Preview</b></summary>
-
-![preview 1](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vstacklet_install_preview.png "vstacklet preview 1")
-
-</details>
-
 ## Meet the Scripts <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 ### **vStacklet** - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
@@ -123,6 +116,13 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Installs and configures LetsEncrypt SSL cert. [*optional*] (default to install if `-d | --domain` is used)
 - Installs and stages database for WordPress. [*optional*] (active build - unlike other options that are passive with the flags used. This will change when the `--non-interactive` flag [WIP] is added.)
 - Easy to configure & run backup executable **vs-backup** for data-protection.
+
+<details>
+  <summary><b>vStacklet Script Preview</b></summary>
+
+![preview 1](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vstacklet_install_preview.png "vstacklet preview 1")
+
+</details>
 
 ### **VS-Backup** - Installs a single script to help manage and automate server/site backups <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
