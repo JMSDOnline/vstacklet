@@ -82,7 +82,7 @@ No big setup required, just install the extension and it will do the rest.
 You'll need to add your Git folder (Normally located at `C:/Program Files/Git` to your system environments, then restart vscode). After that replace `bash` with `git-bash` in the above codeblock.
 
 **This also might work:**
-Windows uses might need to enable BASH. To do this:
+Windows users might need to enable BASH. To do this:
  1. Go to **Settings** > **Update & Security** > **For Developers**. Check the Developer Mode radio button.
  2. And search for “*Windows Features*”
  3. Choose “*Turn Windows features on or off*”
