@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.751
-  Build: 751
+  Version: v3.1.1.752
+  Build: 752
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -34,13 +34,60 @@ Debian:
 
 ---
 
-> ### HEADS UP
+<!-- TABLE OF CONTENTS -->
+<details open="open">
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#what-is-vstacklet-back-to-top">What is vStacklet?</a></li>
+    <li><a href="#script-features-back-to-top">Script Features</a></li>
+    <li>
+      <ul>
+        <li><a href="#meet-the-scripts-back-to-top">Meet the Scripts</a>
+          <ul>
+            <li><a href="#vstacklet---full-kit-installs-and-configures-lemp-stack-with-support-for-website-based-server-environments-back-to-top">vStacklet</a> - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments</li>
+            <li><a href="#vs-backup---installs-a-single-script-to-help-manage-and-automate-serversite-backups-back-to-top">VS-Backup</a> - Installs a single script to help manage and automate server/site backups</li>
+            <li><a href="#vs-perms---installs-a-single-script-to-help-manage-and-automate-www-directory-permissions-back-to-top">VS-Perms</a> - Installs a single script to help manage and automate www directory permissions</li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+     <li>
+      <ul>
+        <li><a href="#getting-started-back-to-top">Getting Started</a>
+          <ul>
+            <li><a href="#prerequisites-back-to-top">Prerequisites</a></li>
+            <li><a href="#installation-back-to-top">Installation</a></li>
+            <li><a href="#example-back-to-top">Example</a></li>
+            <li><a href="#additional-options--usage-back-to-top">Additional Options & Usage</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <ul>
+        <li><a href="#standalone-scripts-back-to-top">Standalone Scripts</a>
+          <ul>
+            <li><a href="#vstacklet-vs-backup---installs-needed-script-for-running-directory-and-database-backups-included-in-full-kit-also-back-to-top">VS-Backup</a></li>
+            <li><a href="#vstacklet-vs-perms---installs-needed-files-for-running-www-permissions-fix-included-in-full-kit-also-back-to-top">VS-Perms</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#the-to-do-list-back-to-top">The TO-DO List</a></li>
+    <li><a href="#additional-notes-and-honorable-mentions-back-to-top">Additional Notes and honorable mentions</a></li>
+    <li><a href="#contributing-back-to-top">Contributing</a></li>
+  </ol>
+</details>
+
+---
+
+> **Warning**
 >
 > vStacklet for Ubuntu 16.04 and Debian 8 has been deprecated. This is due to Ubuntu 20.04 and Debian 11 now becoming more common place with at least 90% of the providers on the market. Additionally, SSL creation and install in the script has been disabled until I have LetsEncrypt fully integrated, which is currently an active WIP.
 >
 > vStacklet is a utility for quickly getting a server with wordpress installed deployed. As is the nature of this script, it is not intended to be a modular script. It is intended to be a full kit that installs everything you need to get a server up and running (not individual components 1 at a time - though it is in the pipeline). If you are looking for a modular script, I recommend [Quick LEMP](https://github.com/jbradach/quick-lemp/) as it is the script that inspired vStacklet. Do note that Quick LEMP is not actively maintained and I wouldn't recommend using it for production use.
 
-## What is vStacklet?
+## What is vStacklet? <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 vStacklet is a kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 18.04/20.04 and Debian 9/10/11 servers.
 
@@ -48,7 +95,7 @@ Components include a recent mainline version of Nginx (mainline (1.23.x)) using 
 
 Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
-## Script Features
+## Script Features <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 - Quiet installer - no more long scrolling text vomit, just see what's important; when it's presented.
 - Script writes output to `/var/log/vstacklet.###.log` for additional observations.
@@ -68,9 +115,9 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 
 ![preview 1](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vstacklet_install_preview.png "vstacklet preview 1")
 
-## Meet the Scripts
+## Meet the Scripts <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
-### **vStacklet** - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments
+### **vStacklet** - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 - Adds repositories for the latest stable versions of MariaDB (10.6.x), mainline (1.23.x) versions of Nginx, and Varnish 7.2.x.
 - Installs choice of PHP8.1, PHP7.4 or HHVM 4.x
@@ -88,7 +135,7 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Installs and stages database for WordPress. [*optional*] (active build - unlike other options that are passive with the flags used. This will change when the `--non-interactive` flag [WIP] is added.)
 - Easy to configure & run backup executable **vs-backup** for data-protection.
 
-### **VS-Backup** - Installs a single script to help manage and automate server/site backups
+### **VS-Backup** - Installs a single script to help manage and automate server/site backups <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 - Backup your files from key locations ( ex: /var/www/html ) - with the `-f` flag, you can specify directories to backup.
 - Backup your mysql/mariadb databases - with the `-db` flag, you can specify databases to backup.
@@ -98,7 +145,7 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 
 ![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vs-backup-utility-preview.png "vStacklet VS-Backup Utility")
 
-### **VS-Perms** - Installs a single script to help manage and automate www directory permissions
+### **VS-Perms** - Installs a single script to help manage and automate www directory permissions <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 - Checks the www-data group exists, if not, create it. (default: www-data)
 - Checks the user group exists, if not, create it. (default: www-data)
@@ -110,7 +157,9 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 
 ---
 
-## Getting Started
+## Getting Started <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
+
+### Prerequisites <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 *You should read these scripts before running them so you know what they're
 doing.* Changes may be necessary to meet your needs.
@@ -122,14 +171,16 @@ doing.* Changes may be necessary to meet your needs.
 
 ---
 
-### vStacklet FULL Kit - Installs and configures the vStacklet LEMP kit stack
+### Installation <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
+
+**vStacklet FULL Kit - Installs and configures the vStacklet LEMP kit stack**
 
 ( *includes backup (`vs-backup`) and www-permissions (`vs-perms`) scripts* )
 
 **This script is to be ran first**.
 First you will need to download the vStacklet installation script and make it executable. You can do this by running the following command:
 
-> Notes:
+> **Notes**
 >
 > - **The development branch is not recommended for production use.**
 > - This script will only download the vStacklet kit installer script and make it executable. (contains the `vstacklet` script and `vs-backup` and `vs-perms` scripts)
@@ -153,9 +204,11 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup
 
 Once the script has been downloaded and made executable, you can then run the script to install the vStacklet kit, as seen in the example below.
 
-#### Example
+---
 
-> Notes:
+#### Example <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
+
+> **Notes**
 >
 > - The following example will set the admin email, stage a verified Let's Encrypt SSL cert, install PHP8.1, NGinx, Varnish, MariaDB, phpMyAdmin, CSF, Sendmail, and IonCube Loader. Where NGinx and Varnish are installed, we will set the standard web port for nginx to 8080 and Varnish to 80. This is to allow for SSL termination on port 443 with nginx and Varnish caching on port 80.
 
@@ -163,12 +216,18 @@ Once the script has been downloaded and made executable, you can then run the sc
 vstacklet -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -mariadbU "db_username" -mariadbPw "db_password" -pma -ioncube -csf -sendmail
 ```
 
+---
+
+#### Additional Options & Usage <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
+
 To view the available options, run the script with the `-h` option (`vstacklet -h`) or better yet, view the documentation [here](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md)!
 
 
 ---
 
-### vStacklet VS-Backup - Installs needed script for running directory and database backups (included in FULL Kit also)
+## Standalone Scripts <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
+
+### vStacklet VS-Backup - Installs needed script for running directory and database backups (included in FULL Kit also) <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/backup/vstacklet-backup-standalone.sh)
@@ -176,7 +235,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/b
 
 ---
 
-### vStacklet VS-Perms - Installs needed files for running www permissions fix (included in FULL Kit also)
+### vStacklet VS-Perms - Installs needed files for running www permissions fix (included in FULL Kit also) <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/www-permissions-standalone.sh)
@@ -184,7 +243,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 
 ---
 
-### The TO-DO List
+## The TO-DO List <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 - [x] Enable OPCode Caching
 - [x] Enable Memcached Caching
@@ -203,7 +262,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 
 ---
 
-### Additional Notes and honorable mentions
+## Additional Notes and honorable mentions <small><sup>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sup></small>
 
 This is a modification of it's original branch provided by <a href="https://github.com/jbradach/quick-lemp/" target="_blank">quick-lemp</a>. The scripts within vStacklet LEMP Kit come with heavy modifications to the origianl quick-lemp script... in this regards, these two scripts are entirely separate and not similar to one another. Quick-LEMP is mentioned as it started the vStacklet Kit Project... what was to be a simple pull request to it's original repository, took on a new scope and thus became a new project. The changes include ushering in **CSF**, **Varnish** as well as installing and configuring **Sendmail** and **phpMyAdmin** for ease of use... and many other changes. The original quick-lemp script is still available and can be found at the link above. Although, it is no longer being maintained.
 
@@ -213,4 +272,6 @@ My focus was and is to provide a modified version for CMS and typical website se
 
 Again, please be advised that I am building/testing this script on Debian 11 (bullseye) as it supports Nginx versions higher than 1.8.
 
-As per any contributions, be it suggestions, critiques, alterations and on and on are all welcome!
+## Contributing <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
+
+As per any contributions, be it suggestions, critiques, alterations and on and on are all welcome! You can view more on that in the [CONTRIBUTING.md](CONTRIBUTING.md) file.
