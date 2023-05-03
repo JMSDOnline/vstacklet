@@ -219,7 +219,7 @@ Once the script has been downloaded and made executable, you can then run the sc
 >
 > The following example will:
 > - set the admin email (`-e`),
-> - stage a verified Let's Encrypt SSL cert (`-d`),
+> - stage a verified Let's Encrypt SSL cert (`-d`) [**`-e` is required for `-d`**],
 > - set the http port for NGinx to 8080 (`-http '8080'`),
 > - set the http port for Varnish to 80 (`-varnishP '80'`),
 > - install PHP8.1 (`-php '8.1'`),
