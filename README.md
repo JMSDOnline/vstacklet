@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.759
-  Build: 759
+  Version: v3.1.1.762
+  Build: 762
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -122,6 +122,8 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Easy backup executable **vs-backup** for data-protection.
 - Easy web directory permissions fix with executable **vs-perms** for www directory permissions.
 
+Ready to get started? Check out the [prerequisites](#prerequisites-back-to-top) and [installation](#installation-back-to-top) sections below!
+
 <details>
   <summary><b>vStacklet Script Preview</b></summary>
 
@@ -139,6 +141,10 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Cleanup remaining individual archives after the retention period has been reached.
 - Simply download the script below to start backing up important directories and databases - cron examples included with the `-ec` flag!
 
+To view the available options, run the script with the `-h` option (`vs-backup -h`) or better yet, view the documentation:
+- :book: [docs/bin/backup/vs-backup](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/backup/vs-backup.md)
+- :book: [docs/bin/backup/vstacklet-backup-standalone.sh](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/backup/vstacklet-backup-standalone.sh.md)
+
 <details>
   <summary><b>VS-Backup Script Preview</b></summary>
 
@@ -155,6 +161,10 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Checks the user exists, if not, create it. (default: www-data)
 - Checks the user is a member of the www-data group, if not, add them.
 - Set the correct permissions for the web root directory. (default: /var/www/html)
+
+To view the available options, run the script with the `-h` option (`vs-perms -h`) or better yet, view the documentation:
+- :book: [docs/bin/backup/www-permissions.sh (aka `vs-perms`)](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/www-permissions.sh.md)
+- :book: [docs/bin/backup/www-permissions-standalone.sh](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/www-permissions-standalone.sh.md)
 
 <details>
   <summary><b>VS-Perms Script Preview</b></summary>
