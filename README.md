@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.758
-  Build: 758
+  Version: v3.1.1.759
+  Build: 759
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -79,6 +79,8 @@ Components include a recent mainline version of Nginx (mainline (1.23.x)) using 
 
 Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
+---
+
 ## Script Features <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 - Quiet installer - no more long scrolling text vomit, just see what's important; when it's presented.
@@ -97,6 +99,8 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 
 Total script install time on a General CPU <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 6/minutes installing everything. No Sendmail or CSF. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
 
+---
+
 ## Meet the Scripts <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 ### **vStacklet** - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
@@ -114,8 +118,9 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 - Supports IPv6 by default.
 - Installs self-signed SSL cert configuration. (default)
 - Installs and configures LetsEncrypt SSL cert. [*optional*] (default to install if `-d | --domain` is used)
-- Installs and stages database for WordPress. [*optional*] (active build - unlike other options that are passive with the flags used. This will change when the `--non-interactive` flag [WIP] is added.)
-- Easy to configure & run backup executable **vs-backup** for data-protection.
+- Installs and stages database for WordPress. [*optional*] (active build - unlike other options that are passive with the flags used. This will change when the script is updated to be a bit more modular; ie: install wordpress (only), install phpmyadmin (only), etc.)
+- Easy backup executable **vs-backup** for data-protection.
+- Easy web directory permissions fix with executable **vs-perms** for www directory permissions.
 
 <details>
   <summary><b>vStacklet Script Preview</b></summary>
@@ -123,6 +128,8 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 ![preview 1](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vstacklet_install_preview.png "vstacklet preview 1")
 
 </details>
+
+---
 
 ### **VS-Backup** - Installs a single script to help manage and automate server/site backups <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
@@ -138,6 +145,8 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 ![VS-Backup](https://github.com/JMSDOnline/vstacklet/blob/main/developer_resources/images/vs-backup-utility-preview.png "vStacklet VS-Backup Utility")
 
 </details>
+
+---
 
 ### **VS-Perms** - Installs a single script to help manage and automate www directory permissions <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
@@ -160,8 +169,7 @@ Total script install time on a General CPU <a href="https://www.digitalocean.com
 
 ### Prerequisites <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
-*You should read these scripts before running them so you know what they're
-doing.* Changes may be necessary to meet your needs.
+*You should read these scripts before running them so you know what they're doing.* Changes may be necessary to meet your needs.
 
 **You can review the setup script documentation [here](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md)**
 
@@ -209,10 +217,26 @@ Once the script has been downloaded and made executable, you can then run the sc
 
 > **Note**
 >
-> The following example will set the admin email, stage a verified Let's Encrypt SSL cert, install PHP8.1, NGinx, Varnish, MariaDB, phpMyAdmin, CSF, Sendmail, and IonCube Loader. Where NGinx and Varnish are installed, we will set the standard web port for nginx to 8080 and Varnish to 80. This is to allow for SSL termination on port 443 with nginx and Varnish caching on port 80.
+> The following example will:
+> - set the admin email (`-e`),
+> - stage a verified Let's Encrypt SSL cert (`-d`),
+> - set the http port for NGinx to 8080 (`-http '8080'`),
+> - set the http port for Varnish to 80 (`-varnishP '80'`),
+> - install PHP8.1 (`-php '8.1'`),
+> 	- NGinx (`-nginx`),
+> 	- Varnish (`-varnish`),
+> 	- MariaDB (`-mariadb` | `-mariadbU` | `-mariadbPw`),
+> 	- phpMyAdmin (`-pma`),
+> 	- CSF (`-csf`),
+> 	- Sendmail (`-sendmail`),
+> 	- IonCube Loader (`-ioncube`),
+>   - Wordpress (`-wp`).
+>
+> Where NGinx and Varnish are installed, we will set the standard web port for NGinx to 8080 `http '8080'` and Varnish to 80 `-varnishP '80'`. This is to allow for SSL termination on port 443 with NGinx and Varnish caching on port 80. You'll notice the `-sendmail` flag is not used below, this is OK as the script will install Sendmail if CSF is installed. The `-csf` flag is used to install CSF. The `-ioncube` flag is used to install IonCube Loader. The `-pma` flag is used to install phpMyAdmin. The `-mariadb` flag is used to install MariaDB. The `-mariadbU` flag is used to set the MariaDB database username. The `-mariadbPw` flag is used to set the MariaDB database password. The `-varnish` flag is used to install Varnish. The `-nginx` flag is used to install NGinx. The `-php` flag is used to install PHP8.1. The `-d` flag is used to stage a verified Let's Encrypt SSL cert. The `-e` flag is used to set the admin email. The `-wp` flag is used to install Wordpress.
+
 
 ```bash
-vstacklet -e "your@email.com" -d "yourdomain.com" -php "8.1" -nginx -varnish -http "8080" -varnishP "80" -mariadb -mariadbU "db_username" -mariadbPw "db_password" -pma -ioncube -csf -sendmail
+vstacklet -e 'your@email.com' -d 'yourdomain.com' -php '8.1' -nginx -varnish -http '8080' -varnishP '80' -mariadb -mariadbU 'db_username' -mariadbPw 'db_password' -pma -ioncube -csf -wp
 ```
 
 ---
@@ -270,6 +294,8 @@ Quick-Lemp is geared towards python based application installs and using default
 My focus was and is to provide a modified version for CMS and typical website server i.e;(WordPress, Joomla!, Drupal, Ghost, Magento ... etc ... ) installations, Updated/Modified/Customized Boilerplate templates to be more 'Nginx mainline' friendly; i.e http/2, as well as the ongoing use of static websites (which the original still handles splendidly!)
 
 Again, please be advised that I am building/testing this script on Debian 11 (bullseye) as it supports Nginx versions higher than 1.8.
+
+---
 
 ## Contributing <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
