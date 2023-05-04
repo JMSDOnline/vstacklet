@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2014
+# @version: 3.1.2015
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1572,9 +1572,17 @@ vstacklet::nginx::install() {
 		# @script-note: import nginx reverse config files from vStacklet
 		if [[ ${php} == *"8"* ]]; then
 			cp -f "${local_php8_dir}/nginx/default.php8.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
+			# @script-note: import nginx reverse modified for varnish and nginx ssl termination
+			if [[ -n ${varnish} ]]; then
+				cp -f "${local_php8_dir}/nginx/varnish/default.php8.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
+			fi
 		fi
 		if [[ ${php} == *"7"* ]]; then
 			cp -f "${local_php7_dir}/nginx/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
+			# @script-note: import nginx reverse modified for varnish and nginx ssl termination
+			if [[ -n ${varnish} ]]; then
+				cp -f "${local_php7_dir}/nginx/varnish/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
+			fi
 		fi
 		if [[ -n ${hhvm} ]]; then
 			cp -f "${local_hhvm_dir}/nginx/default.hhvm.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
@@ -1601,9 +1609,13 @@ vstacklet::nginx::install() {
 		chmod -R 755 "${web_root:-/var/www/html}"
 		chmod -R g+rw "${web_root:-/var/www/html}"
 		sh -c "find ${web_root:-/var/www/html} -type d -print0 | sudo xargs -0 chmod g+s"
-		# @script-note: if wordpress option is enabled, edit nginx config file to include wordpress specific directives.
+		# @script-note: if wordpress option is enabled, edit nginx config file to include wordpress specific directives
 		# no need to log this one as it's not a critical step (helpful, but not critical)
 		[[ -n ${wordpress} ]] && sed -i -e '/# include wordpress.conf;/s/#//' -e '/# include restrictions.conf;/s/#//' "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
+		# @script-note: if varnish option is enabled, comment out location / block from /etc/nginx/wordpress.conf file
+		[[ -n ${varnish} ]] && sed -i '/location \/ {/,/}/s/^/#/' /etc/nginx/wordpress.conf
+		# @dev-note: if varnish option is disabled, remove location / block from /etc/nginx/wordpress.conf file (archived for reference)
+		#[[ -n ${varnish} ]] && sed -i '/location \/ {/,/}/d' /etc/nginx/wordpress.conf
 		# @script-note: set override for nginx pid file
 		mkdir -p /etc/systemd/system/nginx.service.d >/dev/null 2>&1
 		printf "[Service]\nExecStartPost=/bin/sleep 1\n" >"/etc/systemd/system/nginx.service.d/override.conf"

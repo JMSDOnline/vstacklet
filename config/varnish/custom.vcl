@@ -15,6 +15,7 @@ acl purge {
 }
 
 sub vcl_recv {
+	# Redirect to https if the request is not coming from localhost
     if (client.ip != "127.0.0.1" && req.http.host ~ "{{domain}}") {
         set req.http.x-redir = "https://{{domain}}" + req.url;
         return(synth(850, ""));
@@ -199,4 +200,12 @@ sub vcl_deliver {
     # Cleanup of headers
     unset resp.http.x-url;
     unset resp.http.x-host;
+}
+
+sub vcl_synth {
+    if (resp.status == 850) {
+        set resp.http.Location = req.http.x-redir;
+        set resp.status = 301;
+        return (deliver);
+    }
 }
