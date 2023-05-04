@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2015
+# @version: 3.1.2016
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -1571,18 +1571,14 @@ vstacklet::nginx::install() {
 		sh -c 'find /etc/nginx/cache -type d -print0 | sudo xargs -0 chmod g+s'
 		# @script-note: import nginx reverse config files from vStacklet
 		if [[ ${php} == *"8"* ]]; then
-			cp -f "${local_php8_dir}/nginx/default.php8.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
+			[[ -z ${varnish} ]] && cp -f "${local_php8_dir}/nginx/default.php8.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 			# @script-note: import nginx reverse modified for varnish and nginx ssl termination
-			if [[ -n ${varnish} ]]; then
-				cp -f "${local_php8_dir}/nginx/varnish/default.php8.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
-			fi
+			[[ -n ${varnish} ]] && cp -f "${local_php8_dir}/nginx/varnish/default.php8.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
 		if [[ ${php} == *"7"* ]]; then
-			cp -f "${local_php7_dir}/nginx/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
+			[[ -z ${varnish} ]] && cp -f "${local_php7_dir}/nginx/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 			# @script-note: import nginx reverse modified for varnish and nginx ssl termination
-			if [[ -n ${varnish} ]]; then
-				cp -f "${local_php7_dir}/nginx/varnish/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
-			fi
+			[[ -n ${varnish} ]] && cp -f "${local_php7_dir}/nginx/varnish/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
 		if [[ -n ${hhvm} ]]; then
 			cp -f "${local_hhvm_dir}/nginx/default.hhvm.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
