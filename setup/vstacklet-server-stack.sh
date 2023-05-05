@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2024
+# @version: 3.1.2025
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2742,13 +2742,12 @@ vstacklet::sendmail::install() {
 		# @script-note: begin initial sendmail configuration - auto-configure sendmail by answering yes to all questions
 		"yes" | sendmailconfig >>"${vslog}" 2>&1 || vstacklet::clean::rollback 88
 		# @script-note: modify aliases
-		if [[ -f "/etc/aliases" ]]; then
+		if [[ -f "/etc/mail/aliases" ]]; then
 			# @script-note: backup aliases
-			cp /etc/aliases /etc/aliases.orig >>"${vslog}" 2>&1 || vstacklet::clean::rollback 89
-			# @script-note: check if /etc/aliases is empty - if so, modify it
-			if [[ $(wc -l <"/etc/aliases") -eq 0 ]]; then
-				cat <<EOF >/etc/aliases
-# /etc/aliases
+			cp /etc/mail/aliases /etc/mail/aliases.orig >>"${vslog}" 2>&1 || vstacklet::clean::rollback 89
+			# @script-note: check if /etc/mail/aliases is empty - if so, modify it
+			if [[ $(wc -l <"/etc/mail/aliases") -eq 0 ]]; then
+				cat <<EOF >/etc/mail/aliases
 mailer-daemon: postmaster
 postmaster: root
 nobody: root
@@ -2764,12 +2763,14 @@ security: root
 root: ${email}
 EOF
 			else
-				# @script-note: check if root alias exists in /etc/aliases - if not, add it
-				if [[ $(grep -c "^root:" /etc/aliases) -eq 0 ]]; then
-					echo "root: ${email}" >>/etc/aliases || vstacklet::clean::rollback 89
+				# @script-note: check if root alias exists in /etc/mail/aliases - if not, add it
+				if [[ $(grep -c "^root:" /etc/mail/aliases) -eq 0 ]]; then
+					echo "root: ${email}" >>/etc/mail/aliases || vstacklet::clean::rollback 89
 				fi
 			fi
 		fi
+		# @script-note: run silent update for newaliases
+		newaliases >>"${vslog}" 2>&1 || vstacklet::clean::rollback 95
 		# @script-note: modify /etc/mail/sendmail.cf
 		sed -i.bak -e "s/^DS.*$/DS${email}/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 90
 		# @script-note: modify for sendmail to use domain or hostname
@@ -2784,7 +2785,6 @@ EOF
 		else
 			sed -i.bak -e "s/^#MASQUERADE_AS($(hostname --fqdn))/MASQUERADE_AS($(hostname --fqdn))/g" /etc/mail/sendmail.cf >>"${vslog}" 2>&1 || vstacklet::clean::rollback 90
 		fi
-		newaliases >>"${vslog}" 2>&1 || vstacklet::clean::rollback 95
 		vs::stat::progress::stop # stop progress status
 		# @script-note: sendmail installation complete
 		vstacklet::shell::text::green "sendmail installed and configured. see details below:"
