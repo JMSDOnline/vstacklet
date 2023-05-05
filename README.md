@@ -48,6 +48,7 @@ Debian: [![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-red
             <li><a href="#prerequisites-back-to-top">Prerequisites</a></li>
             <li><a href="#installation-back-to-top">Installation</a></li>
             <li><a href="#example-back-to-top">Example</a></li>
+			<li><a href="#verifications-back-to-top">Verifications</a></li>
             <li><a href="#additional-options--usage-back-to-top">Additional Options & Usage</a></li>
           </ul>
         </li>
@@ -242,12 +243,37 @@ Once the script has been downloaded and made executable, you can then run the sc
 > 	- IonCube Loader (`-ioncube`),
 >   - Wordpress (`-wp`).
 >
-> Where NGinx and Varnish are installed, we will set the standard web port for NGinx to 8080 `-http '8080'` and Varnish to 80 `-varnishP '80'`. This is to allow for SSL termination on port 443 with NGinx and Varnish caching on port 80. You'll notice the `-sendmail` flag is not used below, this is OK as the script will install Sendmail if CSF is installed. The `-csf` flag is used to install CSF. The `-ioncube` flag is used to install IonCube Loader. The `-pma` flag is used to install phpMyAdmin. The `-mariadb` flag is used to install MariaDB. The `-mariadbU` flag is used to set the MariaDB database username. The `-mariadbPw` flag is used to set the MariaDB database password. The `-varnish` flag is used to install Varnish. The `-nginx` flag is used to install NGinx. The `-php` flag is used to install PHP8.1. The `-d` flag is used to stage a verified Let's Encrypt SSL cert. The `-e` flag is used to set the admin email. The `-wp` flag is used to install Wordpress.
+> Where NGinx and Varnish are installed, we will set the standard web port for NGinx to 8080 `-http '8080'` and Varnish to 80 `-varnishP '80'`. This is to allow for SSL termination on port 443 with NGinx and Varnish caching on port 80 (*Varnish is actually forwarded to port 443 for proper SSL with Varnish*). You'll notice the `-sendmail` flag is not used below, this is OK as the script will install Sendmail if CSF is installed. The `-csf` flag is used to install CSF. The `-ioncube` flag is used to install IonCube Loader. The `-pma` flag is used to install phpMyAdmin. The `-mariadb` flag is used to install MariaDB. The `-mariadbU` flag is used to set the MariaDB database username. The `-mariadbPw` flag is used to set the MariaDB database password. The `-varnish` flag is used to install Varnish. The `-nginx` flag is used to install NGinx. The `-php` flag is used to install PHP8.1. The `-d` flag is used to stage a verified Let's Encrypt SSL cert. The `-e` flag is used to set the admin email. The `-wp` flag is used to install Wordpress.
 
 
 ```bash
 vstacklet -e 'your@email.com' -d 'yourdomain.com' -php '8.1' -nginx -varnish -http '8080' -varnishP '80' -mariadb -mariadbU 'db_username' -mariadbPw 'db_password' -pma -ioncube -csf -wp
 ```
+
+---
+
+#### Verifications <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
+
+<details>
+  <summary><b>vStacklet PHP Install Verification</b></summary>
+
+![vStacklet PHP Install Verification](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-php_install-checkinfo-verification.png "vStacklet PHP Install Verification")
+
+</details>
+
+<details>
+  <summary><b>vStacklet CSF UI & Service Verification</b></summary>
+
+![vStacklet CSF UI & Service Verification](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-csf_install-ui_service-verification.png "vStacklet CSF UI & Service Verification")
+
+</details>
+
+<details>
+  <summary><b>vStacklet Varnish to NGinx SSL Termination Verification</b></summary>
+
+![vStacklet Varnish to NGinx SSL Termination Verification](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-varnish_nginx_ssl_termination-verification.png "vStacklet Varnish to NGinx SSL Termination Verification")
+
+</details>
 
 ---
 
