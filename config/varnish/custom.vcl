@@ -140,6 +140,8 @@ sub vcl_recv {
 		req.url ~ "^/stats" ||
 		req.url ~ "^/wc-api" ||
 		req.url ~ "^/wp-admin" ||
+		req.url ~ "^/wp-admin/admin-ajax.php" ||
+		req.url ~ "^/wp-admin/install.php" ||
 		req.url ~ "^/wp-comments-post.php" ||
 		req.url ~ "^/wp-cron.php" ||
 		req.url ~ "^/wp-login.php" ||
