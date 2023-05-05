@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2025
+# @version: 3.1.2027
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2805,7 +2805,7 @@ EOF
 ##################################################################################
 # @name: vstacklet::wordpress::install (36)
 # @description: Install WordPress. This will also configure WordPress to use
-# the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2846-L2980)
+# the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2846-L2987)
 #
 # notes:
 # - this function is only called under the following conditions:
@@ -2934,7 +2934,10 @@ vstacklet::wordpress::install() {
 			mv /tmp/wordpress/* "${web_root:-/var/www/html}/public" || vstacklet::clean::rollback 98
 			# @script-note: create the uploads directory
 			mkdir -p "${web_root:-/var/www/html}/public/wp-content/uploads" || vstacklet::clean::rollback 99
+			# @script-note: download the WordPress CLI
+			vstacklet::log "wget -q -O /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar"
 			# @script-note: set the correct permissions
+			vstacklet::log "chmod +x /usr/local/bin/wp"
 			vstacklet::shell::text::yellow::sl "configuring WordPress ... " &
 			vs::stat::progress::start # @script-note: start progress status
 			# @script-note: create the wp-config.php file
@@ -2982,7 +2985,7 @@ vstacklet::wordpress::install() {
 ##################################################################################
 # @name: vstacklet::domain::ssl (37)
 # @description: The following function installs the SSL certificate
-#   for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3012-L3071)
+#   for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3019-L3078)
 #
 # notes:
 # - This function is only called under the following conditions:
@@ -3075,7 +3078,7 @@ vstacklet::domain::ssl() {
 # @description: Cleans up the system after a successful installation. This
 #   function is called after the installation is complete. It removes the
 #   temporary files and directories created during the installation process.
-#   This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3085-L3112)
+#   This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3092-L3119)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3116,7 +3119,7 @@ vstacklet::clean::complete() {
 # @description: Outputs success message on completion of setup. This function
 #   is called after the installation is complete. It outputs a success message
 #   to the user and provides them with the necessary information to access their
-#   new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3126-L3164)
+#   new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3133-L3171)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3165,7 +3168,7 @@ vstacklet::message::complete() {
 
 ################################################################################
 # @name: vstacklet::help::display (40)
-# @description: Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3175-L3276)
+# @description: Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3182-L3283)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3277,7 +3280,7 @@ vstacklet::help::display() {
 
 ################################################################################
 # @name: vstacklet::version::display (41)
-# @description: Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3287-L3293)
+# @description: Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3294-L3300)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3294,7 +3297,7 @@ vstacklet::version::display() {
 
 ################################################################################
 # @name: vstacklet::clean::rollback - vStacklet Rollback (42/return_code)
-# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3312-L3565)
+# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3319-L3572)
 #
 # notes:
 # - it will remove the temporary files and directories created during the installation
