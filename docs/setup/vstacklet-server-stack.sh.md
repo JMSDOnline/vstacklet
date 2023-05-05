@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.2034
+# vstacklet-server-stack.sh - v3.1.2036
 
 
 ---
@@ -1115,7 +1115,7 @@ notes:
 ### vstacklet::wordpress::install()
 
 Install WordPress. This will also configure WordPress to use
-the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2846-L2987)
+the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2848-L3054)
 
 notes:
 - this function is only called under the following conditions:
@@ -1152,6 +1152,8 @@ these arguments are:
 - 104 - failed to grant WordPress database user privileges.
 - 105 - failed to flush WordPress database privileges.
 - 106 - failed to remove WordPress installation files.
+- 107 - failed to install WordPress.
+- 108 - failed to install WordPress plugins [varnish-http-purge].
 
 #### examples:
 
@@ -1167,7 +1169,7 @@ these arguments are:
 ### vstacklet::domain::ssl()
 
 The following function installs the SSL certificate
-  for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3019-L3078)
+  for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3086-L3145)
 
 notes:
 - This function is only called under the following conditions:
@@ -1187,17 +1189,17 @@ notes:
 
 #### return codes:
 
-- 107 - failed to change directory to /root.
-- 108 - failed to create directory ${web_root}/.well-known/acme-challenge.
-- 109 - failed to clone acme.sh.
-- 110 - failed to switch to /root/acme.sh directory.
-- 111 - failed to install acme.sh.
-- 112 - failed to reload nginx.
-- 113 - failed to register the account with Let's Encrypt.
-- 114 - failed to set the default CA to Let's Encrypt.
-- 115 - failed to issue the certificate.
-- 116 - failed to install the certificate.
-- 117 - failed to edit /etc/nginx/sites-available/${domain}.conf.
+- 109 - failed to change directory to /root.
+- 110 - failed to create directory ${web_root}/.well-known/acme-challenge.
+- 111 - failed to clone acme.sh.
+- 112 - failed to switch to /root/acme.sh directory.
+- 113 - failed to install acme.sh.
+- 114 - failed to reload nginx.
+- 115 - failed to register the account with Let's Encrypt.
+- 116 - failed to set the default CA to Let's Encrypt.
+- 117 - failed to issue the certificate.
+- 118 - failed to install the certificate.
+- 119 - failed to edit /etc/nginx/sites-available/${domain}.conf.
 
 #### examples:
 
@@ -1213,7 +1215,7 @@ notes:
 Cleans up the system after a successful installation. This
   function is called after the installation is complete. It removes the
   temporary files and directories created during the installation process.
-  This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3092-L3119)
+  This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3159-L3186)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -1228,7 +1230,7 @@ Cleans up the system after a successful installation. This
 Outputs success message on completion of setup. This function
   is called after the installation is complete. It outputs a success message
   to the user and provides them with the necessary information to access their
-  new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3133-L3171)
+  new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3200-L3238)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -1240,7 +1242,7 @@ Outputs success message on completion of setup. This function
 
 ### vstacklet::help::display()
 
-Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3182-L3283)
+Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3249-L3350)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -1252,7 +1254,7 @@ Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnli
 
 ### vstacklet::version::display()
 
-Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3294-L3300)
+Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3361-L3367)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -1264,7 +1266,7 @@ Displays the current version of vStacklet. [see function](https://github.com/JMS
 
 ### vstacklet::clean::rollback()
 
-This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3319-L3572)
+This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3386-L3641)
 
 notes:
 - it will remove the temporary files and directories created during the installation

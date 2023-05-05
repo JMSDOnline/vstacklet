@@ -10,21 +10,16 @@
 
 ## Script status
 
-  Version: v3.1.1.779
-  Build: 779
+  Version: v3.1.1.780
+  Build: 780
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
 ### Supported OS/Distro
 
-Ubuntu: [![Ubuntu 16.04 Failing](https://img.shields.io/badge/Ubuntu%2016.04-failing-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
-[![Ubuntu 18.04 Testing](https://img.shields.io/badge/Ubuntu%2018.04-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
-[![Ubuntu 20.04 Passing](https://img.shields.io/badge/Ubuntu%2020.04-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
-
-Debian: [![Debian 8 Failing](https://img.shields.io/badge/Debian%208-failing-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
-[![Debian 9 Testing](https://img.shields.io/badge/Debian%209-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
-[![Debian 10 Testing](https://img.shields.io/badge/Debian%2010-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
-[![Debian 11 Passing](https://img.shields.io/badge/Debian%2011-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet)
+| Ubuntu | [![Ubuntu 16.04 EOL](https://img.shields.io/badge/Ubuntu%2016.04-EOL-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 18.04 Testing](https://img.shields.io/badge/Ubuntu%2018.04-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 20.04 Passing](https://img.shields.io/badge/Ubuntu%2020.04-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) |
+|--------------|--|--|--|
+| Debian | [![Debian 9 Testing](https://img.shields.io/badge/Debian%209-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 10 Testing](https://img.shields.io/badge/Debian%2010-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 11 Passing](https://img.shields.io/badge/Debian%2011-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) |
 
 </div>
 
@@ -98,7 +93,7 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 - HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="https://tools.keycdn.com/http2-test" target="_blank">HTTP/2 Test via KeyCDN</a>
 - Everything you need to get that Nginx + Varnish server up and running!
 
-Total script install time on a General CPU <a href="https://www.digitalocean.com/?refcode=917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 6/minutes installing everything. No Sendmail or CSF. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
+Total script install time on a General Shared CPU <a href="https://m.do.co/c/917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 12/minutes installing everything; CSF, MariaDB, NGinx, PHP8.1, Sendmail, SSL, Varnish, WordPress. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
 
 ---
 
@@ -366,3 +361,9 @@ Again, please be advised that I am building/testing this script on Debian 11 (bu
 ## Contributing <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 As per any contributions, be it suggestions, critiques, alterations and on and on are all welcome! You can view more on that in the [CONTRIBUTING.md](CONTRIBUTING.md) file.
+
+<div align="center">
+
+[![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=917d3ff0e1c8&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
+
+</div>

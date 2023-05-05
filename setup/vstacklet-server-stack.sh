@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2034
+# @version: 3.1.2036
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2805,7 +2805,7 @@ EOF
 ##################################################################################
 # @name: vstacklet::wordpress::install (36)
 # @description: Install WordPress. This will also configure WordPress to use
-# the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2846-L2987)
+# the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2848-L3054)
 #
 # notes:
 # - this function is only called under the following conditions:
@@ -2841,6 +2841,8 @@ EOF
 # @return_code: 104 - failed to grant WordPress database user privileges.
 # @return_code: 105 - failed to flush WordPress database privileges.
 # @return_code: 106 - failed to remove WordPress installation files.
+# @return_code: 107 - failed to install WordPress.
+# @return_code: 108 - failed to install WordPress plugins [varnish-http-purge].
 # @break
 ##################################################################################
 vstacklet::wordpress::install() {
@@ -2901,14 +2903,6 @@ vstacklet::wordpress::install() {
 			else
 				wp_site_url="https://${server_ip}"
 			fi
-			# @dev-note: the below is commented out because it is not needed
-			# we can use the current set server_ip or domain
-			#vstacklet::shell::text::white::sl "WordPress Site URL: "
-			#vstacklet::shell::icon::arrow::white
-			#while read -r wp_site_url; do
-			#	[[ -z ${wp_site_url} ]] && vstacklet::shell::text::error "WordPress Site URL cannot be empty." && vstacklet::shell::text::white::sl "WordPress Site URL: " && vstacklet::shell::icon::arrow::white && continue
-			#	break
-			#done
 		}
 		# @script-note: get WordPress Site Title
 		vstacklet::wp::site_title() {
@@ -3029,13 +3023,14 @@ vstacklet::wordpress::install() {
 			# @script-note: remove the WordPress installation files
 			vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::clean::rollback 106
 			# @script-note: run wp core install
-			wp --path="${web_root:-/var/www/html}/public" core install --url="${wp_site_url}" --title="${wp_site_title}" --admin_user="${wp_admin_user}" --admin_password="${wp_admin_password}" --admin_email="${wp_admin_email}" --allow-root >>"${vslog}" 2>&1
-			# @script-note: if varnish is installed, install the varnish-http-purge plugin and activate it
-			if [[ -n ${varnish} ]]; then
-				wp --path="${web_root:-/var/www/html}/public" plugin install varnish-http-purge --activate --allow-root >>"${vslog}" 2>&1
-			fi
-			# @script-note: adjust web root permissions
+			wp --path="${web_root:-/var/www/html}/public" core install --url="${wp_site_url}" --title="${wp_site_title}" --admin_user="${wp_admin_user}" --admin_password="${wp_admin_password}" --admin_email="${wp_admin_email}" --allow-root >>"${vslog}" 2>&1 || vstacklet::clean::rollback 107
 			vs::stat::progress::stop # stop progress status
+			if [[ -n ${varnish} ]]; then
+				vstacklet::shell::text::yellow::sl "installing Proxy Cache Purge plugin ... " &
+				# @script-note: if varnish is installed, install the varnish-http-purge plugin and activate it
+				wp --path="${web_root:-/var/www/html}/public" plugin install varnish-http-purge --activate --allow-root >>"${vslog}" 2>&1 || vstacklet::clean::rollback 108
+				vs::stat::progress::stop # stop progress status
+			fi
 			# @script-note: wordpress installation complete
 			vstacklet::shell::text::green "WordPress installed and configured. see details below:"
 			vstacklet::shell::text::white::sl "WordPress Database Name: "
@@ -3052,6 +3047,7 @@ vstacklet::wordpress::install() {
 			vstacklet::shell::text::green "${wp_admin_email}"
 			vstacklet::shell::text::white::sl "Login to your WordPress installation at: "
 			vstacklet::shell::text::green "https://${domain:-${server_ip}}/wp-login.php"
+			# @script-note: adjust web root permissions
 			vstacklet::permissions::adjust
 		fi
 	fi
@@ -3060,7 +3056,7 @@ vstacklet::wordpress::install() {
 ##################################################################################
 # @name: vstacklet::domain::ssl (37)
 # @description: The following function installs the SSL certificate
-#   for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3019-L3078)
+#   for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3086-L3145)
 #
 # notes:
 # - This function is only called under the following conditions:
@@ -3074,17 +3070,17 @@ vstacklet::wordpress::install() {
 # @example: vstacklet -nginx -domain example.com -e "your@email.com"
 # @example: vstacklet --nginx --domain example.com --email "your@email.com"
 # @null
-# @return_code: 107 - failed to change directory to /root.
-# @return_code: 108 - failed to create directory ${web_root}/.well-known/acme-challenge.
-# @return_code: 109 - failed to clone acme.sh.
-# @return_code: 110 - failed to switch to /root/acme.sh directory.
-# @return_code: 111 - failed to install acme.sh.
-# @return_code: 112 - failed to reload nginx.
-# @return_code: 113 - failed to register the account with Let's Encrypt.
-# @return_code: 114 - failed to set the default CA to Let's Encrypt.
-# @return_code: 115 - failed to issue the certificate.
-# @return_code: 116 - failed to install the certificate.
-# @return_code: 117 - failed to edit /etc/nginx/sites-available/${domain}.conf.
+# @return_code: 109 - failed to change directory to /root.
+# @return_code: 110 - failed to create directory ${web_root}/.well-known/acme-challenge.
+# @return_code: 111 - failed to clone acme.sh.
+# @return_code: 112 - failed to switch to /root/acme.sh directory.
+# @return_code: 113 - failed to install acme.sh.
+# @return_code: 114 - failed to reload nginx.
+# @return_code: 115 - failed to register the account with Let's Encrypt.
+# @return_code: 116 - failed to set the default CA to Let's Encrypt.
+# @return_code: 117 - failed to issue the certificate.
+# @return_code: 118 - failed to install the certificate.
+# @return_code: 119 - failed to edit /etc/nginx/sites-available/${domain}.conf.
 # @break
 ##################################################################################
 vstacklet::domain::ssl() {
@@ -3100,14 +3096,14 @@ vstacklet::domain::ssl() {
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing SSL certificate for ${domain} ... "
 		# @script-note: build acme.sh for Let's Encrypt SSL
-		cd "/root" || vstacklet::clean::rollback 107
+		cd "/root" || vstacklet::clean::rollback 109
 		[[ -d "/root/.acme.sh" ]] && rm -rf "/root/.acme.sh" >>"${vslog}" 2>&1
-		mkdir -p "${web_root:-/var/www/html}/.well-known/acme-challenge" || vstacklet::clean::rollback 108
+		mkdir -p "${web_root:-/var/www/html}/.well-known/acme-challenge" || vstacklet::clean::rollback 110
 		chown -R root:www-data "${web_root:-/var/www/html}/.well-known" >>"${vslog}" 2>&1
 		chmod -R 755 "${web_root:-/var/www/html}/.well-known" >>"${vslog}" 2>&1
-		git clone "https://github.com/Neilpang/acme.sh.git" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 109
-		cd "/root/acme.sh" || vstacklet::clean::rollback 110
-		./acme.sh --install --home "/root/.acme.sh" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 111
+		git clone "https://github.com/Neilpang/acme.sh.git" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 111
+		cd "/root/acme.sh" || vstacklet::clean::rollback 112
+		./acme.sh --install --home "/root/.acme.sh" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 113
 		# @script-note: create nginx directory for SSL
 		mkdir -p "/etc/nginx/ssl/${domain:?}"
 		# @script-note: create SSL certificate
@@ -3115,18 +3111,18 @@ vstacklet::domain::ssl() {
 		# @script-note: post necessary edits to nginx acme file
 		wr_sanitize=$(echo "${web_root:-/var/www/html}" | sed 's/\//\\\//g')
 		sed -i -e "s|{{domain}}|${domain}|g" -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" /etc/nginx/sites-enabled/acme
-		systemctl reload nginx.service >>"${vslog}" 2>&1 || vstacklet::clean::rollback 112
-		./acme.sh --register-account -m "${email:?}" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 113
-		./acme.sh --set-default-ca --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 114
-		./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html}" --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 115
-		./acme.sh --install-cert -d "${domain}" --keylength ec-256 --cert-file "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" --key-file "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" --fullchain-file "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" --log "/var/log/vstacklet/${domain}.log" --reloadcmd "systemctl reload nginx.service" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 116
+		systemctl reload nginx.service >>"${vslog}" 2>&1 || vstacklet::clean::rollback 114
+		./acme.sh --register-account -m "${email:?}" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 115
+		./acme.sh --set-default-ca --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 116
+		./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html}" --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::clean::rollback 117
+		./acme.sh --install-cert -d "${domain}" --keylength ec-256 --cert-file "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" --key-file "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" --fullchain-file "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" --log "/var/log/vstacklet/${domain}.log" --reloadcmd "systemctl reload nginx.service" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 118
 		# @script-note: post necessary edits to nginx config file
 		crt_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" | sed 's/\//\\\//g')
 		key_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" | sed 's/\//\\\//g')
 		#chn_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" | sed 's/\//\\\//g')
 		[[ -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" ]] && cp -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "${vstacklet_base_path:?}/setup_temp/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1
 		# @script-note: place generated ssl to nginx config file
-		sed -i.bak -e "/ssl_certificate .*/c\        ssl_certificate ${crt_sanitize};" -e "/ssl_certificate_key .*/c\        ssl_certificate_key ${key_sanitize};" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 117
+		sed -i.bak -e "/ssl_certificate .*/c\        ssl_certificate ${crt_sanitize};" -e "/ssl_certificate_key .*/c\        ssl_certificate_key ${key_sanitize};" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 119
 		# @script-note: remove acme ssl template
 		[[ -f "/etc/nginx/sites-enabled/acme" ]] && rm -f "/etc/nginx/sites-enabled/acme" >>"${vslog}" 2>&1
 		# @script-note: ssl installation complete
@@ -3153,7 +3149,7 @@ vstacklet::domain::ssl() {
 # @description: Cleans up the system after a successful installation. This
 #   function is called after the installation is complete. It removes the
 #   temporary files and directories created during the installation process.
-#   This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3092-L3119)
+#   This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3159-L3186)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3194,7 +3190,7 @@ vstacklet::clean::complete() {
 # @description: Outputs success message on completion of setup. This function
 #   is called after the installation is complete. It outputs a success message
 #   to the user and provides them with the necessary information to access their
-#   new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3133-L3171)
+#   new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3200-L3238)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3243,7 +3239,7 @@ vstacklet::message::complete() {
 
 ################################################################################
 # @name: vstacklet::help::display (40)
-# @description: Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3182-L3283)
+# @description: Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3249-L3350)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3355,7 +3351,7 @@ vstacklet::help::display() {
 
 ################################################################################
 # @name: vstacklet::version::display (41)
-# @description: Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3294-L3300)
+# @description: Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3361-L3367)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3372,7 +3368,7 @@ vstacklet::version::display() {
 
 ################################################################################
 # @name: vstacklet::clean::rollback - vStacklet Rollback (42/return_code)
-# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3319-L3572)
+# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3386-L3641)
 #
 # notes:
 # - it will remove the temporary files and directories created during the installation
@@ -3521,18 +3517,20 @@ vstacklet::clean::rollback() {
 		104) error="failed to grant WordPress database user privileges." ;;
 		105) error="failed to flush WordPress database privileges." ;;
 		106) error="failed to remove WordPress installation files." ;;
+		107) error="failed to install WordPress core." ;;
+		108) error="failed to install WordPress plugins [varnish-http-purge]." ;;
 		# vstacklet::domain::ssl (37)
-		107) error="failed to change directory to /root." ;;
-		108) error="failed to create directory ${web_root:-/var/www/html}/.well-known/acme-challenge." ;;
-		109) error="failed to clone acme.sh." ;;
-		110) error="failed to switch to /root/acme.sh directory." ;;
-		111) error="failed to install acme.sh." ;;
-		112) error="failed to reload nginx." ;;
-		113) error="failed to register the account with Let's Encrypt." ;;
-		114) error="failed to set the default CA to Let's Encrypt." ;;
-		115) error="failed to issue the certificate." ;;
-		116) error="failed to install the certificate." ;;
-		117) error="failed to edit /etc/nginx/sites-available/${domain}.conf." ;;
+		109) error="failed to change directory to /root." ;;
+		110) error="failed to create directory ${web_root:-/var/www/html}/.well-known/acme-challenge." ;;
+		111) error="failed to clone acme.sh." ;;
+		112) error="failed to switch to /root/acme.sh directory." ;;
+		113) error="failed to install acme.sh." ;;
+		114) error="failed to reload nginx." ;;
+		115) error="failed to register the account with Let's Encrypt." ;;
+		116) error="failed to set the default CA to Let's Encrypt." ;;
+		117) error="failed to issue the certificate." ;;
+		118) error="failed to install the certificate." ;;
+		119) error="failed to edit /etc/nginx/sites-available/${domain}.conf." ;;
 		*) error="Unknown error" ;;
 		esac
 		vstacklet::shell::text::error "${error}"
@@ -3648,11 +3646,9 @@ trap 'vstacklet::clean::rollback' SIGINT
 # the following functions are called in the order they are listed and
 # are used for post-installation setup.
 ################################################################################
-vstacklet::environment::init      #(1)
-vstacklet::environment::functions #(2)
-vstacklet::args::process "$@"     #(3)
-#[[ "$*" =~ "-h" ]] || [[ "$*" =~ "--help" ]] && vstacklet::help::display
-#[[ "$*" =~ "-V" ]] || [[ "$*" =~ "--version" ]] && vstacklet::version::display
+vstacklet::environment::init                                                    #(1)
+vstacklet::environment::functions                                               #(2)
+vstacklet::args::process "$@"                                                   #(3)
 vstacklet::log::check                                                           #(4)
 vstacklet::apt::update                                                          #(5)
 vstacklet::dependencies::install                                                #(6)
