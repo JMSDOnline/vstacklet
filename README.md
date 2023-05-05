@@ -276,6 +276,13 @@ vstacklet -e 'your@email.com' -d 'yourdomain.com' -php '8.1' -nginx -varnish -ht
 </details>
 
 <details>
+  <summary><b>vStacklet Varnish Cache Hit Stat Verification</b></summary>
+
+![vStacklet Varnish Cache Stat Verification](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-varnish_cache_stat-verification.png "vStacklet Varnish Cache Stat Verification")
+
+</details>
+
+<details>
   <summary><b>vStacklet Varnish to NGinx SSL Termination Verification</b></summary>
 
 ![vStacklet Varnish to NGinx SSL Termination Verification](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-varnish_nginx_ssl_termination-verification.png "vStacklet Varnish to NGinx SSL Termination Verification")
