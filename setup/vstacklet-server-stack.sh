@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2027
+# @version: 3.1.2034
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
@@ -2894,10 +2894,67 @@ vstacklet::wordpress::install() {
 				done
 			fi
 		}
+		# @script-note: get WordPress Site URL
+		vstacklet::wp::site_url() {
+			if [[ -n ${domain} ]]; then
+				wp_site_url="https://${domain}"
+			else
+				wp_site_url="https://${server_ip}"
+			fi
+			# @dev-note: the below is commented out because it is not needed
+			# we can use the current set server_ip or domain
+			#vstacklet::shell::text::white::sl "WordPress Site URL: "
+			#vstacklet::shell::icon::arrow::white
+			#while read -r wp_site_url; do
+			#	[[ -z ${wp_site_url} ]] && vstacklet::shell::text::error "WordPress Site URL cannot be empty." && vstacklet::shell::text::white::sl "WordPress Site URL: " && vstacklet::shell::icon::arrow::white && continue
+			#	break
+			#done
+		}
+		# @script-note: get WordPress Site Title
+		vstacklet::wp::site_title() {
+			vstacklet::shell::text::white::sl "WordPress Site Title: "
+			vstacklet::shell::icon::arrow::white
+			while read -r wp_site_title; do
+				[[ -z ${wp_site_title} ]] && vstacklet::shell::text::error "WordPress Site Title cannot be empty." && vstacklet::shell::text::white::sl "WordPress Site Title: " && vstacklet::shell::icon::arrow::white && continue
+				break
+			done
+		}
+		# @script-note: get WordPress Admin Username
+		vstacklet::wp::admin_user() {
+			vstacklet::shell::text::white::sl "WordPress Admin Username: "
+			vstacklet::shell::icon::arrow::white
+			while read -r wp_admin_user; do
+				[[ -z ${wp_admin_user} ]] && vstacklet::shell::text::error "WordPress Admin Username cannot be empty." && vstacklet::shell::text::white::sl "WordPress Admin Username: " && vstacklet::shell::icon::arrow::white && continue
+				break
+			done
+		}
+		# @script-note: get WordPress Admin Password
+		vstacklet::wp::admin_password() {
+			vstacklet::shell::text::white::sl "WordPress Admin Password: "
+			vstacklet::shell::icon::arrow::white
+			while read -r wp_admin_password; do
+				[[ -z ${wp_admin_password} ]] && vstacklet::shell::text::error "WordPress Admin Password cannot be empty." && vstacklet::shell::text::white::sl "WordPress Admin Password: " && vstacklet::shell::icon::arrow::white && continue
+				break
+			done
+		}
+		# @script-note: get WordPress Admin Email
+		vstacklet::wp::admin_email() {
+			vstacklet::shell::text::white::sl "WordPress Admin Email: "
+			vstacklet::shell::icon::arrow::white
+			while read -r wp_admin_email; do
+				[[ -z ${wp_admin_email} ]] && vstacklet::shell::text::error "WordPress Admin Email cannot be empty." && vstacklet::shell::text::white::sl "WordPress Admin Email: " && vstacklet::shell::icon::arrow::white && continue
+				break
+			done
+		}
 		# @script-note: call Wordpress information functions
 		vstacklet::wp::db
 		vstacklet::wp::user
 		vstacklet::wp::password
+		vstacklet::wp::site_url
+		vstacklet::wp::site_title
+		vstacklet::wp::admin_user
+		vstacklet::wp::admin_password
+		vstacklet::wp::admin_email
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white::sl "Are the entered details correct? "
 		vstacklet::shell::text::green::sl "[y]"
@@ -2912,6 +2969,11 @@ vstacklet::wordpress::install() {
 			vstacklet::wp::db
 			vstacklet::wp::user
 			vstacklet::wp::password
+			vstacklet::wp::site_url
+			vstacklet::wp::site_title
+			vstacklet::wp::admin_user
+			vstacklet::wp::admin_password
+			vstacklet::wp::admin_email
 			vstacklet::shell::misc::nl
 			vstacklet::shell::text::white::sl "Are the entered details correct? "
 			vstacklet::shell::text::green::sl "[y]"
@@ -2966,10 +3028,13 @@ vstacklet::wordpress::install() {
 			mysql -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 105
 			# @script-note: remove the WordPress installation files
 			vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::clean::rollback 106
+			# @script-note: run wp core install
+			wp --path="${web_root:-/var/www/html}/public" core install --url="${wp_site_url}" --title="${wp_site_title}" --admin_user="${wp_admin_user}" --admin_password="${wp_admin_password}" --admin_email="${wp_admin_email}" --allow-root >>"${vslog}" 2>&1
 			# @script-note: if varnish is installed, install the varnish-http-purge plugin and activate it
 			if [[ -n ${varnish} ]]; then
-				vstacklet::log "php${php} wp --path=\"${web_root:-/var/www/html}/public\" plugin install varnish-http-purge --activate --allow-root"
+				wp --path="${web_root:-/var/www/html}/public" plugin install varnish-http-purge --activate --allow-root >>"${vslog}" 2>&1
 			fi
+			# @script-note: adjust web root permissions
 			vs::stat::progress::stop # stop progress status
 			# @script-note: wordpress installation complete
 			vstacklet::shell::text::green "WordPress installed and configured. see details below:"
@@ -2979,8 +3044,14 @@ vstacklet::wordpress::install() {
 			vstacklet::shell::text::green "${wp_db_user}"
 			vstacklet::shell::text::white::sl "WordPress Database Password: "
 			vstacklet::shell::text::green "${wp_db_password}"
-			vstacklet::shell::text::white::sl "Complete the WordPress installation at: "
-			vstacklet::shell::text::green "http://${domain:-${server_ip}}/wp-admin/install.php"
+			vstacklet::shell::text::white::sl "WordPress Admin User: "
+			vstacklet::shell::text::green "${wp_admin_user}"
+			vstacklet::shell::text::white::sl "WordPress Admin Password: "
+			vstacklet::shell::text::green "${wp_admin_password}"
+			vstacklet::shell::text::white::sl "WordPress Admin Email: "
+			vstacklet::shell::text::green "${wp_admin_email}"
+			vstacklet::shell::text::white::sl "Login to your WordPress installation at: "
+			vstacklet::shell::text::green "https://${domain:-${server_ip}}/wp-login.php"
 			vstacklet::permissions::adjust
 		fi
 	fi
