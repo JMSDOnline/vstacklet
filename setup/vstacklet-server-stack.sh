@@ -2966,6 +2966,10 @@ vstacklet::wordpress::install() {
 			mysql -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::clean::rollback 105
 			# @script-note: remove the WordPress installation files
 			vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::clean::rollback 106
+			# @script-note: if varnish is installed, install the varnish-http-purge plugin and activate it
+			if [[ -n ${varnish} ]]; then
+				vstacklet::log "php${php} wp --path=\"${web_root:-/var/www/html}/public\" plugin install varnish-http-purge --activate --allow-root"
+			fi
 			vs::stat::progress::stop # stop progress status
 			# @script-note: wordpress installation complete
 			vstacklet::shell::text::green "WordPress installed and configured. see details below:"
