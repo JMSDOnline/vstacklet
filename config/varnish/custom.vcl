@@ -17,11 +17,18 @@ acl purge {
 
 sub vcl_recv {
 	# Set the redirect for http to https
-	if ((req.http.X-Forwarded-Proto && req.http.X-Forwarded-Proto != "https") || (req.http.Scheme && req.http.Scheme != "https")) {
-		return (synth(750));
-	} elseif (!req.http.X-Forwarded-Proto && !req.http.Scheme && !proxy.is_ssl()) {
-		return (synth(750));
-	}
+	# This is a workaround for the fact that Varnish doesn't support
+	# https redirects. See https://varnish-cache.org/docs/trunk/phk/ssl.html
+	# By default, this is commented out. Uncomment if you want to force
+	# all traffic to https. Keep in mind the redirect should already be
+	# handled by your web server. This is just a fallback should you
+	# want to force https at the Varnish level.
+	#
+	#if ((req.http.X-Forwarded-Proto && req.http.X-Forwarded-Proto != "https") || (req.http.Scheme && req.http.Scheme != "https")) {
+	#	return (synth(750));
+	#} elseif (!req.http.X-Forwarded-Proto && !req.http.Scheme && !proxy.is_ssl()) {
+	#	return (synth(750));
+	#}
 
 	# Remove empty query string parameters
 	# e.g.: www.example.com/index.html?
