@@ -269,9 +269,32 @@ vstacklet -e 'your@email.com' -d 'yourdomain.com' -php '8.1' -nginx -varnish -ht
 </details>
 
 <details>
+  <summary><b>vStacklet phpMyAdmin & MariaDB Verification</b></summary>
+
+![vStacklet phpMyAdmin & MariaDB Verification](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-phpmyadmin_mariadb_install-verification.png "vStacklet phpMyAdmin & MariaDB Verification")
+
+</details>
+
+<details>
   <summary><b>vStacklet Varnish to NGinx SSL Termination Verification</b></summary>
 
 ![vStacklet Varnish to NGinx SSL Termination Verification](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-varnish_nginx_ssl_termination-verification.png "vStacklet Varnish to NGinx SSL Termination Verification")
+
+</details>
+
+<details>
+  <summary><b>vStacklet Wordpress Install Verification - Proxy Cache Test</b></summary>
+
+Test the proxy cache via `http://` for proper header output. `https://` may return unknown, but this is not an issue as the proxy cache is working as expected, and varnish terminating SSL properly.
+
+![vStacklet Wordpress Install Verification - Proxy Cache Test](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-wordpress_install-verification-proxy_cache_test.png "vStacklet Wordpress Install Verification - Proxy Cache Test")
+
+</details>
+
+<details>
+  <summary><b>vStacklet Wordpress Install Verification - Initial Site Health Test</b></summary>
+
+![vStacklet Wordpress Install Verification - Initial Site Health Test](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-wordpress_install-site_health_check-verification.png "vStacklet Wordpress Install Verification - Initial Site Health Test")
 
 </details>
 
