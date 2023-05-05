@@ -219,6 +219,29 @@ sub vcl_deliver {
 		set resp.http.X-Cacheable = "YES";
 	}
 
+	# Add the X-Cache: HIT/MISS/BYPASS header
+	if (obj.hits > 0) {
+		# If we had a HIT
+		set resp.http.X-Cache = "HIT";
+	} else {
+		# If we had a MISS
+		set resp.http.X-Cache = "MISS";
+	}
+
+	# Bypass variable. Signifies a hardcoded bypass
+	if (req.http.X-Send-To-Backend)
+	{
+		## If we had a BYPASS
+		set resp.http.X-Cache = "BYPASS";
+	}
+
+	# Remove the Via: Varnish header for security reasons.
+	# We don't want to expose that we run Varnish.
+	unset resp.http.Via;
+	# Remove the X-Varnish header for security reasons.
+	# This would otherwise expose the Varnish version.
+	unset resp.http.X-Varnish;
+
 	# Cleanup of headers
 	unset resp.http.x-url;
 	unset resp.http.x-host;
