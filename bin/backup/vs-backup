@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1162
+# @version: 3.1.1163
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -170,7 +170,7 @@ vstacklet::backup::updater() {
 	# @script-note: check if the version is greater than the current version
 	current_version=$(grep -Eo "[0-9]+\.[0-9]+\.[0-9]+" /usr/local/bin/vs-backup)
 	upstream_version=$(curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/backup/vs-backup" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
-	[[ "${current_version}" == "${upstream_version}" ]] && vstacklet::shell::text::success "The backup script is up to date. Proceeding to backup..." && vstacklet::shell::misc::nl
+	[[ "${current_version}" == "${upstream_version}" ]] && vstacklet::shell::text::success "The backup script is up to date. Proceeding..." && vstacklet::shell::misc::nl
 	if [[ "${current_version}" != "${upstream_version}" ]]; then
 		vstacklet::shell::text::white "Updating the backup script..."
 		# @script-note: download the latest version of vs-backup
@@ -179,7 +179,7 @@ vstacklet::backup::updater() {
 		cp -f /usr/local/bin/vs-backup /opt/vstacklet/bin/backup/vs-backup
 		# @script-note: convert vs-backup shell scripts to executable
 		chmod +x /usr/local/bin/vs-backup /opt/vstacklet/bin/backup/vs-backup
-		vstacklet::shell::text::success "The backup script has been updated successfully. Proceeding to backup..."
+		vstacklet::shell::text::success "The backup script has been updated successfully. Proceeding..."
 		vstacklet::shell::misc::nl
 	fi
 }
