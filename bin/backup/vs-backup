@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1148
+# @version: 3.1.1153
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -308,14 +308,16 @@ vstacklet::backup::variables() {
 ##################################################################################
 vstacklet::backup::default::variables() {
 	### DIRECTORY/FILE OPTIONS ####################################################
+	# @script-note: set the source directory/file to backup
+	file="${file:-/var/www/html}"
+	# @script-note: grab the last entry in the file path, if last entry is / then grab the entry before the previous /.
+	file_name=$(basename "${file%/}")
 	# @script-note: set the temporary backup directory for the files to backup
 	f_tmp_dir_dest="${f_tmp_dir_dest:-/tmp/vstacklet/backup/files/}"
 	# @script-note: set the destination backup directory for the files to backup
 	f_dir_dest="${f_dir_dest:-/backup/files/}"
 	# @script-note: set the backup file name for the files to backup
-	f_package="${f_package:-$(date +%Y-%m-%d-%H-%M-%S).tar.gz}"
-	# @script-note: set the source directory/file to backup
-	file="${file:-/var/www/html}"
+	f_package="${f_package:-${file_name}.$(date +%Y-%m-%d-%H-%M-%S).tar.gz}"
 	### MYSQL OPTIONS #############################################################
 	# @script-note: set the temporary backup directory for the database to backup
 	db_tmp_dir_dest="${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}"
@@ -444,7 +446,7 @@ vstacklet::backup::files() {
 	# @script-note: check if the backup source directory is empty
 	[ -z "$(ls -A "${file}")" ] && vstacklet::shell::text::error "Backup source directory is empty: ${file}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: check if the destination backup package exists
-	[ -f "${f_dir_dest}/${f_package}" ] && vstacklet::shell::text::error "Backup package already exists: ${f_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
+	[ -f "${f_dir_dest}${f_package}" ] && vstacklet::shell::text::error "Backup package already exists: ${f_dir_dest}${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: check if the temporary backup package exists
 	[ -f "${f_tmp_dir_dest}/${f_package}" ] && vstacklet::shell::text::error "Backup package already exists: ${f_tmp_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: create the backup package
@@ -455,14 +457,14 @@ vstacklet::backup::files() {
 	# @script-note: check if the temporary backup package is empty
 	[ -z "$(ls -A "${f_tmp_dir_dest}/${f_package}")" ] && vstacklet::shell::text::error "Backup package is empty: ${f_tmp_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: move the backup package to the destination directory
-	vstacklet::shell::text::white "Moving backup of ${file} to ${f_dir_dest}/${f_package}..."
-	\cp -f "${f_tmp_dir_dest}/${f_package}" "${f_dir_dest}/${f_package}"
+	vstacklet::shell::text::white "Moving backup of ${file} to ${f_dir_dest}${f_package}..."
+	\cp -f "${f_tmp_dir_dest}/${f_package}" "${f_dir_dest}${f_package}"
 	# @script-note: check if the destination backup package exists
-	[ ! -f "${f_dir_dest}/${f_package}" ] && vstacklet::shell::text::error "Backup package does not exist: ${f_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
+	[ ! -f "${f_dir_dest}${f_package}" ] && vstacklet::shell::text::error "Backup package does not exist: ${f_dir_dest}${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: check if the destination backup package is empty
-	[ -z "$(ls -A "${f_dir_dest}/${f_package}")" ] && vstacklet::shell::text::error "Backup package is empty: ${f_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
+	[ -z "$(ls -A "${f_dir_dest}${f_package}")" ] && vstacklet::shell::text::error "Backup package is empty: ${f_dir_dest}${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: check if the backup package is the correct size
-	[ "$(stat -c%s "${f_dir_dest}/${f_package}")" != "$(stat -c%s "${f_tmp_dir_dest}/${f_package}")" ] && vstacklet::shell::text::error "Backup package is the incorrect size: ${f_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
+	[ "$(stat -c%s "${f_dir_dest}${f_package}")" != "$(stat -c%s "${f_tmp_dir_dest}/${f_package}")" ] && vstacklet::shell::text::error "Backup package is the incorrect size: ${f_dir_dest}${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: remove the backup package from the temporary directory
 	rm -f "${f_tmp_dir_dest}/${f_package}"
 	vstacklet::shell::text::success "The backup of ${file} was successful!"
