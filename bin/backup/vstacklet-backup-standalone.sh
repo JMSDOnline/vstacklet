@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet-backup-standalone.sh
-# @version: 3.1.1143
+# @version: 3.1.1144
 # @description: This script will grab the latest version of vs-backup and
 # install it on your server.
 #
@@ -60,8 +60,10 @@
 vstacklet::vsbackup::standalone() {
 	# @script-note: download the latest version of vs-backup
 	curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/backup/vs-backup" >/usr/local/bin/vs-backup
+	# @script-note: copy the backup script to the /opt/vstacklet/bin/backup directory
+	cp -f /usr/local/bin/vs-backup /opt/vstacklet/bin/backup/vs-backup
 	# @script-note: convert vs-backup shell scripts to executable
-	chmod +x /usr/local/bin/vs-backup
+	chmod +x /usr/local/bin/vs-backup /opt/vstacklet/bin/backup/vs-backup
 }
 
 ################################################################################
