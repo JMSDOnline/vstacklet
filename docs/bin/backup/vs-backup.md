@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1153
+# vs-backup - v3.1.1154
 
 
 ---
@@ -32,6 +32,7 @@ This script will do the following:
 |  -dbpass   | --database_password      | The database password. (default: pulled from `/root/.my.cnf`)
 |  -dbdbu   | --database_backup_directory   | The database destination backup directory. (default: `/backup/databases`)
 |  -dbtbu   | --database_temporary_directory  | The database temporary backup directory. (default: `/tmp/vstacklet/backup/databases`)
+|  -dbenc   | --database_encryption     | Encrypt the database backup. (default: `false`)
 |  -f   | --files                    | Backup files in the web root directory.
 |  -fdbu   | --file_backup_directory   | The files destination backup directory. (default: `/backup/files`)
 |  -ftbu   | --file_temporary_directory  | The files temporary backup directory. (default: `/tmp/vstacklet/backup/files`)

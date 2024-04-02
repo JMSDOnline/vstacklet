@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1153
+# @version: 3.1.1154
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -33,6 +33,7 @@
 # |  -dbpass   | --database_password      | The database password. (default: pulled from `/root/.my.cnf`)
 # |  -dbdbu   | --database_backup_directory   | The database destination backup directory. (default: `/backup/databases`)
 # |  -dbtbu   | --database_temporary_directory  | The database temporary backup directory. (default: `/tmp/vstacklet/backup/databases`)
+# |  -dbenc   | --database_encryption     | Encrypt the database backup. (default: `false`)
 # |  -f   | --files                    | Backup files in the web root directory.
 # |  -fdbu   | --file_backup_directory   | The files destination backup directory. (default: `/backup/files`)
 # |  -ftbu   | --file_temporary_directory  | The files temporary backup directory. (default: `/tmp/vstacklet/backup/files`)
@@ -620,6 +621,9 @@ vstacklet::backup::usage() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  -dbdbu, --database_backup_directory"
 	vstacklet::shell::text::white "    The destination backup directory to use for the backup."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  -dbenc, --database_encryption"
+	vstacklet::shell::text::white "    Encrypt the database backup. (default: false)"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  -ftbu, --file_temporary_directory"
 	vstacklet::shell::text::white "    The temporary backup directory to use for the backup."
