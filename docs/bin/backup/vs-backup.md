@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1157
+# vs-backup - v3.1.1161
 
 
 ---
@@ -62,6 +62,12 @@ Stage various functions for the setup environment. [see function](https://github
 ### vstacklet::environment::checkroot()
 
 Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L156-L161)
+
+---
+
+### vstacklet::backup::updater()
+
+Update the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L168-L297)
 
 ---
 

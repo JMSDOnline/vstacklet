@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1157
+# @version: 3.1.1161
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -162,7 +162,30 @@ vstacklet::environment::checkroot() {
 }
 
 ##################################################################################
-# @name: vstacklet::backup::variables (3)
+# @name: vstacklet::backup::updater (3)
+# @description: Update the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L168-L297)
+# @break
+##################################################################################
+vstacklet::backup::updater() {
+	# @script-note: check if the version is greater than the current version
+	current_version=$(grep -Eo "[0-9]+\.[0-9]+\.[0-9]+" /usr/local/bin/vs-backup)
+	upstream_version=$(curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/backup/vs-backup" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
+	[[ "${current_version}" == "${upstream_version}" ]] && vstacklet::shell::text::success "The backup script is up to date. Proceeding to backup..." && vstacklet::shell::misc::nl
+	if [[ "${current_version}" != "${upstream_version}" ]]; then
+		vstacklet::shell::text::white "Updating the backup script..."
+		# @script-note: download the latest version of vs-backup
+		curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/backup/vs-backup" >/usr/local/bin/vs-backup
+		# @script-note: copy the backup script to the /opt/vstacklet/bin/backup directory
+		cp -f /usr/local/bin/vs-backup /opt/vstacklet/bin/backup/vs-backup
+		# @script-note: convert vs-backup shell scripts to executable
+		chmod +x /usr/local/bin/vs-backup /opt/vstacklet/bin/backup/vs-backup
+		vstacklet::shell::text::success "The backup script has been updated successfully. Proceeding to backup..."
+		vstacklet::shell::misc::nl
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::backup::variables (4)
 # @description: Set the variables for the backup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L168-L297)
 # @break
 ##################################################################################
@@ -303,7 +326,7 @@ vstacklet::backup::variables() {
 }
 
 ##################################################################################
-# @name: vstacklet::backup::default::variables (4)
+# @name: vstacklet::backup::default::variables (5)
 # @description: The variables used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L304-L351)
 # @break
 ##################################################################################
@@ -359,7 +382,7 @@ vstacklet::backup::default::variables() {
 }
 
 ##################################################################################
-# @name: vstacklet::backup::main::checks (5)
+# @name: vstacklet::backup::main::checks (6)
 # @description: The checks used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L358-L391)
 # @break
 ##################################################################################
@@ -399,7 +422,7 @@ vstacklet::backup::main::checks() {
 }
 
 ##################################################################################
-# @name: vstacklet::intro (6)
+# @name: vstacklet::intro (7)
 # @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L398-L415)
 # @break
 ##################################################################################
@@ -415,7 +438,7 @@ vstacklet::intro() {
 	vstacklet::ask::continue
 }
 
-# shall we continue? function (6.a)
+# shall we continue? function (7.a)
 vstacklet::ask::continue() {
 	vstacklet::shell::text::green "Press any key to continue $(tput setaf 7)(${shell_reset}$(tput setaf 3)ctrl+C${shell_reset} $(tput setaf 7)on PC or $(tput setaf 7)${shell_reset}$(tput setaf 3)⌘+C${shell_reset} $(tput setaf 7)on Mac to ${shell_reset}$(tput setaf 1)exit${shell_reset}$(tput setaf 7)) ..."
 	read -r -n 1
@@ -423,7 +446,7 @@ vstacklet::ask::continue() {
 }
 
 ##################################################################################
-# @name: vstacklet::backup::files (7)
+# @name: vstacklet::backup::files (8)
 # @description: Backup the specified files. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L422-L465)
 # @break
 ##################################################################################
@@ -473,7 +496,7 @@ vstacklet::backup::files() {
 }
 
 ################################################################################
-# @name: vstacklet::backup::database (8)
+# @name: vstacklet::backup::database (9)
 # @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L485-L524)
 #
 # note: This function will additionally package the database backup into a tarball
@@ -535,7 +558,7 @@ vstacklet::backup::database() {
 }
 
 ##################################################################################
-# @name: vstacklet::backup::retention (9)
+# @name: vstacklet::backup::retention (10)
 # @description: The retention used in the backup script. This is used to delete
 # old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L544-L568)
 #
@@ -579,7 +602,7 @@ vstacklet::backup::retention() {
 }
 
 ##################################################################################
-# @name: vstacklet::outro (10)
+# @name: vstacklet::outro (11)
 # @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L575-L580)
 # @break
 ##################################################################################
@@ -607,6 +630,9 @@ vstacklet::backup::usage() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  -V, --version"
 	vstacklet::shell::text::white "    Display the version of this script."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  -ec, --example_cron"
+	vstacklet::shell::text::white "    Display an example cron job."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  -db, --database"
 	vstacklet::shell::text::white "    The database to backup."
@@ -640,12 +666,6 @@ vstacklet::backup::usage() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "Examples:"
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "  /opt/vstacklet/bin/backup/vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/\""
-	vstacklet::shell::text::white "  /opt/vstacklet/bin/backup/vs-backup -h"
-	vstacklet::shell::text::white "  /opt/vstacklet/bin/backup/vs-backup -V"
-	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "Standalone:"
-	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/\""
 	vstacklet::shell::text::white "  vs-backup -h"
 	vstacklet::shell::text::white "  vs-backup -V"
@@ -663,7 +683,7 @@ vstacklet::backup::example_cron() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  # Example Schedule"
 	vstacklet::shell::text::white "  # Run Directory and Database Backup Daily @ 12:30 AM"
-	vstacklet::shell::text::white "  30 00 * * * root /opt/vstacklet/bin/backup/vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -dbtbu \"/tmp/vstacklet/backup/databases/\" -dbdbu \"/backup/databases/\" -ftbu \"/tmp/vstacklet/backup/files/\" -fdbu \"/backup/files/\" -f \"/var/www/html/\""
+	vstacklet::shell::text::white "  30 00 * * * root /usr/local/bin/backup/vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -dbtbu \"/tmp/vstacklet/backup/databases/\" -dbdbu \"/backup/databases/\" -ftbu \"/tmp/vstacklet/backup/files/\" -fdbu \"/backup/files/\" -f \"/var/www/html/\""
 	vstacklet::shell::misc::nl
 	exit 0
 }
@@ -687,11 +707,12 @@ vstacklet::backup::version() {
 ################################################################################
 vstacklet::environment::checkroot                             #(1)
 vstacklet::environment::functions                             #(2)
-vstacklet::backup::variables "${@}"                           #(3)
-vstacklet::backup::default::variables                         #(4)
-vstacklet::backup::main::checks                               #(5)
-vstacklet::intro                                              #(6)
-[[ "${backup_file_yes}" -eq 1 ]] && vstacklet::backup::files  #(7)
-[[ "${backup_db_yes}" -eq 1 ]] && vstacklet::backup::database #(8)
-vstacklet::backup::retention                                  #(9)
-vstacklet::outro                                              #(10)
+vstacklet::backup::updater                                    #(3)
+vstacklet::backup::variables "${@}"                           #(4)
+vstacklet::backup::default::variables                         #(5)
+vstacklet::backup::main::checks                               #(6)
+vstacklet::intro                                              #(7)
+[[ "${backup_file_yes}" -eq 1 ]] && vstacklet::backup::files  #(8)
+[[ "${backup_db_yes}" -eq 1 ]] && vstacklet::backup::database #(9)
+vstacklet::backup::retention                                  #(10)
+vstacklet::outro                                              #(11)
