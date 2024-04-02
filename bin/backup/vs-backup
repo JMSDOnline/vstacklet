@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1165
+# @version: 3.1.1166
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -176,9 +176,10 @@ vstacklet::backup::updater() {
 		# @script-note: download the latest version of vs-backup
 		curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/backup/vs-backup" >/usr/local/bin/vs-backup
 		# @script-note: copy the backup script to the /opt/vstacklet/bin/backup directory
-		cp -f "/usr/local/bin/vs-backup" "/opt/vstacklet/bin/backup/vs-backup"
+		[[ -f "/opt/vstacklet/bin/backup/vs-backup" ]] && cp -f "/usr/local/bin/vs-backup" "/opt/vstacklet/bin/backup/vs-backup"
 		# @script-note: convert vs-backup shell scripts to executable
-		chmod +x "/usr/local/bin/vs-backup" "/opt/vstacklet/bin/backup/vs-backup"
+		chmod +x "/usr/local/bin/vs-backup"
+		[[ -f "/opt/vstacklet/bin/backup/vs-backup" ]] && chmod +x "/opt/vstacklet/bin/backup/vs-backup"
 		vstacklet::shell::text::success "The backup script has been updated successfully. Proceeding..."
 		vstacklet::shell::misc::nl
 	fi
