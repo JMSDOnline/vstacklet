@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1156
+# @version: 3.1.1157
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -516,7 +516,7 @@ vstacklet::backup::database() {
 	rm -f "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.${db_package}"
 	# @script-note: check if the backup succeeded
 	#if [[ "${?}" -eq 0 ]]; then # @dev-note: use the below if statement instead of this one for proper success/failure reporting
-	if [[ -f "${db_dir_dest:-/backup/databases/}${db}.${db_package}.enc" ]]; then
+	if [[ -f "${db_dir_dest:-/backup/databases/}${db}.${db_package}.enc" || -f "${db_dir_dest:-/backup/databases/}${db}.${db_package}" ]]; then
 		vstacklet::shell::text::success "The backup of ${db} was successful!"
 		vstacklet::shell::misc::nl
 	else
