@@ -216,6 +216,11 @@ vstacklet::backup::variables() {
 			shift
 			shift
 			;;
+		-dbenc | --database_encryption)
+			db_encryption=true
+			shift
+			shift
+			;;
 		-dbuser | --database_user)
 			db_user="${2}"
 			shift
@@ -495,23 +500,25 @@ vstacklet::backup::database() {
 		vstacklet::shell::text::success "Backup directories created successfully."
 		vstacklet::shell::misc::nl
 	fi
-	for dbs in "${db_list[@]}"; do
-		vstacklet::shell::text::white "Backing up ${dbs} database to ${db_dir_dest}${dbs}.${db_package}..."
-		# @script-note: create the backup and compress it on the fly, then encrypt it
-		# shellcheck disable=SC2086
-		mysqldump ${db_options} -u"${db_user}" -p"${db_pass}" ${db_dump_options} ${dbs} | ${compression} ${compression_options} >"${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${dbs}.${db_package}" &&
-			openssl enc -pbkdf2 -salt -in "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${dbs}.${db_package}" -out "${db_dir_dest:-/backup/databases/}${dbs}.${db_package}.enc" -k "${db_pass}" &&
-			rm -f "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${dbs}.${db_package}"
-		# @script-note: check if the backup succeeded
-		#if [[ "${?}" -eq 0 ]]; then # @dev-note: use the below if statement instead of this one for proper success/failure reporting
-		if [[ -f "${db_dir_dest:-/backup/databases/}${dbs}.${db_package}.enc" ]]; then
-			vstacklet::shell::text::success "The backup of ${dbs} was successful!"
-			vstacklet::shell::misc::nl
-		else
-			vstacklet::shell::text::error "The backup of ${dbs} failed!"
-			vstacklet::shell::misc::nl
-		fi
-	done
+	# @script-note: check if the database is empty
+	vstacklet::shell::text::white "Backing up ${db} database to ${db_dir_dest}${db}.${db_package}..."
+	# @script-note: create the backup and compress it on the fly, then encrypt it
+	# shellcheck disable=SC2086
+	mysqldump ${db_options} -u"${db_user}" -p"${db_pass}" ${db_dump_options} ${db} | ${compression} ${compression_options} >"${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.${db_package}"
+	# @script-note: encrypt the backup if the encryption option is set
+	if [[ "${db_encryption}" == "true" ]]; then
+		openssl enc -pbkdf2 -salt -in "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.${db_package}" -out "${db_dir_dest:-/backup/databases/}${db}.${db_package}.enc" -k "${db_pass}"
+		rm -f "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.${db_package}"
+	fi
+	# @script-note: check if the backup succeeded
+	#if [[ "${?}" -eq 0 ]]; then # @dev-note: use the below if statement instead of this one for proper success/failure reporting
+	if [[ -f "${db_dir_dest:-/backup/databases/}${db}.${db_package}.enc" ]]; then
+		vstacklet::shell::text::success "The backup of ${db} was successful!"
+		vstacklet::shell::misc::nl
+	else
+		vstacklet::shell::text::error "The backup of ${db} failed!"
+		vstacklet::shell::misc::nl
+	fi
 	##################################################################################
 	# Decrypt the backup and decompress it on the fly.
 	# note: This is an example of how to decrypt and decompress the backup
