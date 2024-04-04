@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1180
+# vs-backup - v3.1.1183
 
 
 ---
@@ -33,6 +33,7 @@ This script will do the following:
 |  -dbdbu   | --database_backup_directory   | The database destination backup directory. (default: `/backup/databases`)
 |  -dbtbu   | --database_temporary_directory  | The database temporary backup directory. (default: `/tmp/vstacklet/backup/databases`)
 |  -dbenc   | --database_encryption     | Encrypt the database backup. (default: `false`)
+|  -dbdecrypt   | --database_decryption   | Decrypt the selected database backup.
 |  -f   | --files                    | Backup files in the web root directory.
 |  -fdbu   | --file_backup_directory   | The files destination backup directory. (default: `/backup/files`)
 |  -ftbu   | --file_temporary_directory  | The files temporary backup directory. (default: `/tmp/vstacklet/backup/files`)
@@ -50,6 +51,12 @@ This script will do the following:
 #### examples:
 ```bash
  vs-backup -db "database" -dbuser "root" -dbpass "password" -dbenc -dbtbu "/backup/databases" -dbtbu "/tmp/vstacklet/backup/databases" -f "/var/www/html" -fdbu "/backup/files" -ftbu "/tmp/vstacklet/backup/files" -r "7" -dbrpe "enc" --cc
+```
+
+---
+
+```bash
+ vs-backup -dbdecrypt
 ```
 
 ---
@@ -178,6 +185,18 @@ Create a cron job for the backup script. [see function](https://github.com/JMSDO
 ### vstacklet::backup::version()
 
 Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L793-L799)
+
+---
+
+### vstacklet::backup::database::decrypt()
+
+List the files in the backup directory and decrypt selected options.
+
+#### examples:
+
+```
+ vs-backup -dbdecrypt
+```
 
 ---
 

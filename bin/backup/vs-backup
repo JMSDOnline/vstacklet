@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1180
+# @version: 3.1.1183
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -34,6 +34,7 @@
 # |  -dbdbu   | --database_backup_directory   | The database destination backup directory. (default: `/backup/databases`)
 # |  -dbtbu   | --database_temporary_directory  | The database temporary backup directory. (default: `/tmp/vstacklet/backup/databases`)
 # |  -dbenc   | --database_encryption     | Encrypt the database backup. (default: `false`)
+# |  -dbdecrypt   | --database_decryption   | Decrypt the selected database backup.
 # |  -f   | --files                    | Backup files in the web root directory.
 # |  -fdbu   | --file_backup_directory   | The files destination backup directory. (default: `/backup/files`)
 # |  -ftbu   | --file_temporary_directory  | The files temporary backup directory. (default: `/tmp/vstacklet/backup/files`)
@@ -49,6 +50,10 @@
 # #### examples:
 # ```bash
 #  vs-backup -db "database" -dbuser "root" -dbpass "password" -dbenc -dbtbu "/backup/databases" -dbtbu "/tmp/vstacklet/backup/databases" -f "/var/www/html" -fdbu "/backup/files" -ftbu "/tmp/vstacklet/backup/files" -r "7" -dbrpe "enc" --cc
+# ```
+#
+# ```bash
+#  vs-backup -dbdecrypt
 # ```
 #
 # @save_tasks:
@@ -251,6 +256,10 @@ vstacklet::backup::variables() {
 			declare -gi backup_db_yes="1"
 			shift
 			shift
+			;;
+		-dbdecrypt | --database_decryption)
+			vstacklet::backup::database::decrypt
+			exit 0
 			;;
 		-dbenc | --database_encryption)
 			db_encryption=true
@@ -813,3 +822,33 @@ vstacklet::backup::main::checks                                     #(6)
 vstacklet::backup::retention                                        #(10)
 vstacklet::outro                                                    #(11)
 [[ "${cron_create}" == "true" ]] && vstacklet::backup::cron::create #(12)
+
+################################################################################
+# @description: Miscellaneous functions.
+# @break
+################################################################################
+
+##################################################################################
+# @name: vstacklet::backup::database::decrypt
+# @description: List the files in the backup directory and decrypt selected options.
+# @example: vs-backup -dbdecrypt
+# @break
+##################################################################################
+vstacklet::backup::database::decrypt() {
+	# @script-note: list the files in the backup directory
+	vstacklet::shell::text::white "The following files are in the database backup directory:"
+	ls -lh "${db_dir_dest:-/backup/databases/}"
+	vstacklet::shell::misc::nl
+	# @script-note: decrypt the selected file
+	vstacklet::shell::text::white "Enter the file to decrypt:"
+	read -r file
+	vstacklet::shell::text::white "Enter the database password to decrypt the file:"
+	read -r -s password
+	openssl enc -d -pbkdf2 -in "${db_dir_dest:-/backup/databases/}${file}" -out "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${file}" -k "${password}"
+	vstacklet::shell::text::success "The file was decrypted successfully!"
+	vstacklet::shell::misc::nl
+	# @script-note: print out the directory of the decrypted file
+	vstacklet::shell::text::white "The decrypted file is located at:"
+	vstacklet::shell::text::white "  ${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${file}"
+	vstacklet::shell::misc::nl
+}
