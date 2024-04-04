@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1169
+# @version: 3.1.1171
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -187,7 +187,7 @@ vstacklet::backup::updater() {
 
 ##################################################################################
 # @name: vstacklet::backup::variables (4)
-# @description: Set the variables for the backup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L193-L327)
+# @description: Set the variables for the backup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L193-L331)
 # @break
 ##################################################################################
 vstacklet::backup::variables() {
@@ -206,6 +206,10 @@ vstacklet::backup::variables() {
 		-ec | --example_cron)
 			vstacklet::backup::example_cron
 			exit 0
+			;;
+		--cron)
+			ras_cron=true
+			shift
 			;;
 		### FILES/DIRECTORIES OPTIONS
 		-ftbu | --file_temporary_directory)
@@ -328,7 +332,7 @@ vstacklet::backup::variables() {
 
 ##################################################################################
 # @name: vstacklet::backup::default::variables (5)
-# @description: The variables used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L334-L383)
+# @description: The variables used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L338-L387)
 # @break
 ##################################################################################
 vstacklet::backup::default::variables() {
@@ -384,7 +388,7 @@ vstacklet::backup::default::variables() {
 
 ##################################################################################
 # @name: vstacklet::backup::main::checks (6)
-# @description: The checks used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L390-L423)
+# @description: The checks used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L394-L427)
 # @break
 ##################################################################################
 vstacklet::backup::main::checks() {
@@ -424,7 +428,7 @@ vstacklet::backup::main::checks() {
 
 ##################################################################################
 # @name: vstacklet::intro (7)
-# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L430-L447)
+# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L434-L451)
 # @break
 ##################################################################################
 vstacklet::intro() {
@@ -448,7 +452,7 @@ vstacklet::ask::continue() {
 
 ##################################################################################
 # @name: vstacklet::backup::files (8)
-# @description: Backup the specified files. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L454-L497)
+# @description: Backup the specified files. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L458-L501)
 # @break
 ##################################################################################
 vstacklet::backup::files() {
@@ -498,7 +502,7 @@ vstacklet::backup::files() {
 
 ################################################################################
 # @name: vstacklet::backup::database (9)
-# @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L517-L559)
+# @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L521-L563)
 #
 # note: This function will additionally package the database backup into a tarball
 # and compress it on the fly, then encrypt it. The tarball will be moved to the
@@ -561,7 +565,7 @@ vstacklet::backup::database() {
 ##################################################################################
 # @name: vstacklet::backup::retention (10)
 # @description: The retention used in the backup script. This is used to delete
-# old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L579-L603)
+# old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L583-L607)
 #
 # notes:
 # - The retention is based on the modification time of the file.
@@ -604,7 +608,7 @@ vstacklet::backup::retention() {
 
 ##################################################################################
 # @name: vstacklet::outro (11)
-# @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L610-L615)
+# @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L614-L619)
 # @break
 ##################################################################################
 vstacklet::outro() {
@@ -616,7 +620,7 @@ vstacklet::outro() {
 
 ##################################################################################
 # @name: vstacklet::backup::usage
-# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L622-L675)
+# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L626-L682)
 # @break
 ##################################################################################
 vstacklet::backup::usage() {
@@ -634,6 +638,9 @@ vstacklet::backup::usage() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  -ec, --example_cron"
 	vstacklet::shell::text::white "    Display an example cron job."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  --cron"
+	vstacklet::shell::text::white "    Run the script in cron mode."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  -db, --database"
 	vstacklet::shell::text::white "    The database to backup."
@@ -684,7 +691,7 @@ vstacklet::backup::example_cron() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  # Example Schedule"
 	vstacklet::shell::text::white "  # Run Directory and Database Backup Daily @ 12:30 AM"
-	vstacklet::shell::text::white "  30 00 * * * root /usr/local/bin/vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -dbtbu \"/tmp/vstacklet/backup/databases/\" -dbdbu \"/backup/databases/\" -ftbu \"/tmp/vstacklet/backup/files/\" -fdbu \"/backup/files/\" -f \"/var/www/html/\""
+	vstacklet::shell::text::white "  30 00 * * * /usr/local/bin/vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/\" --cron"
 	vstacklet::shell::misc::nl
 	exit 0
 }
@@ -712,7 +719,8 @@ vstacklet::backup::updater                                    #(3)
 vstacklet::backup::variables "${@}"                           #(4)
 vstacklet::backup::default::variables                         #(5)
 vstacklet::backup::main::checks                               #(6)
-vstacklet::intro                                              #(7)
+# @script-note: run intro only if the script is not in cron mode
+[[ "${ras_cron}" != "true" ]] && vstacklet::intro             #(7)
 [[ "${backup_file_yes}" -eq 1 ]] && vstacklet::backup::files  #(8)
 [[ "${backup_db_yes}" -eq 1 ]] && vstacklet::backup::database #(9)
 vstacklet::backup::retention                                  #(10)
