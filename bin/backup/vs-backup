@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1179
+# @version: 3.1.1180
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -43,8 +43,7 @@
 # |  -h   | --help                     | Display the help menu.
 # |  -V   | --version                  | Display the version.
 # |  -ec   | --example_cron            | Display an example cron job.
-# |  --cron   | --cron                  | Run the script in cron mode. This will skip the intro message, used with cron task.
-# | | | *Not needed if using the `--cc | --cron_create` option.* (default: `false`)
+# |  --cron   | --cron                  | Run the script in cron mode. This will skip the intro message, used with cron task. <br> *Not needed if using the `--cc` option.* (default: `false`)
 # |  --cc   | --cron_create             | Create a cron job. This will create a cron job for the backup script. (default: `false`)
 #
 # #### examples:
