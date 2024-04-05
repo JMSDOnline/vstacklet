@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.826
-  Build: 826
+  Version: v3.1.1.827
+  Build: 827
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -64,13 +64,13 @@
 
 > [!WARNING]
 >
-> vStacklet for Ubuntu 16.04 and Debian 8 has been deprecated. This is due to Ubuntu 20.04/22.04 and Debian 11/12 now becoming more common place with at least 90% of the providers on the market.
+> vStacklet for Ubuntu 16.04/18.04 and Debian 8/9/10 has been deprecated (Reached End-Of-Life). This is due to Ubuntu 20.04/22.04 and Debian 11/12 now becoming more common place with at least 90% of the providers on the market. To ease the cost of maintaining the script, only the latest versions (LTS) of Ubuntu and Debian are supported. This is to ensure that the script is as up-to-date as possible.
 >
 > vStacklet is a utility for quickly getting a server with wordpress installed deployed. As is the nature of this script, it is not intended to be a modular script. It is intended to be a full kit that installs everything you need to get a server up and running (not individual components 1 at a time - though it is in the pipeline). If you are looking for a modular script, I recommend [Quick LEMP](https://github.com/jbradach/quick-lemp/) as it is the script that inspired vStacklet. Do note that Quick LEMP is not actively maintained and I wouldn't recommend using it for production use.
 
 ## What is vStacklet? <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
-vStacklet is a kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 18.04/20.04 and Debian 9/10/11/12 servers.
+vStacklet is a kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 20.04/22.04 and Debian 11/12 servers.
 
 Components include a recent mainline version of Nginx (mainline (1.23.x)) using configurations from the HTML 5 Boilerplate team (*and modified/customized for use with mainline*), Varnish 7.2.x, and MariaDB 10.6.x (drop-in replacement for MySQL), PHP8.1, PHP7.4 or HHVM 4.x **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall), Wordpress and more to be added soon. (see [To-Do List](#the-to-do-list-back-to-top))
 
@@ -345,7 +345,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 **A:** Quick LEMP is a python based application installer and uses default Boilerplate templates on Nginx/stable versions of no higher than 1.8. This limits the use of new functions and features in Nginx, nothing wrong with that, but some of us are sticklers for a recent version. vStacklet is geared towards CMS and typical website server installations, Updated/Modified/Customized Boilerplate templates to be more 'Nginx mainline' friendly; i.e http/2, as well as the ongoing use of static websites (which the original still handles splendidly!)
 
 **Q:** Why does vStacklet not support Ubuntu 16.04 and Debian 8?<br>
-**A:** Ubuntu 20.04/22.04 and Debian 11/12 are now becoming more common place with at least 90% of the providers on the market. This is why I have decided to deprecate support for Ubuntu 16.04 and Debian 8. This is to ensure that the script is as up-to-date as possible. (Debian 9 and Ubuntu 18.04 are still supported, but are also being phased out.)
+**A:** Ubuntu 20.04/22.04 and Debian 11/12 are now becoming more common place with at least 90% of the providers on the market. This is why I have decided to deprecate support for Ubuntu 16.04/18.04 and Debian 8/9/10. This is to ensure that the script is as up-to-date as possible. (Debian 9/10 and Ubuntu 18.04 are still supported, but are also being phased out as they reach EOL. Keep in mind that installing vStacklet on an EOL OS is not recommended and may cause issues.)
 
 **Q:** What is the expected install time for vStacklet?<br>
 **A:** Total script install time on a General Shared CPU <a href="https://m.do.co/c/917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 12/minutes installing everything; CSF, MariaDB, NGinx, PHP8.1, Sendmail, SSL, Varnish, WordPress. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
@@ -362,7 +362,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 **A:** vStacklet is designed to be a lightweight and fast install. Apache is not included in the script as it is not needed. Nginx is a high-performance web server that is designed to be lightweight and fast. It is a better choice for most web applications. If you are having reservations about using Nginx due to the lack of familiarity, I would recommend using the script on a test server to get a feel for it. vStacklet will handle the setting up of the necessary configurations for you.
 
 **Q:** Did you say the script is actively maintained?<br>
-**A:** Yes, the script is actively maintained. Updates are added when stable and when I have time to sit down and test. The script is tested on Ubuntu 20.04, Debian 11 and Debian 12. The script is also tested on a variety of different servers to ensure compatibility. If you have any issues with the script, please let me know and I will do my best to fix them. If you have any suggestions for improvements, please let me know and I will do my best to implement them.
+**A:** Yes, the script is actively maintained. Updates are added when stable and when I have time to sit down and test. The script is tested on Ubuntu 20.04/22.04 and Debian 11/12. The script is also tested on a variety of different servers to ensure compatibility. If you have any issues with the script, please let me know and I will do my best to fix them. If you have any suggestions for improvements, please let me know and I will do my best to implement them.
 
 **Q:** What is the purpose of the vStacklet VS-Backup script?<br>
 **A:** The vStacklet VS-Backup script is designed to help you manage and automate server/site backups. It allows you to backup your files from key locations, backup your mysql/mariadb databases, set the retention period for your backups, and cleanup remaining individual archives after the retention period has been reached. The script is designed to be easy to use and provides you with the ability to download the script and start backing up important directories and databases. Setting a scheduled cron task is easy, just append your `vs-backup` command arguments with the `-cc` flag.
@@ -390,7 +390,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 - [x] phpMyAdmin (w/ option prompt) `-pma | --phpmyadmin`
 - [x] CSF (w/ option prompt) `-csf | --csf`
 - [x] VS-Backup standalone kit (included in FULL Kit also)
-- [x] Full support for Ubuntu 20.04 & Debian 11/12
+- [x] Full support for Ubuntu 20.04/22.04 & Debian 11/12
 - [ ] Nginx with Pagespeed (w/ option prompt) `-pagespeed | --pagespeed`
 - [x] Build SSL with LetsEncrypt
 - [x] Automagically build and setup a WordPress site
@@ -405,7 +405,7 @@ Quick-Lemp is geared towards python based application installs and using default
 
 My focus was and is to provide a modified version for CMS and typical website server i.e;(WordPress, Joomla!, Drupal, Ghost, Magento ... etc ... ) installations, Updated/Modified/Customized Boilerplate templates to be more 'Nginx mainline' friendly; i.e http/2, as well as the ongoing use of static websites (which the original still handles splendidly!)
 
-Again, please be advised that I am building/testing this script on Ubuntu 20.04 (focal), Debian 11 (bullseye) & Debian 12 (bookworm) as these support Nginx versions higher than 1.8.
+Again, please be advised that I am building/testing this script on Ubuntu 20.04 (focal), Ubuntu 22.04 (jammy), Debian 11 (bullseye) & Debian 12 (bookworm) as these support Nginx versions higher than 1.8.
 
 ---
 
