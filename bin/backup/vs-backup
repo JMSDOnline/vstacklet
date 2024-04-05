@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1264
+# @version: 3.1.1267
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -55,7 +55,7 @@
 #  vs-backup -db "database" -dbuser "root" -dbpass "password" -dbenc -dbtbu "/backup/databases" -dbtbu "/tmp/vstacklet/backup/databases" -f "/var/www/html" -fdbu "/backup/files" -ftbu "/tmp/vstacklet/backup/files" -r "7" -dbrpe "enc" -cc
 # ```
 #
-# Backup a database `-db` and directory `-f`: (simple example - using minimal options)<br>
+# Backup a database `-db` and directory `-f`: (simple example - using minimal options)<br><br>
 # **ℹ notes:**
 # - The database user and password are pulled from `/root/.my.cnf` by default. No need to set them unless you want to. <sup>[Bonus: security]</sup>
 # - See the default options for the rest of the options.
@@ -68,7 +68,7 @@
 #  vs-backup -dbdecrypt
 # ```
 #
-# Extract the database backup: (can decrypt and extract)<br>
+# Extract the database backup: (can decrypt and extract)<br><br>
 # **ℹ note:** dbpass is required for decryption [see: `password` in `/root/.my.cnf`]
 # ```bash
 #  vs-backup -dbextract
@@ -911,7 +911,7 @@ vstacklet::backup::version() {
 # @name: vstacklet::backup::database_decrypt
 # @description: List the files in the backup directory and decrypt selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L921-L980)
 #
-# notes:
+# **ℹ notes:**
 # - This function will allow you to decrypt a database backup file.
 # - You can use the `-dbextract` option instead if you want to decrypt **and** extract the file.
 # @example: vs-backup -dbdecrypt
@@ -982,7 +982,7 @@ vstacklet::backup::database_decrypt() {
 # @name: vstacklet::backup::database_extract
 # @description: List the files in the backup directory and extract selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L992-L1104)
 #
-# notes:
+# **ℹ notes:**
 # - This function will allow you to extract a database backup file.
 # - This function will also decrypt the file if it is encrypted.
 # @example: vs-backup -dbextract

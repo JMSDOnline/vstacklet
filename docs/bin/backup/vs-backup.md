@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1264
+# vs-backup - v3.1.1267
 
 
 ---
@@ -60,7 +60,7 @@ Backup a database `-db` and directory `-f`: (various options - overkill example)
 
 ---
 
-Backup a database `-db` and directory `-f`: (simple example - using minimal options)<br>
+Backup a database `-db` and directory `-f`: (simple example - using minimal options)<br><br>
 **ℹ notes:**
 - The database user and password are pulled from `/root/.my.cnf` by default. No need to set them unless you want to. <sup>[Bonus: security]</sup>
 - See the default options for the rest of the options.
@@ -77,7 +77,7 @@ Decrypt the database backup: (decrypt only)
 
 ---
 
-Extract the database backup: (can decrypt and extract)<br>
+Extract the database backup: (can decrypt and extract)<br><br>
 **ℹ note:** dbpass is required for decryption [see: `password` in `/root/.my.cnf`]
 ```bash
  vs-backup -dbextract
@@ -224,7 +224,7 @@ Display the version of the backup script. [see function](https://github.com/JMSD
 
 List the files in the backup directory and decrypt selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L921-L980)
 
-notes:
+**ℹ notes:**
 - This function will allow you to decrypt a database backup file.
 - You can use the `-dbextract` option instead if you want to decrypt **and** extract the file.
 
@@ -240,7 +240,7 @@ notes:
 
 List the files in the backup directory and extract selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L992-L1104)
 
-notes:
+**ℹ notes:**
 - This function will allow you to extract a database backup file.
 - This function will also decrypt the file if it is encrypted.
 
