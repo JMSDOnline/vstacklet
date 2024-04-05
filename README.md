@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.823
-  Build: 823
+  Version: v3.1.1.824
+  Build: 824
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -355,6 +355,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 
 **Q:** Why is there the option to install either php8.1, php7.4 or HHVM?<br>
 **A:** PHP8.1 is the latest stable version of PHP. PHP7.4 is the previous stable version of PHP. HHVM is a virtual machine designed to execute programs written in Hack and PHP. It is developed by Facebook. HHVM is no longer actively maintained, but is still available for use. PHP8.1 is recommended.
+> [!NOTE]
 > PHP8.3 is technically the latest stable release, but it is not included in the script as it is not yet widely supported and there may be some compatibility issues with applications such as WordPress. Once PHP8.3 is more widely supported, it will be included in the script.
 
 **Q:** Why is there no option to install Apache?<br>
