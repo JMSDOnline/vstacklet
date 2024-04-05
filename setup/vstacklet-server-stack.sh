@@ -2,18 +2,18 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2040
+# @version: 3.1.2050
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
-# and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11/12 server for
+# and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
 # website-based server applications.
 #
 # @project_name: vstacklet
 #
 # @path: setup/vstacklet-server-stack.sh
 #
-# @brief: This script is designed to be run on a fresh Ubuntu 18.04/20.04 or
-# Debian 9/10/11/12 server. I have done my best to keep it tidy and with as much
+# @brief: This script is designed to be run on a fresh Ubuntu 20.04/22.04 or
+# Debian 11/12 server. I have done my best to keep it tidy and with as much
 # error checking as possible. Couple this with loads of comments and you should
 # have a pretty good idea of what is going on. If you have any questions,
 # comments, or suggestions, please feel free to open an issue on GitHub.
@@ -116,7 +116,7 @@
 #   - [arguments](#arguments-9)
 #   - [return codes](#return-codes-17)
 #   - [examples](#examples-12)
-# - [vstacklet::redis::install()](vstackletredisinstall)
+# - [vstacklet::redis::install()](#vstackletredisinstall)
 #   - [options](#options-13)
 #   - [arguments](#arguments-10)
 #   - [return codes](#return-codes-18)
@@ -525,7 +525,7 @@ vstacklet::environment::functions() {
 			fi
 		done
 		[[ ${_result} == "1" ]] && vstacklet::shell::text::error "[${_result}]: ${_named_array} array does not contain ${_value}" # && exit 1
-		return "${_result}" # 0 if found, 1 if not found, 2 if missing arguments
+		return "${_result}"                                                                                                       # 0 if found, 1 if not found, 2 if missing arguments
 	}
 	vstacklet::shell::output() {
 		declare shell_reset
@@ -889,7 +889,7 @@ vstacklet::dependencies::array() {
 	# @script-note: install mariadb dependencies
 	declare -ga mariadb_dependencies=("mariadb-server" "mariadb-client")
 	# @script-note: install mysql dependencies
-	declare -ga mysql_dependencies=("mysql-server" "mysql-client")
+	declare -ga mysql_dependencies=("mysql-server" "mysql-client" "libmysqlclient-dev")
 	# @script-note: install postgresql dependencies
 	declare -ga postgresql_dependencies=("postgresql" "postgresql-contrib")
 	# @script-note: install redis dependencies
@@ -1977,11 +1977,11 @@ DOD
 
 ##################################################################################
 # @name: vstacklet::mysql::install (30)
-# @description: Install mySQL and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2006-L2141)
+# @description: Install mySQL and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2007-L2130)
 #
 # notes:
 # - if `-mariadb | --mariadb` is specified, then mysql will not be installed. choose either mysql or mariadb.
-# - apt-deb mysql version is 0.8.24-1_all.deb
+# - apt-deb mysql version is 0.8.29-1_all.deb
 # - actual mysql version installed is 8.0.+
 # @option: $1 - `-mysql | --mysql` (optional) (takes no arguments)
 # @option: $2 - `-mysqlP | --mysql_port` (optional) (takes one argument)
@@ -2002,17 +2002,25 @@ DOD
 # @return_code: 49 - failed to grant MySQL user privileges.
 # @return_code: 50 - failed to flush MySQL privileges.
 # @break
+# shellcheck disable=SC2034,SC2155
 ##################################################################################
 vstacklet::mysql::install() {
 	if [[ -n ${mysql} ]]; then
 		declare mysql_autoPw
 		mysql_autoPw="$(perl -e 'print map +(A..Z,a..z,0..9)[rand 62], 0..15')"
-		mysql_deb_version="mysql-apt-config_0.8.24-1_all.deb"
+		local mysql_deb_version=$(curl -s4 "https://dev.mysql.com/downloads/repo/apt/" | grep -Eo "mysql-apt-config_[0-9]+\.[0-9]+\.[0-9]+-[0-9]+" | head -n 1)
+		[[ -f "/tmp/${mysql_deb_version}_all.deb" ]] && rm -f "/tmp/${mysql_deb_version}.*"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring MySQL ... "
 		# @script-note: install mysql deb
-		vstacklet::log "wget https://dev.mysql.com/get/mysql-apt-config_${mysql_deb_version}_all.deb -O /tmp/mysql-apt-config_${mysql_deb_version}_all.deb" || vstacklet::clean::rollback 43
-		vstacklet::log "dpkg -i ${mysql_deb_version}" || vstacklet::clean::rollback 44
+		vstacklet::log "wget https://dev.mysql.com/get/${mysql_deb_version}_all.deb -O /tmp/${mysql_deb_version}_all.deb" || vstacklet::clean::rollback 43
+		declare DEBIAN_FRONTEND=noninteractive
+		yes | DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold install "/tmp/${mysql_deb_version}_all.deb" --allow-change-held-packages >>${vslog} 2>&1 || vstacklet::clean::rollback 44
+		# @script-note: run apt maintenance to ensure environment is up-to-date
+		DEBIAN_FRONTEND=noninteractive apt-get -y update
+		apt-get -y upgrade
+		apt-get -y autoremove
+		apt-get -y autoclean >>${vslog} 2>&1
 		# @script-note: install mysql dependencies
 		declare -a depend_list install_list
 		for depend in "${mysql_dependencies[@]}"; do
@@ -2036,70 +2044,51 @@ vstacklet::mysql::install() {
 			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
 		done
 		unset depend_list install_list
+		vstacklet::log "systemctl enable mysql"
+		vstacklet::log "systemctl start mysql"
 		# @script-note: configure mysql
 		vstacklet::shell::text::yellow::sl "configuring MySQL ... " &
 		vs::stat::progress::start # start progress status
 		# @script-note: set mysql client and server configuration
 		{
 			echo -e "[client]"
-			echo -e "username = ${mysql_user:-admin}"
+			echo -e "user = ${mysql_user:-admin}"
 			echo -e "password = ${mysql_password:-${mysql_autoPw}}"
 			echo
 			echo -e "[mysqld]"
 			echo -e "port = ${mysql_port:-3306}"
-			echo -e "socket = /var/run/mysql/mysql.sock"
+			echo -e "socket = /run/mysqld/mysqld.sock"
 			echo -e "bind-address = 127.0.0.1"
-			echo -e "skip-external-locking"
+			echo -e "mysqlx-bind-address = 127.0.0.1"
+			echo -e "datadir = /var/lib/mysql"
+			echo -e "log-error = /var/log/mysql/error.log"
+			echo -e "pid-file = /var/run/mysqld/mysqld.pid"
 			echo -e "key_buffer_size = 16M"
+			echo -e "myisam-recover-options = BACKUP"
 			echo -e "max_allowed_packet = 16M"
-			#echo -e "table_open_cache = 64"
-			echo -e "sort_buffer_size = 4M"
-			echo -e "net_buffer_length = 8K"
-			echo -e "read_buffer_size = 2M"
-			echo -e "read_rnd_buffer_size = 1M"
-			echo -e "myisam_sort_buffer_size = 64M"
-			echo -e "thread_cache_size = 8"
-			echo -e "query_cache_size = 32M"
-			echo -e "query_cache_limit = 2M"
-			echo -e "query_cache_type = 1"
-			echo -e "log_error = /var/log/mysql/error.log"
-			echo -e "expire_logs_days = 10"
+			echo -e "max_heap_table_size = 16M"
+			echo -e "max_sp_recursion_depth = 255"
 			echo -e "max_binlog_size = 100M"
-			echo -e "character-set-server = utf8mb4"
-			echo -e "collation-server = utf8mb4_unicode_ci"
-			echo -e "default-storage-engine = InnoDB"
-			echo -e "innodb_file_per_table = 1"
-			echo -e "innodb_buffer_pool_size = 128M"
-			echo -e "innodb_log_file_size = 64M"
-			echo -e "innodb_log_buffer_size = 8M"
-			echo -e "innodb_flush_log_at_trx_commit = 1"
-			echo -e "innodb_lock_wait_timeout = 50"
-			echo -e "innodb_doublewrite = 1"
-			echo -e "innodb_flush_method = O_DIRECT"
-			echo -e "innodb_read_io_threads = 4"
-			echo -e "innodb_write_io_threads = 4"
-			echo -e "innodb_purge_threads = 1"
-			echo -e "innodb_thread_concurrency = 0"
-			echo -e "innodb_strict_mode = 1"
-			echo -e "innodb_large_prefix = 1"
-			echo -e "innodb_file_format = Barracuda"
-			echo -e "innodb_file_format_max = Barracuda"
-			echo -e "innodb_stats_on_metadata = 0"
-			echo -e "innodb_autoinc_lock_mode = 2"
-			echo -e "innodb_print_all_deadlocks = 1"
-			echo -e "innodb_buffer_pool_instances = 1"
-			echo -e "innodb_buffer_pool_load_at_startup = 1"
-			echo -e "innodb_buffer_pool_dump_at_shutdown = 1"
-			echo -e "innodb_buffer_pool_dump_pct = 25"
-			echo -e "innodb_buffer_pool_dump_now = 1"
-			echo -e "innodb_buffer_pool_load_now = 1"
-			echo -e "innodb_buffer_pool_dump_filename = /var/lib/mysql/ib_buffer_pool"
-			echo -e "innodb_buffer_pool_load_filename = /var/lib/mysql/ib_buffer_pool"
+			echo -e "max_binlog_cache_size = 1M"
+			echo -e "max_binlog_stmt_cache_size = 1M"
+			echo -e "max_sort_length = 1024"
+			echo -e "max_join_size = 1000000"
+			echo -e "max_length_for_sort_data = 1024"
+			echo -e "max_seeks_for_key = 4294967295"
+			echo -e "max_write_lock_count = 4294967295"
+			echo -e "max_prepared_stmt_count = 16382"
+			echo -e "max_delayed_threads = 20"
 		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::clean::rollback 46
 		# @script-note: set mysql privileges
 		{
-			echo -e "[mysqld]"
-			echo -e "skip-grant-tables"
+			echo -e "########################################################################"
+			echo -e "# MariaDB database privileges"
+			echo -e "# Uncomment the following lines to disable MariaDB database privileges"
+			echo -e "########################################################################"
+			echo -e ""
+			echo -e "#[mysqld]"
+			echo -e "#skip-grant-tables"
+			echo -e ""
 		} >/etc/mysql/conf.d/vstacklet-grant.cnf >>${vslog} 2>&1
 		# @script-note: set ~/.my.cnf
 		{
@@ -2116,12 +2105,12 @@ vstacklet::mysql::install() {
 			echo -e "password = ${mysql_password:-${mysql_autoPw}}"
 		} >"${HOME}/.my.cnf" || vstacklet::clean::rollback 47
 		vstacklet::log "systemctl daemon-reload"
-		#vstacklet::log "systemctl enable mysql"
-		#vstacklet::log "systemctl restart mysql"
+		vstacklet::log "systemctl enable mysql"
+		vstacklet::log "systemctl restart mysql"
 		#mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::clean::rollback 79
-		mysql -e "CREATE USER '${mysql_user:-admin}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 48
-		mysql -e "GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 49
-		mysql -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 50
+		mysql -u root -e "CREATE USER '${mysql_user:-admin}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';" >>${vslog} 2>&1 || vstacklet::clean::rollback 48
+		mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::clean::rollback 49
+		mysql -u root -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::clean::rollback 50
 		vs::stat::progress::stop # stop progress status
 		# @script-note: mysql installation complete
 		vstacklet::shell::text::green "MySQL installed and configured. see details below:"
@@ -2142,7 +2131,7 @@ vstacklet::mysql::install() {
 
 ##################################################################################
 # @name: vstacklet::postgre::install (31)
-# @description: Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2165-L2252)
+# @description: Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2154-L2241)
 #
 # note: postgresql is not installed by default and is currently untested.
 # this function is a work in progress. it is intended as a future feature.
@@ -2253,7 +2242,7 @@ vstacklet::postgre::install() {
 
 ##################################################################################
 # @name: vstacklet::redis::install (32)
-# @description: Install and configure Redis. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2279-L2333)
+# @description: Install and configure Redis. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2268-L2322)
 #
 # note: redis is not installed by default and is currently untested.
 # this function is a work in progress. it is intended as a future feature.
@@ -2334,7 +2323,7 @@ vstacklet::redis::install() {
 
 ##################################################################################
 # @name: vstacklet::phpmyadmin::install (33)
-# @description: Install phpMyAdmin and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2384-L2478)
+# @description: Install phpMyAdmin and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2373-L2467)
 #
 # notes:
 # - phpMyAdmin no longer supports HHVM due to the project now just focusing on
@@ -2479,7 +2468,7 @@ vstacklet::phpmyadmin::install() {
 
 ##################################################################################
 # @name: vstacklet::csf::install (34)
-# @description: Install CSF firewall. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2515-L2643)
+# @description: Install CSF firewall. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2504-L2632)
 #
 # notes:
 # - https://configserver.com/cp/csf.html
@@ -2646,7 +2635,7 @@ vstacklet::csf::install() {
 # @name: vstacklet::cloudflare::csf (34.1)
 # @description: Configure Cloudflare IP addresses in CSF. This is to be used
 # when Cloudflare is used as a CDN. This will allow CSF to
-# recognize Cloudflare IPs as trusted. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2666-L2683)
+# recognize Cloudflare IPs as trusted. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2655-L2672)
 #
 # notes:
 # - This function is only called under the following conditions:
@@ -2685,7 +2674,7 @@ vstacklet::cloudflare::csf() {
 ##################################################################################
 # @name: vstacklet::sendmail::install (35)
 # @description: Install and configure sendmail. This is a required component for
-# CSF to function properly. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2712-L2803)
+# CSF to function properly. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2701-L2792)
 #
 # notes:
 # - The `-e | --email` option is required for this function to run properly.
@@ -2805,7 +2794,7 @@ EOF
 ##################################################################################
 # @name: vstacklet::wordpress::install (36)
 # @description: Install WordPress. This will also configure WordPress to use
-# the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2848-L3054)
+# the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2837-L3043)
 #
 # notes:
 # - this function is only called under the following conditions:
@@ -3056,7 +3045,7 @@ vstacklet::wordpress::install() {
 ##################################################################################
 # @name: vstacklet::domain::ssl (37)
 # @description: The following function installs the SSL certificate
-#   for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3086-L3145)
+#   for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3075-L3134)
 #
 # notes:
 # - This function is only called under the following conditions:
@@ -3149,7 +3138,7 @@ vstacklet::domain::ssl() {
 # @description: Cleans up the system after a successful installation. This
 #   function is called after the installation is complete. It removes the
 #   temporary files and directories created during the installation process.
-#   This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3159-L3186)
+#   This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3148-L3175)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3190,7 +3179,7 @@ vstacklet::clean::complete() {
 # @description: Outputs success message on completion of setup. This function
 #   is called after the installation is complete. It outputs a success message
 #   to the user and provides them with the necessary information to access their
-#   new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3200-L3238)
+#   new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3189-L3227)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3239,7 +3228,7 @@ vstacklet::message::complete() {
 
 ################################################################################
 # @name: vstacklet::help::display (40)
-# @description: Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3249-L3350)
+# @description: Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3238-L3339)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3351,7 +3340,7 @@ vstacklet::help::display() {
 
 ################################################################################
 # @name: vstacklet::version::display (41)
-# @description: Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3361-L3367)
+# @description: Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3350-L3356)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3368,7 +3357,7 @@ vstacklet::version::display() {
 
 ################################################################################
 # @name: vstacklet::clean::rollback - vStacklet Rollback (42/return_code)
-# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3386-L3641)
+# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3375-L3630)
 #
 # notes:
 # - it will remove the temporary files and directories created during the installation

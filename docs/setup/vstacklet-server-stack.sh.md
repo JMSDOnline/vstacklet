@@ -1,10 +1,10 @@
-# vstacklet-server-stack.sh - v3.1.2040
+# vstacklet-server-stack.sh - v3.1.2050
 
 
 ---
 
-This script is designed to be run on a fresh Ubuntu 18.04/20.04 or
-Debian 9/10/11/12 server. I have done my best to keep it tidy and with as much
+This script is designed to be run on a fresh Ubuntu 20.04/22.04 or
+Debian 11/12 server. I have done my best to keep it tidy and with as much
 error checking as possible. Couple this with loads of comments and you should
 have a pretty good idea of what is going on. If you have any questions,
 comments, or suggestions, please feel free to open an issue on GitHub.
@@ -113,7 +113,7 @@ Important Links:
   - [arguments](#arguments-9)
   - [return codes](#return-codes-17)
   - [examples](#examples-12)
-- [vstacklet::redis::install()](vstackletredisinstall)
+- [vstacklet::redis::install()](#vstackletredisinstall)
   - [options](#options-13)
   - [arguments](#arguments-10)
   - [return codes](#return-codes-18)
@@ -811,11 +811,11 @@ notes:
 
 ### vstacklet::mysql::install()
 
-Install mySQL and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2006-L2141)
+Install mySQL and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2007-L2130)
 
 notes:
 - if `-mariadb | --mariadb` is specified, then mysql will not be installed. choose either mysql or mariadb.
-- apt-deb mysql version is 0.8.24-1_all.deb
+- apt-deb mysql version is 0.8.29-1_all.deb
 - actual mysql version installed is 8.0.+
 
 #### options:
@@ -853,7 +853,7 @@ notes:
 
 ### vstacklet::postgre::install()
 
-Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2165-L2252)
+Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2154-L2241)
 
 note: postgresql is not installed by default and is currently untested.
 this function is a work in progress. it is intended as a future feature.
@@ -889,7 +889,7 @@ this function is a work in progress. it is intended as a future feature.
 
 ### vstacklet::redis::install()
 
-Install and configure Redis. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2279-L2333)
+Install and configure Redis. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2268-L2322)
 
 note: redis is not installed by default and is currently untested.
 this function is a work in progress. it is intended as a future feature.
@@ -927,7 +927,7 @@ this function is a work in progress. it is intended as a future feature.
 
 ### vstacklet::phpmyadmin::install()
 
-Install phpMyAdmin and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2384-L2478)
+Install phpMyAdmin and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2373-L2467)
 
 notes:
 - phpMyAdmin no longer supports HHVM due to the project now just focusing on
@@ -990,7 +990,7 @@ notes:
 
 ### vstacklet::csf::install()
 
-Install CSF firewall. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2515-L2643)
+Install CSF firewall. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2504-L2632)
 
 notes:
 - https://configserver.com/cp/csf.html
@@ -1041,7 +1041,7 @@ notes:
 
 Configure Cloudflare IP addresses in CSF. This is to be used
 when Cloudflare is used as a CDN. This will allow CSF to
-recognize Cloudflare IPs as trusted. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2666-L2683)
+recognize Cloudflare IPs as trusted. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2655-L2672)
 
 notes:
 - This function is only called under the following conditions:
@@ -1073,7 +1073,7 @@ notes:
 ### vstacklet::sendmail::install()
 
 Install and configure sendmail. This is a required component for
-CSF to function properly. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2712-L2803)
+CSF to function properly. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2701-L2792)
 
 notes:
 - The `-e | --email` option is required for this function to run properly.
@@ -1115,7 +1115,7 @@ notes:
 ### vstacklet::wordpress::install()
 
 Install WordPress. This will also configure WordPress to use
-the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2848-L3054)
+the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2837-L3043)
 
 notes:
 - this function is only called under the following conditions:
@@ -1169,7 +1169,7 @@ these arguments are:
 ### vstacklet::domain::ssl()
 
 The following function installs the SSL certificate
-  for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3086-L3145)
+  for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3075-L3134)
 
 notes:
 - This function is only called under the following conditions:
@@ -1215,7 +1215,7 @@ notes:
 Cleans up the system after a successful installation. This
   function is called after the installation is complete. It removes the
   temporary files and directories created during the installation process.
-  This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3159-L3186)
+  This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3148-L3175)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -1230,7 +1230,7 @@ Cleans up the system after a successful installation. This
 Outputs success message on completion of setup. This function
   is called after the installation is complete. It outputs a success message
   to the user and provides them with the necessary information to access their
-  new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3200-L3238)
+  new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3189-L3227)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -1242,7 +1242,7 @@ Outputs success message on completion of setup. This function
 
 ### vstacklet::help::display()
 
-Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3249-L3350)
+Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3238-L3339)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -1254,7 +1254,7 @@ Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnli
 
 ### vstacklet::version::display()
 
-Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3361-L3367)
+Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3350-L3356)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -1266,7 +1266,7 @@ Displays the current version of vStacklet. [see function](https://github.com/JMS
 
 ### vstacklet::clean::rollback()
 
-This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3386-L3641)
+This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3375-L3630)
 
 notes:
 - it will remove the temporary files and directories created during the installation

@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.818
-  Build: 818
+  Version: v3.1.1.819
+  Build: 819
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -79,6 +79,9 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 
 ## Script Features <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
+- Easy to use - just run the script with your needed arguments and follow the prompts.
+- Fast and lightweight install - no bloatware, just the essentials.
+- Thouroughly documented - each script has it's own documentation for easy reference. The code is also heavily commented, making it easier to understand what's going on.
 - Quiet installer - no more long scrolling text vomit, just see what's important; when it's presented.
 - Script writes output to `/var/log/vstacklet.###.log` for additional observations.
 - Color Coding for emphasis on install processes.
@@ -86,7 +89,6 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 - Varnish Cache on port 80 with Nginx port 8080 SSL termination on 443.
 - Users choice of php8.1, php7.4 or HHVM
 - No Apache - Full throttle!
-- Fast and Lightweight install.
 - Full Kit functionality - backup scripts included.
 - Dynamic rollback built-in should the install fail. All dependencies and directories placed by vStacklet are removed on the rollback.
 - Actively maintained w/ updates added when stable.
@@ -330,6 +332,46 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/b
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/www-permissions-standalone.sh)
 ```
+
+---
+
+## F.A.Q. <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
+
+**Q:** What is the purpose of vStacklet?
+**A:** vStacklet is a utility for quickly getting a server with wordpress installed deployed. As is the nature of this script, it is not intended to be a modular script. It is intended to be a full kit that installs everything you need to get a server up and running (not individual components 1 at a time - though it is in the pipeline).
+
+**Q:** What is the difference between vStacklet and Quick LEMP?
+**A:** Quick LEMP is a python based application installer and uses default Boilerplate templates on Nginx/stable versions of no higher than 1.8. This limits the use of new functions and features in Nginx, nothing wrong with that, but some of us are sticklers for a recent version. vStacklet is geared towards CMS and typical website server installations, Updated/Modified/Customized Boilerplate templates to be more 'Nginx mainline' friendly; i.e http/2, as well as the ongoing use of static websites (which the original still handles splendidly!)
+
+**Q:** Why does vStacklet not support Ubuntu 16.04 and Debian 8?
+**A:** Ubuntu 20.04/22.04 and Debian 11/12 are now becoming more common place with at least 90% of the providers on the market. This is why I have decided to deprecate support for Ubuntu 16.04 and Debian 8. This is to ensure that the script is as up-to-date as possible. (Debian 9 and Ubuntu 18.04 are still supported, but are also being phased out.)
+
+**Q:** What is the expected install time for vStacklet?
+**A:** Total script install time on a General Shared CPU <a href="https://m.do.co/c/917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 12/minutes installing everything; CSF, MariaDB, NGinx, PHP8.1, Sendmail, SSL, Varnish, WordPress. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
+
+**Q:** Why is there the option to install either mariadb or mysql?
+**A:** MariaDB is a drop-in replacement for MySQL. It is a fork of MySQL and is maintained by the original developers of MySQL. It is designed to be a drop-in replacement for MySQL, and it includes all of the major features found in MySQL. Either can be used, but MariaDB is recommended.
+
+**Q:** Why is there the option to install either php8.1, php7.4 or HHVM?
+**A:** PHP8.1 is the latest stable version of PHP. PHP7.4 is the previous stable version of PHP. HHVM is a virtual machine designed to execute programs written in Hack and PHP. It is developed by Facebook. HHVM is no longer actively maintained, but is still available for use. PHP8.1 is recommended.
+
+**Q:** Why is there no option to install Apache?
+**A:** vStacklet is designed to be a lightweight and fast install. Apache is not included in the script as it is not needed. Nginx is a high-performance web server that is designed to be lightweight and fast. It is a better choice for most web applications. If you are having reservations about using Nginx due to the lack of familiarity, I would recommend using the script on a test server to get a feel for it. vStacklet will handle the setting up of the necessary configurations for you.
+
+**Q:** Did you say the script is actively maintained?
+**A:** Yes, the script is actively maintained. Updates are added when stable and when I have time to sit down and test. The script is tested on Ubuntu 20.04, Debian 11 and Debian 12. The script is also tested on a variety of different servers to ensure compatibility. If you have any issues with the script, please let me know and I will do my best to fix them. If you have any suggestions for improvements, please let me know and I will do my best to implement them.
+
+**Q:** What is the purpose of the vStacklet VS-Backup script?
+**A:** The vStacklet VS-Backup script is designed to help you manage and automate server/site backups. It allows you to backup your files from key locations, backup your mysql/mariadb databases, set the retention period for your backups, and cleanup remaining individual archives after the retention period has been reached. The script is designed to be easy to use and provides you with the ability to download the script and start backing up important directories and databases. Setting a scheduled cron task is easy, just append your `vs-backup` command arguments with the `-cc` flag.
+
+**Q:** What is the purpose of the vStacklet VS-Perms script?
+**A:** The vStacklet VS-Perms script is designed to help you manage and automate www directory permissions. It checks the www-data group exists, if not, creates it. It checks the user group exists, if not, creates it. It checks the user exists, if not, creates it. It checks the user is a member of the www-data group, if not, adds them. It sets the correct permissions for the web root directory. The script is designed to be easy to use and provides you with the ability to manage and automate www directory permissions.
+
+**Q:** Are you maintaining vStacklet on your own?
+**A:** Yes, I am maintaining vStacklet on my own. I am a web developer and I proudly eat my own dog food (have been using vStacklet for a while now for use with client projects). I have found it to be a very useful tool for quickly getting a server up and running. I have made some modifications to the script to better suit my needs, and I am continuing to work on it to make it even better. I am always looking for ways to improve the script, so if you have any suggestions, please let me know.
+
+**Q:** Do you take donations?
+**A:** I do not take donations. I am happy to provide this script for free and I am happy to help you with any issues you may have (as I find the time). If you have any suggestions for improvements, please let me know and I will do my best to implement them. If you have any issues with the script, please let me know and I will do my best to fix them. I am always looking for ways to improve the script, so if you have any suggestions, please let me know. If you really want to donate, I would recommend donating to a charity of your choice, or to an open source project that you use and love. You can also donate contributions to improve the code! :smile:
 
 ---
 
