@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1242
+# vs-backup - v3.1.1245
 
 
 ---
@@ -120,7 +120,7 @@ Backup the specified files. [see function](https://github.com/JMSDOnline/vstackl
 
 ### vstacklet::backup::database()
 
-Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L581-L614)
+Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L581-L630)
 
 note: This function will additionally package the database backup into a tarball
 and compress it on the fly, then encrypt it. The tarball will be moved to the
@@ -139,7 +139,7 @@ vs-backup -dbextract
 ### vstacklet::backup::retention()
 
 The retention used in the backup script. This is used to delete
-old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L634-L658)
+old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L650-L674)
 
 notes:
 - The retention is based on the modification time of the file.
@@ -155,7 +155,7 @@ path to /backup/files/backup/.
 
 ### vstacklet::backup::cron::create()
 
-Create a cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L674-L742)
+Create a cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L690-L771)
 
 notes:
 - The cron job will run daily at 12:30 AM
@@ -175,19 +175,19 @@ notes:
 
 ### vstacklet::outro()
 
-Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L749-L754)
+Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L778-L783)
 
 ---
 
 ### vstacklet::backup::usage()
 
-Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L761-L820)
+Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L790-L849)
 
 ---
 
 ### vstacklet::backup::example_cron()
 
-Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L828-L848)
+Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L857-L877)
 
 #### examples:
 
@@ -199,13 +199,13 @@ Example cron job for the backup script. [see function](https://github.com/JMSDOn
 
 ### vstacklet::backup::version()
 
-Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L855-L861)
+Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L884-L890)
 
 ---
 
 ### vstacklet::backup::database_decrypt()
 
-List the files in the backup directory and decrypt selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L878-L937)
+List the files in the backup directory and decrypt selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L907-L966)
 
 notes:
 - This function will allow you to decrypt a database backup file.
@@ -221,7 +221,7 @@ notes:
 
 ### vstacklet::backup::database_extract()
 
-List the files in the backup directory and extract selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L949-L1061)
+List the files in the backup directory and extract selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L978-L1090)
 
 notes:
 - This function will allow you to extract a database backup file.

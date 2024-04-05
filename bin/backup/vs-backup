@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1242
+# @version: 3.1.1245
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -562,7 +562,7 @@ vstacklet::backup::files() {
 
 ################################################################################
 # @name: vstacklet::backup::database (9)
-# @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L581-L614)
+# @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L581-L630)
 #
 # note: This function will additionally package the database backup into a tarball
 # and compress it on the fly, then encrypt it. The tarball will be moved to the
@@ -595,7 +595,23 @@ vstacklet::backup::database() {
 	vstacklet::shell::text::white "Backing up ${db} database to ${db_dir_dest}${db}.${db_package}..."
 	# @script-note: create the backup and compress it on the fly, then encrypt it
 	# shellcheck disable=SC2086
-	mysqldump ${db_options} -u"${db_user}" -p"${db_pass}" ${db_dump_options} ${db} | ${compression} ${compression_options} >"${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.${db_package}"
+	# @script-note: check if `/root/.my.cnf` exists, if so, use it for the MySQL username and password
+	if [[ -f "/root/.my.cnf" ]]; then
+		# @script-note: check if the `/root/.my.cnf` file is properly formatted
+		if [[ -z "$(grep 'password' <'/root/.my.cnf' | awk -F'=' '{print $2}' | head -n 1)" ]]; then
+			vstacklet::shell::text::error "The MySQL password is not set in /root/.my.cnf."
+			vstacklet::shell::misc::nl
+			exit 1
+		fi
+		if [[ -z "$(grep 'user' <'/root/.my.cnf' | awk -F'=' '{print $2}' | head -n 1)" ]]; then
+			vstacklet::shell::text::error "The MySQL user is not set in /root/.my.cnf."
+			vstacklet::shell::misc::nl
+			exit 1
+		fi
+		mysqldump ${db_options} ${db} ${db_dump_options} | ${compression} ${compression_options} >"${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.${db_package}"
+	else
+		mysqldump ${db_options} -u"${db_user}" -p"${db_pass}" ${db_dump_options} ${db} | ${compression} ${compression_options} >"${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.${db_package}"
+	fi
 	[[ -z "${db_encryption}" ]] && mv "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.${db_package}" "${db_dir_dest:-/backup/databases/}${db}.${db_package}"
 	# @script-note: encrypt the backup if the encryption option is set
 	if [[ "${db_encryption}" == "true" ]]; then
@@ -616,7 +632,7 @@ vstacklet::backup::database() {
 ##################################################################################
 # @name: vstacklet::backup::retention (10)
 # @description: The retention used in the backup script. This is used to delete
-# old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L634-L658)
+# old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L650-L674)
 #
 # notes:
 # - The retention is based on the modification time of the file.
@@ -659,7 +675,7 @@ vstacklet::backup::retention() {
 
 ##################################################################################
 # @name: vstacklet::backup::cron::create (11)
-# @description: Create a cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L674-L742)
+# @description: Create a cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L690-L771)
 #
 # notes:
 # - The cron job will run daily at 12:30 AM
@@ -684,7 +700,7 @@ vstacklet::backup::cron::create() {
 		vstacklet::shell::text::info "Current Cron Job:"
 		vstacklet::shell::text::white "--------------------------------------------------------------------------------"
 		# @script-note: display the current cron job
-		cat "/etc/cron.d/vs_backup"
+		fold -w 80 -s <"/etc/cron.d/vs_backup"
 		vstacklet::shell::text::white "--------------------------------------------------------------------------------"
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white::sl "Would you like to overwrite the cron job? [$(echo -e "$(tput setaf 2)y${shell_reset}$(tput setaf 7)")/$(echo -e "$(tput setaf 1)n${shell_reset}$(tput setaf 7)")] "
@@ -696,6 +712,19 @@ vstacklet::backup::cron::create() {
 	declare -a flags=("$@")
 	# @script-note: remove the -cc flag from the flags array
 	flags=("${flags[@]/-cc/}")
+	# @script-note: [improve security] set custom removal conditions in array if `/root/.my.cnf` exists
+	if [[ -f "/root/.my.cnf" ]]; then
+		# @script-note: find the index of the -dbuser and -dbpass flags
+		for ((i = 0; i < ${#flags[@]}; i++)); do
+			if [[ "${flags[i]}" == "-dbuser" || "${flags[i]}" == "-dbpass" ]]; then
+				# @script-note: remove the flag and its associated argument from the array
+				unset "flags[i]"
+				unset "flags[i+1]"
+			fi
+		done
+		# @script-note: re-index the array after removing elements
+		flags=("${flags[@]}")
+	fi
 	# @script-note: create the command string
 	command="/usr/local/bin/vs-backup"
 	for ((i = 0; i < ${#flags[@]}; i++)); do
@@ -735,7 +764,7 @@ EOF
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::info "Current Cron Job:"
 	vstacklet::shell::text::white "--------------------------------------------------------------------------------"
-	cat "/etc/cron.d/vs_backup"
+	fold -w 80 -s <"/etc/cron.d/vs_backup"
 	vstacklet::shell::text::white "--------------------------------------------------------------------------------"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::misc::nl
@@ -743,7 +772,7 @@ EOF
 
 ##################################################################################
 # @name: vstacklet::outro (12)
-# @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L749-L754)
+# @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L778-L783)
 # @break
 ##################################################################################
 vstacklet::outro() {
@@ -755,7 +784,7 @@ vstacklet::outro() {
 
 ##################################################################################
 # @name: vstacklet::backup::usage
-# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L761-L820)
+# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L790-L849)
 # @break
 ##################################################################################
 vstacklet::backup::usage() {
@@ -821,7 +850,7 @@ vstacklet::backup::usage() {
 
 ##################################################################################
 # @name: vstacklet::backup::example_cron
-# @description: Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L828-L848)
+# @description: Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L857-L877)
 # @example: vs-backup -ec
 # @break
 ##################################################################################
@@ -849,7 +878,7 @@ vstacklet::backup::example_cron() {
 
 ##################################################################################
 # @name: vstacklet::backup::version
-# @description: Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L855-L861)
+# @description: Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L884-L890)
 # @break
 ##################################################################################
 vstacklet::backup::version() {
@@ -867,7 +896,7 @@ vstacklet::backup::version() {
 
 ##################################################################################
 # @name: vstacklet::backup::database_decrypt
-# @description: List the files in the backup directory and decrypt selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L878-L937)
+# @description: List the files in the backup directory and decrypt selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L907-L966)
 #
 # notes:
 # - This function will allow you to decrypt a database backup file.
@@ -938,7 +967,7 @@ vstacklet::backup::database_decrypt() {
 
 ################################################################################
 # @name: vstacklet::backup::database_extract
-# @description: List the files in the backup directory and extract selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L949-L1061)
+# @description: List the files in the backup directory and extract selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L978-L1090)
 #
 # notes:
 # - This function will allow you to extract a database backup file.
