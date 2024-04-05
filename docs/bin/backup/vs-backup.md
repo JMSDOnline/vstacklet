@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1261
+# vs-backup - v3.1.1263
 
 
 ---
@@ -60,7 +60,7 @@ Backup a database `-db` and directory `-f`: (various options - overkill example)
 
 ---
 
-Backup a database `-db` and directory `-f`: (simple example - using minimal options)
+Backup a database `-db` and directory `-f`: (simple example - using minimal options)<br>
 notes:
 - The database user and password are pulled from `/root/.my.cnf` by default. No need to set them unless you want to. <sup>[Bonus: security]</sup>
 - See the default options for the rest of the options.
