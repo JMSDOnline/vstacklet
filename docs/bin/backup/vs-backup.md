@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1258
+# vs-backup - v3.1.1259
 
 
 ---
@@ -53,14 +53,14 @@ This script will do the following:
 
 ---
 
-Backup the database: (various options - overkill example)
+Backup a database `-db` and directory `-f`: (various options - overkill example)
 ```bash
  vs-backup -db "database" -dbuser "root" -dbpass "password" -dbenc -dbtbu "/backup/databases" -dbtbu "/tmp/vstacklet/backup/databases" -f "/var/www/html" -fdbu "/backup/files" -ftbu "/tmp/vstacklet/backup/files" -r "7" -dbrpe "enc" -cc
 ```
 
 ---
 
-Backup the database: (simple example - using minimal options)
+Backup a database `-db` and directory `-f`: (simple example - using minimal options)
 notes:
 - The database user and password are pulled from `/root/.my.cnf` by default. No need to set them unless you want to. <sup>[Bonus: security]</sup>
 - See the default options for the rest of the options.
