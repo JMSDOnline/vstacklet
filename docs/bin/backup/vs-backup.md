@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1263
+# vs-backup - v3.1.1264
 
 
 ---
@@ -61,7 +61,7 @@ Backup a database `-db` and directory `-f`: (various options - overkill example)
 ---
 
 Backup a database `-db` and directory `-f`: (simple example - using minimal options)<br>
-notes:
+**ℹ notes:**
 - The database user and password are pulled from `/root/.my.cnf` by default. No need to set them unless you want to. <sup>[Bonus: security]</sup>
 - See the default options for the rest of the options.
 ```bash
@@ -77,8 +77,8 @@ Decrypt the database backup: (decrypt only)
 
 ---
 
-Extract the database backup: (can decrypt and extract)
-note: dbpass is required for decryption [see: `password` in `/root/.my.cnf`]
+Extract the database backup: (can decrypt and extract)<br>
+**ℹ note:** dbpass is required for decryption [see: `password` in `/root/.my.cnf`]
 ```bash
  vs-backup -dbextract
 ```
