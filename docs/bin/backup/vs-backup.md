@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1241
+# vs-backup - v3.1.1242
 
 
 ---
@@ -33,8 +33,8 @@ This script will do the following:
 |  -dbdbu     | --database_backup_directory   | The database destination backup directory. <sup>(default: `/backup/databases`)</sup>
 |  -dbtbu     | --database_temporary_directory  | The database temporary backup directory. <sup>(default: `/tmp/vstacklet/backup/databases`)</sup>
 |  -dbenc     | --database_encryption     | Encrypt the database backup. <sup>(default: `false`)</sup>
-|  -dbdecrypt | --database_decryption   | Decrypt the selected database backup.
-|  -dbextract | --database_extraction   | Extract the selected database backup.
+|  -dbdecrypt | --database_decryption   | Decrypt the selected database backup.<br>[**can decrypt only**]
+|  -dbextract | --database_extraction   | Extract the selected database backup.<br>[**can decrypt and extract**]
 |  -f         | --files                    | Backup files in the web root directory.
 |  -fdbu      | --file_backup_directory   | The files destination backup directory. <sup>(default: `/backup/files`)</sup>
 |  -ftbu      | --file_temporary_directory  | The files temporary backup directory. <sup>(default: `/tmp/vstacklet/backup/files`)</sup>
