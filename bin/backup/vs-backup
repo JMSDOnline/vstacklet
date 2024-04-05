@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1183
+# @version: 3.1.1239
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -35,6 +35,7 @@
 # |  -dbtbu   | --database_temporary_directory  | The database temporary backup directory. (default: `/tmp/vstacklet/backup/databases`)
 # |  -dbenc   | --database_encryption     | Encrypt the database backup. (default: `false`)
 # |  -dbdecrypt   | --database_decryption   | Decrypt the selected database backup.
+# |  -dbextract   | --database_extraction   | Extract the selected database backup.
 # |  -f   | --files                    | Backup files in the web root directory.
 # |  -fdbu   | --file_backup_directory   | The files destination backup directory. (default: `/backup/files`)
 # |  -ftbu   | --file_temporary_directory  | The files temporary backup directory. (default: `/tmp/vstacklet/backup/files`)
@@ -44,16 +45,20 @@
 # |  -h   | --help                     | Display the help menu.
 # |  -V   | --version                  | Display the version.
 # |  -ec   | --example_cron            | Display an example cron job.
-# |  --cron   | --cron                  | Run the script in cron mode. This will skip the intro message, used with cron task. <br> *Not needed if using the `--cc` option.* (default: `false`)
-# |  --cc   | --cron_create             | Create a cron job. This will create a cron job for the backup script. (default: `false`)
+# |  -cron   | --cron                  | Run the script in cron mode [ie; only needed when running as a scheduled cron taks].<br>This will skip the intro message, used with cron task.<br>*Not needed if using the `-cc` option.* (default: `false`)
+# |  -cc   | --cron_create             | Create a cron job. This will create a cron job for the backup script. (default: `false`)
 #
 # #### examples:
 # ```bash
-#  vs-backup -db "database" -dbuser "root" -dbpass "password" -dbenc -dbtbu "/backup/databases" -dbtbu "/tmp/vstacklet/backup/databases" -f "/var/www/html" -fdbu "/backup/files" -ftbu "/tmp/vstacklet/backup/files" -r "7" -dbrpe "enc" --cc
+#  vs-backup -db "database" -dbuser "root" -dbpass "password" -dbenc -dbtbu "/backup/databases" -dbtbu "/tmp/vstacklet/backup/databases" -f "/var/www/html" -fdbu "/backup/files" -ftbu "/tmp/vstacklet/backup/files" -r "7" -dbrpe "enc" -cc
 # ```
 #
 # ```bash
 #  vs-backup -dbdecrypt
+# ```
+#
+# ```bash
+#  vs-backup -dbextract
 # ```
 #
 # @save_tasks:
@@ -73,7 +78,7 @@
 # <END METADATA>
 ################################################################################
 # @name: vstacklet::environment::functions (2)
-# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L75-L154)
+# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L84-L190)
 # @break
 ##################################################################################
 vstacklet::environment::functions() {
@@ -102,6 +107,8 @@ vstacklet::environment::functions() {
 		cross) shell_icon="✗ ${shell_reset}" ;;
 		success) shell_icon="✓ success: ${shell_reset}" && shell_success="1" ;;
 		error) shell_icon="✗ error: ${shell_reset}" && shell_error="1" ;;
+		notice) shell_icon="➜ notice: ${shell_reset}" && shell_notice="1" ;;
+		info) shell_icon="ℹ info: ${shell_reset}" && shell_info="1" ;;
 		rollback) shell_icon="⎌ rollback: ${shell_reset}" && shell_rollback="1" ;;
 		esac
 		if [[ ${shell_success} == "1" ]]; then
@@ -109,6 +116,10 @@ vstacklet::environment::functions() {
 		elif [[ ${shell_warning} == "1" ]]; then
 			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
 		elif [[ ${shell_error} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_notice} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_info} == "1" ]]; then
 			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
 		elif [[ ${shell_rollback} == "1" ]]; then
 			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
@@ -137,6 +148,27 @@ vstacklet::environment::functions() {
 		output_color=$(tput setaf 7)
 		vstacklet::shell::output "$@"
 	}
+	vstacklet::shell::text::warning() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 3)
+		shell_icon="warning"
+		output_color=$(tput setaf 7)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::notice() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 6)
+		shell_icon="notice"
+		output_color=$(tput setaf 7)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::info() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 4)
+		shell_icon="info"
+		output_color=$(tput setaf 7)
+		vstacklet::shell::output "$@"
+	}
 	vstacklet::shell::text::success() {
 		declare -g shell_color shell_icon
 		shell_color=$(tput setaf 2)
@@ -159,7 +191,7 @@ vstacklet::environment::functions() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkroot (1)
-# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L161-L166)
+# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L197-L202)
 # @break
 ##################################################################################
 vstacklet::environment::checkroot() {
@@ -171,7 +203,7 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::backup::updater (3)
-# @description: Update the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L173-L190)
+# @description: Update the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L209-L226)
 # @break
 ##################################################################################
 vstacklet::backup::updater() {
@@ -195,7 +227,7 @@ vstacklet::backup::updater() {
 
 ##################################################################################
 # @name: vstacklet::backup::variables (4)
-# @description: Set the variables for the backup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L197-L344)
+# @description: Set the variables for the backup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L233-L388)
 # @break
 ##################################################################################
 vstacklet::backup::variables() {
@@ -214,14 +246,6 @@ vstacklet::backup::variables() {
 		-ec | --example_cron)
 			vstacklet::backup::example_cron
 			exit 0
-			;;
-		--cron)
-			ras_cron=true
-			shift
-			;;
-		--cc | --cron_create)
-			cron_create=true
-			shift
 			;;
 		### FILES/DIRECTORIES OPTIONS
 		-ftbu | --file_temporary_directory)
@@ -258,12 +282,15 @@ vstacklet::backup::variables() {
 			shift
 			;;
 		-dbdecrypt | --database_decryption)
-			vstacklet::backup::database::decrypt
+			vstacklet::backup::database_decrypt
+			exit 0
+			;;
+		-dbextract | --database_extraction)
+			vstacklet::backup::database_extract
 			exit 0
 			;;
 		-dbenc | --database_encryption)
-			db_encryption=true
-			shift
+			declare -g db_encryption=true
 			shift
 			;;
 		-dbuser | --database_user)
@@ -333,6 +360,15 @@ vstacklet::backup::variables() {
 			shift
 			shift
 			;;
+		### CRON OPTIONS
+		-cc | --cron_create)
+			declare -g cron_creation_task=true
+			shift
+			;;
+		-cron)
+			declare -g ras_cron=true
+			shift
+			;;
 		*)
 			vstacklet::shell::text::error "Invalid argument: ${1}"
 			vstacklet::shell::misc::nl
@@ -353,7 +389,7 @@ vstacklet::backup::variables() {
 
 ##################################################################################
 # @name: vstacklet::backup::default::variables (5)
-# @description: The variables used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L351-L400)
+# @description: The variables used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L395-L444)
 # @break
 ##################################################################################
 vstacklet::backup::default::variables() {
@@ -409,7 +445,7 @@ vstacklet::backup::default::variables() {
 
 ##################################################################################
 # @name: vstacklet::backup::main::checks (6)
-# @description: The checks used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L407-L440)
+# @description: The checks used in the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L451-L486)
 # @break
 ##################################################################################
 vstacklet::backup::main::checks() {
@@ -417,6 +453,8 @@ vstacklet::backup::main::checks() {
 	# @script-note: check if the source file or directory exists
 	[ ! -e "${file}" ] && { vstacklet::shell::text::error "The source directory or file does not exist." && exit 1; }
 	### MYSQL TO BACKUP
+	# @script-note: check if mysql is installed
+	[ ! -x "$(command -v mysql)" ] && { vstacklet::shell::text::error "MySQL is not installed." && exit 1; }
 	# @script-note: check if the database list is empty
 	[[ -z "${db_list[*]}" ]] && { vstacklet::shell::text::error "The database list is empty." && exit 1; }
 	# @script-note: check if either the database or the database list is empty
@@ -449,7 +487,7 @@ vstacklet::backup::main::checks() {
 
 ##################################################################################
 # @name: vstacklet::intro (7)
-# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L447-L464)
+# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L493-L510)
 # @break
 ##################################################################################
 vstacklet::intro() {
@@ -473,14 +511,14 @@ vstacklet::ask::continue() {
 
 ##################################################################################
 # @name: vstacklet::backup::files (8)
-# @description: Backup the specified files. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L471-L514)
+# @description: Backup the specified files. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L517-L561)
 # @break
 ##################################################################################
 vstacklet::backup::files() {
 	##################################################################################
 	# @name: vstacklet::backup::files::directories (a)
 	# @description: The directories for files used in the backup script.
-	# note: The directories are created if they don't exist.
+	# note: The directories are created if they do not exist.
 	##################################################################################
 	if [[ ! -d "${f_tmp_dir_dest:-/tmp/vstacklet/backup/files}" ]] || [[ ! -d "${f_dir_dest:-/backup/files}" ]]; then
 		vstacklet::shell::text::white "Creating backup directories for files..."
@@ -501,7 +539,8 @@ vstacklet::backup::files() {
 	[ -f "${f_tmp_dir_dest}/${f_package}" ] && vstacklet::shell::text::error "Backup package already exists: ${f_tmp_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: create the backup package
 	vstacklet::shell::text::white "Creating backup of ${file}..."
-	tar -czf "${f_tmp_dir_dest}/${f_package}" -C "${file}" .
+	# @script-note: create the backup package and compress it on the fly (keep output silent)
+	tar -czf "${f_tmp_dir_dest}/${f_package}" -C "${file}" . >/dev/null 2>&1
 	# @script-note: check if the temporary backup package exists
 	[ ! -f "${f_tmp_dir_dest}/${f_package}" ] && vstacklet::shell::text::error "Temporary backup package does not exist: ${f_tmp_dir_dest}/${f_package}" && vstacklet::shell::misc::nl && exit 1
 	# @script-note: check if the temporary backup package is empty
@@ -523,18 +562,18 @@ vstacklet::backup::files() {
 
 ################################################################################
 # @name: vstacklet::backup::database (9)
-# @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L534-L576)
+# @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L581-L614)
 #
 # note: This function will additionally package the database backup into a tarball
 # and compress it on the fly, then encrypt it. The tarball will be moved to the
 # destination directory and the temporary directory will be cleaned up.
-# - To decrypt the tarball, use the following command example: (replace the variables)
+# - To decrypt the tarball, use the following command example: (decrypt only)
 # ```bash
-# openssl enc -d -pbkdf2 -in "${db_dir_dest:-/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}.enc" -out "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}" -k "${db_pass}"
+# vs-backup -dbdecrypt
 # ```
-# - To extract the tarball, use the following command example: (replace the variables)
+# - To extract the tarball, use the following command example: (can decrypt and extract)
 # ```bash
-# tar -xzf "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}" -C "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}"
+# vs-backup -dbextract
 # ```
 #
 # @break
@@ -543,7 +582,7 @@ vstacklet::backup::database() {
 	##################################################################################
 	# @name: vstacklet::backup::db::directories (a)
 	# @description: The directories for databases used in the backup script.
-	# note: The directories are created if they don't exist.
+	# note: The directories are created if they do not exist.
 	##################################################################################
 	if [[ ! -d "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}" || ! -d "${db_dir_dest:-/backup/databases/}" ]]; then
 		vstacklet::shell::text::white "Creating backup directories for databases..."
@@ -572,21 +611,12 @@ vstacklet::backup::database() {
 		vstacklet::shell::text::error "The backup of ${db} failed!"
 		vstacklet::shell::misc::nl
 	fi
-	##################################################################################
-	# Decrypt the backup and decompress it on the fly.
-	# note: This is an example of how to decrypt and decompress the backup
-	##################################################################################
-	#DECOMPRESSION="tar"
-	#DECOMPRESSION_OPTIONS="-xzf"
-	#openssl enc -d -pbkdf2 -in "${db_dir_dest:-/backup/databases/}${db}.sql.${date_stamp}.${compression_extension:-gz}.enc" -out "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension:-gz}" -k "${db_pass}" &&
-	#	${DECOMPRESSION} ${DECOMPRESSION_OPTIONS} "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension}" &&
-	#	rm -f "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${db}.sql.${date_stamp}.${compression_extension:-gz}"
 }
 
 ##################################################################################
 # @name: vstacklet::backup::retention (10)
 # @description: The retention used in the backup script. This is used to delete
-# old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L596-L620)
+# old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L634-L658)
 #
 # notes:
 # - The retention is based on the modification time of the file.
@@ -612,12 +642,12 @@ vstacklet::backup::retention() {
 		vstacklet::shell::misc::nl
 		# @script-note: long listing of files in files and database backup directories to check file sizes
 		if [[ "${backup_file_yes}" -eq 1 ]]; then
-			vstacklet::shell::text::white "The following files remain in ${f_dir_dest}:"
+			vstacklet::shell::text::info "The following files remain in ${f_dir_dest}:"
 			ls -lh "${f_dir_dest:-/backup/files/}"
 			vstacklet::shell::misc::nl
 		fi
 		if [[ "${backup_db_yes}" -eq 1 ]]; then
-			vstacklet::shell::text::white "The following files remain in ${db_dir_dest}:"
+			vstacklet::shell::text::info "The following files remain in ${db_dir_dest}:"
 			ls -lh "${db_dir_dest:-/backup/databases/}"
 			vstacklet::shell::misc::nl
 		fi
@@ -628,8 +658,92 @@ vstacklet::backup::retention() {
 }
 
 ##################################################################################
-# @name: vstacklet::outro (11)
-# @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L627-L632)
+# @name: vstacklet::backup::cron::create (11)
+# @description: Create a cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L674-L742)
+#
+# notes:
+# - The cron job will run daily at 12:30 AM
+# - The cron job will be created as /etc/cron.d/vs_backup
+# - The cron job will use the flags provided
+# - The cron job will run the script in cron mode
+# - The cron job will redirect the output to /dev/null
+# - The cron job will run as root
+# @example: vs-backup -db "db_name" -dbuser "db_user" -dbpass "db_pass" -f "/var/www/html/" -cc
+# @break
+##################################################################################
+vstacklet::backup::cron::create() {
+	# @script-note: check if arguments are provided
+	if [[ $# -eq 0 ]]; then
+		vstacklet::shell::text::error "No arguments provided."
+		return 1
+	fi
+	# @script-note: check if the cron job already exists
+	if [[ -f "/etc/cron.d/vs_backup" ]]; then
+		vstacklet::shell::text::notice "The cron job already exists: /etc/cron.d/vs_backup"
+		vstacklet::shell::misc::nl
+		vstacklet::shell::text::info "Current Cron Job:"
+		vstacklet::shell::text::white "--------------------------------------------------------------------------------"
+		# @script-note: display the current cron job
+		cat "/etc/cron.d/vs_backup"
+		vstacklet::shell::text::white "--------------------------------------------------------------------------------"
+		vstacklet::shell::misc::nl
+		vstacklet::shell::text::white::sl "Would you like to overwrite the cron job? [$(echo -e "$(tput setaf 2)y${shell_reset}$(tput setaf 7)")/$(echo -e "$(tput setaf 1)n${shell_reset}$(tput setaf 7)")] "
+		read -r -n 1
+		vstacklet::shell::misc::nl
+		[[ ! "${REPLY}" =~ ^[Yy]$ ]] && vstacklet::shell::text::notice "Cron job not overwritten." && vstacklet::shell::misc::nl && return 0
+	fi
+	# @script-note: create the cron job
+	declare -a flags=("$@")
+	# @script-note: remove the -cc flag from the flags array
+	flags=("${flags[@]/-cc/}")
+	# @script-note: create the command string
+	command="/usr/local/bin/vs-backup"
+	for ((i = 0; i < ${#flags[@]}; i++)); do
+		flag="${flags[i]}"
+		# @script-note: check if the next element is not another flag (i.e., it's a value)
+		if [[ ! "${flags[i + 1]}" == -* ]]; then
+			# @script-note: single quote only the value part
+			command+=" ${flag} \"${flags[i + 1]}\""
+			# @script-note: move to the next flag
+			((i++))
+		else
+			# @script-note: if the next element is another flag, simply append the flag
+			command+=" ${flag}"
+		fi
+	done
+	command+=" -cron"
+	# @script-note: remove any empty "" values
+	command=${command//\"\"/}
+	# @script-note: remove any double spaces
+	command=${command//  / }
+	# @script-note: create the cron job file
+	cat <<EOF >/etc/cron.d/vs_backup
+# vStacklet Backup Cron Job
+# - Run the vStacklet Backup Utility daily at 12:30 AM
+# - Redirect the output to /dev/null
+# - Run as root
+
+# Variables
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# m h dom mon dow user  command
+30 00 * * * root ${command} > /dev/null 2>&1
+EOF
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::success "Cron job created successfully: /etc/cron.d/vs_backup"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::info "Current Cron Job:"
+	vstacklet::shell::text::white "--------------------------------------------------------------------------------"
+	cat "/etc/cron.d/vs_backup"
+	vstacklet::shell::text::white "--------------------------------------------------------------------------------"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::misc::nl
+}
+
+##################################################################################
+# @name: vstacklet::outro (12)
+# @description: Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L749-L754)
 # @break
 ##################################################################################
 vstacklet::outro() {
@@ -641,7 +755,7 @@ vstacklet::outro() {
 
 ##################################################################################
 # @name: vstacklet::backup::usage
-# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L639-L698)
+# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L761-L820)
 # @break
 ##################################################################################
 vstacklet::backup::usage() {
@@ -660,10 +774,10 @@ vstacklet::backup::usage() {
 	vstacklet::shell::text::white "  -ec, --example_cron"
 	vstacklet::shell::text::white "    Display an example cron job."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "  --cron"
+	vstacklet::shell::text::white "  -cron"
 	vstacklet::shell::text::white "    Run the script in cron mode."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "  --cc, --cron_create"
+	vstacklet::shell::text::white "  -cc, --cron_create"
 	vstacklet::shell::text::white "    Create a cron job for the script."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  -db, --database"
@@ -707,7 +821,7 @@ vstacklet::backup::usage() {
 
 ##################################################################################
 # @name: vstacklet::backup::example_cron
-# @description: Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L706-L726)
+# @description: Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L828-L848)
 # @example: vs-backup -ec
 # @break
 ##################################################################################
@@ -716,86 +830,26 @@ vstacklet::backup::example_cron() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  # Example Schedule"
 	vstacklet::shell::text::white "  # Run Directory and Database Backup Daily @ 12:30 AM"
-	vstacklet::shell::text::white "  30 00 * * * /usr/local/bin/vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/\" --cron"
+	vstacklet::shell::text::white "  30 00 * * * /usr/local/bin/vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/\" -cron"
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::yellow "Note: You can use the --cc or --cron_create option to create a cron job to make this process automatic."
+	vstacklet::shell::text::yellow "Note: You can use the $(tput setaf 5)-cc${shell_reset}$(tput setaf 7) or $(tput setaf 5)--cron_create${shell_reset}$(tput setaf 7) option to create a cron job to make this process automatic."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "  To create a cron job, run vs-backup with the --cc or --cron_create option in your command line."
-	vstacklet::shell::text::white "  The cron job will be created as /etc/cron.d/vs_backup."
+	vstacklet::shell::text::white "  To create a cron job, run vs-backup with the $(tput setaf 5)-cc${shell_reset}$(tput setaf 7) or $(tput setaf 5)--cron_create${shell_reset}$(tput setaf 7) option in your command line."
+	vstacklet::shell::text::white "  The cron job will be created at /etc/cron.d/vs_backup."
 	vstacklet::shell::text::white "  The cron job will be created using only the flags provided."
 	vstacklet::shell::text::white "  The cron job will run the script in cron mode."
 	vstacklet::shell::text::white "  The cron job will redirect the output to /dev/null."
 	vstacklet::shell::text::white "  The cron job will run as root."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  Example:"
-	vstacklet::shell::text::white "    vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/\" --cc"
+	vstacklet::shell::text::white "    vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/\" -cc"
 	vstacklet::shell::misc::nl
 	exit 0
 }
 
 ##################################################################################
-# @name: vstacklet::backup::cron::create
-# @description: Create a cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L734-L786)
-# @example: vs-backup -db "db_name" -dbuser "db_user" -dbpass "db_pass" -f "/var/www/html/" --cc
-# @break
-##################################################################################
-vstacklet::backup::cron::create() {
-	# @script-note: check if the cron job already exists as /etc/cron.d/vs_backup
-	if [[ -f "/etc/cron.d/vs_backup" ]]; then
-		vstacklet::shell::text::error "The cron job already exists: /etc/cron.d/vs_backup"
-		vstacklet::shell::misc::nl
-		exit 1
-	fi
-	# @script-note: create the cron job
-	# @example: 30 00 * * * root /usr/local/bin/vs-backup -db "db_name" -dbuser "db_user" -dbpass "db_pass" -f "/var/www/html/" --cron
-	# @note: the cron job will run daily at 12:30 AM
-	# - will be created as /etc/cron.d/vs_backup
-	# - will use the flags provided
-	# - will run the script in cron mode
-	# - will redirect the output to /dev/null
-	# - will run as root
-	# @script-note: create command flag array from the flags provided
-	declare -a flags
-	[[ -n "${db}" ]] && flags+=("-db \"${db}\"")
-	[[ -n "${db_user}" ]] && flags+=("-dbuser \"${db_user}\"")
-	[[ -n "${db_pass}" ]] && flags+=("-dbpass \"${db_pass}\"")
-	[[ -n "${file}" ]] && flags+=("-f \"${file}\"")
-	[[ -n "${retention}" ]] && flags+=("-r \"${retention}\"")
-	[[ -n "${db_tmp_dir_dest}" ]] && flags+=("-dbtbu \"${db_tmp_dir_dest}\"")
-	[[ -n "${db_dir_dest}" ]] && flags+=("-dbdbu \"${db_dir_dest}\"")
-	[[ -n "${db_encryption}" ]] && flags+=("-dbenc")
-	[[ -n "${f_tmp_dir_dest}" ]] && flags+=("-ftbu \"${f_tmp_dir_dest}\"")
-	[[ -n "${f_dir_dest}" ]] && flags+=("-fdbu \"${f_dir_dest}\"")
-	[[ -n "${compression}" ]] && flags+=("-c \"${compression}\"")
-	[[ -n "${compression_options}" ]] && flags+=("-co \"${compression_options}\"")
-	[[ -n "${compression_extension}" ]] && flags+=("-ce \"${compression_extension}\"")
-	[[ -n "${db_list}" ]] && flags+=("-dblist \"${db_list}\"")
-	[[ -n "${db_options}" ]] && flags+=("-dbop \"${db_options}\"")
-	[[ -n "${db_dump_options}" ]] && flags+=("-dbdop \"${db_dump_options}\"")
-	[[ -n "${file_retention_path}" ]] && flags+=("-frp \"${file_retention_path}\"")
-	[[ -n "${file_retention_path_extension}" ]] && flags+=("-frpe \"${file_retention_path_extension}\"")
-	[[ -n "${db_retention_path}" ]] && flags+=("-dbrp \"${db_retention_path}\"")
-	[[ -n "${db_retention_path_extension}" ]] && flags+=("-dbrpe \"${db_retention_path_extension}\"")
-	# @script-note: create the command string
-	command="/usr/local/bin/vs-backup"
-	for flag in "${flags[@]}"; do
-		command+=" ${flag}"
-	done
-	command+=" --cron"
-	# @script-note: create the cron job
-	cat <<EOF >/etc/cron.d/vs_backup
-SHELL=/bin/bash
-PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin
-
-30 00 * * * root ${command} > /dev/null 2>&1
-EOF
-	vstacklet::shell::text::success "Cron job created successfully: /etc/cron.d/vs_backup"
-	vstacklet::shell::misc::nl
-}
-
-##################################################################################
 # @name: vstacklet::backup::version
-# @description: Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L793-L799)
+# @description: Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L855-L861)
 # @break
 ##################################################################################
 vstacklet::backup::version() {
@@ -807,48 +861,218 @@ vstacklet::backup::version() {
 }
 
 ################################################################################
-# @description: Calls functions in required order.
-# @break
-################################################################################
-vstacklet::environment::checkroot                                   #(1)
-vstacklet::environment::functions                                   #(2)
-vstacklet::backup::updater                                          #(3)
-vstacklet::backup::variables "${@}"                                 #(4)
-vstacklet::backup::default::variables                               #(5)
-vstacklet::backup::main::checks                                     #(6)
-[[ "${ras_cron}" != "true" ]] && vstacklet::intro                   #(7)
-[[ "${backup_file_yes}" -eq 1 ]] && vstacklet::backup::files        #(8)
-[[ "${backup_db_yes}" -eq 1 ]] && vstacklet::backup::database       #(9)
-vstacklet::backup::retention                                        #(10)
-vstacklet::outro                                                    #(11)
-[[ "${cron_create}" == "true" ]] && vstacklet::backup::cron::create #(12)
-
-################################################################################
 # @description: Miscellaneous functions.
 # @break
 ################################################################################
 
 ##################################################################################
-# @name: vstacklet::backup::database::decrypt
-# @description: List the files in the backup directory and decrypt selected options.
+# @name: vstacklet::backup::database_decrypt
+# @description: List the files in the backup directory and decrypt selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L878-L937)
+#
+# notes:
+# - This function will allow you to decrypt a database backup file.
+# - You can use the `-dbextract` option instead if you want to decrypt **and** extract the file.
 # @example: vs-backup -dbdecrypt
 # @break
 ##################################################################################
-vstacklet::backup::database::decrypt() {
+vstacklet::backup::database_decrypt() {
+	# @script-note: create welcome and information message
+	vstacklet::shell::text::white "Welcome to the vStacklet Database Backup Decryption Utility."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "This script will allow you to decrypt a database backup file."
+	vstacklet::shell::text::white "You can use the $(tput setaf 5)-dbextract${shell_reset}$(tput setaf 7) option to decrypt and extract the file."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::green "Press any key to continue $(tput setaf 7)(${shell_reset}$(tput setaf 3)ctrl+C${shell_reset} $(tput setaf 7)on PC or $(tput setaf 7)${shell_reset}$(tput setaf 3)⌘+C${shell_reset} $(tput setaf 7)on Mac to ${shell_reset}$(tput setaf 1)exit${shell_reset}$(tput setaf 7)) ..."
+	read -r -n 1
+	vstacklet::shell::misc::nl
+	# @script-note: check if the database directory exists
+	[[ ! -d "${db_dir_dest:-/backup/databases/}" ]] && vstacklet::shell::text::error "The database backup directory does not exist." && vstacklet::shell::misc::nl && exit 1
+	# @script-note: check if the temporary database directory exists
+	[[ ! -d "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}" ]] && vstacklet::shell::text::error "The temporary database backup directory does not exist." && vstacklet::shell::misc::nl && exit 1
+	# @script-note: check if the database directory is empty
+	[[ -z "$(ls -A "${db_dir_dest:-/backup/databases/}")" ]] && vstacklet::shell::text::error "The database backup directory is empty." && vstacklet::shell::misc::nl && exit 1
+	# @script-note: if there is no .enc file, exit
+	shopt -s nullglob
+	if ! files=("${db_dir_dest:-/backup/databases/}"*.enc); then
+		vstacklet::shell::text::error "No encrypted database backup files found."
+		vstacklet::shell::misc::nl
+		exit 1
+	fi
+	if [[ ${#files[@]} -eq 0 ]]; then
+		vstacklet::shell::text::error "No encrypted database backup files found."
+		vstacklet::shell::misc::nl
+		vstacklet::shell::text::notice "The following files are, however, in the database backup directory:"
+		ls -lh "${db_dir_dest:-/backup/databases/}"
+		vstacklet::shell::misc::nl
+		exit 1
+	fi
 	# @script-note: list the files in the backup directory
 	vstacklet::shell::text::white "The following files are in the database backup directory:"
-	ls -lh "${db_dir_dest:-/backup/databases/}"
+	#ls -lh "${db_dir_dest:-/backup/databases/}"
 	vstacklet::shell::misc::nl
-	# @script-note: decrypt the selected file
-	vstacklet::shell::text::white "Enter the file to decrypt:"
-	read -r file
-	vstacklet::shell::text::white "Enter the database password to decrypt the file:"
-	read -r -s password
-	openssl enc -d -pbkdf2 -in "${db_dir_dest:-/backup/databases/}${file}" -out "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${file}" -k "${password}"
-	vstacklet::shell::text::success "The file was decrypted successfully!"
-	vstacklet::shell::misc::nl
-	# @script-note: print out the directory of the decrypted file
-	vstacklet::shell::text::white "The decrypted file is located at:"
-	vstacklet::shell::text::white "  ${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${file}"
-	vstacklet::shell::misc::nl
+	# @script-note: prompt the user to select a file (.enc extension only)
+	select file in $(find "${db_dir_dest:-/backup/databases/}" -type f -name "*.enc" -exec basename {} \;); do
+		# @script-note: check if the user selected a file
+		[[ -z "${db_dir_dest:-/backup/databases/}${file}" ]] && vstacklet::shell::text::error "Invalid selection." && vstacklet::shell::misc::nl && exit 1
+		# @script-note: check if the file exists
+		[[ ! -f "${db_dir_dest:-/backup/databases/}${file}" ]] && vstacklet::shell::text::error "The file does not exist." && vstacklet::shell::misc::nl && exit 1
+		vstacklet::shell::misc::nl
+		# @script-note: prompt the user for the password to decrypt the file
+		vstacklet::shell::text::white "Enter the database password to decrypt the file:"
+		read -r -s password
+		# @script-note: remove the .enc extension from the file and replace it with compressed extension
+		file_out="${file%.enc}"
+		# @script-note: decrypt the file
+		openssl enc -d -pbkdf2 -in "${db_dir_dest:-/backup/databases/}${file}" -out "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${file_out}" -k "${password}"
+		vstacklet::shell::text::success "The file was decrypted successfully!"
+		vstacklet::shell::misc::nl
+		# @script-note: get the name of the decrypted file
+		file_decrypted="${file%.enc}"
+		# @script-note: print out the directory of the decrypted file
+		vstacklet::shell::text::info "The decrypted file is located at:"
+		vstacklet::shell::text::white "  ${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${file_decrypted}"
+		vstacklet::shell::misc::nl
+		break
+	done
 }
+
+################################################################################
+# @name: vstacklet::backup::database_extract
+# @description: List the files in the backup directory and extract selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L949-L1061)
+#
+# notes:
+# - This function will allow you to extract a database backup file.
+# - This function will also decrypt the file if it is encrypted.
+# @example: vs-backup -dbextract
+# @break
+##################################################################################
+vstacklet::backup::database_extract() {
+	# @script-note: create welcome and information message
+	vstacklet::shell::text::white "Welcome to the vStacklet Database Backup Extraction Utility."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "This script will allow you to extract a database backup file."
+	vstacklet::shell::text::white "This script will also decrypt the file if it is encrypted."
+	vstacklet::shell::text::white "You can use the $(tput setaf 5)-dbdecrypt${shell_reset}$(tput setaf 7) option if you only want to decrypt the file."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::green "Press any key to continue $(tput setaf 7)(${shell_reset}$(tput setaf 3)ctrl+C${shell_reset} $(tput setaf 7)on PC or $(tput setaf 7)${shell_reset}$(tput setaf 3)⌘+C${shell_reset} $(tput setaf 7)on Mac to ${shell_reset}$(tput setaf 1)exit${shell_reset}$(tput setaf 7)) ..."
+	read -r -n 1
+	vstacklet::shell::misc::nl
+	# @script-note: list the files in the backup directory
+	vstacklet::shell::text::white "The following files are in the database backup directory:"
+	# @script-note: only show the file name
+	#ls -lh "${db_dir_dest:-/backup/databases/}" | awk '{print $NF}'
+	# @script-note: if there is no .enc or .gz file, exit
+	shopt -s nullglob
+	if ! files=("${db_dir_dest:-/backup/databases/}"*.enc "${db_dir_dest:-/backup/databases/}"*.gz); then
+		vstacklet::shell::text::error "No encrypted or compressed database backup files found."
+		vstacklet::shell::misc::nl
+		exit 1
+	fi
+	if [[ ${#files[@]} -eq 0 ]]; then
+		vstacklet::shell::text::error "No encrypted or compressed database backup files found."
+		vstacklet::shell::misc::nl
+		exit 1
+	fi
+	vstacklet::shell::misc::nl
+	# @script-note: prompt the user to select a file (exclude full path. only show the file name)
+	select file in $(find "${db_dir_dest:-/backup/databases/}" -type f -exec basename {} \;); do
+		# @script-note: check if the user selected a file
+		[[ -z "${db_dir_dest:-/backup/databases/}${file}" ]] && vstacklet::shell::text::error "Invalid selection." && vstacklet::shell::misc::nl && exit 1
+		# @script-note: check if the file exists
+		[[ ! -f "${db_dir_dest:-/backup/databases/}${file}" ]] && vstacklet::shell::text::error "The file does not exist." && vstacklet::shell::misc::nl && exit 1
+		vstacklet::shell::misc::nl
+		# @script-note: prompt the user for the password to decrypt the file if it is encrypted
+		if [[ "${db_dir_dest:-/backup/databases/}${file}" == *.enc ]]; then
+			vstacklet::shell::text::white "Enter the database password to decrypt the file:"
+			read -r -s password
+			# @script-note: remove the .enc extension from the file and replace it with compressed extension
+			file_out="${file%.enc}"
+			openssl enc -d -pbkdf2 -in "${db_dir_dest:-/backup/databases/}${file}" -out "${db_dir_dest:-/backup/databases/}${file_out}" -k "${password}"
+			vstacklet::shell::text::success "The file was decrypted successfully!"
+			vstacklet::shell::misc::nl
+			declare -g file file_extracted
+			file="${file_out}"
+			file_decrypted=true
+		fi
+		# @script-note: prompt the user to extract the file
+		vstacklet::shell::text::white "Extract the file?"
+		# @script-note: make the Yes option green and the No option red
+		select yn in "$(echo -e "$(tput setaf 2)Yes$(tput sgr0)")" "$(echo -e "$(tput setaf 1)No$(tput sgr0)")"; do
+			case "$yn" in
+			"$(echo -e "$(tput setaf 2)Yes$(tput sgr0)")")
+				# @script-note: extract the file
+				# @script-note: reserved for future use (if tar.gz files are used)
+				#tar -xzf "${db_dir_dest:-/backup/databases/}${file}" -C "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}"
+				gunzip -c "${db_dir_dest:-/backup/databases/}${file}" >"${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${file%.gz}.sql"
+				vstacklet::shell::text::success "The file was extracted successfully!"
+				# @script-note: get the name of the extracted file (remove the .gz extension and replace it with the .sql extension)
+				file_extracted="${file%.gz}.sql"
+				vstacklet::shell::misc::nl
+				# @script-note: print out the directory of the extracted file
+				vstacklet::shell::text::info "The extracted file is located at:"
+				vstacklet::shell::text::white "  ${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}${file_extracted}"
+				vstacklet::shell::misc::nl
+				# @script-note: if the file was previously encrypted, remove the decrypted file
+				if [[ "${file_decrypted}" == true ]]; then
+					vstacklet::shell::text::white "Remove the decrypted file?"
+					select yn in "$(echo -e "$(tput setaf 2)Yes$(tput sgr0)")" "$(echo -e "$(tput setaf 1)No$(tput sgr0)")"; do
+						case "$yn" in
+						"$(echo -e "$(tput setaf 2)Yes$(tput sgr0)")")
+							rm -f "${db_dir_dest:-/backup/databases/}${file_out}"
+							# @script-note: check if the file was removed
+							if [[ ! -f "${db_dir_dest:-/backup/databases/}${file_out}" ]]; then
+								vstacklet::shell::text::success "The file was removed successfully."
+								vstacklet::shell::misc::nl
+							else
+								vstacklet::shell::text::error "The file was not removed."
+								vstacklet::shell::misc::nl
+							fi
+							break
+							;;
+						"$(echo -e "$(tput setaf 1)No$(tput sgr0)")")
+							vstacklet::shell::text::notice "The file was not removed."
+							vstacklet::shell::misc::nl
+							break
+							;;
+						*)
+							vstacklet::shell::text::error "Invalid selection."
+							vstacklet::shell::misc::nl
+							exit 1
+							;;
+						esac
+					done
+				fi
+				break
+				;;
+			"$(echo -e "$(tput setaf 1)No$(tput sgr0)")")
+				vstacklet::shell::text::notice "The file was not extracted."
+				vstacklet::shell::misc::nl
+				break
+				;;
+			*)
+				vstacklet::shell::text::error "Invalid selection."
+				vstacklet::shell::misc::nl
+				exit 1
+				;;
+			esac
+		done
+		break
+	done
+}
+
+################################################################################
+# @description: Calls functions in required order.
+# @break
+################################################################################
+vstacklet::environment::checkroot                                                 #(1)
+vstacklet::environment::functions                                                 #(2)
+vstacklet::backup::updater                                                        #(3)
+vstacklet::backup::variables "${@}"                                               #(4)
+vstacklet::backup::default::variables                                             #(5)
+vstacklet::backup::main::checks                                                   #(6)
+[[ "${ras_cron}" != "true" ]] && vstacklet::intro                                 #(7)
+[[ "${backup_file_yes}" -eq 1 ]] && vstacklet::backup::files                      #(8)
+[[ "${backup_db_yes}" -eq 1 ]] && vstacklet::backup::database                     #(9)
+vstacklet::backup::retention                                                      #(10)
+[[ "${cron_creation_task}" == "true" ]] && vstacklet::backup::cron::create "${@}" #(11)
+vstacklet::outro                                                                  #(12)
