@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1240
+# vs-backup - v3.1.1241
 
 
 ---
@@ -28,24 +28,24 @@ This script will do the following:
 | Short       | Long                       | Description
 | ----------- | -------------------------- | ------------------------------------------
 |  -db        | --database                 | Backup the database.
-|  -dbuser    | --database_user          | The database user. (default: `root`)
-|  -dbpass    | --database_password      | The database password. (default: pulled from `/root/.my.cnf`)
-|  -dbdbu     | --database_backup_directory   | The database destination backup directory. (default: `/backup/databases`)
-|  -dbtbu     | --database_temporary_directory  | The database temporary backup directory. (default: `/tmp/vstacklet/backup/databases`)
-|  -dbenc     | --database_encryption     | Encrypt the database backup. (default: `false`)
+|  -dbuser    | --database_user          | The database user. <sup>(default: `root`)</sup>
+|  -dbpass    | --database_password      | The database password. <sup>(default: pulled from `/root/.my.cnf`)</sup>
+|  -dbdbu     | --database_backup_directory   | The database destination backup directory. <sup>(default: `/backup/databases`)</sup>
+|  -dbtbu     | --database_temporary_directory  | The database temporary backup directory. <sup>(default: `/tmp/vstacklet/backup/databases`)</sup>
+|  -dbenc     | --database_encryption     | Encrypt the database backup. <sup>(default: `false`)</sup>
 |  -dbdecrypt | --database_decryption   | Decrypt the selected database backup.
 |  -dbextract | --database_extraction   | Extract the selected database backup.
 |  -f         | --files                    | Backup files in the web root directory.
-|  -fdbu      | --file_backup_directory   | The files destination backup directory. (default: `/backup/files`)
-|  -ftbu      | --file_temporary_directory  | The files temporary backup directory. (default: `/tmp/vstacklet/backup/files`)
-|  -r         | --retention                | Retention options. (default: `7`)
-|  -frpe      | --file_retention_path_extension  | Retention path extension for the files. (default: `tar.gz`)
-|  -dbrpe     | --database_retention_path_extension  | Retention path extension for the database. (default: `enc`)
+|  -fdbu      | --file_backup_directory   | The files destination backup directory. <sup>(default: `/backup/files`)</sup>
+|  -ftbu      | --file_temporary_directory  | The files temporary backup directory. <sup>(default: `/tmp/vstacklet/backup/files`)</sup>
+|  -r         | --retention                | Retention options. <sup>(default: `7`)</sup>
+|  -frpe      | --file_retention_path_extension  | Retention path extension for the files. <sup>(default: `tar.gz`)</sup>
+|  -dbrpe     | --database_retention_path_extension  | Retention path extension for the database. <sup>(default: `enc`)</sup>
 |  -h         | --help                     | Display the help menu.
 |  -V         | --version                  | Display the version.
 |  -ec        | --example_cron            | Display an example cron job.
-|  -cron      | --cron                  | Run the script in cron mode [**only needed when running as a scheduled cron taks**].<br>This will skip the intro message, used with cron task.<br>*Not needed if using the `-cc` option.* (default: `false`)
-|  -cc        | --cron_create             | Create a cron job. This will create a cron job for the backup script. (default: `false`)
+|  -cron      | --cron                  | Run the script in cron mode.<br>[**only needed when running as a scheduled cron taks**]<br>This will skip the intro message, used with cron task.<br>*Not needed if using the `-cc` option.* <sup>(default: `false`)</sup>
+|  -cc        | --cron_create             | Create a cron job. This will create a cron job for the backup script. <sup>(default: `false`)</sup>
 
 ---
 
