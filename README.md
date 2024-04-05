@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.824
-  Build: 824
+  Version: v3.1.1.825
+  Build: 825
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -62,9 +62,9 @@
 
 ---
 
-> **Warning**
+> [!WARNING]
 >
-> vStacklet for Ubuntu 16.04 and Debian 8 has been deprecated. This is due to Ubuntu 20.04 and Debian 11/12 now becoming more common place with at least 90% of the providers on the market.
+> vStacklet for Ubuntu 16.04 and Debian 8 has been deprecated. This is due to Ubuntu 20.04/22.04 and Debian 11/12 now becoming more common place with at least 90% of the providers on the market.
 >
 > vStacklet is a utility for quickly getting a server with wordpress installed deployed. As is the nature of this script, it is not intended to be a modular script. It is intended to be a full kit that installs everything you need to get a server up and running (not individual components 1 at a time - though it is in the pipeline). If you are looking for a modular script, I recommend [Quick LEMP](https://github.com/jbradach/quick-lemp/) as it is the script that inspired vStacklet. Do note that Quick LEMP is not actively maintained and I wouldn't recommend using it for production use.
 
