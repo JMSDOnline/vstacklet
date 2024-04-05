@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1268
+# vs-backup - v3.1.1269
 
 
 ---
@@ -147,7 +147,7 @@ Backup the specified files. [see function](https://github.com/JMSDOnline/vstackl
 
 Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L602-L651)
 
-note: This function will additionally package the database backup into a tarball
+**ℹ note:** This function will additionally package the database backup into a tarball
 and compress it on the fly, then encrypt it. The tarball will be moved to the
 destination directory and the temporary directory will be cleaned up.
 - To decrypt the tarball, use the following command example: (decrypt only)
@@ -166,7 +166,7 @@ vs-backup -dbextract
 The retention used in the backup script. This is used to delete
 old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L671-L695)
 
-notes:
+**ℹ notes:**
 - The retention is based on the modification time of the file.
 - Default retention is 7 days. This can be changed by setting the `-r` variable.
   - example: `-r 14` would set the retention to 14 days.
@@ -182,7 +182,7 @@ path to /backup/files/backup/.
 
 Create a cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L711-L792)
 
-notes:
+**ℹ notes:**
 - The cron job will run daily at 12:30 AM
 - The cron job will be created as /etc/cron.d/vs_backup
 - The cron job will use the flags provided

@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1268
+# @version: 3.1.1269
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -585,7 +585,7 @@ vstacklet::backup::files() {
 # @name: vstacklet::backup::database (9)
 # @description: Backup a database. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L602-L651)
 #
-# note: This function will additionally package the database backup into a tarball
+# **ℹ note:** This function will additionally package the database backup into a tarball
 # and compress it on the fly, then encrypt it. The tarball will be moved to the
 # destination directory and the temporary directory will be cleaned up.
 # - To decrypt the tarball, use the following command example: (decrypt only)
@@ -603,7 +603,7 @@ vstacklet::backup::database() {
 	##################################################################################
 	# @name: vstacklet::backup::db::directories (a)
 	# @description: The directories for databases used in the backup script.
-	# note: The directories are created if they do not exist.
+	# **ℹ note:** The directories are created if they do not exist.
 	##################################################################################
 	if [[ ! -d "${db_tmp_dir_dest:-/tmp/vstacklet/backup/databases/}" || ! -d "${db_dir_dest:-/backup/databases/}" ]]; then
 		vstacklet::shell::text::white "Creating backup directories for databases..."
@@ -655,7 +655,7 @@ vstacklet::backup::database() {
 # @description: The retention used in the backup script. This is used to delete
 # old backups. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L671-L695)
 #
-# notes:
+# **ℹ notes:**
 # - The retention is based on the modification time of the file.
 # - Default retention is 7 days. This can be changed by setting the `-r` variable.
 #   - example: `-r 14` would set the retention to 14 days.
@@ -698,7 +698,7 @@ vstacklet::backup::retention() {
 # @name: vstacklet::backup::cron::create (11)
 # @description: Create a cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L711-L792)
 #
-# notes:
+# **ℹ notes:**
 # - The cron job will run daily at 12:30 AM
 # - The cron job will be created as /etc/cron.d/vs_backup
 # - The cron job will use the flags provided
