@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.821
-  Build: 821
+  Version: v3.1.1.822
+  Build: 822
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -53,7 +53,7 @@
             <li><a href="#vstacklet-vs-perms---installs-needed-files-for-running-www-permissions-fix-included-in-full-kit-also-back-to-top">VS-Perms</a></li>
           </ul>
         </li>
-	<li><a href="#faq-back-to-top)">F.A.Q.</a></li>
+	<li><a href="#faq-back-to-top">F.A.Q.</a></li>
     <li><a href="#the-to-do-list-back-to-top">The TO-DO List</a></li>
     <li><a href="#additional-notes-and-honorable-mentions-back-to-top">Additional Notes and honorable mentions</a></li>
     <li><a href="#contributing-back-to-top">Contributing</a></li>
