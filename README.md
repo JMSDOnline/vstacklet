@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.827
-  Build: 827
+  Version: v3.1.1.828
+  Build: 828
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -126,7 +126,7 @@ Ready to get started? Check out the [prerequisites](#prerequisites-back-to-top) 
 <details>
   <summary><b>vStacklet Script Preview</b></summary>
 
-> **Note**
+> [!IMPORTANT]
 >
 > *All visible details seen here are purely for preview purposes.*
 >
@@ -202,7 +202,7 @@ To view the available options, run the script with the `-h` option (`vs-perms -h
 **This script is to be ran first**.
 First you will need to download the vStacklet installation script and make it executable. You can do this by running the following command:
 
-> **Note**
+> [!IMPORTANT]
 >
 > - **The development branch is not recommended for production use.**
 > - This script will only download the vStacklet kit installer script and make it executable. (contains the `vstacklet` script and `vs-backup` and `vs-perms` scripts)
@@ -230,7 +230,7 @@ Once the script has been downloaded and made executable, you can then run the sc
 
 #### Example <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
-> **Note**
+> [!TIP]
 >
 > The following example will:
 > - set the admin email (`-e`),
