@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1260
+# vs-backup - v3.1.1261
 
 
 ---
@@ -45,7 +45,7 @@ This script will do the following:
 |  -V         | --version                  | Display the version.
 |  -ec        | --example_cron            | Display an example cron job.
 |  -cron      | --cron                  | Run the script in cron mode.<br>[**only needed when running as a scheduled cron taks**]<br>This will skip the intro message, used with cron task.<br>*Not needed if using the `-cc` option.* <sup>(default: `false`)</sup>
-|  -cc        | --cron_create             | Create a cron job. This will create a cron job for the backup script. <sup>(default: `false`)</sup>
+|  -cc        | --cron_create             | Create a cron job.<br>This will create a cron job for the backup script. <sup>(default: `false`)</sup>
 
 ---
 
