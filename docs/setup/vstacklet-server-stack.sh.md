@@ -1,10 +1,10 @@
-# vstacklet-server-stack.sh - v3.1.2036
+# vstacklet-server-stack.sh - v3.1.2040
 
 
 ---
 
 This script is designed to be run on a fresh Ubuntu 18.04/20.04 or
-Debian 9/10/11 server. I have done my best to keep it tidy and with as much
+Debian 9/10/11/12 server. I have done my best to keep it tidy and with as much
 error checking as possible. Couple this with loads of comments and you should
 have a pretty good idea of what is going on. If you have any questions,
 comments, or suggestions, please feel free to open an issue on GitHub.
@@ -274,13 +274,13 @@ Check if the user is root. [see function](https://github.com/JMSDOnline/vstackle
 
 ### vstacklet::environment::checkdistro()
 
-Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11 [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L802-L813)
+Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11/12 [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L802-L813)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
 #### return codes:
 
-- 2 - this script only supports Ubuntu 18.04/20.04 | Debian 9/10/11
+- 2 - this script only supports Ubuntu 18.04/20.04 | Debian 9/10/11/12
 
 ---
 

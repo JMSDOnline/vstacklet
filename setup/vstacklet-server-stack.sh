@@ -2,10 +2,10 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2036
+# @version: 3.1.2040
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
-# and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11 server for
+# and more on a fresh Ubuntu 18.04/20.04 or Debian 9/10/11/12 server for
 # website-based server applications.
 #
 # @project_name: vstacklet
@@ -13,7 +13,7 @@
 # @path: setup/vstacklet-server-stack.sh
 #
 # @brief: This script is designed to be run on a fresh Ubuntu 18.04/20.04 or
-# Debian 9/10/11 server. I have done my best to keep it tidy and with as much
+# Debian 9/10/11/12 server. I have done my best to keep it tidy and with as much
 # error checking as possible. Couple this with loads of comments and you should
 # have a pretty good idea of what is going on. If you have any questions,
 # comments, or suggestions, please feel free to open an issue on GitHub.
@@ -165,7 +165,7 @@
 # @author_contact: https://github.com/JMSDOnline/vstacklet
 #
 # @license: MIT License (Included in LICENSE)
-# Copyright (C) 2016-2023, Jason Matthews
+# Copyright (C) 2016-2024, Jason Matthews
 # All rights reserved.
 # <END METADATA>
 ##################################################################################
@@ -793,15 +793,15 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkdistro (8)
-# @description: Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11 [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L802-L813)
+# @description: Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11/12 [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L802-L813)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
-# @return_code: 2 - this script only supports Ubuntu 18.04/20.04 | Debian 9/10/11
+# @return_code: 2 - this script only supports Ubuntu 18.04/20.04 | Debian 9/10/11/12
 # @break
 ##################################################################################
 vstacklet::environment::checkdistro() {
 	declare -g codename distro
-	declare -a allowed_codename=("bionic" "focal" "stretch" "buster" "bullseye")
+	declare -a allowed_codename=("bionic" "focal" "stretch" "buster" "bullseye" "bookworm")
 	codename=$(lsb_release -cs)
 	distro=$(lsb_release -is)
 	if ! vstacklet::array::contains "${codename}" "supported distro" ${allowed_codename[@]}; then
