@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1259
+# vs-backup - v3.1.1260
 
 
 ---
@@ -64,9 +64,6 @@ Backup a database `-db` and directory `-f`: (simple example - using minimal opti
 notes:
 - The database user and password are pulled from `/root/.my.cnf` by default. No need to set them unless you want to. <sup>[Bonus: security]</sup>
 - See the default options for the rest of the options.
-
----
-
 ```bash
  vs-backup -db "database" -f "/var/www/html" -r "5" -dbenc -cc
 ```
