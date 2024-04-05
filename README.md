@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.806
-  Build: 806
+  Version: v3.1.1.807
+  Build: 807
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -19,7 +19,7 @@
 
 | Ubuntu | [![Ubuntu 16.04 EOL](https://img.shields.io/badge/Ubuntu%2016.04-EOL-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 18.04 Testing](https://img.shields.io/badge/Ubuntu%2018.04-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 20.04 Passing](https://img.shields.io/badge/Ubuntu%2020.04-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) |
 |--------------|--|--|--|
-| Debian | [![Debian 9 Testing](https://img.shields.io/badge/Debian%209-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 10 Testing](https://img.shields.io/badge/Debian%2010-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 11 Passing](https://img.shields.io/badge/Debian%2011-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) |
+| Debian | [![Debian 9 Testing](https://img.shields.io/badge/Debian%209-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 10 Testing](https://img.shields.io/badge/Debian%2010-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 11 Passing](https://img.shields.io/badge/Debian%2011-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 12 Passing](https://img.shields.io/badge/Debian%2012-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) |
 
 </div>
 
@@ -63,13 +63,13 @@
 
 > **Warning**
 >
-> vStacklet for Ubuntu 16.04 and Debian 8 has been deprecated. This is due to Ubuntu 20.04 and Debian 11 now becoming more common place with at least 90% of the providers on the market.
+> vStacklet for Ubuntu 16.04 and Debian 8 has been deprecated. This is due to Ubuntu 20.04 and Debian 11/12 now becoming more common place with at least 90% of the providers on the market.
 >
 > vStacklet is a utility for quickly getting a server with wordpress installed deployed. As is the nature of this script, it is not intended to be a modular script. It is intended to be a full kit that installs everything you need to get a server up and running (not individual components 1 at a time - though it is in the pipeline). If you are looking for a modular script, I recommend [Quick LEMP](https://github.com/jbradach/quick-lemp/) as it is the script that inspired vStacklet. Do note that Quick LEMP is not actively maintained and I wouldn't recommend using it for production use.
 
 ## What is vStacklet? <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
-vStacklet is a kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 18.04/20.04 and Debian 9/10/11 servers.
+vStacklet is a kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 18.04/20.04 and Debian 9/10/11/12 servers.
 
 Components include a recent mainline version of Nginx (mainline (1.23.x)) using configurations from the HTML 5 Boilerplate team (*and modified/customized for use with mainline*), Varnish 7.2.x, and MariaDB 10.6.x (drop-in replacement for MySQL), PHP8.1, PHP7.4 or HHVM 4.x **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall), Wordpress and more to be added soon. (see [To-Do List](#the-to-do-list-back-to-top))
 
@@ -345,7 +345,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 - [x] phpMyAdmin (w/ option prompt) `-pma | --phpmyadmin`
 - [x] CSF (w/ option prompt) `-csf | --csf`
 - [x] VS-Backup standalone kit (included in FULL Kit also)
-- [ ] Full support for Ubuntu 18.04/20.04 & Debian 9/10/11 [wip]
+- [x] Full support for Ubuntu 20.04 & Debian 11/12
 - [ ] Nginx with Pagespeed (w/ option prompt) `-pagespeed | --pagespeed`
 - [x] Build SSL with LetsEncrypt
 - [x] Automagically build and setup a WordPress site
@@ -360,7 +360,7 @@ Quick-Lemp is geared towards python based application installs and using default
 
 My focus was and is to provide a modified version for CMS and typical website server i.e;(WordPress, Joomla!, Drupal, Ghost, Magento ... etc ... ) installations, Updated/Modified/Customized Boilerplate templates to be more 'Nginx mainline' friendly; i.e http/2, as well as the ongoing use of static websites (which the original still handles splendidly!)
 
-Again, please be advised that I am building/testing this script on Debian 11 (bullseye) as it supports Nginx versions higher than 1.8.
+Again, please be advised that I am building/testing this script on Ubuntu 20.04 (focal), Debian 11 (bullseye) & Debian 12 (bookworm) as these support Nginx versions higher than 1.8.
 
 ---
 
