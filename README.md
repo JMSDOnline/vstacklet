@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.820
-  Build: 820
+  Version: v3.1.1.821
+  Build: 821
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -53,6 +53,7 @@
             <li><a href="#vstacklet-vs-perms---installs-needed-files-for-running-www-permissions-fix-included-in-full-kit-also-back-to-top">VS-Perms</a></li>
           </ul>
         </li>
+	<li><a href="#faq-back-to-top)">F.A.Q.</a></li>
     <li><a href="#the-to-do-list-back-to-top">The TO-DO List</a></li>
     <li><a href="#additional-notes-and-honorable-mentions-back-to-top">Additional Notes and honorable mentions</a></li>
     <li><a href="#contributing-back-to-top">Contributing</a></li>
@@ -353,7 +354,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 **A:** MariaDB is a drop-in replacement for MySQL. It is a fork of MySQL and is maintained by the original developers of MySQL. It is designed to be a drop-in replacement for MySQL, and it includes all of the major features found in MySQL. Either can be used, but MariaDB is recommended.
 
 **Q:** Why is there the option to install either php8.1, php7.4 or HHVM?<br>
-**A:** PHP8.1 is the latest stable version of PHP. PHP7.4 is the previous stable version of PHP. HHVM is a virtual machine designed to execute programs written in Hack and PHP. It is developed by Facebook. HHVM is no longer actively maintained, but is still available for use. PHP8.1 is recommended.
+**A:** PHP8.1 is the latest stable version of PHP. PHP7.4 is the previous stable version of PHP. HHVM is a virtual machine designed to execute programs written in Hack and PHP. It is developed by Facebook. HHVM is no longer actively maintained, but is still available for use. PHP8.1 is recommended. PHP8.3 is technically the latest stable release, but it is not included in the script as it is not yet widely supported and there may be some compatibility issues with applications such as WordPress. Once PHP8.3 is more widely supported, it will be included in the script.
 
 **Q:** Why is there no option to install Apache?<br>
 **A:** vStacklet is designed to be a lightweight and fast install. Apache is not included in the script as it is not needed. Nginx is a high-performance web server that is designed to be lightweight and fast. It is a better choice for most web applications. If you are having reservations about using Nginx due to the lack of familiarity, I would recommend using the script on a test server to get a feel for it. vStacklet will handle the setting up of the necessary configurations for you.
