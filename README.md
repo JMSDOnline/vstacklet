@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.829
-  Build: 829
+  Version: v3.1.1.830
+  Build: 830
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -247,19 +247,19 @@ Once the script has been downloaded and made executable, you can then run the sc
 > 	- IonCube Loader (`-ioncube`),
 >   - Wordpress (`-wp`).
 >
-> Where NGinx and Varnish are installed, we will set the standard web port for NGinx to 8080 `-http '8080'` and Varnish to 80 `-varnishP '80'`. This is to allow for SSL termination on port 443 with NGinx and Varnish caching on port 80 (*Varnish is **actually** forwarded to port 443 for proper SSL*).
-> You'll notice the `-sendmail` flag is not used below, this is OK as the script will install Sendmail if CSF is installed.
-> The `-csf` flag is used to install CSF.
-> The `-ioncube` flag is used to install IonCube Loader.
-> The `-pma` flag is used to install phpMyAdmin.
-> The `-mariadb` flag is used to install MariaDB.
-> The `-mariadbU` flag is used to set the MariaDB database username.
-> The `-mariadbPw` flag is used to set the MariaDB database password.
-> The `-varnish` flag is used to install Varnish.
-> The `-nginx` flag is used to install NGinx.
-> The `-php` flag is used to install PHP8.1.
-> The `-d` flag is used to stage a verified Let's Encrypt SSL cert.
-> The `-e` flag is used to set the admin email.
+> Where NGinx and Varnish are installed, we will set the standard web port for NGinx to 8080 `-http '8080'` and Varnish to 80 `-varnishP '80'`. This is to allow for SSL termination on port 443 with NGinx and Varnish caching on port 80 (*Varnish is **actually** forwarded to port 443 for proper SSL*).<br>
+> You'll notice the `-sendmail` flag is not used below, this is OK as the script will install Sendmail if CSF is installed.<br>
+> The `-csf` flag is used to install CSF.<br>
+> The `-ioncube` flag is used to install IonCube Loader.<br>
+> The `-pma` flag is used to install phpMyAdmin.<br>
+> The `-mariadb` flag is used to install MariaDB.<br>
+> The `-mariadbU` flag is used to set the MariaDB database username.<br>
+> The `-mariadbPw` flag is used to set the MariaDB database password.<br>
+> The `-varnish` flag is used to install Varnish.<br>
+> The `-nginx` flag is used to install NGinx.<br>
+> The `-php` flag is used to install PHP8.1.<br>
+> The `-d` flag is used to stage a verified Let's Encrypt SSL cert.<br>
+> The `-e` flag is used to set the admin email.<br>
 > The `-wp` flag is used to install Wordpress.
 
 ```bash
