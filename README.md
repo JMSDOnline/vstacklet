@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.838
-  Build: 838
+  Version: v3.1.1.839
+  Build: 839
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -126,8 +126,6 @@ Ready to get started? Check out the [prerequisites](#prerequisites-back-to-top) 
 <details>
   <summary><b>vStacklet Script Preview</b></summary>
 
-> [!IMPORTANT]
->
 > *All visible details seen here are purely for preview purposes.*
 >
 > This is from an actual test install and all associated subdomain and credentials are randomized and retired after verification. The script will require your own information and credentials.
