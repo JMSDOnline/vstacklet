@@ -233,7 +233,7 @@ sub vcl_backend_response {
 
 	if ( beresp.http.Content-Type ~ "text" )
 	{
-		set beresp.do_esi = true; ## Do ESI processing on text output. Used for geoip plugins etc. ## See https://varnish-cache.org/docs/6.1/users-guide/esi.html
+		set beresp.do_esi = true; ## Do ESI processing on text output. Used for geoip plugins etc. ## See https://varnish-cache.org/docs/7.4/users-guide/esi.html
 	}
 
 	if ( bereq.http.X-Send-To-Backend ) {
@@ -242,7 +242,6 @@ sub vcl_backend_response {
 	}
 
 	unset beresp.http.Cache-Control; ## Remove the Cache-Control header. We control the cache time, not WordPress.
-	unset beresp.http.Set-Cookie; ## Remove all cookies. See the "Dealing with cookies" section above
 	unset beresp.http.Pragma; ## Yet another cache-control header
 
 	## Set a lower TTL when caching images. HTML costs a lot more processing power than static files.
