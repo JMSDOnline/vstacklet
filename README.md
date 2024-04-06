@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.834
-  Build: 834
+  Version: v3.1.1.835
+  Build: 835
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -352,9 +352,6 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 
 **Q:** What is the purpose of vStacklet?<br>
 **A:** vStacklet is a utility for quickly getting a server with wordpress installed deployed. As is the nature of this script, it is not intended to be a modular script. It is intended to be a full kit that installs everything you need to get a server up and running (not individual components 1 at a time - though it is in the pipeline).
-
-**Q:** What is the difference between vStacklet and Quick LEMP?<br>
-**A:** Quick LEMP is a python based application installer and uses default Boilerplate templates on Nginx/stable versions of no higher than 1.8. This limits the use of new functions and features in Nginx, nothing wrong with that, but some of us are sticklers for a recent version. vStacklet is geared towards CMS and typical website server installations, Updated/Modified/Customized Boilerplate templates to be more 'Nginx mainline' friendly; i.e http/2, as well as the ongoing use of static websites (which the original still handles splendidly!)
 
 **Q:** Why does vStacklet not support Ubuntu 16.04 and Debian 8?<br>
 **A:** Ubuntu 20.04/22.04 and Debian 11/12 are now becoming more common place with at least 90% of the providers on the market. This is why I have decided to deprecate support for Ubuntu 16.04/18.04 and Debian 8/9/10. This is to ensure that the script is as up-to-date as possible. (Debian 9/10 and Ubuntu 18.04 are still supported, but are also being phased out as they reach EOL. Keep in mind that installing vStacklet on an EOL OS is not recommended and may cause issues.)
