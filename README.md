@@ -10,16 +10,16 @@
 
 ## Script status
 
-  Version: v3.1.1.843
-  Build: 843
+  Version: v3.1.1.845
+  Build: 845
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
 ### Supported OS/Distro
 
-| Ubuntu | [![Ubuntu 16.04 EOL](https://img.shields.io/badge/Ubuntu%2016.04-EOL-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 18.04 EOL](https://img.shields.io/badge/Ubuntu%2018.04-EOL-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 20.04 Passing](https://img.shields.io/badge/Ubuntu%2020.04-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 22.04 Passing](https://img.shields.io/badge/Ubuntu%2022.04-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) |
+| Ubuntu | [![Ubuntu 16.04 EOL](https://img.shields.io/badge/Ubuntu%2016.04-EOL-black.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 18.04 EOL](https://img.shields.io/badge/Ubuntu%2018.04-EOL-black.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 20.04 Passing](https://img.shields.io/badge/Ubuntu%2020.04-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 22.04 Passing](https://img.shields.io/badge/Ubuntu%2022.04-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) |
 |--------------|--|--|--|--|
-| Debian | [![Debian 9 EOL](https://img.shields.io/badge/Debian%209-EOL-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 10 EOL](https://img.shields.io/badge/Debian%2010-EOL-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 11 Passing](https://img.shields.io/badge/Debian%2011-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 12 Passing](https://img.shields.io/badge/Debian%2012-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) |
+| Debian | [![Debian 9 EOL](https://img.shields.io/badge/Debian%209-EOL-black.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 10 EOL](https://img.shields.io/badge/Debian%2010-EOL-black.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 11 Passing](https://img.shields.io/badge/Debian%2011-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 12 Passing](https://img.shields.io/badge/Debian%2012-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) |
 
 </div>
 
