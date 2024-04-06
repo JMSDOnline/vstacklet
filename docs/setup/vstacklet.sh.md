@@ -1,10 +1,10 @@
-# vstacklet.sh - v3.1.1074
+# vstacklet.sh - v3.1.1075
 
 
 ---
 
 This script is designed to be run on a fresh Ubuntu 20.04/22.04 or
-Debian 11/12erver. I have done my best to keep it tidy and with as much
+Debian 11/12 server. I have done my best to keep it tidy and with as much
 error checking as possible. Couple this with loads of comments and you should
 have a pretty good idea of what is going on. If you have any questions,
 comments, or suggestions, please feel free to open an issue on GitHub.
@@ -25,6 +25,7 @@ vStacklet will install and configure the following:
 - NGinx 1.23.+ (HTTP Server)
 - PHP 7.4 (FPM) with common extensions
 - PHP 8.1 (FPM) with common extensions
+- PHP 8.3 (FPM) with common extensions
 - MariaDB 10.6.+ (MySQL Database)
 - Varnish 7.2.+ (HTTP Cache)
 - CSF 14.+ (Config Server Firewall)
@@ -36,13 +37,13 @@ vStacklet will install and configure the following:
 
 ### vstacklet::environment::checkroot()
 
-Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L65-L70)
+Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L66-L71)
 
 ---
 
 ### vstacklet::setup::variables()
 
-Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L79-L131)
+Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L80-L132)
 
 notes: this script function is responsible for setting the variables for the setup.
 
@@ -50,7 +51,7 @@ notes: this script function is responsible for setting the variables for the set
 
 ### vstacklet::setup::download()
 
-Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L156-L213)
+Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L157-L214)
 
 notes:
 - This script function is responsible for downloading vStacklet from GitHub
@@ -73,13 +74,13 @@ packages and install them if they are not found.
 
 ### vstacklet::setup::help()
 
-Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L220-L240)
+Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L221-L241)
 
 ---
 
 ### vstacklet::version::display()
 
-Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L247-L253)
+Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L248-L254)
 
 ---
 

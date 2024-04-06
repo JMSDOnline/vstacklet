@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1074
+# @version: 3.1.1075
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -33,6 +33,7 @@
 # - NGinx 1.23.+ (HTTP Server)
 # - PHP 7.4 (FPM) with common extensions
 # - PHP 8.1 (FPM) with common extensions
+# - PHP 8.3 (FPM) with common extensions
 # - MariaDB 10.6.+ (MySQL Database)
 # - Varnish 7.2.+ (HTTP Cache)
 # - CSF 14.+ (Config Server Firewall)
@@ -59,7 +60,7 @@
 
 ##################################################################################
 # @name: vstacklet::environment::checkroot (1)
-# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L65-L70)
+# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L66-L71)
 # @break
 ##################################################################################
 vstacklet::environment::checkroot() {
@@ -71,7 +72,7 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::setup::variables (2)
-# @description: Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L79-L131)
+# @description: Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L80-L132)
 #
 # notes: this script function is responsible for setting the variables for the setup.
 # @break
@@ -132,7 +133,7 @@ vstacklet::setup::variables() {
 
 ################################################################################
 # @name: vstacklet::setup::download() (3)
-# @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L156-L213)
+# @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L157-L214)
 #
 # notes:
 # - This script function is responsible for downloading vStacklet from GitHub
@@ -214,7 +215,7 @@ vstacklet::setup::download() {
 
 ##################################################################################
 # @name: vstacklet::setup::help()
-# @description: Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L220-L240)
+# @description: Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L221-L241)
 # @break
 ##################################################################################
 vstacklet::setup::help() {
@@ -241,7 +242,7 @@ EOF
 
 ##################################################################################
 # @name: vstacklet::setup::version()
-# @description: Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L247-L253)
+# @description: Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L248-L254)
 # @break
 ##################################################################################
 vstacklet::version::display() {
