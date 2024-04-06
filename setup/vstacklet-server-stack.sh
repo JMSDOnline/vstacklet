@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2077
+# @version: 3.1.2078
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -24,7 +24,7 @@
 # - PHP 8.1 (FPM) with common extensions
 # - PHP 8.3 (FPM) with common extensions
 # - MariaDB 10.6.+ (MySQL Database)
-# - Varnish 7.2.+ (HTTP Cache)
+# - Varnish 7.4.x (HTTP Cache)
 # - CSF 14.+ (Config Server Firewall)
 # - and more!
 #

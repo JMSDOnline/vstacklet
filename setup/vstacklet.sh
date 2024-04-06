@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1078
+# @version: 3.1.1079
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -35,7 +35,7 @@
 # - PHP 8.1 (FPM) with common extensions
 # - PHP 8.3 (FPM) with common extensions
 # - MariaDB 10.6.+ (MySQL Database)
-# - Varnish 7.2.+ (HTTP Cache)
+# - Varnish 7.4.x (HTTP Cache)
 # - CSF 14.+ (Config Server Firewall)
 # - and more!
 #

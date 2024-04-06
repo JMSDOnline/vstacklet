@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.2077
+# vstacklet-server-stack.sh - v3.1.2078
 
 
 ---
@@ -17,7 +17,7 @@ vStacklet will install and configure the following:
 - PHP 8.1 (FPM) with common extensions
 - PHP 8.3 (FPM) with common extensions
 - MariaDB 10.6.+ (MySQL Database)
-- Varnish 7.2.+ (HTTP Cache)
+- Varnish 7.4.x (HTTP Cache)
 - CSF 14.+ (Config Server Firewall)
 - and more!
 
