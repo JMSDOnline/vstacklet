@@ -10,14 +10,14 @@
 
 ## Script status
 
-  Version: v3.1.1.837
-  Build: 837
+  Version: v3.1.1.838
+  Build: 838
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
 ### Supported OS/Distro
 
-| Ubuntu | [![Ubuntu 16.04 EOL](https://img.shields.io/badge/Ubuntu%2016.04-EOL-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 18.04 EOL](https://img.shields.io/badge/Ubuntu%2018.04-EOL-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 20.04 Passing](https://img.shields.io/badge/Ubuntu%2020.04-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 22.04 Testing](https://img.shields.io/badge/Ubuntu%2022.04-testing-purple.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) |
+| Ubuntu | [![Ubuntu 16.04 EOL](https://img.shields.io/badge/Ubuntu%2016.04-EOL-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 18.04 EOL](https://img.shields.io/badge/Ubuntu%2018.04-EOL-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 20.04 Passing](https://img.shields.io/badge/Ubuntu%2020.04-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Ubuntu 22.04 Passing](https://img.shields.io/badge/Ubuntu%2022.04-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) |
 |--------------|--|--|--|--|
 | Debian | [![Debian 9 EOL](https://img.shields.io/badge/Debian%209-EOL-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 10 EOL](https://img.shields.io/badge/Debian%2010-EOL-red.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 11 Passing](https://img.shields.io/badge/Debian%2011-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) | [![Debian 12 Passing](https://img.shields.io/badge/Debian%2012-passing-green.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet) |
 
@@ -72,7 +72,7 @@
 
 vStacklet is a kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 20.04/22.04 and Debian 11/12 servers.
 
-Components include a recent mainline version of Nginx (mainline (1.23.x)) using configurations from the HTML 5 Boilerplate team (*and modified/customized for use with mainline*), Varnish 7.2.x, and MariaDB 10.6.x (drop-in replacement for MySQL), PHP8.1, PHP7.4 or HHVM 4.x **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall), Wordpress and more to be added soon. (see [To-Do List](#the-to-do-list-back-to-top))
+Components include a recent mainline version of Nginx (mainline (1.23.x)) using configurations from the HTML 5 Boilerplate team (*and modified/customized for use with mainline*), Varnish 7.2.x, and MariaDB 10.6.x (drop-in replacement for MySQL), PHP8.3, PHP8.1, PHP7.4 or HHVM 4.x **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall), Wordpress and more to be added soon. (see [To-Do List](#the-to-do-list-back-to-top))
 
 Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
@@ -88,7 +88,7 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 - Color Coding for emphasis on install processes.
 - Easy optional parameters make it a set it and forget it script.
 - Varnish Cache on port 80 with Nginx port 8080 SSL termination on 443.
-- Users choice of php8.1, php7.4 or HHVM
+- Users choice of php8.3, php8.1, php7.4 or HHVM
 - No Apache - Full throttle!
 - Full Kit functionality - backup scripts included.
 - Dynamic rollback built-in should the install fail. All dependencies and directories placed by vStacklet are removed on the rollback.
@@ -96,7 +96,7 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 - HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="https://tools.keycdn.com/http2-test" target="_blank">HTTP/2 Test via KeyCDN</a>
 - Everything you need to get that Nginx + Varnish server up and running!
 
-Total script install time on a General Shared CPU <a href="https://m.do.co/c/917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 12/minutes installing everything; CSF, MariaDB, NGinx, PHP8.1, Sendmail, SSL, Varnish, WordPress. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
+Total script install time on a General Shared CPU <a href="https://m.do.co/c/917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 12/minutes installing everything; CSF, MariaDB, NGinx, PHP8.3, Sendmail, SSL, Varnish, WordPress. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
 
 ---
 
@@ -105,11 +105,11 @@ Total script install time on a General Shared CPU <a href="https://m.do.co/c/917
 ### **vStacklet** - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 - Adds repositories for the latest stable versions of MariaDB (10.6.x), mainline (1.23.x) versions of Nginx, and Varnish 7.2.x.
-- Installs choice of PHP8.1, PHP7.4 or HHVM 4.x
+- Installs choice of PHP8.3, PHP8.1, PHP7.4 or HHVM 4.x
 - Installs NGinx and/or Varnish.
-- Installs and enables OPCode Cache and fine-tuning for PHP7.4 *or* PHP8.1. (default)
-- Installs and enables Memcached Cache and fine-tuning for PHP7.4 *or* PHP8.1. (default)
-- Installs and enables IonCube Loader [*optional*]
+- Installs and enables OPCode Cache and fine-tuning for PHP7.4, PHP8.1 *or* PHP8.3.
+- Installs and enables Memcached Cache and fine-tuning for PHP7.4, PHP8.1 *or* PHP8.3.
+- Installs and enables IonCube Loader [*optional*] (**PHP8.3 currently has no IonCube Loader support**. This will be updated when support is available).
 - Installs and configures phpMyAdmin
 - Installs choice of database: MariaDB or MySQL (PostgreSQL, or Redis - experimental) [*optional*]
 - Installs and configures CSF (Config Server Firewall) - prepares ports used for vStacklet as well as informing your entered email for security alerts.
@@ -237,7 +237,7 @@ Once the script has been downloaded and made executable, you can then run the sc
 > - stage a verified Let's Encrypt SSL cert (`-d`) [**`-e` is required for `-d`**],
 > - set the http port for NGinx to 8080 (`-http '8080'`),
 > - set the http port for Varnish to 80 (`-varnishP '80'`),
-> - install PHP8.1 (`-php '8.1'`),
+> - install PHP8.1 (`-php '8.3'`),
 > 	- NGinx (`-nginx`),
 > 	- Varnish (`-varnish`),
 > 	- MariaDB (`-mariadb` | `-mariadbU` | `-mariadbPw`),
@@ -250,20 +250,21 @@ Once the script has been downloaded and made executable, you can then run the sc
 > Where NGinx and Varnish are installed, we will set the standard web port for NGinx to 8080 `-http '8080'` and Varnish to 80 `-varnishP '80'`. This is to allow for SSL termination on port 443 with NGinx and Varnish caching on port 80 (*Varnish is **actually** forwarded to port 443 for proper SSL*).<br>
 > You'll notice the `-sendmail` flag is not used below, this is OK as the script will install Sendmail if CSF is installed.<br>
 > The `-csf` flag is used to install CSF.<br>
-> The `-ioncube` flag is used to install IonCube Loader.<br>
+> The `-csfCf` flag is used to set Cloudflare IP's in the CSF allow list.<br>
+> The `-ioncube` flag is used to install IonCube Loader. (**PHP8.3 currently has no IonCube Loader support.** This will be updated when support is available.)<br>
 > The `-pma` flag is used to install phpMyAdmin.<br>
 > The `-mariadb` flag is used to install MariaDB.<br>
-> The `-mariadbU` flag is used to set the MariaDB database username.<br>
+> The `-mariadbU` flag is used to set the MariaDB database username. (**When setting the username for the database, do not use `root` as the username.** The database is installed with a `root` user by default bound to the localhost.)
 > The `-mariadbPw` flag is used to set the MariaDB database password.<br>
 > The `-varnish` flag is used to install Varnish.<br>
 > The `-nginx` flag is used to install NGinx.<br>
-> The `-php` flag is used to install PHP8.1.<br>
+> The `-php` flag is used to install PHP8.3.<br>
 > The `-d` flag is used to stage a verified Let's Encrypt SSL cert.<br>
 > The `-e` flag is used to set the admin email.<br>
 > The `-wp` flag is used to install Wordpress.
 
 ```bash
-vstacklet -e 'your@email.com' -d 'yourdomain.com' -php '8.1' -nginx -varnish -http '8080' -varnishP '80' -mariadb -mariadbU 'db_username' -mariadbPw 'db_password' -pma -ioncube -csf -wp
+vstacklet -e 'your@email.com' -d 'yourdomain.com' -php '8.3' -nginx -varnish -http '8080' -varnishP '80' -mariadb -mariadbU 'db_username' -mariadbPw 'db_password' -pma -csf -csfCf -wp
 ```
 
 ---
@@ -271,7 +272,14 @@ vstacklet -e 'your@email.com' -d 'yourdomain.com' -php '8.1' -nginx -varnish -ht
 #### Verifications <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
 <details>
-  <summary><b>vStacklet PHP Install Verification</b></summary>
+  <summary><b>vStacklet PHP8.3 Install Verification</b></summary>
+
+![vStacklet PHP Install Verification](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-php83_install-checkinfo-verification.png "vStacklet PHP Install Verification")
+
+</details>
+
+<details>
+  <summary><b>vStacklet PHP8.1 Install Verification</b></summary>
 
 ![vStacklet PHP Install Verification](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-php_install-checkinfo-verification.png "vStacklet PHP Install Verification")
 
@@ -287,7 +295,7 @@ vstacklet -e 'your@email.com' -d 'yourdomain.com' -php '8.1' -nginx -varnish -ht
 <details>
   <summary><b>vStacklet phpMyAdmin & MariaDB Verification</b></summary>
 
-![vStacklet phpMyAdmin & MariaDB Verification](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-phpmyadmin_mariadb_install-verification.png "vStacklet phpMyAdmin & MariaDB Verification")
+![vStacklet phpMyAdmin & MariaDB Verification](https://github.com/JMSDOnline/vstacklet/blob/development/developer_resources/images/vstacklet-phpmyadmin_mariadb_install-verification_php83.png "vStacklet phpMyAdmin & MariaDB Verification")
 
 </details>
 
@@ -354,7 +362,9 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 **A:** vStacklet is a utility for quickly getting a server with wordpress installed deployed. As is the nature of this script, it is not intended to be a modular script. It is intended to be a full kit that installs everything you need to get a server up and running (not individual components 1 at a time - though it is in the pipeline).
 
 **Q:** Why does vStacklet not support Ubuntu 16.04 and Debian 8?<br>
-**A:** Ubuntu 20.04/22.04 and Debian 11/12 are now becoming more common place with at least 90% of the providers on the market. This is why I have decided to deprecate support for Ubuntu 16.04/18.04 and Debian 8/9/10. This is to ensure that the script is as up-to-date as possible. (Debian 9/10 and Ubuntu 18.04 are still supported, but are also being phased out as they reach EOL. Keep in mind that installing vStacklet on an EOL OS is not recommended and may cause issues.)
+**A:** Ubuntu 20.04/22.04 and Debian 11/12 are now becoming more common place with at least 90% of the providers on the market. This is why I have decided to deprecate support for Ubuntu 16.04/18.04 and Debian 8/9/10. This is to ensure that the script is as up-to-date as possible.
+> [!CAUTION]
+> Debian 9/10 and Ubuntu 18.04 are no longer supported as they have hit EOL. Keep in mind that installing vStacklet on an EOL OS is not recommended and may cause issues.
 
 **Q:** What is the expected install time for vStacklet?<br>
 **A:** Total script install time on a General Shared CPU <a href="https://m.do.co/c/917d3ff0e1c8" target="_blank">Digital Ocean Droplet</a> sits at 12/minutes installing everything; CSF, MariaDB, NGinx, PHP8.1, Sendmail, SSL, Varnish, WordPress. This time assumes you are sitting attentively with the script running. There are a limited interactions to be made with the script and most of the softwares installed I have automated and logged. The most is the script will ask to continue. With the exception of Wordpress, the script will ask for database, database username, and database password (the database and user are to be created for the Wordpress install).
@@ -362,10 +372,10 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 **Q:** Why is there the option to install either mariadb or mysql?<br>
 **A:** MariaDB is a drop-in replacement for MySQL. It is a fork of MySQL and is maintained by the original developers of MySQL. It is designed to be a drop-in replacement for MySQL, and it includes all of the major features found in MySQL. Either can be used, but MariaDB is recommended.
 
-**Q:** Why is there the option to install either php8.1, php7.4 or HHVM?<br>
-**A:** PHP8.1 is the latest stable version of PHP. PHP7.4 is the previous stable version of PHP. HHVM is a virtual machine designed to execute programs written in Hack and PHP. It is developed by Facebook. HHVM is no longer actively maintained, but is still available for use. PHP8.1 is recommended.
+**Q:** Why is there the option to install either php8.3, php8.1, php7.4 or HHVM?<br>
+**A:** PHP8.3 is the latest stable version of PHP. PHP8.1 is the previous stable version of PHP and some folks are still preferring 7 🤷🏽‍♂️. HHVM is a virtual machine designed to execute programs written in Hack and PHP. It is developed by Facebook. HHVM is no longer actively maintained, but is still available for use. PHP8.3 is recommended.
 > [!NOTE]
-> PHP8.3 is technically the latest stable release, but it is not included in the script as it is not yet widely supported and there may be some compatibility issues with applications such as WordPress. Once PHP8.3 is more widely supported, it will be included in the script.
+> PHP8.3 is technically the latest stable release, but PHP8.1 is still supported and is a good choice for those who are not ready to move to PHP8.3. *For instance, at the time of writing this note, ioncube has yet to provide a version compatible with 8.3*. PHP7.4 is also supported, but is not recommended as it is no longer supported by the PHP team. HHVM is a virtual machine designed to execute programs written in Hack and PHP. It is developed by Facebook. HHVM is no longer actively maintained, but is still available for use.
 
 **Q:** Why is there no option to install Apache?<br>
 **A:** vStacklet is designed to be a lightweight and fast install. Apache is not included in the script as it is not needed. Nginx is a high-performance web server that is designed to be lightweight and fast. It is a better choice for most web applications. If you are having reservations about using Nginx due to the lack of familiarity, I would recommend using the script on a test server to get a feel for it. vStacklet will handle the setting up of the necessary configurations for you.
@@ -391,7 +401,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 
 - [x] Enable OPCode Caching
 - [x] Enable Memcached Caching
-- [x] Optional install of php7.4, php8.1 or HHVM
+- [x] Optional install of php7.4, php8.1, php8.3 or HHVM
 - [x] Sendmail
 - [x] IonCube Loader (w/ option prompt)
 - [x] Improve script structure
