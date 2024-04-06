@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1269
+# vs-backup - v3.1.1270
 
 
 ---
@@ -55,7 +55,7 @@ This script will do the following:
 
 Backup a database `-db` and directory `-f`: (various options - overkill example)
 ```bash
- vs-backup -db "database" -dbuser "root" -dbpass "password" -dbenc -dbtbu "/backup/databases" -dbtbu "/tmp/vstacklet/backup/databases" -f "/var/www/html" -fdbu "/backup/files" -ftbu "/tmp/vstacklet/backup/files" -r "7" -dbrpe "enc" -cc
+ vs-backup -db "database" -dbuser "root" -dbpass "password" -dbenc -dbtbu "/backup/databases" -dbtbu "/tmp/vstacklet/backup/databases" -f "/var/www/html/vsapp" -fdbu "/backup/files" -ftbu "/tmp/vstacklet/backup/files" -r "7" -dbrpe "enc" -cc
 ```
 
 ---
@@ -65,7 +65,7 @@ Backup a database `-db` and directory `-f`: (simple example - using minimal opti
 - The database user and password are pulled from `/root/.my.cnf` by default. No need to set them unless you want to. <sup>[Bonus: security]</sup>
 - See the default options for the rest of the options.
 ```bash
- vs-backup -db "database" -f "/var/www/html" -r "5" -dbenc -cc
+ vs-backup -db "database" -f "/var/www/html/vsapp" -r "5" -dbenc -cc
 ```
 
 ---
@@ -193,7 +193,7 @@ Create a cron job for the backup script. [see function](https://github.com/JMSDO
 #### examples:
 
 ```
- vs-backup -db "db_name" -dbuser "db_user" -dbpass "db_pass" -f "/var/www/html/" -cc
+ vs-backup -db "db_name" -dbuser "db_user" -dbpass "db_pass" -f "/var/www/html/vsapp/" -cc
 ```
 
 ---

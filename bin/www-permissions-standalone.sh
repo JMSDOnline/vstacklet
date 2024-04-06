@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions-standalone.sh
-# @version: 3.1.1069
+# @version: 3.1.1070
 # @description: This script will grab the latest version of vs-perms and
 # install it on your server.
 #
@@ -44,7 +44,7 @@
 # @author_contact: https://github.com/JMSDOnline/vstacklet
 #
 # @license: MIT License (Included in LICENSE)
-# Copyright (C) 2016-2023, Jason Matthews
+# Copyright (C) 2016-2024, Jason Matthews
 # All rights reserved.
 # <END METADATA>
 ################################################################################

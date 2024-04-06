@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1072
+# @version: 3.1.1074
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -15,8 +15,8 @@
 #
 # @path: /usr/local/bin/vstacklet
 #
-# @brief: This script is designed to be run on a fresh Ubuntu 18.04/20.04 or
-# Debian 9/10/11 server. I have done my best to keep it tidy and with as much
+# @brief: This script is designed to be run on a fresh Ubuntu 20.04/22.04 or
+# Debian 11/12 server. I have done my best to keep it tidy and with as much
 # error checking as possible. Couple this with loads of comments and you should
 # have a pretty good idea of what is going on. If you have any questions,
 # comments, or suggestions, please feel free to open an issue on GitHub.
@@ -50,7 +50,7 @@
 # @author_contact: https://github.com/JMSDOnline/vstacklet
 #
 # @license: MIT License (Included in LICENSE)
-# Copyright (C) 2016-2023, Jason Matthews
+# Copyright (C) 2016-2024, Jason Matthews
 # All rights reserved.
 # <END METADATA>
 ################################################################################

@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.2050
+# vstacklet-server-stack.sh - v3.1.2057
 
 
 ---
@@ -15,6 +15,7 @@ vStacklet will install and configure the following:
 - NGinx 1.23.+ (HTTP Server)
 - PHP 7.4 (FPM) with common extensions
 - PHP 8.1 (FPM) with common extensions
+- PHP 8.3 (FPM) with common extensions
 - MariaDB 10.6.+ (MySQL Database)
 - Varnish 7.2.+ (HTTP Cache)
 - CSF 14.+ (Config Server Firewall)
@@ -156,7 +157,7 @@ Important Links:
 
 ### vstacklet::environment::init()
 
-Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L180-L196)
+Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L181-L197)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -164,7 +165,7 @@ Setup the environment and set variables. [see function](https://github.com/JMSDO
 
 ### vstacklet::args::process()
 
-Process the options and values passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L241-L500)
+Process the options and values passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L242-L501)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -203,15 +204,15 @@ Process the options and values passed to the script. [see function](https://gith
 
 ```
  vstacklet --help
- vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -hn "yourhostname" -php "8.1" -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "db_user" -mariadbPw "db_password" -pma -csf -wr "/var/www/html" -wp
- vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -http "8080" -d "yourdomain.com" -php "8.1" -nginx -varnish -varnishP "80" -mariadb -mariadbU "db_user" -mariadbPw "db_password" -sendmail -wr "/var/www/html" -wp --reboot
+ vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -hn "yourhostname" -php "8.1" -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "db_user" -mariadbPw "db_password" -pma -csf -wr "/var/www/html/vsapp" -wp
+ vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -http "8080" -d "yourdomain.com" -php "8.1" -nginx -varnish -varnishP "80" -mariadb -mariadbU "db_user" -mariadbPw "db_password" -sendmail -wr "/var/www/html/vsapp" -wp --reboot
 ```
 
 ---
 
 ### vstacklet::environment::functions()
 
-Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L509-L692)
+Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L510-L693)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -219,7 +220,7 @@ Stage various functions for the setup environment. [see function](https://github
 
 ### vstacklet::log::check()
 
-Check if the log file exists and create it if it doesn't. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L706-L726)
+Check if the log file exists and create it if it doesn't. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L707-L727)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -234,7 +235,7 @@ notes:
 
 ### vstacklet::apt::update()
 
-Updates server via apt-get. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L737-L746)
+Updates server via apt-get. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L738-L747)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -246,7 +247,7 @@ Updates server via apt-get. [see function](https://github.com/JMSDOnline/vstackl
 
 ### vstacklet::dependencies::install()
 
-Installs dependencies for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L758-L780)
+Installs dependencies for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L759-L781)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -262,7 +263,7 @@ Installs dependencies for vStacklet software. [see function](https://github.com/
 
 ### vstacklet::environment::checkroot()
 
-Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L790-L792)
+Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L791-L793)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -274,19 +275,19 @@ Check if the user is root. [see function](https://github.com/JMSDOnline/vstackle
 
 ### vstacklet::environment::checkdistro()
 
-Check if the distro is Ubuntu 18.04/20.04 | Debian 9/10/11/12 [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L802-L813)
+Check if the distro is Ubuntu 20.04/22.04 | Debian 11/12 [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L803-L814)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
 #### return codes:
 
-- 2 - this script only supports Ubuntu 18.04/20.04 | Debian 9/10/11/12
+- 2 - this script only supports Ubuntu 20.04/22.04 | Debian 11/12
 
 ---
 
 ### vstacklet::intro()
 
-Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L822-L845)
+Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L823-L846)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -294,7 +295,7 @@ Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet
 
 ### vstacklet::dependencies::array()
 
-Handles various dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L874-L903)
+Handles various dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L875-L904)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -306,7 +307,7 @@ Handles various dependencies for the vStacklet software. [see function](https://
 
 ### vstacklet::base::dependencies()
 
-Handles base dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L913-L938)
+Handles base dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L914-L939)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -318,7 +319,7 @@ Handles base dependencies for the vStacklet software. [see function](https://git
 
 ### vstacklet::source::dependencies()
 
-Installs required sources for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L950-L977)
+Installs required sources for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L951-L978)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -334,7 +335,7 @@ Installs required sources for vStacklet software. [see function](https://github.
 
 ### vstacklet::bashrc::set()
 
-Set ~/.bashrc and ~/.profile for vstacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L988-L996)
+Set ~/.bashrc and ~/.profile for vstacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L989-L997)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -346,7 +347,7 @@ Set ~/.bashrc and ~/.profile for vstacklet. [see function](https://github.com/JM
 
 ### vstacklet::hostname::set()
 
-Set system hostname. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1017-L1031)
+Set system hostname. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1018-L1032)
 
 notes:
 - hostname must be a valid hostname.
@@ -375,7 +376,7 @@ notes:
 
 ### vstacklet::webroot::set()
 
-Set main web root directory. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1053-L1060)
+Set main web root directory. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1054-L1061)
 
 notes:
 - if the directory already exists, it will be used.
@@ -386,7 +387,7 @@ notes:
   - ~/logs
   - ~/ssl
 - if `-wr | --web_root` is not set, the default directory will be used.
-  e.g. `/var/www/html/{public,logs,ssl}`
+  e.g. `/var/www/html/vsapp/{public,logs,ssl}`
 
 #### options:
 
@@ -394,7 +395,7 @@ notes:
 
 #### arguments:
 
--  $2 - `[web_root_directory]` - (optional) (default: /var/www/html)
+-  $2 - `[web_root_directory]` - (optional) (default: /var/www/html/vsapp)
 
 #### examples:
 
@@ -407,7 +408,7 @@ notes:
 
 ### vstacklet::ssh::set()
 
-Set ssh port to custom port (if nothing is set, default port is 22) [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1074-L1081)
+Set ssh port to custom port (if nothing is set, default port is 22) [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1075-L1082)
 
 #### options:
 
@@ -433,7 +434,7 @@ Set ssh port to custom port (if nothing is set, default port is 22) [see functio
 
 ### vstacklet::ftp::set()
 
-Set ftp port to custom port (if nothing is set, default port is 21) [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1095-L1106)
+Set ftp port to custom port (if nothing is set, default port is 21) [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1096-L1107)
 
 #### options:
 
@@ -461,7 +462,7 @@ Set ftp port to custom port (if nothing is set, default port is 21) [see functio
 
 Blocks an insecure port 1900 that may lead to
 DDoS masked attacks. Only remove this function if you absolutely
-need port 1900. In most cases, this is a junk port. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1119-L1124)
+need port 1900. In most cases, this is a junk port. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1120-L1125)
 
 *function has no options*
 
@@ -476,7 +477,7 @@ need port 1900. In most cases, this is a junk port. [see function](https://githu
 
 ### vstacklet::sources::update()
 
-This function updates the package list and upgrades the system. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1135-L1211)
+This function updates the package list and upgrades the system. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1136-L1212)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -489,7 +490,7 @@ This function updates the package list and upgrades the system. [see function](h
 ### vstacklet::gpg::keys()
 
 This function sets the required software package keys
-required by added sources. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1234-L1296)
+required by added sources. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1235-L1297)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -513,7 +514,7 @@ notes:
 ### vstacklet::locale::set()
 
 This function sets the locale to en_US.UTF-8
-and sets the timezone to UTC. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1313-L1333)
+and sets the timezone to UTC. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1314-L1334)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -533,7 +534,7 @@ todo: This function is still a work in progress.
 
 ### vstacklet::php::install()
 
-Install PHP and PHP modules. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1368-L1419)
+Install PHP and PHP modules. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1369-L1420)
 
 notes:
 - versioning:
@@ -580,7 +581,7 @@ notes:
 
 ### vstacklet::hhvm::install()
 
-Install HHVM and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1448-L1490)
+Install HHVM and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1449-L1491)
 
 notes:
 - not familiar with HHMV?
@@ -618,7 +619,7 @@ notes:
 
 ### vstacklet::nginx::install()
 
-Install NGinx and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1530-L1638)
+Install NGinx and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1531-L1639)
 
 notes:
 - The following profiles are included:
@@ -667,7 +668,7 @@ notes:
 
 ### vstacklet::varnish::install()
 
-Install Varnish and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1670-L1740)
+Install Varnish and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1671-L1741)
 
 notes:
 - varnish is installed based on the following variables:
@@ -711,13 +712,13 @@ notes:
 
 ### vstacklet::permissions::adjust()
 
-Adjust permissions for the web root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1762-L1770)
+Adjust permissions for the web root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1763-L1771)
 
 notes:
 - Permissions are adjusted based the following variables:
   - adjustments are made to the assigned web root on the `-wr | --web-root`
    option
-  - adjustments are made to the default web root of `/var/www/html`
+  - adjustments are made to the default web root of `/var/www/html/vsapp`
   if the `-wr | --web-root` option is not used
 - permissions are adjusted to the following:
   - `www-data:www-data` (user:group)
@@ -734,7 +735,7 @@ notes:
 
 ### vstacklet::ioncube::install()
 
-Install ionCube loader. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1792-L1820)
+Install ionCube loader. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1793-L1821)
 
 notes:
 - the ioncube loader will be available for the php version specified
@@ -765,7 +766,7 @@ notes:
 
 ### vstacklet::mariadb::install()
 
-Install mariaDB and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1854-L1976)
+Install mariaDB and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1855-L1977)
 
 notes:
 - if `-mysql | --mysql` is specified, then mariadb will not be installed. choose either mariadb or mysql.
@@ -811,7 +812,7 @@ notes:
 
 ### vstacklet::mysql::install()
 
-Install mySQL and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2007-L2130)
+Install mySQL and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2008-L2131)
 
 notes:
 - if `-mariadb | --mariadb` is specified, then mysql will not be installed. choose either mysql or mariadb.
@@ -853,7 +854,7 @@ notes:
 
 ### vstacklet::postgre::install()
 
-Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2154-L2241)
+Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2155-L2242)
 
 note: postgresql is not installed by default and is currently untested.
 this function is a work in progress. it is intended as a future feature.
@@ -889,7 +890,7 @@ this function is a work in progress. it is intended as a future feature.
 
 ### vstacklet::redis::install()
 
-Install and configure Redis. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2268-L2322)
+Install and configure Redis. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2269-L2323)
 
 note: redis is not installed by default and is currently untested.
 this function is a work in progress. it is intended as a future feature.
@@ -927,7 +928,7 @@ this function is a work in progress. it is intended as a future feature.
 
 ### vstacklet::phpmyadmin::install()
 
-Install phpMyAdmin and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2373-L2467)
+Install phpMyAdmin and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2374-L2468)
 
 notes:
 - phpMyAdmin no longer supports HHVM due to the project now just focusing on
@@ -990,7 +991,7 @@ notes:
 
 ### vstacklet::csf::install()
 
-Install CSF firewall. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2504-L2632)
+Install CSF firewall. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2505-L2633)
 
 notes:
 - https://configserver.com/cp/csf.html
@@ -1041,7 +1042,7 @@ notes:
 
 Configure Cloudflare IP addresses in CSF. This is to be used
 when Cloudflare is used as a CDN. This will allow CSF to
-recognize Cloudflare IPs as trusted. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2655-L2672)
+recognize Cloudflare IPs as trusted. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2656-L2673)
 
 notes:
 - This function is only called under the following conditions:
@@ -1073,7 +1074,7 @@ notes:
 ### vstacklet::sendmail::install()
 
 Install and configure sendmail. This is a required component for
-CSF to function properly. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2701-L2792)
+CSF to function properly. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2702-L2793)
 
 notes:
 - The `-e | --email` option is required for this function to run properly.
@@ -1115,7 +1116,7 @@ notes:
 ### vstacklet::wordpress::install()
 
 Install WordPress. This will also configure WordPress to use
-the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2837-L3043)
+the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2838-L3044)
 
 notes:
 - this function is only called under the following conditions:
@@ -1131,7 +1132,7 @@ these arguments are:
   - webserver: `-nginx | --nginx` or `-varnish | --varnish` (both can be used)
   - php: `-php | --php` or `-hhvm | --hhvm` (only one can be used)
 - this function will optionally use the following options:
-  - web root: `-wr | --web_root` (default: /var/www/html)
+  - web root: `-wr | --web_root` (default: /var/www/html/vsapp)
 
 #### options:
 
@@ -1158,10 +1159,10 @@ these arguments are:
 #### examples:
 
 ```
- vstacklet -wp -mariadb -nginx -php "8.1" -wr "/var/www/html"
+ vstacklet -wp -mariadb -nginx -php "8.1" -wr "/var/www/html/vsapp"
  vstacklet -wp -mysql -nginx -php "8.1"
  vstacklet -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
- vstacklet -wp -mariadb -nginx -hhvm -wr "/var/www/html"
+ vstacklet -wp -mariadb -nginx -hhvm -wr "/var/www/html/vsapp"
 ```
 
 ---
@@ -1169,7 +1170,7 @@ these arguments are:
 ### vstacklet::domain::ssl()
 
 The following function installs the SSL certificate
-  for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3075-L3134)
+  for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3076-L3135)
 
 notes:
 - This function is only called under the following conditions:
@@ -1215,7 +1216,7 @@ notes:
 Cleans up the system after a successful installation. This
   function is called after the installation is complete. It removes the
   temporary files and directories created during the installation process.
-  This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3148-L3175)
+  This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3149-L3176)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -1230,7 +1231,7 @@ Cleans up the system after a successful installation. This
 Outputs success message on completion of setup. This function
   is called after the installation is complete. It outputs a success message
   to the user and provides them with the necessary information to access their
-  new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3189-L3227)
+  new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3190-L3228)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -1242,7 +1243,7 @@ Outputs success message on completion of setup. This function
 
 ### vstacklet::help::display()
 
-Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3238-L3339)
+Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3239-L3340)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -1254,7 +1255,7 @@ Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnli
 
 ### vstacklet::version::display()
 
-Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3350-L3356)
+Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3351-L3357)
 
 ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 
@@ -1266,7 +1267,7 @@ Displays the current version of vStacklet. [see function](https://github.com/JMS
 
 ### vstacklet::clean::rollback()
 
-This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3375-L3630)
+This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3376-L3631)
 
 notes:
 - it will remove the temporary files and directories created during the installation

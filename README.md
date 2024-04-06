@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.830
-  Build: 830
+  Version: v3.1.1.831
+  Build: 831
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -140,7 +140,7 @@ Ready to get started? Check out the [prerequisites](#prerequisites-back-to-top) 
 
 ### **VS-Backup** - Installs a single script to help manage and automate server/site backups <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
-- Backup your files from key locations ( ex: /var/www/html ) - with the `-f` flag, you can specify directories to backup.
+- Backup your files from key locations ( ex: /var/www/html/vsapp ) - with the `-f` flag, you can specify directories to backup.
 - Backup your mysql/mariadb databases - with the `-db` flag, you can specify databases to backup.
 - Set the retention period for your backups - with the `-r` flag, you can specify the number of days to keep backups. (default is 7 days)
 - Cleanup remaining individual archives after the retention period has been reached.
@@ -165,7 +165,7 @@ To view the available options, run the script with the `-h` option (`vs-backup -
 - Checks the user group exists, if not, create it. (default: www-data)
 - Checks the user exists, if not, create it. (default: www-data)
 - Checks the user is a member of the www-data group, if not, add them.
-- Set the correct permissions for the web root directory. (default: /var/www/html)
+- Set the correct permissions for the web root directory. (default: /var/www/html/vsapp)
 
 To view the available options, run the script with the `-h` option (`vs-perms -h`) or better yet, view the documentation:
 - :book: [docs/bin/backup/www-permissions.sh (aka `vs-perms`)](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/www-permissions.sh.md)

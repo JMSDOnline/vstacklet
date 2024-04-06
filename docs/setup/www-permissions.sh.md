@@ -4,7 +4,7 @@
 ---
 
 Quickly create a new www-data group and set permissions for
-${www_root:-/var/www/html}.
+${www_root:-/var/www/html/vsapp}.
 
 ---
 
@@ -24,15 +24,15 @@ This script will do the following:
 
 #### examples:
 ```bash
- vstacklet -www-perms -wwwR "/var/www/html"
- vstacklet -www-perms -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html"
+ vstacklet -www-perms -wwwR "/var/www/html/vsapp"
+ vstacklet -www-perms -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html/vsapp"
 ```
 
 ---
 
 #### or as a standalone script:
 ```bash
- /opt/vstacklet/setup/www-permissions.sh -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html"
+ /opt/vstacklet/setup/www-permissions.sh -wwwU "www-data" -wwwG "www-data" -wwwR "/var/www/html/vsapp"
 ```
 
 ---
@@ -74,13 +74,13 @@ Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet
 
 ### vstacklet::wwwdata::create()
 
-Adds a new www-data group and sets permissions for ${www_root:-/var/www/html}. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/www-permissions.sh#L229-L260)
+Adds a new www-data group and sets permissions for ${www_root:-/var/www/html/vsapp}. [see function](https://github.com/JMSDOnline/vstacklet/blob/development/setup/www-permissions.sh#L229-L260)
 
 #### options:
 
 -  $1 `-wwwU | --www_user` - The user to add to the www-data group. (default: www-data)
 -  $2 `-wwwG | --www_group` - The group to create. (default: www-data) (optional)
--  $3 `-wwwR | --www_root` - The root directory to set permissions for. (default: /var/www/html) (optional)
+-  $3 `-wwwR | --www_root` - The root directory to set permissions for. (default: /var/www/html/vsapp) (optional)
 -  $4 `-wwwh | --www_help` - Prints the help message.
 -  $5 `-wwwv | --www_version` - Prints the version number.
 
@@ -102,7 +102,7 @@ notes:
 - Permissions are adjusted based the following variables:
   - adjustments are made to the assigned web root on the `-wwwR | --www_root`
    option
-  - adjustments are made to the default web root of `/var/www/html`
+  - adjustments are made to the default web root of `/var/www/html/vsapp`
   if the `-wwwR | --www_root` option is not used.
 - permissions are adjusted to the following:
   - `root:www-data` (user:group)

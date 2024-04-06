@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1269
+# @version: 3.1.1270
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -52,7 +52,7 @@
 #
 # Backup a database `-db` and directory `-f`: (various options - overkill example)
 # ```bash
-#  vs-backup -db "database" -dbuser "root" -dbpass "password" -dbenc -dbtbu "/backup/databases" -dbtbu "/tmp/vstacklet/backup/databases" -f "/var/www/html" -fdbu "/backup/files" -ftbu "/tmp/vstacklet/backup/files" -r "7" -dbrpe "enc" -cc
+#  vs-backup -db "database" -dbuser "root" -dbpass "password" -dbenc -dbtbu "/backup/databases" -dbtbu "/tmp/vstacklet/backup/databases" -f "/var/www/html/vsapp" -fdbu "/backup/files" -ftbu "/tmp/vstacklet/backup/files" -r "7" -dbrpe "enc" -cc
 # ```
 #
 # Backup a database `-db` and directory `-f`: (simple example - using minimal options)<br><br>
@@ -60,7 +60,7 @@
 # - The database user and password are pulled from `/root/.my.cnf` by default. No need to set them unless you want to. <sup>[Bonus: security]</sup>
 # - See the default options for the rest of the options.
 # ```bash
-#  vs-backup -db "database" -f "/var/www/html" -r "5" -dbenc -cc
+#  vs-backup -db "database" -f "/var/www/html/vsapp" -r "5" -dbenc -cc
 # ```
 #
 # Decrypt the database backup: (decrypt only)<br><br>
@@ -416,7 +416,7 @@ vstacklet::backup::variables() {
 vstacklet::backup::default::variables() {
 	### DIRECTORY/FILE OPTIONS ####################################################
 	# @script-note: set the source directory/file to backup
-	file="${file:-/var/www/html}"
+	file="${file:-/var/www/html/vsapp}"
 	# @script-note: grab the last entry in the file path, if last entry is / then grab the entry before the previous /.
 	file_name=$(basename "${file%/}")
 	# @script-note: set the temporary backup directory for the files to backup
@@ -705,7 +705,7 @@ vstacklet::backup::retention() {
 # - The cron job will run the script in cron mode
 # - The cron job will redirect the output to /dev/null
 # - The cron job will run as root
-# @example: vs-backup -db "db_name" -dbuser "db_user" -dbpass "db_pass" -f "/var/www/html/" -cc
+# @example: vs-backup -db "db_name" -dbuser "db_user" -dbpass "db_pass" -f "/var/www/html/vsapp/" -cc
 # @break
 ##################################################################################
 vstacklet::backup::cron::create() {
@@ -862,7 +862,7 @@ vstacklet::backup::usage() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "Examples:"
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "  vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/\""
+	vstacklet::shell::text::white "  vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/vsapp/\""
 	vstacklet::shell::text::white "  vs-backup -h"
 	vstacklet::shell::text::white "  vs-backup -V"
 	vstacklet::shell::misc::nl
@@ -880,7 +880,7 @@ vstacklet::backup::example_cron() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  # Example Schedule"
 	vstacklet::shell::text::white "  # Run Directory and Database Backup Daily @ 12:30 AM"
-	vstacklet::shell::text::white "  30 00 * * * /usr/local/bin/vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/\" -cron"
+	vstacklet::shell::text::white "  30 00 * * * /usr/local/bin/vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/vsapp/\" -cron"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::yellow "Note: You can use the $(tput setaf 5)-cc${shell_reset}$(tput setaf 7) or $(tput setaf 5)--cron_create${shell_reset}$(tput setaf 7) option to create a cron job to make this process automatic."
 	vstacklet::shell::misc::nl
@@ -892,7 +892,7 @@ vstacklet::backup::example_cron() {
 	vstacklet::shell::text::white "  The cron job will run as root."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  Example:"
-	vstacklet::shell::text::white "    vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/\" -cc"
+	vstacklet::shell::text::white "    vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/vsapp/\" -cc"
 	vstacklet::shell::misc::nl
 	exit 0
 }

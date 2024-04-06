@@ -1,10 +1,10 @@
-# vstacklet.sh - v3.1.1072
+# vstacklet.sh - v3.1.1074
 
 
 ---
 
-This script is designed to be run on a fresh Ubuntu 18.04/20.04 or
-Debian 9/10/11 server. I have done my best to keep it tidy and with as much
+This script is designed to be run on a fresh Ubuntu 20.04/22.04 or
+Debian 11/12erver. I have done my best to keep it tidy and with as much
 error checking as possible. Couple this with loads of comments and you should
 have a pretty good idea of what is going on. If you have any questions,
 comments, or suggestions, please feel free to open an issue on GitHub.

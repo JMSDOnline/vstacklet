@@ -124,7 +124,7 @@ Files should follow this example header: <sup>(Aids in proper formatting for ass
 # @author_contact: https://github.com/JMSDOnline/vstacklet
 #
 # @license: MIT License (Included in LICENSE)
-# Copyright (C) 2016-2023, Jason Matthews :: vStacklet
+# Copyright (C) 2016-2024, Jason Matthews :: vStacklet
 # All rights reserved.
 # <END METADATA>
 ################################################################################
