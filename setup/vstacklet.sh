@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1077
+# @version: 3.1.1078
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -172,7 +172,7 @@ vstacklet::setup::download() {
 	# @script-note: source the .bashrc
 	source "${HOME}/.bashrc"
 	# @script-note: create vstacklet & backup directory strucutre
-	mkdir -p /backup/{directories,databases} || { printf -- "%s\n" "Error: Unable to create /backup/{directories,databases}" && exit 1; }
+	mkdir -p /backup/{files,databases} || { printf -- "%s\n" "Error: Unable to create /backup/{files,databases}" && exit 1; }
 	# @script-note: download vStacklet
 	rm -rf /tmp/vstacklet
 	if [[ -d /opt/vstacklet/.git ]]; then
