@@ -14,8 +14,9 @@ server {
 
 # SSL configuration
 server {
-	listen {{https_port}} ssl http2;
-	listen [::]:{{https_port}} ssl http2;
+	listen {{https_port}} ssl;
+	listen [::]:{{https_port}} ssl;
+	http2 on;
 	server_name {{domain}};
 	ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
 	ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;

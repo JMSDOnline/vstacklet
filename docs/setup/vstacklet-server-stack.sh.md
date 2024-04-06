@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.2069
+# vstacklet-server-stack.sh - v3.1.2071
 
 
 ---
@@ -12,7 +12,7 @@ comments, or suggestions, please feel free to open an issue on GitHub.
 ---
 
 vStacklet will install and configure the following:
-- NGinx 1.23.+ (HTTP Server)
+- NGinx 1.25.+ (mainline) | 1.18.+ (extras) (HTTP Server)
 - PHP 7.4 (FPM) with common extensions
 - PHP 8.1 (FPM) with common extensions
 - PHP 8.3 (FPM) with common extensions

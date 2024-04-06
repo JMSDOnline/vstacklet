@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1075
+# @version: 3.1.1077
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -30,7 +30,7 @@
 #     - :book: [vStacklet vs-backup (vstacklet-backup-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/backup/vstacklet-backup-standalone.sh.md)
 #
 # vStacklet will install and configure the following:
-# - NGinx 1.23.+ (HTTP Server)
+# - NGinx 1.25.+ (mainline) | 1.18.+ (extras) (HTTP Server)
 # - PHP 7.4 (FPM) with common extensions
 # - PHP 8.1 (FPM) with common extensions
 # - PHP 8.3 (FPM) with common extensions
