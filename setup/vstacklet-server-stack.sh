@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2059
+# @version: 3.1.2060
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -477,7 +477,7 @@ vstacklet::args::process() {
 		[[ -z ${php} ]] && vstacklet::shell::text::error "please install php with \`-php \"7.4\"\`, \`-php \"8.1\"\` or \`-php \"8.3\"\`." && exit 1
 	fi
 	[[ ${php} == *"7"* ]] && declare -g php="7.4"
-	[[ ${php} == *"8"* ]] && declare -g php="8.1"
+	[[ ${php} == *"8.1"* ]] && declare -g php="8.1"
 	[[ ${php} == *"8.3"* ]] && declare -g php="8.3"
 	declare -a allowed_php=("7.4" "8.1" "8.3")
 	if ! vstacklet::array::contains "${php}" "supported php versions" ${allowed_php[@]}; then
