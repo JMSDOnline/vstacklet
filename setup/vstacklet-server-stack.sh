@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2076
+# @version: 3.1.2077
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -1256,13 +1256,13 @@ vstacklet::gpg::keys() {
 	if [[ -n ${varnish} ]]; then
 		# @script-note: varnish
 		if [[ ${distro,,} == "debian" ]]; then
-			curl -fsSL "https://packagecloud.io/varnishcache/varnish72/gpgkey" | gpg --dearmor -o "/etc/apt/keyrings/varnishcache_varnish72-archive-keyring.gpg" >>"${vslog}" 2>&1
-			curl -sSf "https://packagecloud.io/install/repositories/varnishcache/varnish72/config_file.list?os=${distro,,}&dist=${codename}&source=script" >"/etc/apt/sources.list.d/varnishcache_varnish72.list"
+			curl -fsSL "https://packagecloud.io/varnishcache/varnish74/gpgkey" | gpg --dearmor -o "/etc/apt/keyrings/varnishcache_varnish74-archive-keyring.gpg" >>"${vslog}" 2>&1
+			curl -sSf "https://packagecloud.io/install/repositories/varnishcache/varnish74/config_file.list?os=${distro,,}&dist=${codename}&source=script" >"/etc/apt/sources.list.d/varnishcache_varnish74.list"
 		elif [[ ${distro,,} == "ubuntu" ]]; then
-			curl -fsSL "https://packagecloud.io/varnishcache/varnish72/gpgkey" | gpg --dearmor -o "/etc/apt/trusted.gpg.d/varnish.gpg" >>"${vslog}" 2>&1
-			sudo tee /etc/apt/sources.list.d/varnishcache_varnish72.list >/dev/null <<-EOF
-				deb https://packagecloud.io/varnishcache/varnish72/${distro,,}/ ${codename} main
-				deb-src https://packagecloud.io/varnishcache/varnish72/${distro,,}/ ${codename} main
+			curl -fsSL "https://packagecloud.io/varnishcache/varnish74/gpgkey" | gpg --dearmor -o "/etc/apt/trusted.gpg.d/varnish.gpg" >>"${vslog}" 2>&1
+			sudo tee /etc/apt/sources.list.d/varnishcache_varnish74.list >/dev/null <<-EOF
+				deb https://packagecloud.io/varnishcache/varnish74/${distro,,}/ ${codename} main
+				deb-src https://packagecloud.io/varnishcache/varnish74/${distro,,}/ ${codename} main
 			EOF
 		fi
 	fi
@@ -3570,7 +3570,7 @@ vstacklet::clean::rollback() {
 	# @script-note: sources list locations
 	#/etc/apt/sources.list.d/hhvm.list
 	#/etc/apt/sources.list.d/nginx.list
-	#/etc/apt/sources.list.d/varnishcache_varnish72.list
+	#/etc/apt/sources.list.d/varnishcache_varnish74.list
 	#/etc/apt/sources.list.d/php-sury.list
 	#/etc/apt/sources.list.d/mariadb.list
 	#/etc/apt/sources.list.d/redis.list
@@ -3585,7 +3585,7 @@ vstacklet::clean::rollback() {
 		rm -rf "/etc/varnish" >/dev/null 2>&1
 		apt-get -y autopurge varnish* >/dev/null 2>&1
 		apt-get -y autoremove varnish* >/dev/null 2>&1
-		rm -rf "/etc/apt/sources.list.d/varnishcache_varnish72.list" "/etc/apt/keyrings/varnishcache_varnish72-archive-keyring.gpg" >/dev/null 2>&1
+		rm -rf "/etc/apt/sources.list.d/varnishcache_varnish74.list" "/etc/apt/keyrings/varnishcache_varnish74-archive-keyring.gpg" >/dev/null 2>&1
 	fi
 	if [[ -n ${php} ]]; then
 		apt-get -y autopurge php* >/dev/null 2>&1

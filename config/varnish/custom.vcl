@@ -167,8 +167,24 @@ sub vcl_recv {
 		return(pass);
 	}
 
+	#set req.backend_hint = default.backend();  ## Set the backend that will receive the request
+
+	if (req.url ~ "(wp-login|wp-admin|wp-json|preview=true)" ||  ## Uncacheable WordPress URLs
+	req.url ~ "(cart|my-account/*|checkout|wc-api/*|addons|logout|lost-password)" || ## Uncacheable WooCommerce URLs
+	req.url ~ "(remove_item|removed_item)" || ## Uncacheable WooCommerce URLs
+	req.url ~ "\\?add-to-cart=" || ## Uncacheable WooCommerce URLs
+	req.url ~ "\\?wc-(api|ajax)=" || ## Uncacheable WooCommerce URLs
+	req.http.cookie ~ "(comment_author|wordpress_[a-f0-9]+|wp-postpass|wordpress_logged_in)" || ## Uncacheable WordPress cookies
+	req.method == "POST") ## Do NOT cache POST requests
+	{
+		set req.http.X-Send-To-Backend = 1; ## X-Send-To-Backend is a special variable that will force the request to directly go to the backend
+		return(pass); ## Now send off the request and stop processing
+	}
+
+	unset req.http.Cookie; # Remove all cookies
+
 	# Remove any cookies left
-	unset req.http.Cookie;
+	unset req.http.Cookie; ## Intentionally duplicating this line to ensure all cookies are removed
 	return(hash);
 }
 
@@ -213,6 +229,29 @@ sub vcl_backend_response {
 	# Don't cache 404 responses
 	if ( beresp.status == 404 ) {
 		set beresp.ttl = 30s;
+	}
+
+	if ( beresp.http.Content-Type ~ "text" )
+	{
+		set beresp.do_esi = true; ## Do ESI processing on text output. Used for geoip plugins etc. ## See https://varnish-cache.org/docs/6.1/users-guide/esi.html
+	}
+
+	if ( bereq.http.X-Send-To-Backend ) {
+		## Our special variable again. It is here that we stop further processing of the request.
+		return (deliver); ## Deliver the response to the user
+	}
+
+	unset beresp.http.Cache-Control; ## Remove the Cache-Control header. We control the cache time, not WordPress.
+	unset beresp.http.Set-Cookie; ## Remove all cookies. See the "Dealing with cookies" section above
+	unset beresp.http.Pragma; ## Yet another cache-control header
+
+	## Set a lower TTL when caching images. HTML costs a lot more processing power than static files.
+		if ( beresp.http.Content-Type ~ "image" )
+	{
+		set beresp.ttl = 1h; ## 1 hour TTL for images
+	}
+	else {
+		set beresp.ttl = 24h; ## 24 hour TTL for everything else
 	}
 }
 
