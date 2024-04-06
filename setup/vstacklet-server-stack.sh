@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2062
+# @version: 3.1.2064
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -1817,17 +1817,17 @@ vstacklet::ioncube::install() {
 			ln -sf /etc/php/8.1/mods-available/ioncube.ini /etc/php/8.1/cli/conf.d/00-ioncube.ini
 			ln -sf /etc/php/8.1/mods-available/ioncube.ini /etc/php/8.1/fpm/conf.d/00-ioncube.ini
 		fi
-		# @script-note: install ioncube loader for php 8.3
-		if [[ ${php} == *"8.3"* ]]; then
-			cd /tmp || vstacklet::clean::rollback 31
-			vstacklet::log "wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::clean::rollback 32
-			vstacklet::log "tar -xvzf ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::clean::rollback 33
-			cd ioncube || vstacklet::clean::rollback 34
-			cp -f ioncube_loader_lin_8.3.so /usr/lib/php/20230831/ || vstacklet::clean::rollback 35
-			echo "zend_extension = /usr/lib/php/20230831/ioncube_loader_lin_8.3.so" >/etc/php/8.3/mods-available/ioncube.ini
-			ln -sf /etc/php/8.3/mods-available/ioncube.ini /etc/php/8.3/cli/conf.d/00-ioncube.ini
-			ln -sf /etc/php/8.3/mods-available/ioncube.ini /etc/php/8.3/fpm/conf.d/00-ioncube.ini
-		fi
+		# @script-note: install ioncube loader for php 8.3 (not available yet)
+		[[ ${php} == *"8.3"* ]] && vstacklet::shell::text::yellow "ionCube Loader for php-8.3 is not available yet. Skipping ..."
+		#	cd /tmp || vstacklet::clean::rollback 31
+		#	vstacklet::log "wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::clean::rollback 32
+		#	vstacklet::log "tar -xvzf ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::clean::rollback 33
+		#	cd ioncube || vstacklet::clean::rollback 34
+		#	cp -f ioncube_loader_lin_8.3.so /usr/lib/php/20230831/ || vstacklet::clean::rollback 35
+		#	echo "zend_extension = /usr/lib/php/20230831/ioncube_loader_lin_8.3.so" >/etc/php/8.3/mods-available/ioncube.ini
+		#	ln -sf /etc/php/8.3/mods-available/ioncube.ini /etc/php/8.3/cli/conf.d/00-ioncube.ini
+		#	ln -sf /etc/php/8.3/mods-available/ioncube.ini /etc/php/8.3/fpm/conf.d/00-ioncube.ini
+		#fi
 		# @script-note: ioncube installation complete
 	fi
 }
