@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.2078
+# vstacklet-server-stack.sh - v3.1.2082
 
 
 ---
@@ -149,7 +149,7 @@ Important Links:
   - [examples](#examples-19)
 - [vstacklet::clean::complete()](#vstackletcleancomplete)
 - [vstacklet::message::complete()](#vstackletmessagecomplete)
-- [vstacklet::clean::rollback()](#vstackletcleanrollback)
+- [vstacklet::error::display()](#vstackletcleanrollback)
 
 ---
 
@@ -1268,23 +1268,41 @@ Displays the current version of vStacklet. [see function](https://github.com/JMS
 
 ---
 
-### vstacklet::clean::rollback()
+### vstacklet::error::display()
 
-This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3394-L3649)
-
-notes:
-- it will remove the temporary files and directories created during the installation
-  process.
-- it will remove the vStacklet log file.
-- it will remove any dependencies installed during the installation process.
- (only dependencies installed by vStacklet will be removed)
-
-notes:
-  - this function is currently a work in progress
+Displays error messages for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3389-L3549)
 
 *function has no options*
 
 *function has no arguments*
+
+---
+
+### vstacklet::rollback()
+
+This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3578-L3678)
+
+*function has no options*
+
+*function has no arguments*
+
+#### examples:
+
+```
+ vstacklet --rollback
+
+ notes:
+ - it will remove the temporary files and directories created during the installation
+   process.
+ - it will remove the vStacklet log file.
+ - it will remove any dependencies installed during the installation process.
+  (only dependencies installed by vStacklet will be removed)
+ - it will remove any services installed during the installation process.
+  (only services installed by vStacklet will be removed)
+ - it will remove any configuration files created during the installation process.
+  (only configuration files created by vStacklet will be removed)
+ - it will remove any directories created during the installation process.
+  (only directories created by vStacklet will be removed)
 
 ---
 
