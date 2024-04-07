@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.851
-  Build: 851
+  Version: v3.1.1.852
+  Build: 852
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -72,7 +72,7 @@
 
 vStacklet is a kit to quickly install a [LEMP Stack](https://lemp.io) w/ Varnish and perform basic configurations of new Ubuntu 20.04/22.04 and Debian 11/12 servers.
 
-Components include a recent mainline version of Nginx (mainline (1.25.x)) using configurations from the HTML 5 Boilerplate team (*and modified/customized for use with mainline*), Varnish 7.4.x, and MariaDB 10.6.x (drop-in replacement for MySQL), PHP8.3, PHP8.1, PHP7.4 or HHVM 4.x **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall), Wordpress and more to be added soon. (see [To-Do List](#the-to-do-list-back-to-top))
+Components include a recent mainline version of Nginx (mainline (1.25.x)) using configurations from the HTML 5 Boilerplate team (*and modified/customized for use with mainline*), Varnish 7.4.x, and MariaDB 10.11.x (drop-in replacement for MySQL), PHP8.3, PHP8.1, PHP7.4 or HHVM 4.x **new** (users choice), Sendmail (PHP mail function), CSF (Config Server Firewall), Wordpress and more to be added soon. (see [To-Do List](#the-to-do-list-back-to-top))
 
 Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP page for testing and more!
 
@@ -104,7 +104,7 @@ Total script install time on a General Shared CPU <a href="https://m.do.co/c/917
 
 ### **vStacklet** - (Full Kit) Installs and configures LEMP stack with support for Website-based server environments <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
-- Adds repositories for the latest stable versions of MariaDB (10.6.x), mainline (1.25.x) versions of Nginx, and Varnish 7.4.x.
+- Adds repositories for the latest stable versions of MariaDB (10.11.x), mainline (1.25.x) versions of Nginx, and Varnish 7.4.x.
 - Installs choice of PHP8.3, PHP8.1, PHP7.4 or HHVM 4.x
 - Installs NGinx and/or Varnish.
 - Installs and enables OPCode Cache and fine-tuning for PHP7.4, PHP8.1 *or* PHP8.3.

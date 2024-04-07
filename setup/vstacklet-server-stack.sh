@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2082
+# @version: 3.1.2084
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -23,7 +23,7 @@
 # - PHP 7.4 (FPM) with common extensions
 # - PHP 8.1 (FPM) with common extensions
 # - PHP 8.3 (FPM) with common extensions
-# - MariaDB 10.6.+ (MySQL Database)
+# - MariaDB 10.11.+ (MySQL Database)
 # - Varnish 7.4.x (HTTP Cache)
 # - CSF 14.+ (Config Server Firewall)
 # - and more!
@@ -1281,7 +1281,7 @@ vstacklet::gpg::keys() {
 	if [[ -n ${mariadb} ]]; then
 		# @script-note: mariadb
 		curl -fsSL https://mariadb.org/mariadb_release_signing_key.asc | gpg --dearmor -o /etc/apt/keyrings/mariadb.gpg >>"${vslog}" 2>&1
-		echo "deb [signed-by=/etc/apt/keyrings/mariadb.gpg] http://mirror.its.dal.ca/mariadb/repo/10.6/${distro,,} ${codename} main" | tee /etc/apt/sources.list.d/mariadb.list >>"${vslog}" 2>&1
+		echo "deb [signed-by=/etc/apt/keyrings/mariadb.gpg] http://mirror.its.dal.ca/mariadb/repo/10.11/${distro,,} ${codename} main" | tee /etc/apt/sources.list.d/mariadb.list >>"${vslog}" 2>&1
 	fi
 	if [[ -n ${redis} ]]; then
 		# @script-note: redis
@@ -1845,7 +1845,7 @@ vstacklet::ioncube::install() {
 #
 # notes:
 # - if `-mysql | --mysql` is specified, then mariadb will not be installed. choose either mariadb or mysql.
-# - actual mariadb version installed is 10.6.+ LTS.
+# - actual mariadb version installed is 10.11.+ LTS.
 # @option: $1 - `-mariadb | --mariadb` (optional) (takes no arguments)
 # @option: $2 - `-mariadbP | --mariadb_port` (optional) (takes one argument)
 # @option: $3 - `-mariadbU | --mariadb_user` (optional) (takes one argument)
@@ -3622,6 +3622,7 @@ vstacklet::rollback() {
 		apt-get -y autopurge php* >/dev/null 2>&1
 		apt-get -y autoremove php* >/dev/null 2>&1
 		[[ ${distro,,} == "debian" ]] && rm -rf "/etc/apt/sources.list.d/php-sury.list" "/etc/apt/keyrings/php.gpg" >/dev/null 2>&1
+		[[ ${distro,,} == "ubuntu" ]] && rm -rf "/etc/apt/sources.list.d/ondrej-ubuntu-php-${codename,,}.list" "/etc/apt/trusted.gpg.d/ondrej-ubuntu-php."* >/dev/null 2>&1
 	fi
 	if [[ -n ${mariadb} ]]; then
 		rm -rf "/var/lib/mysql" "/var/run/mysqld" "/etc/mysql" "/root/.my.cnf" >/dev/null 2>&1

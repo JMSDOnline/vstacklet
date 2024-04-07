@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.2082
+# vstacklet-server-stack.sh - v3.1.2084
 
 
 ---
@@ -16,7 +16,7 @@ vStacklet will install and configure the following:
 - PHP 7.4 (FPM) with common extensions
 - PHP 8.1 (FPM) with common extensions
 - PHP 8.3 (FPM) with common extensions
-- MariaDB 10.6.+ (MySQL Database)
+- MariaDB 10.11.+ (MySQL Database)
 - Varnish 7.4.x (HTTP Cache)
 - CSF 14.+ (Config Server Firewall)
 - and more!
@@ -773,7 +773,7 @@ Install mariaDB and configure. [see function](https://github.com/JMSDOnline/vsta
 
 notes:
 - if `-mysql | --mysql` is specified, then mariadb will not be installed. choose either mariadb or mysql.
-- actual mariadb version installed is 10.6.+ LTS.
+- actual mariadb version installed is 10.11.+ LTS.
 
 #### options:
 
