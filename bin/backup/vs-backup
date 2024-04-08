@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1271
+# @version: 3.1.1272
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -884,10 +884,10 @@ vstacklet::backup::usage() {
 	vstacklet::shell::text::white "  vs-backup -dbencrypt -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\""
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  Decrypt the database backup:"
-	vstacklet::shell::text::white "  vs-backup -dbdecrypt -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\""
+	vstacklet::shell::text::white "  vs-backup -dbdecrypt"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  Extract the database backup:"
-	vstacklet::shell::text::white "  vs-backup -dbextract -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\""
+	vstacklet::shell::text::white "  vs-backup -dbextract"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  vs-backup -h"
 	vstacklet::shell::text::white "  vs-backup -V"
