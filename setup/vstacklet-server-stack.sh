@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2138
+# @version: 3.1.2139
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -3693,7 +3693,7 @@ vstacklet::rollback() {
 	# @script-note: extract the PHP version from the command string
 	le_domain=$(grep -oP '(-d|--domain)\s+\K\S+' <<<"${command_string}" 2>/dev/null || true)
 	php_version=$(grep -oP '(?<=-php\s)\S+' <<<"${command_string}" 2>/dev/null || true)
-	web_root=$(grep -oP '(?<=-wr|--web_root)\s+\K\S+' <<<"${command_string}" 2>/dev/null || true)
+	web_root=$(grep -oP '(-wr|--web_root)\s+\K\S+' <<<"${command_string}" 2>/dev/null || true)
 	# @script-note: parse the command string
 	declare -a flags=()
 	while IFS= read -r -d ' '; do
