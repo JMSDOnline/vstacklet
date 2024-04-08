@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2134
+# @version: 3.1.2136
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -520,15 +520,15 @@ vstacklet::environment::store_flags_args() {
 	timestamp=$(date +%Y-%m-%d-%H-%M-%S)
 	flags_args_file="/root/vstacklet/setup_temp/vstacklet_install_command.${timestamp}.txt"
 	local command_string=""
-	# Ensure the directory structure exists
+	# @script-note: ensure the directory structure exists
 	mkdir -p "$(dirname "${flags_args_file}")"
-	# Construct the command string
+	# @script-note: construct the command string
 	for arg in "$@"; do
 		command_string+=" ${arg}"
 	done
-	# Mask the mariadb and mysql passwords
+	# @script-note: mask the mariadb and mysql passwords
 	command_string=$(echo "${command_string}" | sed -E -e 's/(-mariadbPw|--mariadb_password|--mysqlPw|--mysql_password)[[:space:]]+[^[:space:]]+/\1 ********/g')
-	# Store the command string
+	# @script-note: store the command string
 	echo "Command:${command_string}" >"${flags_args_file}"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::info "Command string has been stored at: ${flags_args_file}"
@@ -3779,7 +3779,7 @@ vstacklet::rollback() {
 		sh /usr/local/src/csf/uninstall.sh >/dev/null 2>&1
 		rm -rf /etc/csf/ /usr/local/src/csf/ /usr/local/csf/
 	fi
-	if [[ -n ${domain} ]]; then
+	if [[ " ${flags[*]} " =~ domain=${domain} ]]; then
 		vstacklet::shell::text::yellow "Uninstalling Let's Encrypt ..."
 		rm -rf ~/.acme.sh/"${domain}"* ~/acme.sh >/dev/null 2>&1
 	fi
