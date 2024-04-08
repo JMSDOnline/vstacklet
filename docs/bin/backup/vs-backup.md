@@ -1,4 +1,4 @@
-# vs-backup - v3.1.1270
+# vs-backup - v3.1.1271
 
 
 ---
@@ -206,13 +206,13 @@ Prints the outro message. [see function](https://github.com/JMSDOnline/vstacklet
 
 ### vstacklet::backup::usage()
 
-Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L811-L870)
+Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L811-L896)
 
 ---
 
 ### vstacklet::backup::example_cron()
 
-Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L878-L898)
+Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L904-L924)
 
 #### examples:
 
@@ -224,13 +224,13 @@ Example cron job for the backup script. [see function](https://github.com/JMSDOn
 
 ### vstacklet::backup::version()
 
-Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L905-L911)
+Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L931-L937)
 
 ---
 
 ### vstacklet::backup::database_decrypt()
 
-List the files in the backup directory and decrypt selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L928-L987)
+List the files in the backup directory and decrypt selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L954-L1013)
 
 **ℹ notes:**
 - This function will allow you to decrypt a database backup file.
@@ -246,7 +246,7 @@ List the files in the backup directory and decrypt selected options. [see functi
 
 ### vstacklet::backup::database_extract()
 
-List the files in the backup directory and extract selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L999-L1111)
+List the files in the backup directory and extract selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L1025-L1137)
 
 **ℹ notes:**
 - This function will allow you to extract a database backup file.

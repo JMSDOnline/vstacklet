@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vs-backup
-# @version: 3.1.1270
+# @version: 3.1.1271
 # @description: This script will allow you to backup your vStacklet server
 # files and databases.
 #
@@ -805,7 +805,7 @@ vstacklet::outro() {
 
 ##################################################################################
 # @name: vstacklet::backup::usage
-# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L811-L870)
+# @description: Display the usage of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L811-L896)
 # @break
 ##################################################################################
 vstacklet::backup::usage() {
@@ -848,6 +848,12 @@ vstacklet::backup::usage() {
 	vstacklet::shell::text::white "  -dbenc, --database_encryption"
 	vstacklet::shell::text::white "    Encrypt the database backup. (default: false)"
 	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  -dbdecrypt, --database_decrypt"
+	vstacklet::shell::text::white "    Decrypt the database backup."
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  -dbextract, --database_extract"
+	vstacklet::shell::text::white "    Extract the database backup."
+	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  -ftbu, --file_temporary_directory"
 	vstacklet::shell::text::white "    The temporary backup directory to use for the backup."
 	vstacklet::shell::misc::nl
@@ -862,7 +868,27 @@ vstacklet::backup::usage() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "Examples:"
 	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  Backup the specified directory: (create a cron job)"
+	vstacklet::shell::text::white "  vs-backup -f \"/var/www/html/vsapp/\" -cc"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  Backup the specified directory: (do not create a cron job)"
+	vstacklet::shell::text::white "  vs-backup -f \"/var/www/html/vsapp/\""
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  Backup the specified database and directory: (create a cron job)"
+	vstacklet::shell::text::white "  vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/vsapp/\" -cc"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  Backup the specified database and directory: (do not create a cron job)"
 	vstacklet::shell::text::white "  vs-backup -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\" -f \"/var/www/html/vsapp/\""
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  Encrypt the database backup:"
+	vstacklet::shell::text::white "  vs-backup -dbencrypt -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\""
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  Decrypt the database backup:"
+	vstacklet::shell::text::white "  vs-backup -dbdecrypt -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\""
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "  Extract the database backup:"
+	vstacklet::shell::text::white "  vs-backup -dbextract -db \"db_name\" -dbuser \"db_user\" -dbpass \"db_pass\""
+	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "  vs-backup -h"
 	vstacklet::shell::text::white "  vs-backup -V"
 	vstacklet::shell::misc::nl
@@ -871,7 +897,7 @@ vstacklet::backup::usage() {
 
 ##################################################################################
 # @name: vstacklet::backup::example_cron
-# @description: Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L878-L898)
+# @description: Example cron job for the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L904-L924)
 # @example: vs-backup -ec
 # @break
 ##################################################################################
@@ -899,7 +925,7 @@ vstacklet::backup::example_cron() {
 
 ##################################################################################
 # @name: vstacklet::backup::version
-# @description: Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L905-L911)
+# @description: Display the version of the backup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L931-L937)
 # @break
 ##################################################################################
 vstacklet::backup::version() {
@@ -917,7 +943,7 @@ vstacklet::backup::version() {
 
 ##################################################################################
 # @name: vstacklet::backup::database_decrypt
-# @description: List the files in the backup directory and decrypt selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L928-L987)
+# @description: List the files in the backup directory and decrypt selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L954-L1013)
 #
 # **ℹ notes:**
 # - This function will allow you to decrypt a database backup file.
@@ -988,7 +1014,7 @@ vstacklet::backup::database_decrypt() {
 
 ################################################################################
 # @name: vstacklet::backup::database_extract
-# @description: List the files in the backup directory and extract selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L999-L1111)
+# @description: List the files in the backup directory and extract selected options. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/bin/backup/vs-backup#L1025-L1137)
 #
 # **ℹ notes:**
 # - This function will allow you to extract a database backup file.
