@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2084
+# @version: 3.1.2131
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -198,7 +198,7 @@ vstacklet::environment::init() {
 
 ##################################################################################
 # @name: vstacklet::args::process (3)
-# @description: Process the options and values passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L242-L503)
+# @description: Process the options and values passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L242-L506)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 #
@@ -506,8 +506,38 @@ vstacklet::args::process() {
 }
 
 ##################################################################################
+# @name: vstacklet::environment::store_flags_args (3.a)
+# @description: Store the flags and arguments to a file for rollback if needed.  [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L518-L536)
+#
+# @param: command_string
+#
+# @example: vstacklet::environment::store_flags_args "command_string"
+# @null
+# @break
+##################################################################################
+vstacklet::environment::store_flags_args() {
+	local timestamp flags_args_file
+	timestamp=$(date +%Y-%m-%d-%H-%M-%S)
+	flags_args_file="/root/vstacklet/setup_temp/vstacklet_install_command.${timestamp}.txt"
+	local command_string=""
+	# Ensure the directory structure exists
+	mkdir -p "$(dirname "${flags_args_file}")"
+	# Construct the command string
+	for arg in "$@"; do
+		command_string+=" ${arg}"
+	done
+	# Mask the mariadb and mysql passwords
+	command_string=$(echo "${command_string}" | sed -E -e 's/(-mariadbPw|--mariadb_password|--mysqlPw|--mysql_password)[[:space:]]+[^[:space:]]+/\1 ********/g')
+	# Store the command string
+	echo "Command:${command_string}" >"${flags_args_file}"
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::info "Command string has been stored at: ${flags_args_file}"
+	vstacklet::shell::misc::nl
+}
+
+##################################################################################
 # @name: vstacklet::environment::functions (2)
-# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L512-L695)
+# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L545-L738)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @break
@@ -558,6 +588,7 @@ vstacklet::environment::functions() {
 		cross) shell_icon="✗ ${shell_reset}" ;;
 		success) shell_icon="✓ success: ${shell_reset}" && shell_success="1" ;;
 		error) shell_icon="✗ error: ${shell_reset}" && shell_error="1" ;;
+		info) shell_icon="ℹ info: ${shell_reset}" && shell_info="1" ;;
 		rollback) shell_icon="⎌ rollback: ${shell_reset}" && shell_rollback="1" ;;
 		esac
 		if [[ ${shell_success} == "1" ]]; then
@@ -565,6 +596,8 @@ vstacklet::environment::functions() {
 		elif [[ ${shell_warning} == "1" ]]; then
 			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
 		elif [[ ${shell_error} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_info} == "1" ]]; then
 			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
 		elif [[ ${shell_rollback} == "1" ]]; then
 			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
@@ -601,6 +634,13 @@ vstacklet::environment::functions() {
 	vstacklet::shell::text::red::sl() {
 		declare -g shell_color shell_newline=0
 		shell_color=$(tput setaf 1)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::info() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 4)
+		shell_icon="info"
+		output_color=$(tput setaf 7)
 		vstacklet::shell::output "$@"
 	}
 	vstacklet::shell::text::success() {
@@ -699,7 +739,7 @@ vs::stat::progress::stop() {
 
 ##################################################################################
 # @name: vstacklet::log::check (4)
-# @description: Check if the log file exists and create it if it doesn't. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L709-L729)
+# @description: Check if the log file exists and create it if it doesn't. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L752-L772)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 #
@@ -733,7 +773,7 @@ vstacklet::log::check() {
 
 ##################################################################################
 # @name: vstacklet::apt::update (5)
-# @description: Updates server via apt-get. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L740-L749)
+# @description: Updates server via apt-get. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L783-L792)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -753,7 +793,7 @@ vstacklet::apt::update() {
 
 ##################################################################################
 # @name: vstacklet::dependencies::install (6)
-# @description: Installs dependencies for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L761-L783)
+# @description: Installs dependencies for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L804-L826)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -787,7 +827,7 @@ vstacklet::dependencies::install() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkroot (7)
-# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L793-L795)
+# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L836-L838)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @return_code: 1 - you must be root to run this script.
@@ -799,7 +839,7 @@ vstacklet::environment::checkroot() {
 
 ##################################################################################
 # @name: vstacklet::environment::checkdistro (8)
-# @description: Check if the distro is Ubuntu 20.04/22.04 | Debian 11/12 [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L805-L816)
+# @description: Check if the distro is Ubuntu 20.04/22.04 | Debian 11/12 [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L848-L859)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @return_code: 2 - this script only supports Ubuntu 20.04/22.04 | Debian 11/12
@@ -820,7 +860,7 @@ vstacklet::environment::checkdistro() {
 
 ##################################################################################
 # @name: vstacklet::intro (9)
-# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L825-L848)
+# @description: Prints the intro message. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L868-L891)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @break
@@ -852,7 +892,7 @@ vstacklet::ask::continue() {
 
 ################################################################################
 # @name: vstacklet::dependencies::array (11)
-# @description: Handles various dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L877-L906)
+# @description: Handles various dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L920-L949)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -910,7 +950,7 @@ vstacklet::dependencies::array() {
 
 ################################################################################
 # @name: vstacklet::base::dependencies (12)
-# @description: Handles base dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L916-L941)
+# @description: Handles base dependencies for the vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L959-L984)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @return_code: 4 - failed to install base dependencies.
@@ -945,7 +985,7 @@ vstacklet::base::dependencies() {
 
 ##################################################################################
 # @name: vstacklet::source::dependencies (13)
-# @description: Installs required sources for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L953-L980)
+# @description: Installs required sources for vStacklet software. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L996-L1023)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -984,7 +1024,7 @@ vstacklet::source::dependencies() {
 
 ##################################################################################
 # @name: vstacklet::bashrc::set (14)
-# @description: Set ~/.bashrc and ~/.profile for vstacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L991-L999)
+# @description: Set ~/.bashrc and ~/.profile for vstacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1034-L1042)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -1003,7 +1043,7 @@ vstacklet::bashrc::set() {
 
 ##################################################################################
 # @name: vstacklet::hostname::set (15)
-# @description: Set system hostname. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1020-L1034)
+# @description: Set system hostname. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1063-L1077)
 #
 # notes:
 # - hostname must be a valid hostname.
@@ -1038,7 +1078,7 @@ vstacklet::hostname::set() {
 
 ##################################################################################
 # @name: vstacklet::webroot::set (16)
-# @description: Set main web root directory. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1056-L1063)
+# @description: Set main web root directory. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1099-L1106)
 #
 # notes:
 # - if the directory already exists, it will be used.
@@ -1067,7 +1107,7 @@ vstacklet::webroot::set() {
 
 ##################################################################################
 # @name: vstacklet::ssh::set (17)
-# @description: Set ssh port to custom port (if nothing is set, default port is 22) [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1077-L1084)
+# @description: Set ssh port to custom port (if nothing is set, default port is 22) [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1120-L1127)
 # @option: $1 - `-ssh | --ssh_port` (optional) (takes one argument)
 # @arg: $2 - `[port]` (default: 22) - the port to set for ssh
 # @example: vstacklet -ssh 2222
@@ -1080,7 +1120,7 @@ vstacklet::webroot::set() {
 vstacklet::ssh::set() {
 	if [[ -n ${ssh_port} ]]; then
 		vstacklet::shell::text::white "setting ssh port to ${ssh_port:-22} ... "
-		cp -f /etc/ssh/sshd_config "${vstacklet_base_path}/setup_temp/sshd_config"
+		cp -f /etc/ssh/sshd_config "${vstacklet_base_path}/config/system/sshd_config"
 		sed -i "s/^.*Port .*/Port ${ssh_port:-22}/g" /etc/ssh/sshd_config || vstacklet::error::display 7
 		vstacklet::log "systemctl restart sshd" || vstacklet::error::display 8
 	fi
@@ -1088,7 +1128,7 @@ vstacklet::ssh::set() {
 
 ##################################################################################
 # @name: vstacklet::ftp::set (18)
-# @description: Set ftp port to custom port (if nothing is set, default port is 21) [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1098-L1109)
+# @description: Set ftp port to custom port (if nothing is set, default port is 21) [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1141-L1152)
 # @option: $1 - `-ftp | --ftp_port` (optional) (takes one argument)
 # @arg: $2 - `[port]` (default: 21) - the port to set for ftp
 # @example: vstacklet -ftp 2121
@@ -1101,7 +1141,7 @@ vstacklet::ssh::set() {
 vstacklet::ftp::set() {
 	if [[ -n ${ftp_port} ]]; then
 		vstacklet::shell::text::white "setting ftp port to ${ftp_port:-21} ... "
-		cp -f /etc/vsftpd.conf "${vstacklet_base_path}/setup_temp/vsftpd.conf"
+		cp -f /etc/vsftpd.conf "${vstacklet_base_path}/config/system/vsftpd.conf"
 		openssl req -config "${local_setup_dir}/templates/ssl/openssl.conf" -x509 -nodes -days 720 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem >/dev/null 2>&1
 		cp -f "${local_setup_dir}/templates/vsftpd/vsftpd.conf" /etc/vsftpd.conf
 		sed -i.bak -e "s|{{ftp_port}}|${ftp_port:-21}|g" -e "s|{{server_ip}}|${server_ip}|g" /etc/vsftpd.conf >>"${vslog}" 2>&1 || vstacklet::error::display 9
@@ -1115,7 +1155,7 @@ vstacklet::ftp::set() {
 # @name: vstacklet::block::ssdp (19)
 # @description: Blocks an insecure port 1900 that may lead to
 # DDoS masked attacks. Only remove this function if you absolutely
-# need port 1900. In most cases, this is a junk port. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1122-L1127)
+# need port 1900. In most cases, this is a junk port. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1165-L1170)
 # @noargs
 # @nooptions
 # @return_code: 11 - failed to block SSDP port.
@@ -1131,7 +1171,7 @@ vstacklet::block::ssdp() {
 
 ##################################################################################
 # @name: vstacklet::sources::update (20)
-# @description: This function updates the package list and upgrades the system. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1138-L1214)
+# @description: This function updates the package list and upgrades the system. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1181-L1257)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @noargs
@@ -1219,7 +1259,7 @@ EOF
 ##################################################################################
 # @name: vstacklet::gpg::keys (21)
 # @description: This function sets the required software package keys
-# required by added sources. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1237-L1299)
+# required by added sources. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1280-L1342)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 #
@@ -1304,7 +1344,7 @@ EOF
 ##################################################################################
 # @name: vstacklet::locale::set (22)
 # @description: This function sets the locale to en_US.UTF-8
-# and sets the timezone to UTC. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1316-L1336)
+# and sets the timezone to UTC. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1359-L1379)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 #
@@ -1340,7 +1380,7 @@ vstacklet::locale::set() {
 
 ##################################################################################
 # @name: vstacklet::php::install (23)
-# @description: Install PHP and PHP modules. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1374-L1425)
+# @description: Install PHP and PHP modules. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1417-L1468)
 #
 # notes:
 # - versioning:
@@ -1429,7 +1469,7 @@ vstacklet::php::install() {
 
 ##################################################################################
 # @name: vstacklet::hhvm::install (24)
-# @description: Install HHVM and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1454-L1496)
+# @description: Install HHVM and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1497-L1539)
 #
 # notes:
 # - not familiar with HHMV?
@@ -1500,7 +1540,7 @@ vstacklet::hhvm::install() {
 
 ##################################################################################
 # @name: vstacklet::nginx::install (25)
-# @description: Install NGinx and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1536-L1644)
+# @description: Install NGinx and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1579-L1687)
 #
 # notes:
 # - The following profiles are included:
@@ -1648,7 +1688,7 @@ vstacklet::nginx::install() {
 
 ##################################################################################
 # @name: vstacklet::varnish::install (26)
-# @description: Install Varnish and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1676-L1746)
+# @description: Install Varnish and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1719-L1789)
 #
 # notes:
 # - varnish is installed based on the following variables:
@@ -1750,7 +1790,7 @@ vstacklet::varnish::install() {
 
 ##################################################################################
 # @name: vstacklet::permissions::adjust (27)
-# @description: Adjust permissions for the web root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1768-L1776)
+# @description: Adjust permissions for the web root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1811-L1819)
 #
 # notes:
 # - Permissions are adjusted based the following variables:
@@ -1780,7 +1820,7 @@ vstacklet::permissions::adjust() {
 
 ##################################################################################
 # @name: vstacklet::ioncube::install (28)
-# @description: Install ionCube loader. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1798-L1837)
+# @description: Install ionCube loader. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1841-L1880)
 #
 # notes:
 # - the ioncube loader will be available for the php version specified
@@ -1841,7 +1881,7 @@ vstacklet::ioncube::install() {
 
 ##################################################################################
 # @name: vstacklet::mariadb::install (29)
-# @description: Install mariaDB and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1871-L1993)
+# @description: Install mariaDB and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1914-L2036)
 #
 # notes:
 # - if `-mysql | --mysql` is specified, then mariadb will not be installed. choose either mariadb or mysql.
@@ -1997,7 +2037,7 @@ DOD
 
 ##################################################################################
 # @name: vstacklet::mysql::install (30)
-# @description: Install mySQL and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2024-L2147)
+# @description: Install mySQL and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2067-L2190)
 #
 # notes:
 # - if `-mariadb | --mariadb` is specified, then mysql will not be installed. choose either mysql or mariadb.
@@ -2151,7 +2191,7 @@ vstacklet::mysql::install() {
 
 ##################################################################################
 # @name: vstacklet::postgre::install (31)
-# @description: Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2171-L2258)
+# @description: Install and configure PostgreSQL. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2214-L2301)
 #
 # note: postgresql is not installed by default and is currently untested.
 # this function is a work in progress. it is intended as a future feature.
@@ -2262,7 +2302,7 @@ vstacklet::postgre::install() {
 
 ##################################################################################
 # @name: vstacklet::redis::install (32)
-# @description: Install and configure Redis. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2285-L2339)
+# @description: Install and configure Redis. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2328-L2382)
 #
 # note: redis is not installed by default and is currently untested.
 # this function is a work in progress. it is intended as a future feature.
@@ -2343,7 +2383,7 @@ vstacklet::redis::install() {
 
 ##################################################################################
 # @name: vstacklet::phpmyadmin::install (33)
-# @description: Install phpMyAdmin and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2390-L2484)
+# @description: Install phpMyAdmin and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2433-L2527)
 #
 # notes:
 # - phpMyAdmin no longer supports HHVM due to the project now just focusing on
@@ -2488,7 +2528,7 @@ vstacklet::phpmyadmin::install() {
 
 ##################################################################################
 # @name: vstacklet::csf::install (34)
-# @description: Install CSF firewall. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2521-L2651)
+# @description: Install CSF firewall. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2564-L2694)
 #
 # notes:
 # - https://configserver.com/cp/csf.html
@@ -2657,7 +2697,7 @@ vstacklet::csf::install() {
 # @name: vstacklet::cloudflare::csf (34.1)
 # @description: Configure Cloudflare IP addresses in CSF. This is to be used
 # when Cloudflare is used as a CDN. This will allow CSF to
-# recognize Cloudflare IPs as trusted. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2674-L2691)
+# recognize Cloudflare IPs as trusted. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2717-L2734)
 #
 # notes:
 # - This function is only called under the following conditions:
@@ -2696,7 +2736,7 @@ vstacklet::cloudflare::csf() {
 ##################################################################################
 # @name: vstacklet::sendmail::install (35)
 # @description: Install and configure sendmail. This is a required component for
-# CSF to function properly. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2720-L2811)
+# CSF to function properly. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2763-L2854)
 #
 # notes:
 # - The `-e | --email` option is required for this function to run properly.
@@ -2816,7 +2856,7 @@ EOF
 ##################################################################################
 # @name: vstacklet::wordpress::install (36)
 # @description: Install WordPress. This will also configure WordPress to use
-# the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2856-L3062)
+# the database that was created during the installation process. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2899-L3105)
 #
 # notes:
 # - this function is only called under the following conditions:
@@ -3067,7 +3107,7 @@ vstacklet::wordpress::install() {
 ##################################################################################
 # @name: vstacklet::domain::ssl (37)
 # @description: The following function installs the SSL certificate
-#   for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3094-L3153)
+#   for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3137-L3196)
 #
 # notes:
 # - This function is only called under the following conditions:
@@ -3131,7 +3171,7 @@ vstacklet::domain::ssl() {
 		crt_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" | sed 's/\//\\\//g')
 		key_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" | sed 's/\//\\\//g')
 		#chn_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" | sed 's/\//\\\//g')
-		[[ -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" ]] && cp -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "${vstacklet_base_path:?}/setup_temp/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1
+		[[ -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" ]] && cp -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "${vstacklet_base_path:?}/config/system/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1
 		# @script-note: place generated ssl to nginx config file
 		sed -i.bak -e "/ssl_certificate .*/c\        ssl_certificate ${crt_sanitize};" -e "/ssl_certificate_key .*/c\        ssl_certificate_key ${key_sanitize};" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::error::display 119
 		# @script-note: remove acme ssl template
@@ -3160,7 +3200,7 @@ vstacklet::domain::ssl() {
 # @description: Cleans up the system after a successful installation. This
 #   function is called after the installation is complete. It removes the
 #   temporary files and directories created during the installation process.
-#   This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3167-L3194)
+#   This function will also enable and start services that were installed. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3210-L3237)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3201,7 +3241,7 @@ vstacklet::clean::complete() {
 # @description: Outputs success message on completion of setup. This function
 #   is called after the installation is complete. It outputs a success message
 #   to the user and provides them with the necessary information to access their
-#   new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3208-L3246)
+#   new server. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3251-L3289)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3250,7 +3290,7 @@ vstacklet::message::complete() {
 
 ################################################################################
 # @name: vstacklet::help::display (40)
-# @description: Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3257-L3358)
+# @description: Displays the help menu for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3300-L3401)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3362,7 +3402,7 @@ vstacklet::help::display() {
 
 ################################################################################
 # @name: vstacklet::version::display (41)
-# @description: Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3369-L3375)
+# @description: Displays the current version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3412-L3418)
 #
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 # @nooptions
@@ -3379,7 +3419,7 @@ vstacklet::version::display() {
 
 ################################################################################
 # @name: vstacklet::error::display - vStacklet Error Messages
-# @description: Displays error messages for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3389-L3549)
+# @description: Displays error messages for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3428-L3592)
 #
 # @nooptions
 # @noargs
@@ -3553,7 +3593,7 @@ vstacklet::error::display() {
 
 ################################################################################
 # @name: vstacklet::rollback
-# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3578-L3678)
+# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3617-L3872)
 #
 # @example: vstacklet --rollback
 #
@@ -3575,107 +3615,259 @@ vstacklet::error::display() {
 # @break
 ################################################################################
 vstacklet::rollback() {
-	declare installed
-	[[ -n ${ssdp_block} ]] && iptables -D INPUT -p udp --dport 1900 -j DROP
-	[[ -f ${vstacklet_base_path}/setup_temp/sshd_config ]] && \cp -f "${vstacklet_base_path}/setup_temp/sshd_config" /etc/ssh/sshd_config && vstacklet::log "systemctl restart sshd.service"
+	# @script-note: vstacklet base path
+	declare vstacklet_base_path
+	vstacklet_base_path="/opt/vstacklet"
+	declare -g codename distro
+	codename=$(lsb_release -cs)
+	distro=$(lsb_release -is)
+	# @script-note: build an interactive prompt for the user to select and confirm a rollback file.
+	declare input
+	vstacklet::shell::misc::nl
+	rollback_files=()
+	while IFS= read -r -d '' file; do
+		rollback_files+=("$(basename "$file")")
+	done < <(find "/root/vstacklet/setup_temp" -type f -name "vstacklet_install_command*" -print0 2>/dev/null)
+	# @script-note: check if rollback files exist
+	if [[ ${#rollback_files[@]} -eq 0 ]]; then
+		vstacklet::shell::text::error "No rollback files found."
+		exit 1
+	fi
+	vstacklet::shell::text::white "Select a rollback file to restore:"
+	for ((i = 0; i < ${#rollback_files[@]}; i++)); do
+		vstacklet::shell::misc::nl
+		# @script-note: display the contents of the rollback file
+		vstacklet::shell::text::white "################################################################################"
+		vstacklet::shell::text::white "# ${i}: ${rollback_files[i]}"
+		vstacklet::shell::text::white "################################################################################"
+		fold -w 80 <"/root/vstacklet/setup_temp/${rollback_files[i]}"
+		vstacklet::shell::text::white "################################################################################"
+	done
+	vstacklet::shell::misc::nl
+	# @script-note: prompt the user to select a rollback file
+	vstacklet::shell::text::yellow::sl "Select a rollback file to restore: "
+	vstacklet::shell::icon::arrow::white && vstacklet::shell::text::green::sl " #" && read -r input
+	# @script-note: check if the input is a number
+	if [[ ! ${input} =~ ^[0-9]+$ ]]; then
+		vstacklet::shell::text::error "Invalid selection."
+		return 1
+	fi
+	# @script-note: check if the input is within the range of the rollback files
+	if [[ ${input} -lt 0 || ${input} -ge ${#rollback_files[@]} ]]; then
+		vstacklet::shell::text::error "Invalid selection."
+		return 1
+	fi
+	# @script-note: confirm the rollback file selection
+	declare confirm
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "Are you sure you want to restore the following rollback file?"
+	vstacklet::shell::text::white " - ${rollback_files[input]}"
+	vstacklet::shell::text::white::sl "Enter "
+	vstacklet::shell::text::green::sl "yes"
+	vstacklet::shell::text::white::sl " to confirm or "
+	vstacklet::shell::text::red::sl "no"
+	vstacklet::shell::text::white::sl " to cancel: "
+	vstacklet::shell::icon::arrow::white && read -r confirm && confirm=${confirm,,}
+	# @script-note: check if the user confirmed the rollback file selection
+	if [[ ${confirm,,} != "yes" && ${confirm,,} != "y" ]]; then
+		vstacklet::shell::text::error "Rollback cancelled."
+		exit 1
+	fi
+	vstacklet::shell::misc::nl
+	# @script-note: restore the selected rollback file
+	declare command_string
+	command_string=$(grep "Command:" <"/root/vstacklet/setup_temp/${rollback_files[input]}" | awk '{$1=""; print $0}')
+	# @script-note: extract the PHP version from the command string
+	le_domain=$(grep -oP '(?<=-d(?:|omain)\s)\S+' <<<"${command_string}" 2>/dev/null || true)
+	php_version=$(grep -oP '(?<=-php\s)\S+' <<<"${command_string}" 2>/dev/null || true)
+	web_root=$(grep -oP '(?<=-w(?:r|eb_root)\s)\S+' <<<"${command_string}" 2>/dev/null || true)
+	# @script-note: parse the command string
+	declare -a flags=()
+	while IFS= read -r -d ' '; do
+		# @script-note: remove leading hyphens from flags
+		flag=${REPLY#-}
+		# @script-note: check if the flag is one of the specified flags
+		case $flag in
+		csf | hostname | ioncube | mariadb | mysql | nginx | phpmyadmin | postgresql | redis | sendmail | varnish)
+			flags+=("${flag}=1")
+			# @script-note: check if csf flag is set, then add sendmail flag as well
+			if [[ ${flag} == "csf" ]]; then
+				flags+=("sendmail=1")
+			fi
+			;;
+		d)
+			flags+=("domain=${le_domain}")
+			;;
+		domain)
+			flags+=("domain=${le_domain}")
+			;;
+		php)
+			flags+=("php=${php_version}")
+			;;
+		pma)
+			flags+=("phpmyadmin=1")
+			;;
+		postgre)
+			flags+=("postgresql=1")
+			;;
+		hn)
+			flags+=("hostname=1")
+			;;
+		wr)
+			flags+=("web_root=${web_root}")
+			;;
+		web_root)
+			flags+=("web_root=${web_root}")
+			;;
+		esac
+	done < <(echo "${command_string}")
+	# @script-note: print out the flags
+	vstacklet::shell::text::white "Command string after processing flags:"
+	for item in "${flags[@]}"; do
+		vstacklet::shell::text::white "${item}"
+	done
+	vstacklet::shell::misc::nl
+	iptables -D INPUT -p udp --dport 1900 -j DROP 2>/dev/null
 	[[ -d ${web_root:-/var/www/html/vsapp} ]] && rm -rf "${web_root:-/var/www/html/vsapp}"/{public,logs,ssl}
 	#[[ -f /usr/local/bin/vstacklet ]] && rm -f "/usr/local/bin/vstacklet"
 	[[ -f /usr/local/bin/vs-backup ]] && rm -f "/usr/local/bin/vs-backup"
-	if [[ -n ${install_list[*]} ]]; then
-		for installed in "${install_list[@]}"; do
-			# trunk-ignore(shellcheck/SC2046)
-			DEBIAN_FRONTEND=noninteractive apt-get -y purge $(apt-cache depends "${installed}" | awk '{ print $2 }' | tr '\n' ' ') >>"${vslog}" 2>&1
-			DEBIAN_FRONTEND=noninteractive apt-get -y --purge autoremove "${installed}" >>"${vslog}" 2>&1
-			vstacklet::log "apt-get -y autopurge ${installed}"
-			vstacklet::log "apt-get -y autoremove ${installed}"
-		done
-		vstacklet::log "apt-get -y update"
-		vstacklet::log "apt-get -y check"
-		vstacklet::log "apt-get -fy install"
-		vstacklet::log "apt-get -y autoclean"
-		vstacklet::log "apt-get -y autoremove"
-		vstacklet::log "apt-get -y autoclean"
+	[[ -f /usr/local/bin/vs-perms ]] && rm -f "/usr/local/bin/vs-perms"
+	# @script-note: create install list from dependencies file
+	if [[ -f "${vstacklet_base_path}/config/system/dependencies" ]]; then
+		declare -a install_list=()
+		while IFS= read -r line; do
+			install_list+=("${line}")
+		done < <(grep -v "^#" "${vstacklet_base_path}/config/system/dependencies")
+		vstacklet::shell::misc::nl
+		# @script-note: remove dependencies from the install list
+		vstacklet::shell::text::yellow "Removing dependencies logged during installation ..."
+		if [[ -n ${install_list[*]} ]]; then
+			for installed in "${install_list[@]}"; do
+				# trunk-ignore(shellcheck/SC2046)
+				DEBIAN_FRONTEND=noninteractive apt-get -y purge $(apt-cache depends "${installed}" | awk '{ print $2 }' | tr '\n' ' ') >/dev/null 2>&1
+				DEBIAN_FRONTEND=noninteractive apt-get -y --purge autoremove "${installed}" >/dev/null 2>&1
+				apt-get -y autopurge "${installed}" >/dev/null 2>&1
+				apt-get -y autoremove "${installed}" >/dev/null 2>&1
+			done
+			# @script-note: remove the dependencies file
+			rm -f "${vstacklet_base_path}/config/system/dependencies"
+		fi
+		# @script-note: run apt-get update and cleanup
+		vstacklet::shell::text::yellow "Running apt-get update and cleanup ..."
+		apt-get -y update >/dev/null 2>&1
+		apt-get -y check >/dev/null 2>&1
+		apt-get -fy install >/dev/null 2>&1
+		apt-get -y autoclean >/dev/null 2>&1
+		apt-get -y autoremove >/dev/null 2>&1
+		apt-get -y autoclean >/dev/null 2>&1
 	fi
-	# @script-note: sources list locations
-	#/etc/apt/sources.list.d/hhvm.list
-	#/etc/apt/sources.list.d/nginx.list
-	#/etc/apt/sources.list.d/varnishcache_varnish74.list
-	#/etc/apt/sources.list.d/php-sury.list
-	#/etc/apt/sources.list.d/mariadb.list
-	#/etc/apt/sources.list.d/redis.list
-	#/etc/apt/sources.list.d/postgresql.list
-	if [[ -n ${nginx} ]]; then
+	if [[ " ${flags[*]} " =~ " csf=1 " ]]; then
+		vstacklet::shell::text::yellow "Uninstalling CSF ..."
+		sh /usr/local/src/csf/uninstall.sh >/dev/null 2>&1
+		rm -rf /etc/csf/ /usr/local/src/csf/ /usr/local/csf/
+	fi
+	if [[ -n ${domain} ]]; then
+		vstacklet::shell::text::yellow "Uninstalling Let's Encrypt ..."
+		rm -rf ~/.acme.sh/"${domain}"* ~/acme.sh >/dev/null 2>&1
+	fi
+	if [[ " ${flags[*]} " =~ " hhvm=1 " ]]; then
+		vstacklet::shell::text::yellow "Uninstalling HHVM ..."
+		rm -rf "/etc/hhvm" "/etc/hhvm" >/dev/null 2>&1
+		apt-get -y autopurge hhvm* >/dev/null 2>&1
+		apt-get -y autoremove hhvm* >/dev/null 2>&1
+		rm -rf "/etc/apt/sources.list.d/hhvm.list" "/etc/apt/trusted.gpg.d/hhvm.gpg" >/dev/null 2>&1
+	fi
+	if [[ " ${flags[*]} " =~ " ioncube=1 " ]]; then
+		vstacklet::shell::text::yellow "Uninstalling IonCube ..."
+		rm -rf "/tmp/ioncube" >/dev/null 2>&1
+	fi
+	if [[ " ${flags[*]} " =~ " mariadb=1 " ]]; then
+		vstacklet::shell::text::yellow "Uninstalling MariaDB ..."
+		rm -rf "/var/lib/mysql" "/var/run/mysqld" "/etc/mysql" "/root/.my.cnf" >/dev/null 2>&1
+		apt-get -y autopurge mariadb* >/dev/null 2>&1
+		apt-get -y autoremove mariadb* >/dev/null 2>&1
+		rm -rf "/etc/apt/sources.list.d/mariadb.list" "/etc/apt/keyrings/mariadb.gpg" >/dev/null 2>&1
+	fi
+	if [[ " ${flags[*]} " =~ " mysql=1 " ]]; then
+		vstacklet::shell::text::yellow "Uninstalling MySQL ..."
+		rm -rf "/var/lib/mysql" "/var/run/mysql" "/var/run/mysqld" "/etc/mysql" "/root/.my.cnf" >/dev/null 2>&1
+		apt-get -y autopurge mysql* >/dev/null 2>&1
+		apt-get -y autoremove mysql* >/dev/null 2>&1
+	fi
+	if [[ " ${flags[*]} " =~ " nginx=1 " ]]; then
+		vstacklet::shell::text::yellow "Uninstalling Nginx ..."
 		rm -rf "/etc/nginx-pre-vstacklet" "/etc/nignx" >/dev/null 2>&1
 		apt-get -y autopurge nginx* >/dev/null 2>&1
 		apt-get -y autoremove nginx* >/dev/null 2>&1
 		[[ ${distro,,} == "debian" ]] && rm -rf "/etc/apt/sources.list.d/nginx.list" "/etc/apt/keyrings/nginx.gpg" >/dev/null 2>&1
 		[[ ${distro,,} == "ubuntu" ]] && rm -rf "/etc/apt/sources.list.d/nginx.list" "/usr/share/keyrings/nginx-archive-keyring.gpg" >/dev/null 2>&1
 	fi
-	if [[ -n ${varnish} ]]; then
+	if [[ " ${flags[*]} " =~ php=${php_version} ]]; then
+		vstacklet::shell::text::yellow "Uninstalling PHP ..."
+		apt-get -y autopurge php* >/dev/null 2>&1
+		apt-get -y autoremove php* >/dev/null 2>&1
+		[[ ${distro,,} == "debian" ]] && rm -rf "/etc/apt/sources.list.d/php-sury.list" "/etc/apt/keyrings/php.gpg" >/dev/null 2>&1
+		[[ ${distro,,} == "ubuntu" ]] && rm -rf "/etc/apt/sources.list.d/ondrej-ubuntu-php-${codename,,}.list" "/etc/apt/trusted.gpg.d/ondrej-ubuntu-php."* >/dev/null 2>&1
+	fi
+	if [[ " ${flags[*]} " =~ " phpmyadmin=1 " ]]; then
+		vstacklet::shell::text::yellow "Uninstalling phpMyAdmin ..."
+		apt-get -y autopurge phpmyadmin* >/dev/null 2>&1
+		apt-get -y autoremove phpmyadmin* >/dev/null 2>&1
+	fi
+	if [[ " ${flags[*]} " =~ " postgresql=1 " ]]; then
+		vstacklet::shell::text::yellow "Uninstalling PostgreSQL ..."
+		rm -rf "/var/lib/postgresql" "/var/run/postgresql" "/etc/postgresql" >/dev/null 2>&1
+		apt-get -y autopurge postgresql* >/dev/null 2>&1
+		apt-get -y autoremove postgresql* >/dev/null 2>&1
+		rm -rf "/etc/apt/sources.list.d/postgresql.list" "/etc/apt/trusted.gpg.d/postgresql.gpg" >/dev/null 2>&1
+	fi
+	if [[ " ${flags[*]} " =~ " redis=1 " ]]; then
+		vstacklet::shell::text::yellow "Uninstalling Redis ..."
+		rm -rf "/var/lib/redis" "/var/run/redis" "/etc/redis" >/dev/null 2>&1
+		apt-get -y autopurge redis* >/dev/null 2>&1
+		apt-get -y autoremove redis* >/dev/null 2>&1
+		rm -rf "/etc/apt/sources.list.d/redis.list" "/etc/apt/keyrings/redis.gpg" >/dev/null 2>&1
+	fi
+	if [[ " ${flags[*]} " =~ " sendmail=1 " ]]; then
+		vstacklet::shell::text::yellow "Uninstalling Sendmail ..."
+		rm -rf "/etc/mail" "/etc/mail.rc" "/etc/mailcap" "/etc/mailcap.order"
+		apt-get -y autopurge sendmail* >/dev/null 2>&1
+		apt-get -y autoremove sendmail* >/dev/null 2>&1
+	fi
+	if [[ " ${flags[*]} " =~ " varnish=1 " ]]; then
+		vstacklet::shell::text::yellow "Uninstalling Varnish ..."
 		rm -rf "/etc/varnish" >/dev/null 2>&1
 		apt-get -y autopurge varnish* >/dev/null 2>&1
 		apt-get -y autoremove varnish* >/dev/null 2>&1
 		[[ ${distro,,} == "debian" ]] && rm -rf "/etc/apt/sources.list.d/varnishcache_varnish74.list" "/etc/apt/keyrings/varnishcache_varnish74-archive-keyring.gpg" >/dev/null 2>&1
 		[[ ${distro,,} == "ubuntu" ]] && rm -rf "/etc/apt/sources.list.d/varnishcache_varnish74.list" "/etc/apt/trusted.gpg.d/varnish.gpg" >/dev/null 2>&1
 	fi
-	if [[ -n ${php} ]]; then
-		apt-get -y autopurge php* >/dev/null 2>&1
-		apt-get -y autoremove php* >/dev/null 2>&1
-		[[ ${distro,,} == "debian" ]] && rm -rf "/etc/apt/sources.list.d/php-sury.list" "/etc/apt/keyrings/php.gpg" >/dev/null 2>&1
-		[[ ${distro,,} == "ubuntu" ]] && rm -rf "/etc/apt/sources.list.d/ondrej-ubuntu-php-${codename,,}.list" "/etc/apt/trusted.gpg.d/ondrej-ubuntu-php."* >/dev/null 2>&1
-	fi
-	if [[ -n ${mariadb} ]]; then
-		rm -rf "/var/lib/mysql" "/var/run/mysqld" "/etc/mysql" "/root/.my.cnf" >/dev/null 2>&1
-		apt-get -y autopurge mariadb* >/dev/null 2>&1
-		apt-get -y autoremove mariadb* >/dev/null 2>&1
-		rm -rf "/etc/apt/sources.list.d/mariadb.list" "/etc/apt/keyrings/mariadb.gpg" >/dev/null 2>&1
-	fi
-	if [[ -n ${mysql} ]]; then
-		rm -rf "/var/lib/mysql" "/var/run/mysql" "/var/run/mysqld" "/etc/mysql" "/root/.my.cnf" >/dev/null 2>&1
-		apt-get -y autopurge mysql* >/dev/null 2>&1
-		apt-get -y autoremove mysql* >/dev/null 2>&1
-	fi
-	if [[ -n ${phpmyadmin} ]]; then
-		apt-get -y autopurge phpmyadmin* >/dev/null 2>&1
-		apt-get -y autoremove phpmyadmin* >/dev/null 2>&1
-	fi
-	if [[ -n ${csf} ]]; then
-		sh /usr/local/src/csf/uninstall.sh >>"${vslog}" 2>&1
-		rm -rf /etc/csf/ /usr/local/src/csf/
-	fi
-	if [[ -n ${redis} ]]; then
-		rm -rf "/var/lib/redis" "/var/run/redis" "/etc/redis" >/dev/null 2>&1
-		apt-get -y autopurge redis* >/dev/null 2>&1
-		apt-get -y autoremove redis* >/dev/null 2>&1
-		rm -rf "/etc/apt/sources.list.d/redis.list" "/etc/apt/keyrings/redis.gpg" >/dev/null 2>&1
-	fi
-	if [[ -n ${postgresql} ]]; then
-		rm -rf "/var/lib/postgresql" "/var/run/postgresql" "/etc/postgresql" >/dev/null 2>&1
-		apt-get -y autopurge postgresql* >/dev/null 2>&1
-		apt-get -y autoremove postgresql* >/dev/null 2>&1
-		rm -rf "/etc/apt/sources.list.d/postgresql.list" "/etc/apt/trusted.gpg.d/postgresql.gpg" >/dev/null 2>&1
-	fi
-	if [[ -n ${hhvm} ]]; then
-		rm -rf "/etc/hhvm" "/etc/hhvm" >/dev/null 2>&1
-		apt-get -y autopurge hhvm* >/dev/null 2>&1
-		apt-get -y autoremove hhvm* >/dev/null 2>&1
-		rm -rf "/etc/apt/sources.list.d/hhvm.list" "/etc/apt/trusted.gpg.d/hhvm.gpg" >/dev/null 2>&1
-	fi
-	if [[ -n ${domain} ]]; then
-		rm -rf ~/.acme.sh/"${domain}"* ~/acme.sh >/dev/null 2>&1
-	fi
-	vstacklet::log "systemctl daemon-reload"
+	# @script-note: reset the bashrc and profile files
+	vstacklet::shell::text::yellow "resetting bashrc and profile files to default ..."
+	bashrc_path="${HOME}/.bashrc"
+	profile_path="${HOME}/.profile"
+	[[ -f "${vstacklet_base_path}/config/system/bashrc" ]] && \cp -f "${vstacklet_base_path}/config/system/bashrc" "${bashrc_path}"
+	[[ -f "${vstacklet_base_path}/config/system/profile" ]] && \cp -f "${vstacklet_base_path}/config/system/profile" "${profile_path}"
+	[[ -f "${vstacklet_base_path}/config/system/sshd_config" ]] && \cp -f "${vstacklet_base_path}/config/system/sshd_config" /etc/ssh/sshd_config && systemctl restart sshd.service >/dev/null 2>&1
+	[[ -f "/etc/vsftpd.chroot_list" ]] && rm -rf "/etc/vsftpd.chroot_list" "/etc/vsftpd"
+	systemctl daemon-reload >/dev/null 2>&1
 	# @script-note: should the above purge be too aggressive, the following will restore the system to a working state.
 	# the following commands are not logged, but are here to ensure that the system is
 	# in a clean state after a failed installation attempt. If the system is not in a
 	# clean state, the installer will not be able to detect it and will not be able to
 	# install the software correctly.
-	# Due to the nature of this script, it is intended to be run on a fresh server [one](1) time.
-	# if you wish to run this script again, you should first restore the system to a clean state as
-	# a failed installation attempt may leave the system in an unknown state.
-	# Again, be advised that running this on an already configured server could result in data loss.
-	vstacklet::log "apt-get -yf install --reinstall ssh openssh-server openssh-client sudo curl wget ca-certificates apt-transport-https lsb-release gnupg2 software-properties-common"
-	vstacklet::shell::text::success "server setup has been rolled back. you may attempt to run the installer again."
+	apt-get -y update >/dev/null 2>&1
+	apt-get -y check >/dev/null 2>&1
+	apt-get -fy install >/dev/null 2>&1
+	apt-get -y autoclean >/dev/null 2>&1
+	apt-get -y autoremove >/dev/null 2>&1
+	apt-get -y autoclean >/dev/null 2>&1
+	apt-get -yf install --reinstall ssh openssh-server openssh-client sudo curl wget ca-certificates apt-transport-https lsb-release gnupg2 software-properties-common dirmngr >/dev/null 2>&1
+	# @script-note: remove the vStacklet command files
+	rm -f "/root/vstacklet/setup_temp/"*.txt >/dev/null 2>&1
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::success "Server setup has been rolled back. You may attempt to run the installer again."
+	vstacklet::shell::misc::nl
 	exit 0
 }
 #trap 'vstacklet::error::display' SIGINT
@@ -3689,6 +3881,7 @@ vstacklet::rollback() {
 vstacklet::environment::init                                                    #(1)
 vstacklet::environment::functions                                               #(2)
 vstacklet::args::process "$@"                                                   #(3)
+vstacklet::environment::store_flags_args "$@"                                   # @script-note: store the flags and arguments to a file for rollback
 vstacklet::log::check                                                           #(4)
 vstacklet::apt::update                                                          #(5)
 vstacklet::dependencies::install                                                #(6)
@@ -3726,4 +3919,6 @@ vstacklet::wordpress::install                                                   
 vstacklet::domain::ssl                                                          #(37)
 vstacklet::clean::complete                                                      #(38)
 vstacklet::message::complete && rm -rf ~/vstacklet.sh                           #(39)
+################################################################################
+# @description: End of script.
 ################################################################################
