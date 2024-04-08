@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2131
+# @version: 3.1.2134
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -3593,7 +3593,7 @@ vstacklet::error::display() {
 
 ################################################################################
 # @name: vstacklet::rollback
-# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3617-L3872)
+# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3617-L3885)
 #
 # @example: vstacklet --rollback
 #
@@ -3633,6 +3633,19 @@ vstacklet::rollback() {
 		vstacklet::shell::text::error "No rollback files found."
 		exit 1
 	fi
+	rollback_intro() {
+		vstacklet::shell::text::white "Welcome to the vStacklet rollback process."
+		vstacklet::shell::text::white "This process will allow you to remove the changes made during the installation process."
+		vstacklet::shell::text::white "Essentially, this process will revert your server back to its original state."
+		vstacklet::shell::misc::nl
+		rollback_continue
+	}
+	rollback_continue() {
+		vstacklet::shell::text::green "Press any key to continue $(tput setaf 7)(${shell_reset}$(tput setaf 3)ctrl+C${shell_reset} $(tput setaf 7)on PC or $(tput setaf 7)${shell_reset}$(tput setaf 3)⌘+C${shell_reset} $(tput setaf 7)on Mac to ${shell_reset}$(tput setaf 1)exit${shell_reset}$(tput setaf 7)) ..."
+		read -r -n 1
+		vstacklet::shell::misc::nl
+	}
+	rollback_intro
 	vstacklet::shell::text::white "Select a rollback file to restore:"
 	for ((i = 0; i < ${#rollback_files[@]}; i++)); do
 		vstacklet::shell::misc::nl

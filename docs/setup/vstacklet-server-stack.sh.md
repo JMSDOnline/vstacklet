@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.2131
+# vstacklet-server-stack.sh - v3.1.2134
 
 
 ---
@@ -1296,7 +1296,7 @@ Displays error messages for vStacklet. [see function](https://github.com/JMSDOnl
 
 ### vstacklet::rollback()
 
-This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3617-L3872)
+This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3617-L3885)
 
 *function has no options*
 
