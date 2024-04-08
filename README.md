@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.855
-  Build: 855
+  Version: v3.1.1.856
+  Build: 856
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -84,7 +84,7 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 - Fast and lightweight install - no bloatware, just the essentials.
 - Thouroughly documented - each script has it's own documentation for easy reference. The code is also heavily commented, making it easier to understand what's going on.
 - Quiet installer - no more long scrolling text vomit, just see what's important; when it's presented.
-- Script writes output to `/var/log/vstacklet.###.log` for additional observations.
+- Script writes output to `/var/log/vstacklet/vstacklet.###.log` for additional observations.
 - Color Coding for emphasis on install processes.
 - Easy optional parameters make it a set it and forget it script.
 - Varnish Cache on port 80 with Nginx port 8080 SSL termination on 443.
