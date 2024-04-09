@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.872
-  Build: 872
+  Version: v3.1.1.873
+  Build: 873
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
