@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2144
+# @version: 3.1.2145
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -3979,7 +3979,6 @@ vstacklet::update::check() {
 					# @script-note: set error message (path does not exist)
 					vstacklet::shell::text::error "The vStacklet base path does not exist."
 					vstacklet::shell::misc::nl
-					exit 1
 				fi
 			else
 				vstacklet::shell::text::yellow "The vStacklet script update has been cancelled."
@@ -3993,6 +3992,7 @@ vstacklet::update::check() {
 		vstacklet::shell::text::error "Failed to check for updates to the vStacklet script."
 		vstacklet::shell::misc::nl
 	fi
+	exit 0
 }
 
 ################################################################################
