@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2142
+# @version: 3.1.2143
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -3902,8 +3902,11 @@ vstacklet::update::check() {
 	# @script-note: check for updates to the vStacklet script
 	vstacklet::shell::text::yellow "Checking for updates to the vStacklet script ..."
 	# @script-note: get the latest version of the vStacklet script
+	# @script-note: check the branch set in the vStacklet config
+	declare branch_name
+	branch_name=$(cat /opt/vstacklet/config/system/branch)
 	declare latest_version
-	latest_version=$(curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet-server-stack.sh" | grep -m 1 -oP '(?<=@version: )\d+\.\d+\.\d+')
+	latest_version=$(curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/${branch_name}/README.md" | grep -oP '(?<=Version: v)[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
 	# @script-note: check if the latest version is available
 	if [[ -n ${latest_version} ]]; then
 		# @script-note: check if the latest version is different from the current version

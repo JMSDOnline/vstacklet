@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1080
+# @version: 3.1.1081
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -133,7 +133,7 @@ vstacklet::setup::variables() {
 
 ################################################################################
 # @name: vstacklet::setup::download() (3)
-# @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L157-L214)
+# @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L157-L216)
 #
 # notes:
 # - This script function is responsible for downloading vStacklet from GitHub
@@ -197,6 +197,8 @@ vstacklet::setup::download() {
 	cp -f "${vstacklet_server_stack_script}" /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to copy vstacklet to /usr/local/bin" && exit 1; }
 	# @script-note: make vstacklet executable
 	chmod +x /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to make the installation script executable." && exit 1; }
+	# @script-note: store the branch in the vstacklet config for future reference and updates
+	echo "${vstacklet_git_branch}" >"${vstacklet_base_path}/config/system/branch"
 	# Execute the installation script (let's get this party started!)
 	# Allow for the installation script to be run from anywhere on the server
 	# by the user through calling `vstacklet [options] [args]`
@@ -215,7 +217,7 @@ vstacklet::setup::download() {
 
 ##################################################################################
 # @name: vstacklet::setup::help()
-# @description: Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L221-L241)
+# @description: Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L223-L243)
 # @break
 ##################################################################################
 vstacklet::setup::help() {
@@ -242,7 +244,7 @@ EOF
 
 ##################################################################################
 # @name: vstacklet::setup::version()
-# @description: Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L248-L254)
+# @description: Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L250-L256)
 # @break
 ##################################################################################
 vstacklet::version::display() {

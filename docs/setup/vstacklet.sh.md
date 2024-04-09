@@ -1,4 +1,4 @@
-# vstacklet.sh - v3.1.1080
+# vstacklet.sh - v3.1.1081
 
 
 ---
@@ -51,7 +51,7 @@ notes: this script function is responsible for setting the variables for the set
 
 ### vstacklet::setup::download()
 
-Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L157-L214)
+Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L157-L216)
 
 notes:
 - This script function is responsible for downloading vStacklet from GitHub
@@ -74,13 +74,13 @@ packages and install them if they are not found.
 
 ### vstacklet::setup::help()
 
-Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L221-L241)
+Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L223-L243)
 
 ---
 
 ### vstacklet::version::display()
 
-Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L248-L254)
+Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L250-L256)
 
 ---
 
