@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2143
+# @version: 3.1.2144
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -1211,6 +1211,39 @@ deb-src http://ftp.debian.org/debian ${codename}-backports main
 ###### 3rd Party Binary Repos
 ###Debian Multimedia
 #deb [arch=amd64,i386] https://www.deb-multimedia.org ${codename} main non-free
+
+###### nginx
+#deb [arch=amd64,i386] http://nginx.org/packages/debian/ ${codename} nginx
+#deb-src [arch=amd64,i386] http://nginx.org/packages/debian/ ${codename} nginx
+
+###### Missing Dependencies
+EOF
+	elif [[ ${distro} == "Debian" && ${codename} == "bookworm" ]]; then
+		cat >/etc/apt/sources.list <<EOF
+#------------------------------------------------------------------------------#
+#                            OFFICIAL DEBIAN REPOS                             #
+#------------------------------------------------------------------------------#
+
+###### Debian Main Repos
+deb http://ftp.debian.org/debian/ ${codename} main contrib non-free non-free-firmware
+deb-src http://ftp.debian.org/debian/ ${codename} main contrib non-free non-free-firmware
+
+deb http://ftp.debian.org/debian/ ${codename}-updates main contrib non-free non-free-firmware
+deb-src http://ftp.debian.org/debian/ ${codename}-updates main contrib non-free non-free-firmware
+
+deb http://security.debian.org/ ${codename}-security main contrib non-free non-free-firmware
+deb-src http://security.debian.org/ ${codename}-security main contrib non-free non-free-firmware
+
+deb http://ftp.debian.org/debian ${codename}-backports main
+deb-src http://ftp.debian.org/debian ${codename}-backports main
+
+#------------------------------------------------------------------------------#
+#                      UNOFFICIAL  REPOS
+#------------------------------------------------------------------------------#
+
+###### 3rd Party Binary Repos
+###Debian Multimedia
+#deb [arch=amd64,i386] https://www.deb-multimedia.org ${codename} main non-free non-free-firmware
 
 ###### nginx
 #deb [arch=amd64,i386] http://nginx.org/packages/debian/ ${codename} nginx
