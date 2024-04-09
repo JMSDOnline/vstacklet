@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2150
+# @version: 3.1.2151
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -3941,15 +3941,15 @@ vstacklet::update::check() {
 	# @script-note: check the branch set in the vStacklet config
 	declare branch_name
 	branch_name=$(cat /opt/vstacklet/config/system/branch)
-	declare latest_version vstacklet_version
+	declare current_version latest_version
+	current_version=$(grep -oP '(?<=Version: v)[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' /opt/vstacklet/README.md)
 	latest_version=$(curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/${branch_name}/README.md" | grep -oP '(?<=Version: v)[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
-	vstacklet_version=$(grep -oP '(?<=Version: v)[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' /opt/vstacklet/README.md)
 	# @script-note: check if the latest version is available
 	if [[ -n ${latest_version} ]]; then
 		# @script-note: check if the latest version is different from the current version
-		if [[ ${vstacklet_version} != "${latest_version}" ]]; then
+		if [[ ${current_version} != "${latest_version}" ]]; then
 			vstacklet::shell::text::yellow "A new version of the vStacklet script is available."
-			vstacklet::shell::text::yellow "Current version: ${vstacklet_version}"
+			vstacklet::shell::text::yellow "Current version: ${current_version}"
 			vstacklet::shell::text::yellow "Latest version: ${latest_version}"
 			vstacklet::shell::misc::nl
 			# @script-note: prompt the user asking if they would like to update the vStacklet script
@@ -3972,7 +3972,7 @@ vstacklet::update::check() {
 					git -C "${vstacklet_base_path}" reset --hard origin/main >/dev/null 2>&1
 					git -C "${vstacklet_base_path}" pull --rebase >/dev/null 2>&1
 					# @script-note: check if the vStacklet script has been updated
-					if [[ ${vstacklet_version} != "${latest_version}" ]]; then
+					if [[ ${current_version} != "${latest_version}" ]]; then
 						vstacklet::shell::text::success "The vStacklet script has been updated."
 						vstacklet::shell::misc::nl
 					else
