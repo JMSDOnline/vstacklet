@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2139
+# @version: 3.1.2142
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -232,6 +232,8 @@ vstacklet::environment::init() {
 # | -wr | --web_root				   | web root to use for the server
 # | -wp | --wordpress				   | install WordPress
 # | -r | --reboot					   | reboot the server after installation
+# | --rollback						   | rollback the server to a previous state
+# | --check_update					   | check for updates to the script
 #
 # @example: vstacklet --help
 # @example: vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -hn "yourhostname" -php "8.3" -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "db_user" -mariadbPw "db_password" -pma -csf -csfCf -wr "/var/www/html/vsapp" -wp
@@ -456,6 +458,9 @@ vstacklet::args::process() {
 			;;
 		--rollback)
 			vstacklet::rollback
+			;;
+		--check_update)
+			vstacklet::update::check
 			;;
 		*)
 			invalid_option+=("$1")
@@ -3884,6 +3889,75 @@ vstacklet::rollback() {
 	exit 0
 }
 #trap 'vstacklet::error::display' SIGINT
+
+################################################################################
+# @name: vstacklet::update::check
+# @description: Checks for updates to the vStacklet script.
+#
+# @nooptions
+# @noargs
+# @break
+################################################################################
+vstacklet::update::check() {
+	# @script-note: check for updates to the vStacklet script
+	vstacklet::shell::text::yellow "Checking for updates to the vStacklet script ..."
+	# @script-note: get the latest version of the vStacklet script
+	declare latest_version
+	latest_version=$(curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet-server-stack.sh" | grep -m 1 -oP '(?<=@version: )\d+\.\d+\.\d+')
+	# @script-note: check if the latest version is available
+	if [[ -n ${latest_version} ]]; then
+		# @script-note: check if the latest version is different from the current version
+		if [[ ${vstacklet_version} != "${latest_version}" ]]; then
+			vstacklet::shell::text::yellow "A new version of the vStacklet script is available."
+			vstacklet::shell::text::yellow "Current version: ${vstacklet_version}"
+			vstacklet::shell::text::yellow "Latest version: ${latest_version}"
+			vstacklet::shell::misc::nl
+			# @script-note: prompt the user asking if they would like to update the vStacklet script
+			vstacklet::shell::text::yellow "Would you like to update the vStacklet script?"
+			vstacklet::shell::text::yellow " - ${shell_reset}$(tput setaf 3)yes${shell_reset}$(tput setaf 7) to update the vStacklet script"
+			vstacklet::shell::text::yellow " - ${shell_reset}$(tput setaf 1)no${shell_reset}$(tput setaf 7) to skip the update"
+			vstacklet::shell::misc::nl
+			vstacklet::shell::text::yellow "Enter your selection: "
+			vstacklet::shell::icon::arrow::white && read -r input && input=${input,,}
+			# @script-note: check if the user selected to update the vStacklet script
+			if [[ ${input} == "yes" || ${input} == "y" ]]; then
+				vstacklet::shell::text::yellow "Updating the vStacklet script ..."
+				# @script-note: update the git repository
+				declare vstacklet_base_path
+				vstacklet_base_path="/opt/vstacklet"
+				# @script-note: check if the vStacklet base path exists
+				if [[ -d ${vstacklet_base_path} ]]; then
+					# @script-note: force update the git repository
+					git -C "${vstacklet_base_path}" fetch --all >/dev/null 2>&1
+					git -C "${vstacklet_base_path}" reset --hard origin/main >/dev/null 2>&1
+					git -C "${vstacklet_base_path}" pull --rebase >/dev/null 2>&1
+					# @script-note: check if the vStacklet script has been updated
+					if [[ ${vstacklet_version} != "${latest_version}" ]]; then
+						vstacklet::shell::text::success "The vStacklet script has been updated."
+						vstacklet::shell::misc::nl
+					else
+						vstacklet::shell::text::error "The vStacklet script has not been updated."
+						vstacklet::shell::misc::nl
+					fi
+				else
+					# @script-note: set error message (path does not exist)
+					vstacklet::shell::text::error "The vStacklet base path does not exist."
+					vstacklet::shell::misc::nl
+					exit 1
+				fi
+			else
+				vstacklet::shell::text::yellow "The vStacklet script update has been cancelled."
+				vstacklet::shell::misc::nl
+			fi
+		else
+			vstacklet::shell::text::green "The vStacklet script is up to date."
+			vstacklet::shell::misc::nl
+		fi
+	else
+		vstacklet::shell::text::error "Failed to check for updates to the vStacklet script."
+		vstacklet::shell::misc::nl
+	fi
+}
 
 ################################################################################
 # @description: Calls functions in required order.

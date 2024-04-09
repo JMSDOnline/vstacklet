@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.2139
+# vstacklet-server-stack.sh - v3.1.2142
 
 
 ---
@@ -199,6 +199,8 @@ Process the options and values passed to the script. [see function](https://gith
 | -wr | --web_root				   | web root to use for the server
 | -wp | --wordpress				   | install WordPress
 | -r | --reboot					   | reboot the server after installation
+| --rollback						   | rollback the server to a previous state
+| --check_update					   | check for updates to the script
 
 #### examples:
 
@@ -1319,6 +1321,16 @@ This function is called when a rollback is required. [see function](https://gith
   (only configuration files created by vStacklet will be removed)
  - it will remove any directories created during the installation process.
   (only directories created by vStacklet will be removed)
+
+---
+
+### vstacklet::update::check()
+
+Checks for updates to the vStacklet script.
+
+*function has no options*
+
+*function has no arguments*
 
 ---
 
