@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2155
+# @version: 3.1.2156
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -593,7 +593,6 @@ vstacklet::environment::functions() {
 		cross) shell_icon="✗ ${shell_reset}" ;;
 		success) shell_icon="✓ success: ${shell_reset}" && shell_success="1" ;;
 		error) shell_icon="✗ error: ${shell_reset}" && shell_error="1" ;;
-		info) shell_icon="ℹ info: ${shell_reset}" && shell_info="1" ;;
 		rollback) shell_icon="⎌ rollback: ${shell_reset}" && shell_rollback="1" ;;
 		esac
 		if [[ ${shell_success} == "1" ]]; then
@@ -601,8 +600,6 @@ vstacklet::environment::functions() {
 		elif [[ ${shell_warning} == "1" ]]; then
 			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
 		elif [[ ${shell_error} == "1" ]]; then
-			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
-		elif [[ ${shell_info} == "1" ]]; then
 			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
 		elif [[ ${shell_rollback} == "1" ]]; then
 			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
@@ -639,13 +636,6 @@ vstacklet::environment::functions() {
 	vstacklet::shell::text::red::sl() {
 		declare -g shell_color shell_newline=0
 		shell_color=$(tput setaf 1)
-		vstacklet::shell::output "$@"
-	}
-	vstacklet::shell::text::info() {
-		declare -g shell_color shell_icon
-		shell_color=$(tput setaf 4)
-		shell_icon="info"
-		output_color=$(tput setaf 7)
 		vstacklet::shell::output "$@"
 	}
 	vstacklet::shell::text::success() {
