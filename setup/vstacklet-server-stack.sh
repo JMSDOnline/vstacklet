@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2152
+# @version: 3.1.2153
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -536,7 +536,7 @@ vstacklet::environment::store_flags_args() {
 	# @script-note: store the command string
 	echo "Command:${command_string}" >"${flags_args_file}"
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::info "Command string has been stored at: ${flags_args_file}"
+	vstacklet::shell::text::yellow "Command string has been stored at: ${flags_args_file}"
 	vstacklet::shell::misc::nl
 }
 
