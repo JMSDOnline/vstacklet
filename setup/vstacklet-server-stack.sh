@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2151
+# @version: 3.1.2152
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -3903,7 +3903,7 @@ vstacklet::rollback() {
 	profile_path="${HOME}/.profile"
 	[[ -f "${vstacklet_base_path}/config/system/bashrc" ]] && \cp -f "${vstacklet_base_path}/config/system/bashrc" "${bashrc_path}"
 	[[ -f "${vstacklet_base_path}/config/system/profile" ]] && \cp -f "${vstacklet_base_path}/config/system/profile" "${profile_path}"
-	[[ -f "${vstacklet_base_path}/config/system/sshd_config" ]] && \cp -f "${vstacklet_base_path}/config/system/sshd_config" /etc/ssh/sshd_config && systemctl restart sshd.service >/dev/null 2>&1
+	[[ -f "${vstacklet_base_path}/config/system/sshd_config" ]] && \cp -f "${vstacklet_base_path}/config/system/sshd_config" "/etc/ssh/sshd_config"
 	[[ -f "/etc/vsftpd.chroot_list" ]] && rm -rf "/etc/vsftpd.chroot_list" "/etc/vsftpd"
 	systemctl daemon-reload >/dev/null 2>&1
 	# @script-note: should the above purge be too aggressive, the following will restore the system to a working state.
@@ -3918,11 +3918,12 @@ vstacklet::rollback() {
 	apt-get -y autoremove >/dev/null 2>&1
 	apt-get -y autoclean >/dev/null 2>&1
 	apt-get -yf install --reinstall ssh openssh-server openssh-client sudo curl wget ca-certificates apt-transport-https lsb-release gnupg2 software-properties-common dirmngr >/dev/null 2>&1
-	# @script-note: remove the vStacklet command files
-	rm -f "/root/vstacklet/setup_temp/"*.txt >/dev/null 2>&1
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::success "Server setup has been rolled back. You may attempt to run the installer again."
 	vstacklet::shell::misc::nl
+	# @script-note: remove the vStacklet command files
+	rm -f "/root/vstacklet/setup_temp/"*.txt >/dev/null 2>&1
+	systemctl restart sshd.service >/dev/null 2>&1
 	exit 0
 }
 
