@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1083
+# @version: 3.1.1085
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -198,7 +198,7 @@ vstacklet::setup::download() {
 	mkdir -p "${vstacklet_base_path}/setup_temp"    # temporary setup directory - stores default files edited by vStacklet
 	mkdir -p "${vstacklet_base_path}/config/system" # system configuration directory - stores dependencies, keys, and other system files
 	# @script-note: store the branch in the vstacklet config for future reference and updates
-	echo "${vstacklet_git_branch}" >"${vstacklet_base_path}/config/system/branch"
+	echo "${vstacklet_git_branch}" >"${vstacklet_base_path}/config/system/branch" || { printf -- "%s\n" "Error: Unable to store the branch in the vstacklet config" && exit 1; }
 	# Execute the installation script (let's get this party started!)
 	# Allow for the installation script to be run from anywhere on the server
 	# by the user through calling `vstacklet [options] [args]`
@@ -252,7 +252,7 @@ vstacklet::version::display() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "vStacklet Version: ${vstacklet_version}"
 	# @script-note: display the current branch
-	vstacklet::shell::text::white "vStacklet Branch: $(cat ${vstacklet_base_path}/config/system/branch)"
+	vstacklet::shell::text::white "vStacklet Branch: $(cat "${vstacklet_base_path}"/config/system/branch)"
 	vstacklet::shell::misc::nl
 	exit 0
 }
