@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2161
+# @version: 3.1.2162
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -3966,7 +3966,7 @@ vstacklet::update::check() {
 					git -C "${vstacklet_base_path}" pull --rebase >/dev/null 2>&1
 					\cp -f "${vstacklet_base_path}/setup/vstacklet-server-stack.sh" /usr/local/bin/vstacklet
 					chmod +x /usr/local/bin/vstacklet
-					\cp -f "${vstacklet_base_path}/bin/backup/vs-backup.sh" /usr/local/bin/vs-backup
+					\cp -f "${vstacklet_base_path}/bin/backup/vs-backup" /usr/local/bin/vs-backup
 					chmod +x /usr/local/bin/vs-backup
 					\cp -f "${vstacklet_base_path}/bin/www-permissions.sh" /usr/local/bin/vs-perms
 					chmod +x /usr/local/bin/vs-perms
