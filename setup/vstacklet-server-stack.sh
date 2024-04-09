@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2157
+# @version: 3.1.2161
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -3250,7 +3250,7 @@ vstacklet::clean::complete() {
 	[[ -n ${postgresql} ]] && services+=("postgresql")
 	[[ -n ${sendmail} ]] && services+=("sendmail")
 	[[ -n ${csf} ]] && services+=("lfd")
-	services+=("sshd")
+	#services+=("sshd")
 	rm -rf "${vstacklet_base_path}/setup_temp"
 	for service in "${services[@]}"; do
 		vstacklet::log "systemctl enable ${service}.service"
@@ -3314,6 +3314,8 @@ vstacklet::message::complete() {
 	fi
 	vstacklet::shell::misc::nl
 	unset vstacklet_log_location vstacklet_start_time vstacklet_end_time vstacklet_total_time vstacklet_total_time_minutes
+	# @script-note: reload bashrc
+	source /root/.bashrc
 }
 
 ################################################################################
@@ -4042,7 +4044,7 @@ vstacklet::csf::install                                                         
 vstacklet::wordpress::install                                                   #(36)
 vstacklet::domain::ssl                                                          #(37)
 vstacklet::clean::complete                                                      #(38)
-vstacklet::message::complete && rm -rf ~/vstacklet.sh                           #(39)
+vstacklet::message::complete && rm -rf ~/vstacklet.sh && exit 0                 #(39)
 ################################################################################
 # @description: End of script.
 ################################################################################
