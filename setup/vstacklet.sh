@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1086
+# @version: 3.1.1088
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -92,6 +92,12 @@ vstacklet::setup::variables() {
 			;;
 		-b | --branch)
 			branch="${2}"
+			shift
+			shift
+			;;
+		# @script-note: Custom path for vStacklet base directory
+		-P | --path)
+			vstacklet_base_path="${2}"
 			shift
 			shift
 			;;
@@ -228,13 +234,14 @@ Options:
   -V, --version   Display the version of vStacklet
   -h, --help      Display this help menu
   -b, --branch    Specify the branch to install from (default: main)
+  -P, --path      Specify the path to install vStacklet (default: /opt/vstacklet)
 
 Examples:
   # Install vStacklet from the main branch
   bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh)
 
   # Install vStacklet from the development branch
-  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh) -b development
+  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh) -b 'development'
 
   # Display the help menu
   bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh) -h
