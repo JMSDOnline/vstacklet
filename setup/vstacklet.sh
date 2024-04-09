@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1082
+# @version: 3.1.1083
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -251,6 +251,8 @@ vstacklet::version::display() {
 	vstacklet_version="$(grep -E '^# @version:' "${vstacklet_base_path}/setup/vstacklet-server-stack.sh" | awk '{print $3}')"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "vStacklet Version: ${vstacklet_version}"
+	# @script-note: display the current branch
+	vstacklet::shell::text::white "vStacklet Branch: $(cat ${vstacklet_base_path}/config/system/branch)"
 	vstacklet::shell::misc::nl
 	exit 0
 }
