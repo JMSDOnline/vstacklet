@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2153
+# @version: 3.1.2155
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -3911,13 +3911,13 @@ vstacklet::rollback() {
 	# in a clean state after a failed installation attempt. If the system is not in a
 	# clean state, the installer will not be able to detect it and will not be able to
 	# install the software correctly.
-	apt-get -y update >/dev/null 2>&1
-	apt-get -y check >/dev/null 2>&1
-	apt-get -fy install >/dev/null 2>&1
-	apt-get -y autoclean >/dev/null 2>&1
-	apt-get -y autoremove >/dev/null 2>&1
-	apt-get -y autoclean >/dev/null 2>&1
-	apt-get -yf install --reinstall ssh openssh-server openssh-client sudo curl wget ca-certificates apt-transport-https lsb-release gnupg2 software-properties-common dirmngr >/dev/null 2>&1
+	apt-get -y update
+	apt-get -y check
+	apt-get -fy install
+	apt-get -y autoclean
+	apt-get -y autoremove
+	apt-get -y autoclean
+	apt-get -yf install --reinstall ssh openssh-server openssh-client sudo curl wget ca-certificates apt-transport-https lsb-release gnupg2 software-properties-common >/dev/null 2>&1
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::success "Server setup has been rolled back. You may attempt to run the installer again."
 	vstacklet::shell::misc::nl
