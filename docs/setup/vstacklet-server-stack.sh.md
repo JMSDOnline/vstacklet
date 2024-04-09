@@ -1,4 +1,4 @@
-# vstacklet-server-stack.sh - v3.1.2172
+# vstacklet-server-stack.sh - v3.1.2176
 
 
 ---
@@ -1288,7 +1288,7 @@ Displays the current version of vStacklet. [see function](https://github.com/JMS
 
 ### vstacklet::error::display()
 
-Displays error messages for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3461-L3626)
+Displays error messages for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3461-L3631)
 
 *function has no options*
 
@@ -1298,7 +1298,7 @@ Displays error messages for vStacklet. [see function](https://github.com/JMSDOnl
 
 ### vstacklet::rollback()
 
-This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3651-L3943)
+This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3656-L3949)
 
 *function has no options*
 
@@ -1326,7 +1326,7 @@ This function is called when a rollback is required. [see function](https://gith
 
 ### vstacklet::update::check()
 
-Checks for updates to the vStacklet script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3953-L4022)
+Checks for updates to the vStacklet script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3959-L4028)
 
 *function has no options*
 

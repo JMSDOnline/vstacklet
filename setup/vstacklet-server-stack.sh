@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2172
+# @version: 3.1.2176
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -457,7 +457,7 @@ vstacklet::args::process() {
 			[[ -n ${web_root} && $(sed -e 's/[\\/]/\\/g;s/[\/\/]/\\\//g;' <<<"${web_root}") == "" ]] && vstacklet::shell::text::error "invalid web root. please provide a valid web root. (e.g. /var/www/html/vsapp)" && exit 1
 			;;
 		--rollback)
-			vstacklet::rollback
+			declare -gi rollback="1" && vstacklet::rollback
 			;;
 		--check_update)
 			vstacklet::update::check
@@ -3452,7 +3452,7 @@ vstacklet::version::display() {
 
 ################################################################################
 # @name: vstacklet::error::display - vStacklet Error Messages
-# @description: Displays error messages for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3461-L3626)
+# @description: Displays error messages for vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3461-L3631)
 #
 # @nooptions
 # @noargs
@@ -3612,22 +3612,27 @@ vstacklet::error::display() {
 	else
 		vstacklet::shell::text::warning "installer has been interrupted"
 	fi
-	vstacklet::shell::text::error "a fatal error has occurred, you can rollback the installation process by running the following command:"
-	vstacklet::shell::text::white "vstacklet --rollback"
-	vstacklet::shell::misc::nl
-	vstacklet::shell::text::error "please report this issue to the vStacklet GitHub repository."
-	vstacklet::shell::text::white " - include the error message above"
-	vstacklet::shell::text::white " - include the vStacklet log file: ${vslog}"
-	vstacklet::shell::text::white " - include the vStacklet version: ${vstacklet_version}"
-	vstacklet::shell::text::white " - include the server OS and version"
-	vstacklet::shell::misc::nl
+	if [[ "${rollback}" != "1" ]]; then
+		vstacklet::shell::text::error "a fatal error has occurred, you can rollback the installation process by running the following command:"
+		vstacklet::shell::text::white "vstacklet --rollback"
+		vstacklet::shell::misc::nl
+		vstacklet::shell::text::error "please report this issue to the vStacklet GitHub repository."
+		vstacklet::shell::text::white " - include the error message above"
+		vstacklet::shell::text::white " - include the vStacklet log file: ${vslog}"
+		vstacklet::shell::text::white " - include the vStacklet version: ${vstacklet_version}"
+		vstacklet::shell::text::white " - include the server OS and version"
+		vstacklet::shell::misc::nl
+	else
+		vstacklet::shell::text::error "The rollback process has been cancelled."
+		vstacklet::shell::misc::nl
+	fi
 	exit 1
 }
 trap 'vstacklet::error::display' SIGINT
 
 ################################################################################
 # @name: vstacklet::rollback
-# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3651-L3943)
+# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3656-L3949)
 #
 # @example: vstacklet --rollback
 #
@@ -3695,6 +3700,7 @@ vstacklet::rollback() {
 		vstacklet::shell::text::white "    The rollback process will remove the changes made by the above command."
 		vstacklet::shell::text::white "    The rollback process will remove NGINX, PHP, MariaDB, Varnish, CSF, phpMyAdmin, ionCube,
     Domain Certificate, and the WordPress installation directory specified in the command."
+		vstacklet::shell::misc::nl
 		rollback_continue
 	}
 	rollback_continue() {
@@ -3703,7 +3709,7 @@ vstacklet::rollback() {
 		vstacklet::shell::misc::nl
 	}
 	rollback_intro
-	vstacklet::shell::text::white "Select a rollback file to restore the server to:"
+	vstacklet::shell::text::white "Select a rollback file for the server to restore from:"
 	for ((i = 0; i < ${#rollback_files[@]}; i++)); do
 		vstacklet::shell::misc::nl
 		# @script-note: display the contents of the rollback file
@@ -3715,7 +3721,7 @@ vstacklet::rollback() {
 	done
 	vstacklet::shell::misc::nl
 	# @script-note: prompt the user to select a rollback file
-	vstacklet::shell::text::yellow::sl "Select a rollback file to restore the server to: "
+	vstacklet::shell::text::yellow::sl "Select a rollback file for the server to restore from: "
 	vstacklet::shell::icon::arrow::white && vstacklet::shell::text::green::sl " #" && read -r input
 	# @script-note: check if the input is a number
 	if [[ ! ${input} =~ ^[0-9]+$ ]]; then
@@ -3944,7 +3950,7 @@ vstacklet::rollback() {
 
 ################################################################################
 # @name: vstacklet::update::check
-# @description: Checks for updates to the vStacklet script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3953-L4022)
+# @description: Checks for updates to the vStacklet script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3959-L4028)
 #
 # @nooptions
 # @noargs
