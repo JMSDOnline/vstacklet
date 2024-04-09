@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1085
+# @version: 3.1.1086
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -124,7 +124,7 @@ vstacklet::setup::variables() {
 	# @script-note: Set the hostname of the server
 	server_hostname="${server_hostname:-$(hostname --fqdn)}"
 	# @script-note: Set the local vstacklet server stack script (this is the script that will be loaded to /usr/local/bin/vstacklet)
-	vstacklet_server_stack_script="/opt/vstacklet/setup/vstacklet-server-stack.sh"
+	vstacklet_server_stack_script="${vstacklet_base_path}/setup/vstacklet-server-stack.sh"
 	# @script-note: Set the vstacklet github repository url
 	vstacklet_git="https://github.com/JMSDOnline/vstacklet.git"
 	# @script-note: Set the vstacklet github repository branch (default: main)
@@ -172,28 +172,28 @@ vstacklet::setup::download() {
 	mkdir -p /backup/{files,databases} || { printf -- "%s\n" "Error: Unable to create /backup/{files,databases}" && exit 1; }
 	# @script-note: download vStacklet
 	rm -rf /tmp/vstacklet
-	if [[ -d /opt/vstacklet/.git ]]; then
+	if [[ -d "${vstacklet_base_path}/.git" ]]; then
 		# @script-note: update vStacklet
 		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" /tmp/vstacklet || { printf -- "%s\n" "Error: Unable to update vStacklet from GitHub" && exit 1; }
-		cp -rf /tmp/vstacklet/* /opt/vstacklet || { printf -- "%s\n" "Error: Unable to copy vStacklet files to /opt/vstacklet" && exit 1; }
+		cp -rf /tmp/vstacklet/* "${vstacklet_base_path}" || { printf -- "%s\n" "Error: Unable to copy vStacklet files to ${vstacklet_base_path}" && exit 1; }
 		rm -rf /tmp/vstacklet
 	else
 		# @script-note: install vStacklet
 		[[ -d ${vstacklet_base_path} ]] && rm -rf "${vstacklet_base_path}"
-		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" /opt/vstacklet || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
+		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" "${vstacklet_base_path}" || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
 	fi
 	# @script-note: send vStacklet backup (www-permissions.sh) to /usr/local/bin
-	cp -f /opt/vstacklet/bin/www-permissions.sh /usr/local/bin/vs-perms || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
+	cp -f "${vstacklet_base_path}/bin/www-permissions.sh" "/usr/local/bin/vs-perms" || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
 	# @script-note: make vs-perms executable
-	chmod +x /usr/local/bin/vs-perms || { printf -- "%s\n" "Error: Unable to make vs-perms executable" && exit 1; }
+	chmod +x "/usr/local/bin/vs-perms" || { printf -- "%s\n" "Error: Unable to make vs-perms executable" && exit 1; }
 	# @script-note: send vStacklet backup (vs-backup) to /usr/local/bin
-	cp -f /opt/vstacklet/bin/backup/vs-backup /usr/local/bin/vs-backup || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
+	cp -f "${vstacklet_base_path}/bin/backup/vs-backup" "/usr/local/bin/vs-backup" || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
 	# @script-note: make vs-backup executable
-	chmod +x /usr/local/bin/vs-backup || { printf -- "%s\n" "Error: Unable to chmod +x /usr/local/bin/vs-backup" && exit 1; }
+	chmod +x "/usr/local/bin/vs-backup" || { printf -- "%s\n" "Error: Unable to chmod +x /usr/local/bin/vs-backup" && exit 1; }
 	# @script-note: send vStacklet server stack script to /usr/local/bin
-	cp -f "${vstacklet_server_stack_script}" /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to copy vstacklet to /usr/local/bin" && exit 1; }
+	cp -f "${vstacklet_server_stack_script}" "/usr/local/bin/vstacklet" || { printf -- "%s\n" "Error: Unable to copy vstacklet to /usr/local/bin" && exit 1; }
 	# @script-note: make vstacklet executable
-	chmod +x /usr/local/bin/vstacklet || { printf -- "%s\n" "Error: Unable to make the installation script executable." && exit 1; }
+	chmod +x "/usr/local/bin/vstacklet" || { printf -- "%s\n" "Error: Unable to make the installation script executable." && exit 1; }
 	# @script-note: create vstacklet directories
 	mkdir -p "${vstacklet_base_path}/setup_temp"    # temporary setup directory - stores default files edited by vStacklet
 	mkdir -p "${vstacklet_base_path}/config/system" # system configuration directory - stores dependencies, keys, and other system files
