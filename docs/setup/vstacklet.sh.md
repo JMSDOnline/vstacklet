@@ -1,4 +1,4 @@
-# vstacklet.sh - v3.1.1088
+# vstacklet.sh - v3.1.1090
 
 
 ---
@@ -41,9 +41,17 @@ Check if the user is root. [see function](https://github.com/JMSDOnline/vstackle
 
 ---
 
+### vstacklet::environment::functions()
+
+Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L80-L245)
+
+![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
+
+---
+
 ### vstacklet::setup::variables()
 
-Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L80-L132)
+Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L254-L312)
 
 notes: this script function is responsible for setting the variables for the setup.
 
@@ -51,7 +59,7 @@ notes: this script function is responsible for setting the variables for the set
 
 ### vstacklet::setup::download()
 
-Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L157-L216)
+Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L337-L396)
 
 notes:
 - This script function is responsible for downloading vStacklet from GitHub
@@ -74,13 +82,13 @@ packages and install them if they are not found.
 
 ### vstacklet::setup::help()
 
-Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L223-L243)
+Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L403-L424)
 
 ---
 
 ### vstacklet::version::display()
 
-Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L250-L256)
+Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L431-L439)
 
 ---
 

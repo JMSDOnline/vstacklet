@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1088
+# @version: 3.1.1090
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
 # It will also download and install the vStacklet VS-Perms
@@ -71,8 +71,181 @@ vstacklet::environment::checkroot() {
 }
 
 ##################################################################################
-# @name: vstacklet::setup::variables (2)
-# @description: Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L80-L132)
+# @name: vstacklet::environment::functions (2)
+# @description: Stage various functions for the setup environment. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L80-L245)
+#
+# ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
+# @break
+##################################################################################
+vstacklet::environment::functions() {
+	vstacklet::array::contains() {
+		if [[ $# -lt 2 ]]; then
+			_result=2
+			vstacklet::shell::text::yellow "[${_result}]: ${FUNCNAME[0]} is missing arguments for ${_named_array}"
+		fi
+		declare _named_array="$2"
+		declare _value="$1"
+		shift
+		declare -a _array=("$@")
+		local _result=1
+		for _element in "${_array[@]}"; do
+			if [[ ${_element} == "${_value}" ]]; then
+				_result=0
+				#vstacklet::shell::text::success "[${_result}]: ${_named_array} array contains ${_value}"
+				break
+			fi
+		done
+		[[ ${_result} == "1" ]] && vstacklet::shell::text::error "[${_result}]: ${_named_array} array does not contain ${_value}" # && exit 1
+		return "${_result}"                                                                                                       # 0 if found, 1 if not found, 2 if missing arguments
+	}
+	vstacklet::shell::output() {
+		declare shell_reset
+		shell_reset=$(tput sgr0)
+		if [[ -z ${shell_newline} ]]; then
+			declare shell_newline="\n"
+		else
+			unset shell_newline
+		fi
+		if [[ -n ${shell_icon} && -n "$*" ]]; then
+			declare shell_newline="\n"
+		elif [[ -n ${shell_icon} && -z "$*" ]]; then
+			unset shell_newline
+		fi
+		case "${shell_option}" in
+		bold) shell_option=$(tput bold) ;;
+		underline) shell_option=$(tput smul) ;;
+		standout) shell_option=$(tput smso) ;;
+		esac
+		case "${shell_icon}" in
+		arrow) shell_icon="➜ ${shell_reset}" ;;
+		warning) shell_icon="⚠ warning: ${shell_reset}" && shell_warning="1" ;;
+		check) shell_icon="✓ ${shell_reset}" ;;
+		cross) shell_icon="✗ ${shell_reset}" ;;
+		success) shell_icon="✓ success: ${shell_reset}" && shell_success="1" ;;
+		error) shell_icon="✗ error: ${shell_reset}" && shell_error="1" ;;
+		info) shell_icon="ℹ info: ${shell_reset}" && shell_info="1" ;;
+		rollback) shell_icon="⎌ rollback: ${shell_reset}" && shell_rollback="1" ;;
+		esac
+		if [[ ${shell_success} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_warning} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_error} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_info} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		elif [[ ${shell_rollback} == "1" ]]; then
+			printf -- "${shell_reset}$(tput bold)${shell_color}${shell_icon}${shell_reset} ${output_color}%s${shell_newline}${shell_reset}" "$@"
+		else
+			printf -- "${shell_reset}${shell_color}${shell_icon}${shell_option}%s${shell_newline}${shell_reset}" "$@"
+		fi
+		unset shell_color shell_newline shell_option shell_icon
+	}
+	vstacklet::shell::misc::nl() {
+		printf "\n"
+	}
+	vstacklet::shell::text::white() {
+		declare -g shell_color
+		shell_color=$(tput setaf 7)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::white::sl() {
+		declare -g shell_color shell_newline=0
+		shell_color=$(tput setaf 7)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::error() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 1)
+		shell_icon="error"
+		output_color=$(tput setaf 7)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::red() {
+		declare -g shell_color
+		shell_color=$(tput setaf 1)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::red::sl() {
+		declare -g shell_color shell_newline=0
+		shell_color=$(tput setaf 1)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::info() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 4)
+		shell_icon="info"
+		output_color=$(tput setaf 7)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::success() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 2)
+		shell_icon="success"
+		output_color=$(tput setaf 7)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::green() {
+		declare -g shell_color
+		shell_color=$(tput setaf 2)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::green::sl() {
+		declare -g shell_color shell_newline=0
+		shell_color=$(tput setaf 2)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::warning() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 3)
+		shell_icon="warning"
+		output_color=$(tput setaf 7)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::yellow() {
+		declare -g shell_color
+		shell_color=$(tput setaf 3)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::yellow::sl() {
+		declare -g shell_color shell_newline=0
+		shell_color=$(tput setaf 3)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::magenta() {
+		declare -g shell_color
+		shell_color=$(tput setaf 5)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::magenta::sl() {
+		declare -g shell_color shell_newline=0
+		shell_color=$(tput setaf 5)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::text::rollback() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 5)
+		shell_icon="rollback"
+		output_color=$(tput setaf 7)
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::icon::arrow::white() {
+		declare -g shell_color shell_icon
+		shell_color=$(tput setaf 7)
+		shell_icon="arrow"
+		vstacklet::shell::output "$@"
+	}
+	vstacklet::shell::icon::check::green() {
+		declare -g shell_color shell_icon shell_newline=0
+		shell_color=$(tput setaf 2)
+		shell_icon="check"
+		vstacklet::shell::output "$@"
+	}
+}
+
+##################################################################################
+# @name: vstacklet::setup::variables (3)
+# @description: Set the variables for the setup. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L254-L312)
 #
 # notes: this script function is responsible for setting the variables for the setup.
 # @break
@@ -138,8 +311,8 @@ vstacklet::setup::variables() {
 }
 
 ################################################################################
-# @name: vstacklet::setup::download() (3)
-# @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L157-L216)
+# @name: vstacklet::setup::download() (4)
+# @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L337-L396)
 #
 # notes:
 # - This script function is responsible for downloading vStacklet from GitHub
@@ -223,7 +396,7 @@ vstacklet::setup::download() {
 
 ##################################################################################
 # @name: vstacklet::setup::help()
-# @description: Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L223-L243)
+# @description: Display the help menu for the setup script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L403-L424)
 # @break
 ##################################################################################
 vstacklet::setup::help() {
@@ -251,7 +424,7 @@ EOF
 
 ##################################################################################
 # @name: vstacklet::setup::version()
-# @description: Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L250-L256)
+# @description: Display the version of vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L431-L439)
 # @break
 ##################################################################################
 vstacklet::version::display() {
