@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2145
+# @version: 3.1.2149
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -3448,9 +3448,12 @@ vstacklet::help::display() {
 # @break
 ################################################################################
 vstacklet::version::display() {
-	vstacklet_version="$(grep -E '^# @version:' "${vstacklet_base_path}/setup/vstacklet-server-stack.sh" | awk '{print $3}')"
+	vstacklet_version="$(grep -oP '(?<=Version: v)[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' <"${vstacklet_base_path}"/README.md)"
+	vstacklet_sa_version="$(grep -E '^# @version:' "${vstacklet_base_path}/setup/vstacklet-server-stack.sh" | awk '{print $3}')"
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "vStacklet Version: ${vstacklet_version}"
+	vstacklet::shell::text::white "vStacklet Full Kit Version: ${vstacklet_version}"
+	vstacklet::shell::text::white "vStacklet Server Stack Version: ${vstacklet_sa_version}"
+	vstacklet::shell::text::white "vStacklet Branch: $(cat "${vstacklet_base_path}"/config/system/branch)"
 	vstacklet::shell::misc::nl
 	exit 0
 }
@@ -3628,6 +3631,7 @@ vstacklet::error::display() {
 	vstacklet::shell::misc::nl
 	exit 1
 }
+trap 'vstacklet::error::display' SIGINT
 
 ################################################################################
 # @name: vstacklet::rollback
@@ -3921,7 +3925,6 @@ vstacklet::rollback() {
 	vstacklet::shell::misc::nl
 	exit 0
 }
-#trap 'vstacklet::error::display' SIGINT
 
 ################################################################################
 # @name: vstacklet::update::check
