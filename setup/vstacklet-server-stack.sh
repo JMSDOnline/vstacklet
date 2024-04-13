@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2177
+# @version: 3.1.2180
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -483,17 +483,19 @@ vstacklet::args::process() {
 	if [[ -n ${domain_ssl} ]]; then
 		# @script-note: check if nginx and/or php is installed
 		nginx_installed=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
-		php_installed=$(ls -d /etc/php/* 2>/dev/null | wc -l)
+		php_installed=$(find /etc/php -maxdepth 1 -type d -name "*" | wc -l)
 		[[ -z ${email} ]] && vstacklet::shell::text::error "please provide an email address with \`-e\`." && exit 1
 		[[ -z ${nginx} && ${nginx_installed} -eq 0 ]] && vstacklet::shell::text::error "nginx is required to install an SSL certificate. please install nginx with \`-nginx\`." && exit 1
 		[[ -z ${php} && ${php_installed} -eq 0 ]] && vstacklet::shell::text::error "php is required to install an SSL certificate. please install php with \`-php \"7.4\"\`, \`-php \"8.1\"\` or \`-php \"8.3\"\`." && exit 1
 	fi
-	[[ ${php} == *"7"* ]] && declare -g php="7.4"
-	[[ ${php} == *"8.1"* ]] && declare -g php="8.1"
-	[[ ${php} == *"8.3"* ]] && declare -g php="8.3"
-	declare -a allowed_php=("7.4" "8.1" "8.3")
-	if ! vstacklet::array::contains "${php}" "supported php versions" ${allowed_php[@]}; then
-		vstacklet::shell::text::error "please provide a valid php version. supported versions are: ${allowed_php[*]}" && exit 1
+	if [[ ${php_installed} -eq 0 ]]; then
+		[[ ${php} == *"7"* ]] && declare -g php="7.4"
+		[[ ${php} == *"8.1"* ]] && declare -g php="8.1"
+		[[ ${php} == *"8.3"* ]] && declare -g php="8.3"
+		declare -a allowed_php=("7.4" "8.1" "8.3")
+		if ! vstacklet::array::contains "${php}" "supported php versions" ${allowed_php[@]}; then
+			vstacklet::shell::text::error "please provide a valid php version. supported versions are: ${allowed_php[*]}" && exit 1
+		fi
 	fi
 	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::shell::text::error "invalid option(s): ${invalid_option[*]}" && exit 1
 	# @script-note: set default arguments on options
