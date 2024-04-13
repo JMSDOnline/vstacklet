@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2176
+# @version: 3.1.2177
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -481,9 +481,12 @@ vstacklet::args::process() {
 		[[ (-z ${php}) && (-z ${hhvm}) ]] && vstacklet::shell::text::error "WordPress requires a php version to be installed." && exit 1
 	fi
 	if [[ -n ${domain_ssl} ]]; then
+		# @script-note: check if nginx and/or php is installed
+		nginx_installed=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
+		php_installed=$(ls -d /etc/php/* 2>/dev/null | wc -l)
 		[[ -z ${email} ]] && vstacklet::shell::text::error "please provide an email address with \`-e\`." && exit 1
-		[[ -z ${nginx} ]] && vstacklet::shell::text::error "please install nginx with \`-nginx\`." && exit 1
-		[[ -z ${php} ]] && vstacklet::shell::text::error "please install php with \`-php \"7.4\"\`, \`-php \"8.1\"\` or \`-php \"8.3\"\`." && exit 1
+		[[ -z ${nginx} && ${nginx_installed} -eq 0 ]] && vstacklet::shell::text::error "nginx is required to install an SSL certificate. please install nginx with \`-nginx\`." && exit 1
+		[[ -z ${php} && ${php_installed} -eq 0 ]] && vstacklet::shell::text::error "php is required to install an SSL certificate. please install php with \`-php \"7.4\"\`, \`-php \"8.1\"\` or \`-php \"8.3\"\`." && exit 1
 	fi
 	[[ ${php} == *"7"* ]] && declare -g php="7.4"
 	[[ ${php} == *"8.1"* ]] && declare -g php="8.1"
@@ -494,20 +497,20 @@ vstacklet::args::process() {
 	fi
 	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::shell::text::error "invalid option(s): ${invalid_option[*]}" && exit 1
 	# @script-note: set default arguments on options
-	[[ -z ${csf_ui_port} ]] && declare -gi csf_ui_port="1043"
-	[[ -z ${ftp_port} ]] && declare -gi ftp_port="21"
-	[[ -z ${https_port} ]] && declare -gi https_port="443"
-	[[ -z ${http_port} ]] && declare -gi http_port="80"
-	[[ -z ${mariadb_port} ]] && declare -gi mariadb_port="3306"
-	[[ -z ${mysql_port} ]] && declare -gi mysql_port="3306"
-	[[ -z ${postgresql_port} ]] && declare -gi postgresql_port="5432"
-	[[ -z ${php} ]] && declare -g php="8.1"
-	[[ -z ${redis_port} ]] && declare -gi redis_port="6379"
-	[[ -z ${sendmail_port} ]] && declare -gi sendmail_port="587"
-	[[ -z ${ssh_port} ]] && declare -gi ssh_port="22"
-	[[ -z ${varnish_port} ]] && declare -gi varnish_port="6081"
-	[[ -z ${varnish_https_port} ]] && declare -gi varnish_https_port="8443"
-	[[ -z ${web_root} ]] && declare -g web_root="/var/www/html/vsapp"
+	#[[ -z ${csf_ui_port} ]] && declare -gi csf_ui_port="1043"
+	#[[ -z ${ftp_port} ]] && declare -gi ftp_port="21"
+	#[[ -z ${https_port} ]] && declare -gi https_port="443"
+	#[[ -z ${http_port} ]] && declare -gi http_port="80"
+	#[[ -z ${mariadb_port} ]] && declare -gi mariadb_port="3306"
+	#[[ -z ${mysql_port} ]] && declare -gi mysql_port="3306"
+	#[[ -z ${postgresql_port} ]] && declare -gi postgresql_port="5432"
+	#[[ -z ${php} ]] && declare -g php="8.1"
+	#[[ -z ${redis_port} ]] && declare -gi redis_port="6379"
+	#[[ -z ${sendmail_port} ]] && declare -gi sendmail_port="587"
+	#[[ -z ${ssh_port} ]] && declare -gi ssh_port="22"
+	#[[ -z ${varnish_port} ]] && declare -gi varnish_port="6081"
+	#[[ -z ${varnish_https_port} ]] && declare -gi varnish_https_port="8443"
+	#[[ -z ${web_root} ]] && declare -g web_root="/var/www/html/vsapp"
 }
 
 ##################################################################################
