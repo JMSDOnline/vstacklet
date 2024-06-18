@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1093
+# @version: 3.1.1094
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html/vsapp}.
 # Please ensure you have read the documentation before continuing.
@@ -349,20 +349,20 @@ vstacklet::vsperms::adjust() {
 		exit 1
 	}
 	# @script-note: change file permissions on config files (this is useful for WordPress installations)
-	# Check the directory for wp-config.php and set the permissions to 440
+	# Check the directory for wp-config.php and set the permissions to 0640
 	if [[ -n $(find "${www_root:-/var/www/html/vsapp}" -type f -name "wp-config.php") ]]; then
-		vstacklet::shell::text::white "changing permissions of wp-config.php to 440 ... "
-		find "${www_root:-/var/www/html/vsapp}" -type f -name "wp-config.php" -exec chmod 440 {} + || {
-			vstacklet::shell::text::error "failed to change permissions of wp-config.php to 440."
+		vstacklet::shell::text::white "changing permissions of wp-config.php to 0640 ... "
+		find "${www_root:-/var/www/html/vsapp}" -type f -name "wp-config.php" -exec chmod 0640 {} + || {
+			vstacklet::shell::text::error "failed to change permissions of wp-config.php to 0640."
 			exit 1
 		}
 	fi
-	# @script-note: check the directories for any .conf files and set the permissions to 440 (this is useful for Nginx configurations)
+	# @script-note: check the directories for any .conf files and set the permissions to 0640 (this is useful for Nginx configurations)
 	# Check several levels deep for .conf files
 	if [[ -n $(find "${www_root:-/var/www/html/vsapp}" -type f -name "*.conf") ]]; then
-		vstacklet::shell::text::white "changing permissions of ${www_root:-/var/www/html/vsapp}/*.conf to 440 ... "
-		find "${www_root:-/var/www/html/vsapp}" -type f -name "*.conf" -exec chmod 440 {} + || {
-			vstacklet::shell::text::error "failed to change permissions of ${www_root:-/var/www/html/vsapp}/*.conf to 440."
+		vstacklet::shell::text::white "changing permissions of ${www_root:-/var/www/html/vsapp}/*.conf to 0640 ... "
+		find "${www_root:-/var/www/html/vsapp}" -type f -name "*.conf" -exec chmod 0640 {} + || {
+			vstacklet::shell::text::error "failed to change permissions of ${www_root:-/var/www/html/vsapp}/*.conf to 0640."
 			exit 1
 		}
 	fi
