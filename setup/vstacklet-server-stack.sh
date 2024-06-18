@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2237
+# @version: 3.1.2238
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -912,7 +912,7 @@ vstacklet::dependencies::array() {
 	# @script-note: install base dependencies
 	declare -ga base_dependencies=("rsync" "dos2unix" "jq" "bc" "automake" "make" "cmake" "checkinstall" "nano" "zip" "unzip" "htop" "vnstat" "vnstati" "vsftpd" "subversion" "iptables" "iptables-persistent" "ssh")
 	# @script-note: install php dependencies
-	declare -ga php_dependencies=("php${php}-fpm" "php${php}-zip" "php${php}-cgi" "php${php}-cli" "php${php}-common" "php${php}-curl" "php${php}-dev" "php${php}-gd" "php${php}-bcmath" "php${php}-gmp" "php${php}-imap" "php${php}-intl" "php${php}-ldap" "php${php}-mbstring" "php${php}-opcache" "php${php}-pspell" "php${php}-readline" "php${php}-soap" "php${php}-xml" "php${php}-imagick" "php${php}-msgpack" "php${php}-igbinary" "libmcrypt-dev" "mcrypt" "libmemcached-dev" "php-memcached")
+	declare -ga php_dependencies=("php${php}-fpm" "php${php}-zip" "php${php}-cgi" "php${php}-cli" "php${php}-common" "php${php}-curl" "php${php}-dev" "php${php}-gd" "php${php}-bcmath" "php${php}-gmp" "php${php}-imap" "php${php}-intl" "php${php}-ldap" "php${php}-mbstring" "php${php}-opcache" "php${php}-pspell" "php${php}-readline" "php${php}-soap" "php${php}-xml" "php${php}-imagick" "php${php}-msgpack" "php${php}-igbinary" "libmcrypt-dev" "mcrypt" "libmemcached-dev" "php-memcached" "php${php}-ssh2")
 	[[ -n ${redis} ]] && php_dependencies+=("php${php}-redis")
 	[[ -n ${mariadb} || -n ${mysql} ]] && php_dependencies+=("php${php}-mysql")
 	# @script-note: install hhvm dependencies
@@ -3083,6 +3083,8 @@ vstacklet::wordpress::install() {
 			# @script-note: import updated salt keys
 			wp_salts=$(curl -s https://api.wordpress.org/secret-key/1.1/salt/)
 			sed -i "/#@-/r /dev/stdin" "${web_root:-/var/www/html/vsapp}/public/wp-config.php" <<<"${wp_salts}"
+			# @script-note: add security constants to wp-config.php (disable file editor and set FS_METHOD to ssh2 for secure file transfers)
+			sed -i "/Add any custom values between this line and the \"stop editing\" line./a \\\n/**\n * The plugins and themes file editor is a very convenient tool because it\n * enables you to make quick changes without the need to use FTP.\n *\n * Unfortunately, it's also a security issue because it not only shows the\n * PHP source code, it also enables attackers to inject malicious code into\n * your site if they manage to gain access to admin.\n * To prevent this, you can disable the file editor.\n *\n * @link https://developer.wordpress.org/advanced-administration/wordpress/wp-config/#disable-the-plugin-and-theme-file-editor\n */\n\ndefine('DISALLOW_FILE_EDIT', true);\ndefine('FS_METHOD', 'ssh2');\n" "${web_root:-/var/www/html/vsapp}/public/wp-config.php"
 			# @script-note: create the database
 			mysql -e "CREATE DATABASE ${wp_db_name};" >>"${vslog}" 2>&1 || vstacklet::error::display 102
 			if [[ "${db_user_present}" != "1" ]]; then

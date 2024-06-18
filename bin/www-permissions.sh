@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1095
+# @version: 3.1.1096
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html/vsapp}.
 # Please ensure you have read the documentation before continuing.
@@ -342,27 +342,27 @@ vstacklet::vsperms::adjust() {
 		vstacklet::shell::text::error "failed to change directory permissions of ${www_root:-/var/www/html/vsapp} to 2755."
 		exit 1
 	}
-	# @script-note: change the permissions of files under web root ${www_root} to 0664
-	vstacklet::shell::text::white "changing file permissions of ${www_root:-/var/www/html/vsapp} to 0664 ... "
-	find "${www_root:-/var/www/html/vsapp}" -type f -exec chmod -R 0664 {} + || {
-		vstacklet::shell::text::error "failed to change file permissions of ${www_root:-/var/www/html/vsapp} to 0664."
+	# @script-note: change the permissions of files under web root ${www_root} to 0444
+	vstacklet::shell::text::white "changing file permissions of ${www_root:-/var/www/html/vsapp} to 0444 ... "
+	find "${www_root:-/var/www/html/vsapp}" -type f -exec chmod -R 0444 {} + || {
+		vstacklet::shell::text::error "failed to change file permissions of ${www_root:-/var/www/html/vsapp} to 0444."
 		exit 1
 	}
 	# @script-note: change file permissions on config files (this is useful for WordPress installations)
-	# Check the directory for wp-config.php and set the permissions to 0644
+	# Check the directory for wp-config.php and set the permissions to 0444
 	if [[ -n $(find "${www_root:-/var/www/html/vsapp}" -type f -name "wp-config.php") ]]; then
-		vstacklet::shell::text::white "changing permissions of wp-config.php to 0644 ... "
-		find "${www_root:-/var/www/html/vsapp}" -type f -name "wp-config.php" -exec chmod 0644 {} + || {
-			vstacklet::shell::text::error "failed to change permissions of wp-config.php to 0644."
+		vstacklet::shell::text::white "changing permissions of wp-config.php to 0444 ... "
+		find "${www_root:-/var/www/html/vsapp}" -type f -name "wp-config.php" -exec chmod 0444 {} + || {
+			vstacklet::shell::text::error "failed to change permissions of wp-config.php to 0444."
 			exit 1
 		}
 	fi
-	# @script-note: check the directories for any .conf files and set the permissions to 0644 (this is useful for Nginx configurations)
+	# @script-note: check the directories for any .conf files and set the permissions to 0444 (this is useful for Nginx configurations)
 	# Check several levels deep for .conf files
 	if [[ -n $(find "${www_root:-/var/www/html/vsapp}" -type f -name "*.conf") ]]; then
-		vstacklet::shell::text::white "changing permissions of ${www_root:-/var/www/html/vsapp}/*.conf to 0644 ... "
-		find "${www_root:-/var/www/html/vsapp}" -type f -name "*.conf" -exec chmod 0644 {} + || {
-			vstacklet::shell::text::error "failed to change permissions of ${www_root:-/var/www/html/vsapp}/*.conf to 0644."
+		vstacklet::shell::text::white "changing permissions of ${www_root:-/var/www/html/vsapp}/*.conf to 0444 ... "
+		find "${www_root:-/var/www/html/vsapp}" -type f -name "*.conf" -exec chmod 0444 {} + || {
+			vstacklet::shell::text::error "failed to change permissions of ${www_root:-/var/www/html/vsapp}/*.conf to 0444."
 			exit 1
 		}
 	fi
