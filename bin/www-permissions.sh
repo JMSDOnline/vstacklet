@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1087
+# @version: 3.1.1090
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html/vsapp}.
 # Please ensure you have read the documentation before continuing.
@@ -326,13 +326,13 @@ vstacklet::vsperms::adjust() {
 	}
 	# @script-note: change the permissions of directories under web root ${www_root} to 2755
 	vstacklet::shell::text::white "changing permissions of ${www_root:-/var/www/html/vsapp} to 2755 ... "
-	find "${www_root:-/var/www/html/vsapp}" -type d -exec chmod 2755 {} + || {
+	find "${www_root:-/var/www/html/vsapp}" -type d -exec chmod -R 2755 {} + || {
 		vstacklet::shell::text::error "failed to change directory permissions of ${www_root:-/var/www/html/vsapp} to 2755."
 		exit 1
 	}
 	# @script-note: change the permissions of files under web root ${www_root} to 0664
 	vstacklet::shell::text::white "changing permissions of ${www_root:-/var/www/html/vsapp} to 0664 ... "
-	find "${www_root:-/var/www/html/vsapp}" -type f -exec chmod 0664 {} + || {
+	find "${www_root:-/var/www/html/vsapp}" -type f -exec chmod -R 0664 {} + || {
 		vstacklet::shell::text::error "failed to change file permissions of ${www_root:-/var/www/html/vsapp} to 0664."
 		exit 1
 	}
@@ -350,10 +350,10 @@ vstacklet::vsperms::adjust() {
 	}
 	# @script-note: change file permissions on config files (this is useful for WordPress installations)
 	# Check the directory for wp-config.php and set the permissions to 440
-	if [[ -f "${www_root:-/var/www/html/vsapp}/wp-config.php" ]]; then
-		vstacklet::shell::text::white "changing permissions of ${www_root:-/var/www/html/vsapp}/wp-config.php to 440 ... "
-		chmod 440 "${www_root:-/var/www/html/vsapp}/wp-config.php" || {
-			vstacklet::shell::text::error "failed to change permissions of ${www_root:-/var/www/html/vsapp}/wp-config.php to 440."
+	if [[ -n $(find "${www_root:-/var/www/html/vsapp}" -type f -name "wp-config.php") ]]; then
+		vstacklet::shell::text::white "changing permissions of wp-config.php to 440 ... "
+		find "${www_root:-/var/www/html/vsapp}" -type f -name "wp-config" -exec chmod 440 {} + || {
+			vstacklet::shell::text::error "failed to change permissions of wp-config.php to 440."
 			exit 1
 		}
 	fi
