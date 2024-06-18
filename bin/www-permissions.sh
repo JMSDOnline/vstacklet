@@ -2,7 +2,7 @@
 ################################################################################
 # <START METADATA>
 # @file_name: www-permissions.sh
-# @version: 3.1.1092
+# @version: 3.1.1093
 # @description: This script will add a new www-data group on your server
 # and set permissions for ${www_root:-/var/www/html/vsapp}.
 # Please ensure you have read the documentation before continuing.
@@ -324,18 +324,6 @@ vstacklet::vsperms::adjust() {
 		vstacklet::shell::text::error "failed to change ownership of ${www_root:-/var/www/html/vsapp} to root:${www_group:-www-data}."
 		exit 1
 	}
-	# @script-note: change the permissions of directories under web root ${www_root} to 2755
-	vstacklet::shell::text::white "changing directory permissions of ${www_root:-/var/www/html/vsapp} to 2755 ... "
-	find "${www_root:-/var/www/html/vsapp}" -type d -exec chmod -R 2755 {} + || {
-		vstacklet::shell::text::error "failed to change directory permissions of ${www_root:-/var/www/html/vsapp} to 2755."
-		exit 1
-	}
-	# @script-note: change the permissions of files under web root ${www_root} to 0664
-	vstacklet::shell::text::white "changing file permissions of ${www_root:-/var/www/html/vsapp} to 0664 ... "
-	find "${www_root:-/var/www/html/vsapp}" -type f -exec chmod -R 0664 {} + || {
-		vstacklet::shell::text::error "failed to change file permissions of ${www_root:-/var/www/html/vsapp} to 0664."
-		exit 1
-	}
 	# @script-note: sticky group permissions
 	vstacklet::shell::text::white "setting sticky group permissions ... "
 	find "${www_root:-/var/www/html/vsapp}" -type d -exec chmod g+s {} + || {
@@ -346,6 +334,18 @@ vstacklet::vsperms::adjust() {
 	vstacklet::shell::text::white "setting sticky group read/write permissions ... "
 	chmod -R g+rw "${www_root:-/var/www/html/vsapp}" || {
 		vstacklet::shell::text::error "failed to set sticky group read/write permissions."
+		exit 1
+	}
+	# @script-note: change the permissions of directories under web root ${www_root} to 2755
+	vstacklet::shell::text::white "changing directory permissions of ${www_root:-/var/www/html/vsapp} to 2755 ... "
+	find "${www_root:-/var/www/html/vsapp}" -type d -exec chmod -R 2755 {} + || {
+		vstacklet::shell::text::error "failed to change directory permissions of ${www_root:-/var/www/html/vsapp} to 2755."
+		exit 1
+	}
+	# @script-note: change the permissions of files under web root ${www_root} to 0664
+	vstacklet::shell::text::white "changing file permissions of ${www_root:-/var/www/html/vsapp} to 0664 ... "
+	find "${www_root:-/var/www/html/vsapp}" -type f -exec chmod -R 0664 {} + || {
+		vstacklet::shell::text::error "failed to change file permissions of ${www_root:-/var/www/html/vsapp} to 0664."
 		exit 1
 	}
 	# @script-note: change file permissions on config files (this is useful for WordPress installations)
