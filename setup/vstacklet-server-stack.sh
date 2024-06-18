@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2236
+# @version: 3.1.2237
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -1169,7 +1169,7 @@ vstacklet::block::ssdp() {
 ##################################################################################
 vstacklet::sources::update() {
 	vstacklet::shell::text::white "updating package list ..."
-	if [[ ${distro} == "Debian" ]]; then
+	if [[ ${distro} == "Debian" && ${codename} != "bookworm" ]]; then
 		cat >/etc/apt/sources.list <<EOF
 #------------------------------------------------------------------------------#
 #                            OFFICIAL DEBIAN REPOS                             #
@@ -1235,7 +1235,7 @@ deb-src http://ftp.debian.org/debian ${codename}-backports main
 
 ###### Missing Dependencies
 EOF
-	elif [[ ${distro} == "Ubuntu" ]]; then
+	elif [[ ${distro} == "Ubuntu" && ${codename} != "bionic" ]]; then
 		cat >/etc/apt/sources.list <<EOF
 #------------------------------------------------------------------------------#
 #                            OFFICIAL UBUNTU REPOS                             #
