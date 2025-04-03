@@ -2,7 +2,7 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2238
+# @version: 3.1.2239
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
 # Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
@@ -1676,6 +1676,12 @@ vstacklet::nginx::install() {
 		vs::stat::progress::stop # stop progress status
 		vstacklet::shell::text::yellow::sl "staging checkinfo.php and adjusting permissions on ${web_root:-/var/www/html/vsapp} ... " &
 		vs::stat::progress::start # start progress status
+		# Create the public directory if it doesn't exist
+		mkdir -p "${web_root:-/var/www/html/vsapp}/public" || vstacklet::error::display 25
+		# Remove any existing checkinfo.php to avoid conflicts
+		rm -f "${web_root:-/var/www/html/vsapp}/public/checkinfo.php" >>"${vslog}" 2>&1
+		# Create the checkinfo.php file
+		# @script-note: create checkinfo.php file to verify nginx and php-fpm are working correctly
 		echo '<?php phpinfo(); ?>' >"${web_root:-/var/www/html/vsapp}/public/checkinfo.php" || vstacklet::error::display 25
 		chown -R www-data:www-data "${web_root:-/var/www/html/vsapp}"
 		chmod -R 755 "${web_root:-/var/www/html/vsapp}"
