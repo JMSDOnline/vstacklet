@@ -173,7 +173,7 @@
 # All rights reserved.
 # <END METADATA>
 ##################################################################################
-# shellcheck disable=1091,2068,2119,2312
+# shellcheck disable=1091,2068,2119,2249,2312
 ##################################################################################
 # @name: vstacklet::environment::init (1)
 # @description: Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L184-L205)
@@ -237,6 +237,7 @@ vstacklet::environment::init() {
 # | -csfCf | --csf_cloudflare          | enable Cloudflare support in CSF
 # | -sendmail | --sendmail              | install Sendmail
 # | -sendmailP | --sendmail_port        | port to use for the Sendmail server
+# | --dns | --dns_provider             | DNS provider for SSL cert verification (e.g., cloudflare)
 # | -wr | --web_root				   | web root to use for the server
 # | -wp | --wordpress				   | install WordPress
 # | -r | --reboot					   | reboot the server after installation
@@ -246,6 +247,7 @@ vstacklet::environment::init() {
 # @example: vstacklet --help
 # @example: vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -hn "yourhostname" -php "8.3" -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "db_user" -mariadbPw "db_password" -pma -csf -csfCf -wr "/var/www/html/vsapp" -wp
 # @example: vstacklet -e "your@email.com" -ftp "2121" -ssh "2222" -http "8080" -d "yourdomain.com" -php "8.1" -nginx -varnish -varnishP "80" -mariadb -mariadbU "db_user" -mariadbPw "db_password" -sendmail -wr "/var/www/html/vsapp" -wp --reboot
+# @example: vstacklet -e "your@email.com" -d "example.com" -php "8.3" -nginx -mariadb -mariadbU "db_user" -mariadbPw "db_password" --dns "cloudflare"
 # @null
 # @break
 ##################################################################################
@@ -436,6 +438,13 @@ vstacklet::args::process() {
 			[[ -n ${sendmail_port} && ${sendmail_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for sendmail." && exit 1
 			[[ -n ${sendmail_port} && ${sendmail_port} -lt 1 || ${sendmail_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid sendmail port number. please enter a number between 1 and 65535." && exit 1
 			;;
+		--dns | --dns_provider)
+			declare -gi dns_verification="1"
+			declare -g dns_provider="${2}"
+			shift
+			shift
+			[[ -n ${dns_provider} && ${dns_provider} != "cloudflare" ]] && vstacklet::shell::text::error "currently only 'cloudflare' is supported as DNS provider." && exit 1
+			;;
 		-ssh* | --ssh_port*)
 			declare -gi ssh_port="${2}"
 			shift
@@ -491,6 +500,11 @@ vstacklet::args::process() {
 	if [[ -n ${domain_ssl} ]]; then
 		[[ -z ${email} ]] && vstacklet::shell::text::error "please provide an email address with \`-e\`." && exit 1
 		[[ -z ${nginx} && ${nginx_installed} -eq 0 ]] && vstacklet::shell::text::error "nginx is required to install an SSL certificate. please install nginx with \`-nginx\`." && exit 1
+	fi
+	if [[ -n ${dns_verification} ]]; then
+		[[ -z ${domain_ssl} ]] && vstacklet::shell::text::error "DNS verification requires a domain to be specified with \`-d\`." && exit 1
+		[[ -z ${dns_provider} ]] && vstacklet::shell::text::error "DNS verification requires a provider to be specified with \`--dns\`." && exit 1
+		[[ ${dns_provider} == "cloudflare" && -z ${CF_Token} ]] && declare -gi cf_token_required="1"
 	fi
 	if [[ ${php_installed} -eq 0 ]]; then
 		[[ ${php} == *"7"* ]] && declare -g php="7.4"
@@ -683,7 +697,7 @@ vstacklet::environment::functions() {
 		output_color=$(tput setaf 7)
 		vstacklet::shell::output "$@"
 	}
-	# trunk-ignore(shellcheck/SC2120)
+	# shellcheck disable=SC2120
 	vstacklet::shell::icon::arrow::white() {
 		declare -g shell_color shell_icon
 		shell_color=$(tput setaf 7)
@@ -962,7 +976,7 @@ vstacklet::base::dependencies() {
 			vstacklet::shell::text::white::sl "| ${install} "
 		fi
 		# shellcheck disable=SC2015
-		DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::error::display 4
+		DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || vstacklet::error::display 4
 		install_list+=("${install}")
 	done
 	[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1052,15 +1066,15 @@ vstacklet::bashrc::set() {
 vstacklet::hostname::set() {
 	if [[ -n ${hostname} && -z ${domain} ]]; then
 		vstacklet::shell::text::white "setting hostname to ${hostname} ... "
-		hostnamectl set-hostname "${hostname}" >>${vslog} 2>&1 || vstacklet::error::display 6
+		hostnamectl set-hostname "${hostname}" >>"${vslog}" 2>&1 || vstacklet::error::display 6
 		vstacklet::shell::misc::nl
 	elif [[ -n ${domain} && -z ${hostname} ]]; then
 		vstacklet::shell::text::white "setting hostname to ${domain} ... "
-		hostnamectl set-hostname "${domain}" >>${vslog} 2>&1 || vstacklet::error::display 6
+		hostnamectl set-hostname "${domain}" >>"${vslog}" 2>&1 || vstacklet::error::display 6
 		vstacklet::shell::misc::nl
 	else
 		vstacklet::shell::text::white "setting hostname to $(hostname --fqdn) ... "
-		hostnamectl set-hostname "$(hostname --fqdn)" >>${vslog} 2>&1 || vstacklet::error::display 6
+		hostnamectl set-hostname "$(hostname --fqdn)" >>"${vslog}" 2>&1 || vstacklet::error::display 6
 		vstacklet::shell::misc::nl
 	fi
 }
@@ -1458,7 +1472,7 @@ vstacklet::php::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::error::display 15
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || vstacklet::error::display 15
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1481,7 +1495,7 @@ vstacklet::php::install() {
 		vs::stat::progress::start # start progress status
 		phpmods=("opcache" "xml" "igbinary" "imagick" "intl" "mbstring" "gmp" "bcmath" "msgpack" "memcached" "curl")
 		for i in "${phpmods[@]}"; do
-			phpenmod -v "${php}" "${i}" >>${vslog} 2>&1
+			phpenmod -v "${php}" "${i}" >>"${vslog}" 2>&1
 		done
 		[[ -n ${redis} ]] && phpmods+=("redis")
 		vs::stat::progress::stop # stop progress status
@@ -1958,7 +1972,7 @@ vstacklet::mariadb::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || setup::clean::rollback 36
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || setup::clean::rollback 36
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1989,7 +2003,7 @@ send "y\r"
 expect dof
 exit
 DOD
-		) >>${vslog} 2>&1 || setup::clean::rollback 37
+		) >>"${vslog}" 2>&1 || setup::clean::rollback 37
 		# @script-note: set mariadb client and server configuration
 		{
 			echo -e "[client]"
@@ -2041,9 +2055,9 @@ DOD
 		vstacklet::log "systemctl restart mariadb"
 		#mysqladmin -u root -h localhost password "${mariadb_password:-${mariadb_autoPw}}"
 		# @script-note: create mariadb user
-		mysql -u root -e "CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>${vslog} 2>&1 || vstacklet::error::display 40
-		mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::error::display 41
-		mysql -u root -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::error::display 42
+		mysql -u root -e "CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>"${vslog}" 2>&1 || vstacklet::error::display 40
+		mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;" >>"${vslog}" 2>&1 || vstacklet::error::display 41
+		mysql -u root -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::error::display 42
 		vs::stat::progress::stop # stop progress status
 		# @script-note: mariadb installation complete
 		vstacklet::shell::text::green "mariaDB installed and configured. see details below:"
@@ -2102,12 +2116,12 @@ vstacklet::mysql::install() {
 		# @script-note: install mysql deb
 		vstacklet::log "wget https://dev.mysql.com/get/${mysql_deb_version}_all.deb -O /tmp/${mysql_deb_version}_all.deb" || vstacklet::error::display 43
 		declare DEBIAN_FRONTEND=noninteractive
-		yes | DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold install "/tmp/${mysql_deb_version}_all.deb" --allow-change-held-packages >>${vslog} 2>&1 || vstacklet::error::display 44
+		yes | DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold install "/tmp/${mysql_deb_version}_all.deb" --allow-change-held-packages >>"${vslog}" 2>&1 || vstacklet::error::display 44
 		# @script-note: run apt maintenance to ensure environment is up-to-date
 		DEBIAN_FRONTEND=noninteractive apt-get -y update
 		apt-get -y upgrade
 		apt-get -y autoremove
-		apt-get -y autoclean >>${vslog} 2>&1
+		apt-get -y autoclean >>"${vslog}" 2>&1
 		# @script-note: install mysql dependencies
 		declare -a depend_list install_list
 		for depend in "${mysql_dependencies[@]}"; do
@@ -2123,7 +2137,7 @@ vstacklet::mysql::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || setup::clean::rollback 45
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || setup::clean::rollback 45
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -2176,7 +2190,7 @@ vstacklet::mysql::install() {
 			echo -e "#[mysqld]"
 			echo -e "#skip-grant-tables"
 			echo -e ""
-		} >/etc/mysql/conf.d/vstacklet-grant.cnf >>${vslog} 2>&1
+		} >/etc/mysql/conf.d/vstacklet-grant.cnf >>"${vslog}" 2>&1
 		# @script-note: set ~/.my.cnf
 		{
 			echo -e "[client]"
@@ -2195,9 +2209,9 @@ vstacklet::mysql::install() {
 		vstacklet::log "systemctl enable mysql"
 		vstacklet::log "systemctl restart mysql"
 		#mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::error::display 79
-		mysql -u root -e "CREATE USER '${mysql_user:-admin}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';" >>${vslog} 2>&1 || vstacklet::error::display 48
-		mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-admin}'@'localhost' WITH GRANT OPTION;" >>${vslog} 2>&1 || vstacklet::error::display 49
-		mysql -u root -e "FLUSH PRIVILEGES;" >>${vslog} 2>&1 || vstacklet::error::display 50
+		mysql -u root -e "CREATE USER '${mysql_user:-admin}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';" >>"${vslog}" 2>&1 || vstacklet::error::display 48
+		mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-admin}'@'localhost' WITH GRANT OPTION;" >>"${vslog}" 2>&1 || vstacklet::error::display 49
+		mysql -u root -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::error::display 50
 		vs::stat::progress::stop # stop progress status
 		# @script-note: mysql installation complete
 		vstacklet::shell::text::green "MySQL installed and configured. see details below:"
@@ -2259,7 +2273,7 @@ vstacklet::postgre::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::error::display 51
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || vstacklet::error::display 51
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -2282,17 +2296,17 @@ vstacklet::postgre::install() {
 		(
 			sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '${postgresql_password:-${postgresql_autoPw}}';"
 			sleep 2
-		) >>${vslog} 2>&1 || vstacklet::error::display 53
+		) >>"${vslog}" 2>&1 || vstacklet::error::display 53
 		# @script-note: create postgresql user
 		(
 			sudo -u postgres psql -c "CREATE USER ${postgresql_user:-admin} WITH PASSWORD '${postgresql_password:-${postgresql_autoPw}}';"
 			sleep 2
-		) >>${vslog} 2>&1 || vstacklet::error::display 54
+		) >>"${vslog}" 2>&1 || vstacklet::error::display 54
 		# @script-note: grant postgresql user privileges
 		(
 			sudo -u postgres psql -c "ALTER USER ${postgresql_user:-admin} WITH SUPERUSER;"
 			sleep 2
-		) >>${vslog} 2>&1 || vstacklet::error::display 55
+		) >>"${vslog}" 2>&1 || vstacklet::error::display 55
 		# @script-note: set postgre client and server configuration
 		cp -f "/etc/postgresql/${postgre_version}/main/postgresql.conf" "/etc/postgresql/${postgre_version}/main/postgresql.conf.default-bak"
 		{
@@ -2373,7 +2387,7 @@ vstacklet::redis::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::error::display 58
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || vstacklet::error::display 58
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -2391,7 +2405,7 @@ vstacklet::redis::install() {
 		# @script-note: restart redis
 		vstacklet::log "systemctl restart redis-server" || vstacklet::error::display 62
 		# @script-note: set redis password
-		redis-cli -a "" -h localhost -p "${redis_port:-6379}" config set requirepass "${redis_password:-${redis_autoPw}}" >>${vslog} 2>&1 || vstacklet::error::display 63
+		redis-cli -a "" -h localhost -p "${redis_port:-6379}" config set requirepass "${redis_password:-${redis_autoPw}}" >>"${vslog}" 2>&1 || vstacklet::error::display 63
 		vs::stat::progress::stop # stop progress status
 		# @script-note: redis installation complete
 		vstacklet::shell::text::green "Redis installed and configured. see details below:"
@@ -2482,7 +2496,7 @@ vstacklet::phpmyadmin::install() {
 					vstacklet::shell::text::white::sl "| ${install} "
 				fi
 				# shellcheck disable=SC2015
-				DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::error::display 64
+				DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || vstacklet::error::display 64
 				install_list+=("${install}")
 			done
 			[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -2499,14 +2513,16 @@ vstacklet::phpmyadmin::install() {
 			chown -R www-data:www-data phpmyadmin || vstacklet::error::display 70
 			chmod -R 755 phpmyadmin || vstacklet::error::display 71
 			# trunk-ignore(shellcheck/SC2015)
-			mkdir -p /usr/share/phpmyadmin/tmp && chown -R www-data:www-data /usr/share/phpmyadmin/tmp || vstacklet::error::display 72
+			if ! (mkdir -p /usr/share/phpmyadmin/tmp && chown -R www-data:www-data /usr/share/phpmyadmin/tmp); then
+				vstacklet::error::display 72
+			fi
 			ln -sf /usr/share/phpmyadmin "${web_root:-/var/www/html/vsapp}/public" || vstacklet::error::display 73
 			# @script-note: configure phpmyadmin
 			vstacklet::shell::text::yellow::sl "configuring phpMyAdmin ... " &
 			vs::stat::progress::start # start progress status
 			# @script-note: create phpmyadmin htpasswd file - this is used for basic authentication, not for the database
 			# this is only used if/when the user opts to use basic authentication (a post install courtesy)
-			htpasswd -b -c /usr/share/phpmyadmin/.htpasswd "${mariadb_user:-${mysql_user:-admin}}" "${pma_password}" >>${vslog} 2>&1 || vstacklet::error::display 74
+			htpasswd -b -c /usr/share/phpmyadmin/.htpasswd "${mariadb_user:-${mysql_user:-admin}}" "${pma_password}" >>"${vslog}" 2>&1 || vstacklet::error::display 74
 			# @script-note: set phpmyadmin configuration
 			# - /etc/phpmyadmin/config.inc.php
 			# - /usr/share/phpmyadmin/config.inc.php - this is the default config file
@@ -2614,7 +2630,7 @@ vstacklet::csf::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::error::display 76
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || vstacklet::error::display 76
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -2623,7 +2639,7 @@ vstacklet::csf::install() {
 		done
 		unset depend depend_list install
 		# @script-note: install csf
-		wget -qO - https://download.configserver.com/csf.tgz | tar -xz -C /usr/local/src >>${vslog} 2>&1 || vstacklet::error::display 77
+		wget -qO - https://download.configserver.com/csf.tgz | tar -xz -C /usr/local/src >>"${vslog}" 2>&1 || vstacklet::error::display 77
 		cd /usr/local/src/csf || vstacklet::error::display 78
 		sh install.sh >>"${vslog}" 2>&1 || vstacklet::error::display 79
 		# @script-note: configure csf
@@ -2750,10 +2766,8 @@ vstacklet::cloudflare::csf() {
 		# @script-note: add Cloudflare IP addresses to the allow list
 		{
 			echo "# Cloudflare IP addresses"
-			# trunk-ignore(shellcheck/SC2005)
-			echo "$(curl -s https://www.cloudflare.com/ips-v4)"
-			# trunk-ignore(shellcheck/SC2005)
-			echo "$(curl -s https://www.cloudflare.com/ips-v6)"
+			curl -s https://www.cloudflare.com/ips-v4
+			curl -s https://www.cloudflare.com/ips-v6
 			echo "# End Cloudflare IP addresses"
 		} >>/etc/csf/csf.allow
 	fi
@@ -2807,7 +2821,7 @@ vstacklet::sendmail::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>${vslog} 2>&1 && sleep 2 || vstacklet::error::display 88
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || vstacklet::error::display 88
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -3135,7 +3149,46 @@ vstacklet::wordpress::install() {
 }
 
 ##################################################################################
-# @name: vstacklet::domain::ssl (37)
+# @name: vstacklet::cloudflare::token::setup (37)
+# @description: Setup CloudFlare API token for DNS verification. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3145-L3175)
+#
+# notes:
+# - This function prompts the user for their CloudFlare API token
+# - Stores the token in the acme.sh account configuration
+# - Required for DNS-based SSL certificate verification with CloudFlare
+#
+# @nooptions
+# @noargs
+# @return_code: 120 - failed to create acme.sh configuration directory.
+# @return_code: 121 - failed to write CloudFlare token to account.conf.
+# @break
+##################################################################################
+vstacklet::cloudflare::token::setup() {
+	if [[ -n ${cf_token_required} ]]; then
+		vstacklet::shell::misc::nl
+		vstacklet::shell::text::yellow "CloudFlare DNS verification requires an API token."
+		vstacklet::shell::text::white "Please create a CloudFlare API token with the following permissions:"
+		vstacklet::shell::text::white "  - Zone:Zone:Read"
+		vstacklet::shell::text::white "  - Zone:DNS:Edit"
+		vstacklet::shell::text::white "Visit: https://dash.cloudflare.com/profile/api-tokens"
+		vstacklet::shell::misc::nl
+
+		read -rp "Enter your CloudFlare API Token: " CF_Token
+		[[ -z ${CF_Token} ]] && vstacklet::shell::text::error "CloudFlare API token is required for DNS verification." && exit 1
+
+		# Create acme.sh config directory if it doesn't exist
+		mkdir -p "/root/.acme.sh" || vstacklet::error::display 120
+
+		# Store the CloudFlare token in account.conf
+		echo "CF_Token='${CF_Token}'" >>"/root/.acme.sh/account.conf" || vstacklet::error::display 121
+
+		vstacklet::shell::text::success "CloudFlare API token configured successfully."
+		vstacklet::shell::misc::nl
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::domain::ssl (38)
 # @description: The following function installs the SSL certificate
 #   for the domain. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3173-L3236)
 #
@@ -3157,6 +3210,8 @@ vstacklet::wordpress::install() {
 # @arg: $1 - `[domain]` (required)
 # @option: $1 - `-e | --email` - The email address to use for the SSL certificate.
 # @arg: $1 - `[email]` (required)
+# @option: $1 - `--dns` - DNS provider for DNS-based verification (optional)
+# @arg: $1 - `[dns_provider]` (optional, currently supports 'cloudflare')
 # @option: $1 - `-http` (optional)
 # @arg: $1 - `[http_port]` (optional)
 # @option: $1 - `-https` (optional)
@@ -3164,6 +3219,7 @@ vstacklet::wordpress::install() {
 # @example: vstacklet -nginx -d "example.com" -e "your@email.com"
 # vstacklet --nginx --domain example.com --email "your@email.com"
 # vstacklet -d "example.com" -e "your@email.com" -http "8080"
+# vstacklet -d "example.com" -e "your@email.com" --dns "cloudflare"
 # @null
 # @return_code: 109 - failed to change directory to /root.
 # @return_code: 110 - failed to create directory ${web_root}/.well-known/acme-challenge.
@@ -3176,10 +3232,15 @@ vstacklet::wordpress::install() {
 # @return_code: 117 - failed to issue the certificate.
 # @return_code: 118 - failed to install the certificate.
 # @return_code: 119 - failed to edit /etc/nginx/sites-available/${domain}.conf.
+# @return_code: 120 - failed to create acme.sh configuration directory.
+# @return_code: 121 - failed to write CloudFlare token to account.conf.
 # @break
 ##################################################################################
 vstacklet::domain::ssl() {
 	if [[ -n ${domain_ssl} ]]; then
+		# @script-note: Setup CloudFlare token if DNS verification is required
+		[[ -n ${dns_verification} ]] && vstacklet::cloudflare::token::setup
+
 		# @script-note: signal a service daemon reload and restart nginx
 		[[ -f /run/nginx.pid ]] && rm -f /run/nginx.pid
 		systemctl daemon-reload >>"${vslog}" 2>&1
@@ -3189,13 +3250,23 @@ vstacklet::domain::ssl() {
 		systemctl status nginx >>"${vslog}" 2>&1
 		sleep 3
 		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "installing SSL certificate for ${domain} ... "
+		if [[ -n ${dns_verification} ]]; then
+			vstacklet::shell::text::white "installing SSL certificate for ${domain} using DNS verification ... "
+		else
+			vstacklet::shell::text::white "installing SSL certificate for ${domain} using HTTP verification ... "
+		fi
+
 		# @script-note: build acme.sh for Let's Encrypt SSL
 		cd "/root" || vstacklet::error::display 109
 		[[ -d "/root/.acme.sh" ]] && rm -rf "/root/.acme.sh" >>"${vslog}" 2>&1
-		mkdir -p "${web_root:-/var/www/html/vsapp}/.well-known/acme-challenge" || vstacklet::error::display 110
-		chown -R root:www-data "${web_root:-/var/www/html/vsapp}/.well-known" >>"${vslog}" 2>&1
-		chmod -R 755 "${web_root:-/var/www/html/vsapp}/.well-known" >>"${vslog}" 2>&1
+
+		# @script-note: Only create webroot directories for HTTP verification
+		if [[ -z ${dns_verification} ]]; then
+			mkdir -p "${web_root:-/var/www/html/vsapp}/.well-known/acme-challenge" || vstacklet::error::display 110
+			chown -R root:www-data "${web_root:-/var/www/html/vsapp}/.well-known" >>"${vslog}" 2>&1
+			chmod -R 755 "${web_root:-/var/www/html/vsapp}/.well-known" >>"${vslog}" 2>&1
+		fi
+
 		if [[ ! -d "/root/acme.sh" ]]; then
 			git clone "https://github.com/Neilpang/acme.sh.git" >>"${vslog}" 2>&1 || vstacklet::error::display 111
 			cd "/root/acme.sh" || vstacklet::error::display 112
@@ -3205,15 +3276,29 @@ vstacklet::domain::ssl() {
 		fi
 		# @script-note: create nginx directory for SSL
 		mkdir -p "/etc/nginx/ssl/${domain:?}"
-		# @script-note: create SSL certificate
-		cp -f "${local_setup_dir}/templates/nginx/acme" "/etc/nginx/sites-enabled/"
-		# @script-note: post necessary edits to nginx acme file
-		wr_sanitize=$(echo "${web_root:-/var/www/html/vsapp}" | sed 's/\//\\\//g')
-		sed -i -e "s|{{domain}}|${domain}|g" -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" /etc/nginx/sites-enabled/acme
-		systemctl reload nginx.service >>"${vslog}" 2>&1 || vstacklet::error::display 114
+
+		# @script-note: Only create nginx acme config for HTTP verification
+		if [[ -z ${dns_verification} ]]; then
+			# @script-note: create SSL certificate
+			cp -f "${local_setup_dir}/templates/nginx/acme" "/etc/nginx/sites-enabled/"
+			# @script-note: post necessary edits to nginx acme file
+			wr_sanitize=$(echo "${web_root:-/var/www/html/vsapp}" | sed 's/\//\\\//g')
+			sed -i -e "s|{{domain}}|${domain}|g" -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" /etc/nginx/sites-enabled/acme
+			systemctl reload nginx.service >>"${vslog}" 2>&1 || vstacklet::error::display 114
+		fi
+
 		./acme.sh --register-account -m "${email:?}" >>"${vslog}" 2>&1 || vstacklet::error::display 115
 		./acme.sh --set-default-ca --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::error::display 116
-		./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html/vsapp}" --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::error::display 117
+
+		# @script-note: Issue certificate using appropriate verification method
+		if [[ -n ${dns_verification} && ${dns_provider} == "cloudflare" ]]; then
+			# DNS verification with CloudFlare
+			./acme.sh --issue -d "${domain}" --dns dns_cf --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::error::display 117
+		else
+			# HTTP verification (default)
+			./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html/vsapp}" --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::error::display 117
+		fi
+
 		./acme.sh --install-cert -d "${domain}" --keylength ec-256 --cert-file "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" --key-file "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" --fullchain-file "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" --log "/var/log/vstacklet/${domain}.log" --reloadcmd "systemctl reload nginx.service" >>"${vslog}" 2>&1 || vstacklet::error::display 118
 		# @script-note: post necessary edits to nginx config file
 		crt_sanitize=$(echo "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" | sed 's/\//\\\//g')
@@ -3222,10 +3307,14 @@ vstacklet::domain::ssl() {
 		[[ -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" ]] && cp -f "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "${vstacklet_base_path:?}/config/system/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1
 		# @script-note: place generated ssl to nginx config file
 		sed -i.bak -e "/ssl_certificate .*/c\        ssl_certificate ${crt_sanitize};" -e "/ssl_certificate_key .*/c\        ssl_certificate_key ${key_sanitize};" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::error::display 119
-		# @script-note: remove acme ssl template
+		# @script-note: remove acme ssl template (only if HTTP verification was used)
 		[[ -f "/etc/nginx/sites-enabled/acme" ]] && rm -f "/etc/nginx/sites-enabled/acme" >>"${vslog}" 2>&1
 		# @script-note: ssl installation complete
-		vstacklet::shell::text::green "Let's Encrypt SSL certificate installed for ${domain}! see details below:"
+		if [[ -n ${dns_verification} ]]; then
+			vstacklet::shell::text::green "Let's Encrypt SSL certificate installed for ${domain} using DNS verification! see details below:"
+		else
+			vstacklet::shell::text::green "Let's Encrypt SSL certificate installed for ${domain} using HTTP verification! see details below:"
+		fi
 		vstacklet::shell::text::white::sl "SSL certificate location: "
 		vstacklet::shell::text::green "/etc/nginx/ssl/${domain}/${domain}-ssl.pem"
 		vstacklet::shell::text::white::sl "SSL certificate key location: "
@@ -4056,27 +4145,27 @@ vstacklet::update::check() {
 # the following functions are called in the order they are listed and
 # are used for post-installation setup.
 ################################################################################
-vstacklet::environment::init                                                                          #(1)
-vstacklet::environment::functions                                                                     #(2)
-vstacklet::args::process "$@"                                                                         #(3)
-vstacklet::environment::store_flags_args "$@"                                                         # @script-note: store the flags and arguments to a file for rollback
-vstacklet::log::check                                                                                 #(4)
-vstacklet::apt::update                                                                                #(5)
-vstacklet::dependencies::install                                                                      #(6)
-vstacklet::environment::checkroot                                                                     #(7)
-vstacklet::environment::checkdistro                                                                   #(8)
-vstacklet::intro                                                                                      #(9)
-vstacklet::ask::continue                                                                              #(10)
-vstacklet::dependencies::array                                                                        #(11)
-vstacklet::base::dependencies                                                                         #(12)
-vstacklet::source::dependencies                                                                       #(13)
+vstacklet::environment::init                  #(1)
+vstacklet::environment::functions             #(2)
+vstacklet::args::process "$@"                 #(3)
+vstacklet::environment::store_flags_args "$@" # @script-note: store the flags and arguments to a file for rollback
+vstacklet::log::check                         #(4)
+vstacklet::apt::update                        #(5)
+vstacklet::dependencies::install              #(6)
+vstacklet::environment::checkroot             #(7)
+vstacklet::environment::checkdistro           #(8)
+vstacklet::intro                              #(9)
+vstacklet::ask::continue                      #(10)
+vstacklet::dependencies::array                #(11)
+vstacklet::base::dependencies                 #(12)
+vstacklet::source::dependencies               #(13)
 if [[ ${vstacklet_installed} -eq 0 ]]; then
-	vstacklet::bashrc::set                                                                            #(14)
-	vstacklet::hostname::set                                                                          #(15)
-	vstacklet::webroot::set                                                                           #(16)
-	vstacklet::ssh::set                                                                               #(17)
-	vstacklet::ftp::set                                                                               #(18)
-	vstacklet::block::ssdp                                                                            #(19)
+	vstacklet::bashrc::set   #(14)
+	vstacklet::hostname::set #(15)
+	vstacklet::webroot::set  #(16)
+	vstacklet::ssh::set      #(17)
+	vstacklet::ftp::set      #(18)
+	vstacklet::block::ssdp   #(19)
 fi
 vstacklet::sources::update                                                                            #(20)
 vstacklet::gpg::keys                                                                                  #(21)
