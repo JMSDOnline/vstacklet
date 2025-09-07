@@ -117,6 +117,7 @@ Total script install time on a General Shared CPU <a href="https://m.do.co/c/917
 - Supports IPv6 by default.
 - Installs self-signed SSL cert configuration. (default)
 - Installs and configures LetsEncrypt SSL cert. [*optional*] (default to install if `-d | --domain` is used)
+- **NEW:** DNS-based SSL certificate verification with CloudFlare support [*optional*] (enables SSL for local development and private networks)
 - Installs and stages database for WordPress. [*optional*] (active build - unlike other options that are passive with the flags used. This will change when the script is updated to be a bit more modular; ie: install wordpress (only), install phpmyadmin (only), etc.)
 - Easy backup executable **vs-backup** for data-protection.
 - Easy web directory permissions fix with executable **vs-perms** for www directory permissions.
@@ -233,6 +234,7 @@ Once the script has been downloaded and made executable, you can then run the sc
 > The following example will:
 > - set the admin email (`-e`),
 > - stage a verified Let's Encrypt SSL cert (`-d`) [**`-e` is required for `-d`**],
+> - **Optional:** use DNS-based SSL verification (`--dns 'cloudflare'`) for local development or private networks,
 > - set the http port for NGinx to 8080 (`-http '8080'`),
 > - set the http port for Varnish to 80 (`-varnishP '80'`),
 > - install PHP8.1 (`-php '8.3'`),
@@ -258,11 +260,18 @@ Once the script has been downloaded and made executable, you can then run the sc
 > The `-nginx` flag is used to install NGinx.<br>
 > The `-php` flag is used to install PHP8.3.<br>
 > The `-d` flag is used to stage a verified Let's Encrypt SSL cert.<br>
+> The `--dns` flag is used to enable DNS-based SSL certificate verification (useful for local development).<br>
 > The `-e` flag is used to set the admin email.<br>
 > The `-wp` flag is used to install Wordpress.
 
+**Standard HTTP Verification Example:**
 ```bash
 vstacklet -e 'your@email.com' -d 'yourdomain.com' -php '8.3' -nginx -varnish -http '8080' -varnishP '80' -mariadb -mariadbU 'db_username' -mariadbPw 'db_password' -pma -csf -csfCf -wp
+```
+
+**DNS Verification Example (for local development or private networks):**
+```bash
+vstacklet -e 'your@email.com' -d 'yourdomain.com' --dns 'cloudflare' -php '8.3' -nginx -mariadb -mariadbU 'db_username' -mariadbPw 'db_password' -pma -csf -wp
 ```
 
 ---
@@ -387,6 +396,14 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 **Q:** What is the purpose of the vStacklet VS-Perms script?<br>
 **A:** The vStacklet VS-Perms script is designed to help you manage and automate www directory permissions. It checks the www-data group exists, if not, creates it. It checks the user group exists, if not, creates it. It checks the user exists, if not, creates it. It checks the user is a member of the www-data group, if not, adds them. It sets the correct permissions for the web root directory. The script is designed to be easy to use and provides you with the ability to manage and automate www directory permissions.
 
+**Q:** What is DNS-based SSL certificate verification and when should I use it?<br>
+**A:** DNS-based SSL certificate verification uses your DNS provider's API (currently CloudFlare) to validate domain ownership instead of requiring HTTP access to your server. This is particularly useful for:
+- **Local development environments** where your domain points to a local server not accessible from the internet
+- **Private networks** or servers behind firewalls where HTTP verification isn't possible
+- **Development and testing** scenarios where you need valid SSL certificates for domains that aren't publicly accessible
+
+To use it, you'll need a CloudFlare API token with Zone:Zone:Read and Zone:DNS:Edit permissions. The script will prompt you for this token when using the `--dns cloudflare` option. The token is securely stored in the acme.sh configuration for future certificate renewals.
+
 **Q:** Are you maintaining vStacklet on your own?<br>
 **A:** Yes, I am maintaining vStacklet on my own. I am a web developer and I proudly eat my own dog food (have been using vStacklet for a while now for use with client projects). I have found it to be a very useful tool for quickly getting a server up and running. I have made some modifications to the script to better suit my needs, and I am continuing to work on it to make it even better. I am always looking for ways to improve the script, so if you have any suggestions, please let me know.
 
@@ -410,6 +427,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 - [x] Full support for Ubuntu 20.04/22.04 & Debian 11/12
 - [ ] Nginx with Pagespeed (w/ option prompt) `-pagespeed | --pagespeed`
 - [x] Build SSL with LetsEncrypt
+- [x] DNS-based SSL certificate verification with CloudFlare support
 - [x] Automagically build and setup a WordPress site
 
 ---
