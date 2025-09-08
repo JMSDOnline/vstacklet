@@ -3156,10 +3156,10 @@ vstacklet::wordpress::install() {
 # - This function prompts the user for their CloudFlare API token
 # - Stores the token in the acme.sh account configuration
 # - Required for DNS-based SSL certificate verification with CloudFlare
+# - Must be called AFTER acme.sh installation to prevent account.conf overwrite
 #
 # @nooptions
 # @noargs
-# @return_code: 120 - failed to create acme.sh configuration directory.
 # @return_code: 121 - failed to write CloudFlare token to account.conf.
 # @break
 ##################################################################################
@@ -3176,8 +3176,10 @@ vstacklet::cloudflare::token::setup() {
 		read -rp "Enter your CloudFlare API Token: " CF_Token
 		[[ -z ${CF_Token} ]] && vstacklet::shell::text::error "CloudFlare API token is required for DNS verification." && exit 1
 
-		# Create acme.sh config directory if it doesn't exist
-		mkdir -p "/root/.acme.sh" || vstacklet::error::display 120
+		# Verify acme.sh config directory exists (should be created by acme.sh installation)
+		if [[ ! -d "/root/.acme.sh" ]]; then
+			vstacklet::shell::text::error "acme.sh configuration directory not found. This should not happen." && exit 1
+		fi
 
 		# Store the CloudFlare token in account.conf
 		echo "CF_Token='${CF_Token}'" >>"/root/.acme.sh/account.conf" || vstacklet::error::display 121
@@ -3232,15 +3234,11 @@ vstacklet::cloudflare::token::setup() {
 # @return_code: 117 - failed to issue the certificate.
 # @return_code: 118 - failed to install the certificate.
 # @return_code: 119 - failed to edit /etc/nginx/sites-available/${domain}.conf.
-# @return_code: 120 - failed to create acme.sh configuration directory.
 # @return_code: 121 - failed to write CloudFlare token to account.conf.
 # @break
 ##################################################################################
 vstacklet::domain::ssl() {
 	if [[ -n ${domain_ssl} ]]; then
-		# @script-note: Setup CloudFlare token if DNS verification is required
-		[[ -n ${dns_verification} ]] && vstacklet::cloudflare::token::setup
-
 		# @script-note: signal a service daemon reload and restart nginx
 		[[ -f /run/nginx.pid ]] && rm -f /run/nginx.pid
 		systemctl daemon-reload >>"${vslog}" 2>&1
@@ -3274,6 +3272,10 @@ vstacklet::domain::ssl() {
 		else
 			cd "/root/acme.sh" || vstacklet::error::display 112
 		fi
+
+		# @script-note: Setup CloudFlare token AFTER acme.sh installation to prevent overwriting
+		[[ -n ${dns_verification} ]] && vstacklet::cloudflare::token::setup
+
 		# @script-note: create nginx directory for SSL
 		mkdir -p "/etc/nginx/ssl/${domain:?}"
 
@@ -3293,10 +3295,10 @@ vstacklet::domain::ssl() {
 		# @script-note: Issue certificate using appropriate verification method
 		if [[ -n ${dns_verification} && ${dns_provider} == "cloudflare" ]]; then
 			# DNS verification with CloudFlare
-			./acme.sh --issue -d "${domain}" --dns dns_cf --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::error::display 117
+			./acme.sh --issue -d "${domain}" --dns dns_cf --server letsencrypt --verbose >>"${vslog}" 2>&1 || vstacklet::error::display 117
 		else
 			# HTTP verification (default)
-			./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html/vsapp}" --server letsencrypt >>"${vslog}" 2>&1 || vstacklet::error::display 117
+			./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html/vsapp}" --server letsencrypt --verbose >>"${vslog}" 2>&1 || vstacklet::error::display 117
 		fi
 
 		./acme.sh --install-cert -d "${domain}" --keylength ec-256 --cert-file "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" --key-file "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" --fullchain-file "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" --log "/var/log/vstacklet/${domain}.log" --reloadcmd "systemctl reload nginx.service" >>"${vslog}" 2>&1 || vstacklet::error::display 118
@@ -3463,6 +3465,9 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white " -d, --domain"
 	vstacklet::shell::text::white "    Sets the domain name for the server."
 	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " -dns, --dns"
+	vstacklet::shell::text::white "    Enables DNS-based SSL certificate verification (useful for local development)."
+	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -e, --email"
 	vstacklet::shell::text::white "    Sets the email address for the server."
 	vstacklet::shell::misc::nl
@@ -3538,8 +3543,12 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white " -wr, --web_root"
 	vstacklet::shell::text::white "    Sets the web root for the server."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "example: "
+	vstacklet::shell::text::white "example with standard HTTP-based SSL verification: "
 	vstacklet::shell::text::white "vstacklet -nginx -php '8.3' -mariadb -mariadbU 'username' -mariadbPw 'password' -varnish -csf -csfCf -wp -pma -ioncube -wr '/var/www/html/vsapp' -d 'example.com' -e 'your@email.com'"
+	vstacklet::shell::misc::nl
+	# Example with DNS-based SSL verification
+	vstacklet::shell::text::white "example with DNS-based SSL verification: "
+	vstacklet::shell::text::white "vstacklet -nginx -php '8.3' -mariadb -mariadbU 'username' -mariadbPw 'password' -wp -pma -wr '/var/www/html/vsapp' -d 'example.com' -e 'your@email.com' --dns 'cloudflare'"
 	vstacklet::shell::misc::nl
 	exit 0
 }
