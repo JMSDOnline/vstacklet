@@ -3295,10 +3295,10 @@ vstacklet::domain::ssl() {
 		# @script-note: Issue certificate using appropriate verification method
 		if [[ -n ${dns_verification} && ${dns_provider} == "cloudflare" ]]; then
 			# DNS verification with CloudFlare
-			./acme.sh --issue -d "${domain}" --dns dns_cf --server letsencrypt --verbose >>"${vslog}" 2>&1 || vstacklet::error::display 117
+			./acme.sh --issue -d "${domain}" --dns dns_cf --server letsencrypt --debug >>"${vslog}" 2>&1 || vstacklet::error::display 117
 		else
 			# HTTP verification (default)
-			./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html/vsapp}" --server letsencrypt --verbose >>"${vslog}" 2>&1 || vstacklet::error::display 117
+			./acme.sh --issue -d "${domain}" -w "${web_root:-/var/www/html/vsapp}" --server letsencrypt --debug >>"${vslog}" 2>&1 || vstacklet::error::display 117
 		fi
 
 		./acme.sh --install-cert -d "${domain}" --keylength ec-256 --cert-file "/etc/nginx/ssl/${domain}/${domain}-ssl.pem" --key-file "/etc/nginx/ssl/${domain}/${domain}-privkey.pem" --fullchain-file "/etc/nginx/ssl/${domain}/${domain}-fullchain.pem" --log "/var/log/vstacklet/${domain}.log" --reloadcmd "systemctl reload nginx.service" >>"${vslog}" 2>&1 || vstacklet::error::display 118
