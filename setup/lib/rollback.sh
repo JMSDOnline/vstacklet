@@ -104,7 +104,7 @@ vstacklet::rollback::check() {
 # @name: vstacklet::rollback::plan
 # @description: Works out what a rollback would change and stops before any change when it would remove something that was there before: the packages added since the record (boot, kernel, SSH and package-manager packages are left in place and listed), a simulated purge that must not take any recorded package with it, the units to disable and to enable again, the installer paths to delete (named in plain words when they hold sites or databases), and the files and apt sources that differ. With "quiet" it only refreshes the lists.
 ################################################################################
-# @script-note: boot, kernel, SSH and package-manager packages: added ones are left in place, and recorded ones the system removed itself (old kernels) are accepted as gone (S4-S10)
+# @script-note: boot, kernel, SSH and package-manager packages added since the record are left in place
 vstacklet::rollback::system_pkg() {
 	[[ ${1%%:*} =~ ^(linux-(image|modules|headers)|linux-.*-signed|grub|shim|initramfs-tools|firmware-|openssh-|systemd|cloud-init|qemu-guest-agent|sudo$|apt$|dpkg$) ]]
 }
@@ -143,9 +143,9 @@ vstacklet::rollback::plan() {
 	for p in "${cand[@]}"; do
 		if printf '%s\n' "${need[@]}" | grep -qxF -- "${p%%:*}"; then rb_needed+=("${p}"); else rb_purge+=("${p}"); fi
 	done
-	# @script-note: recorded boot and kernel packages the system removed itself (unattended-upgrades drops old kernels) are accepted as gone, not reinstalled
+	# @script-note: recorded versioned kernel packages the system removed itself (unattended-upgrades drops old kernels) are accepted as gone, not reinstalled; any other missing package still counts
 	while IFS= read -r p; do
-		[[ -n ${p} ]] && vstacklet::rollback::system_pkg "${p}" && rb_gone_ok+=("${p}")
+		[[ ${p%%:*} =~ ^linux-(image|modules|modules-extra|headers)-[0-9] ]] && rb_gone_ok+=("${p}")
 	done < <(comm -23 <(sort -u "${b}/packages") <(vstacklet::rollback::installed))
 	if ((${#rb_purge[@]})); then
 		if ! out="$(apt-get -s purge "${rb_purge[@]}" 2>&1)"; then
@@ -181,7 +181,7 @@ vstacklet::rollback::plan() {
 	vstacklet::shell::text::white " - remove ${#rb_purge[@]} packages added since then: ${rb_purge[*]:-none}"
 	((${#rb_kept[@]})) && vstacklet::shell::text::white " - leave in place ${#rb_kept[@]} boot, kernel, SSH or package-manager packages added since then (remove them yourself if you do not want them): ${rb_kept[*]}"
 	((${#rb_needed[@]})) && vstacklet::shell::text::white " - leave in place ${#rb_needed[@]} packages added since then that packages from before now need (an OS update brought them in): ${rb_needed[*]}"
-	((${#rb_gone_ok[@]})) && vstacklet::shell::text::white " - accept as gone ${#rb_gone_ok[@]} boot or kernel packages the system removed itself since then: ${rb_gone_ok[*]}"
+	((${#rb_gone_ok[@]})) && vstacklet::shell::text::white " - accept as gone ${#rb_gone_ok[@]} old kernel packages the system removed itself since then: ${rb_gone_ok[*]}"
 	vstacklet::shell::text::white " - disable ${#rb_units_off[@]} services added since then: ${rb_units_off[*]:-none}; enable again: ${rb_units_on[*]:-none}"
 	vstacklet::shell::text::white " - restore the package sources that differ: ${rb_apt[*]:-none}; restore these files: ${rb_files[*]:-none}"
 	if ((${#rb_versions[@]})); then
