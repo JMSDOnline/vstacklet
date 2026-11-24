@@ -195,6 +195,8 @@ vstacklet::environment::init() {
 	local_hhvm_dir="/opt/vstacklet/config/hhvm"
 	local_nginx_dir="/opt/vstacklet/config/nginx"
 	local_varnish_dir="/opt/vstacklet/config/varnish"
+	# @script-note: from here on the installer changes the server; a failure after this point means a rebuild
+	declare -gi vstacklet_changes_started=1
 	# @script-note: create vstacklet directories
 	mkdir -p "${vstacklet_base_path}/setup_temp"    # temporary setup directory - stores default files edited by vStacklet
 	mkdir -p "${vstacklet_base_path}/config/system" # system configuration directory - stores dependencies, keys, and other system files
@@ -2046,7 +2048,7 @@ vstacklet::mariadb::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || setup::clean::rollback 36
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || vstacklet::error::display 36
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -2077,7 +2079,7 @@ send "y\r"
 expect dof
 exit
 DOD
-		) >>"${vslog}" 2>&1 || setup::clean::rollback 37
+		) >>"${vslog}" 2>&1 || vstacklet::error::display 37
 		# @script-note: set mariadb client and server configuration
 		{
 			echo -e "[client]"
@@ -2211,7 +2213,7 @@ vstacklet::mysql::install() {
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
 			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || setup::clean::rollback 45
+			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || vstacklet::error::display 45
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -3810,14 +3812,15 @@ vstacklet::error::display() {
 		vstacklet::shell::text::warning "installer has been interrupted"
 	fi
 	if [[ "${rollback}" != "1" ]]; then
-		vstacklet::shell::text::error "a fatal error has occurred, you can rollback the installation process by running the following command:"
-		vstacklet::shell::text::white "vstacklet --rollback"
+		# @script-note: fail closed (4.0): a failed step stops the install; nothing is undone, the server is rebuilt
 		vstacklet::shell::misc::nl
-		vstacklet::shell::text::error "please report this issue to the vStacklet GitHub repository."
-		vstacklet::shell::text::white " - include the error message above"
-		vstacklet::shell::text::white " - include the vStacklet log file: ${vslog}"
-		vstacklet::shell::text::white " - include the vStacklet version: ${vstacklet_version}"
-		vstacklet::shell::text::white " - include the server OS and version"
+		if [[ -n ${vstacklet_changes_started} ]]; then
+			vstacklet::shell::text::error "the install has stopped and this server is now partly configured. vStacklet does not undo a partial install: rebuild the server from a fresh image, then run the installer again."
+		else
+			vstacklet::shell::text::error "the install has stopped before any change was made to this server."
+		fi
+		vstacklet::shell::text::white " - log of this run: ${vslog:-none (stopped before the log was created)}"
+		vstacklet::shell::text::white " - to report a problem: https://github.com/JMSDOnline/vstacklet/issues (include the error above, the log, the vStacklet version ${vstacklet_version:-unknown} and the server's OS and version)"
 		vstacklet::shell::misc::nl
 	else
 		vstacklet::shell::text::error "The rollback process has been cancelled."
@@ -3825,7 +3828,7 @@ vstacklet::error::display() {
 	fi
 	exit 1
 }
-trap 'vstacklet::error::display' SIGINT
+trap 'vstacklet::error::display' SIGINT SIGTERM SIGHUP
 
 ################################################################################
 # @name: vstacklet::rollback
