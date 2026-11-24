@@ -1,0 +1,400 @@
+#!/usr/bin/env bash
+# vStacklet installer module: args. Sourced by setup/vstacklet-server-stack.sh through its loader; defines functions only, nothing runs at load time.
+# shellcheck shell=bash disable=1091,2034,2068,2119,2154,2249,2312,2317
+
+##################################################################################
+# @name: vstacklet::args::info
+# @description: Prints the help or the version and exits when -h or -V is given. Runs before the gate, since printing changes nothing on the server.
+##################################################################################
+vstacklet::args::info() {
+	local a
+	for a in "$@"; do
+		case "${a}" in
+		-h | --help) vstacklet::help::display ;;
+		-V | --version) vstacklet::version::display ;;
+		esac
+	done
+	return 0
+}
+
+##################################################################################
+# @name: vstacklet::args::process (3)
+# @description: Process the options and values passed to the script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L252-L505)
+#
+# ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
+#
+# #### options:
+# | Short | Long                       | Description
+# | ----- | -------------------------- | ------------------------------------------
+# | -h    | --help                     | show help
+# | -V    | --version                  | show version
+# | -e    | --email                    | mail address to use for the Let's Encrypt SSL certificate
+# | -ftp  | --ftp_port                 | port to use for the FTP server
+# | -ssh  | --ssh_port                 | port to use for the SSH server
+# | -http | --http_port                | port to use for the HTTP server
+# | -https| --https_port               | port to use for the HTTPS server
+# | -ioncube | --ioncube               | refused until the 4.0 ionCube install is written
+# | -hn   | --hostname                 | hostname to use for the server
+# | -d    | --domain                   | domain name to use for the server
+# | -php  | --php                      | PHP version to install (8.3, 8.4, 8.5; default 8.4)
+# | -hhvm | --hhvm                     | refused: HHVM is no longer supported
+# | -nginx| --nginx                    | install Nginx
+# | -varnish | --varnish               | install Varnish
+# | -varnishP | --varnish_port         | port to use for the Varnish server
+# | -mariadb | --mariadb               | install MariaDB
+# | -mariadbP | --mariadb_port         | port to use for the MariaDB server
+# | -mariadbU | --mariadb_user         | user to use for the MariaDB server<br>Avoid using 'root' as the username
+# | -mariadbPw | --mariadb-password    | password to use for the MariaDB user
+# | -pma | --phpmyadmin                | install phpMyAdmin
+# | -csf | --csf                       | refused: CSF is no longer supported
+# | -csfCf | --csf_cloudflare          | refused: CSF is no longer supported
+# | -sendmail | --sendmail              | install Sendmail
+# | -sendmailP | --sendmail_port        | port to use for the Sendmail server
+# | --dns | --dns_provider             | DNS provider for SSL cert verification (e.g., cloudflare)
+# | -wr | --web_root				   | web root to use for the server
+# | -wp | --wordpress				   | install WordPress
+# | -r | --reboot					   | reboot the server after installation
+# | --rollback						   | undo an install: restore the state recorded before its first change
+# | --check_update					   | check the installed branch for a newer 4.x release
+#
+# @example: vstacklet --help
+# @example: vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -hn "yourhostname" -php "8.3" -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "db_user" -mariadbPw "db_password" -pma -wr "/var/www/html/vsapp" -wp
+# @example: vstacklet -e "your@email.com" -ftp "2121" -ssh "2222" -http "8080" -d "yourdomain.com" -php "8.4" -nginx -varnish -varnishP "80" -mariadb -mariadbU "db_user" -mariadbPw "db_password" -sendmail -wr "/var/www/html/vsapp" -wp --reboot
+# @example: vstacklet -e "your@email.com" -d "example.com" -php "8.3" -nginx -mariadb -mariadbU "db_user" -mariadbPw "db_password" --dns "cloudflare"
+# @null
+# @break
+##################################################################################
+vstacklet::args::process() {
+	# @script-note: strict option values (4.0): every option is matched exactly, every value-taking option needs a
+	# value that is present and is not another option, and every value is checked against a strict pattern before
+	# it is stored. Numbers are checked as text before any integer assignment, so a value is never evaluated as
+	# arithmetic (bash evaluates the value of an integer variable, which can run commands).
+	while [[ $# -gt 0 ]]; do
+		case "${1}" in
+		-V | --version)
+			vstacklet::version::display
+			;;
+		-r | --reboot)
+			declare -gi setup_reboot="1"
+			shift
+			;;
+		-h | --help)
+			vstacklet::help::display
+			;;
+		-csf | --csf | -csfCf | --csf_cloudflare)
+			vstacklet::shell::text::error "CSF is no longer supported by vStacklet 4.0." && exit 1
+			;;
+		-d | --domain)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::fqdn "$1" "$2"
+			declare -gi domain_ssl=1
+			declare -g domain="${2}"
+			shift 2
+			;;
+		-e | --email)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::email "$1" "$2"
+			declare -g email="${2}"
+			shift 2
+			;;
+		-ftp | --ftp_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi ftp_port=$((10#$2))
+			shift 2
+			;;
+		-hhvm | --hhvm)
+			vstacklet::shell::text::error "HHVM is no longer supported. Use -php (${SUPPORTED_PHP[*]}; default ${DEFAULT_PHP})." && exit 1
+			;;
+		-hn | --hostname)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::fqdn "$1" "$2"
+			declare -g hostname="${2}"
+			shift 2
+			;;
+		-https | --https_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi https_port=$((10#$2))
+			shift 2
+			;;
+		-http | --http_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi http_port=$((10#$2))
+			shift 2
+			;;
+		-ioncube | --ioncube)
+			vstacklet::shell::text::error "ionCube Loader is not installed by this development build of vStacklet 4.0 yet; run without -ioncube." && exit 1
+			;;
+		-mariadb | --mariadb)
+			declare -gi mariadb="1"
+			shift
+			;;
+		-mariadbU | --mariadb_user)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::dbuser "$1" "$2"
+			declare -g mariadb_user="${2}"
+			shift 2
+			;;
+		-mariadbPw | --mariadb_password | --mariadb-password)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::password "$1" "$2"
+			declare -g mariadb_password="${2}"
+			shift 2
+			;;
+		-mariadbP | --mariadb_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi mariadb_port=$((10#$2))
+			shift 2
+			;;
+		-mysql | --mysql)
+			declare -gi mysql="1"
+			shift
+			;;
+		-mysqlU | --mysql_user)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::dbuser "$1" "$2"
+			declare -g mysql_user="${2}"
+			shift 2
+			;;
+		-mysqlPw | --mysql_password)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::password "$1" "$2"
+			declare -g mysql_password="${2}"
+			shift 2
+			;;
+		-mysqlP | --mysql_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi mysql_port=$((10#$2))
+			shift 2
+			;;
+		-nginx | --nginx)
+			declare -gi nginx="1"
+			shift
+			;;
+		-postgre | --postgresql)
+			declare -gi postgresql="1"
+			shift
+			;;
+		-postgreU | --postgresql_user)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::dbuser "$1" "$2"
+			declare -g postgresql_user="${2}"
+			shift 2
+			;;
+		-postgrePw | --postgresql_password)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::password "$1" "$2"
+			declare -g postgresql_password="${2}"
+			shift 2
+			;;
+		-postgreP | --postgresql_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi postgresql_port=$((10#$2))
+			shift 2
+			;;
+		-pma | --phpmyadmin)
+			declare -gi phpmyadmin="1"
+			shift
+			;;
+		-php | --php)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			declare -g php="${2}"
+			shift 2
+			;;
+		-redis | --redis)
+			declare -gi redis="1"
+			shift
+			;;
+		-redisPw | --redis_password)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::password "$1" "$2"
+			declare -g redis_password="${2}"
+			shift 2
+			;;
+		-redisP | --redis_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi redis_port=$((10#$2))
+			shift 2
+			;;
+		-sendmail | --sendmail)
+			declare -gi sendmail="1"
+			shift
+			;;
+		-sendmailP | --sendmail_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi sendmail_port=$((10#$2))
+			shift 2
+			;;
+		--dns | --dns_provider)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			[[ ${2} != "cloudflare" ]] && vstacklet::shell::text::error "currently only 'cloudflare' is supported as DNS provider." && exit 1
+			declare -gi dns_verification="1"
+			declare -g dns_provider="${2}"
+			shift 2
+			;;
+		-ssh | --ssh_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi ssh_port=$((10#$2))
+			shift 2
+			;;
+		-varnish | --varnish)
+			declare -gi varnish="1"
+			shift
+			;;
+		-varnishP | --varnish_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi varnish_port=$((10#$2))
+			shift 2
+			;;
+		-wp | --wordpress)
+			declare -gi wordpress="1"
+			shift
+			;;
+		-wr | --web_root)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::webroot "$1" "$2"
+			declare -g web_root="${2}"
+			shift 2
+			;;
+		--rollback)
+			declare -gi rollback="1" && vstacklet::rollback
+			shift
+			;;
+		--check_update)
+			vstacklet::update::check
+			;;
+		*)
+			invalid_option+=("$1")
+			shift
+			;;
+		esac
+	done
+	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::shell::text::error "invalid option(s): ${invalid_option[*]}" && exit 1
+	# @script-note: run sanity checks on the options provided
+	[[ -n ${domain} && -z ${email} ]] && vstacklet::shell::text::error "an email is needed to register with Let's Encrypt. please set an email with \`-e\`." && exit 1
+	[[ -n ${mariadb} && -n ${mysql} ]] && vstacklet::shell::text::error "mariadb and mysql cannot be installed together. choose either mariadb or mysql." && exit 1
+	[[ -n ${sendmail} && -z ${email} ]] && vstacklet::shell::text::error "an email is needed to register the server aliases. please set an email with \`-e your@email.com\`." && exit 1
+	if [[ -n ${wordpress} ]]; then
+		[[ (-z ${mariadb}) && (-z ${mysql}) && (-z ${postgresql}) ]] && vstacklet::shell::text::error "WordPress requires a database to be installed." && exit 1
+		[[ (-z ${nginx}) && (-z ${varnish}) ]] && vstacklet::shell::text::error "WordPress requires a webserver to be installed." && exit 1
+	fi
+	if [[ -n ${domain_ssl} ]]; then
+		[[ -z ${email} ]] && vstacklet::shell::text::error "please provide an email address with \`-e\`." && exit 1
+		[[ -z ${nginx} && ${nginx_installed} -eq 0 ]] && vstacklet::shell::text::error "nginx is required to install an SSL certificate. please install nginx with \`-nginx\`." && exit 1
+	fi
+	if [[ -n ${dns_verification} ]]; then
+		[[ -z ${domain_ssl} ]] && vstacklet::shell::text::error "DNS verification requires a domain to be specified with \`-d\`." && exit 1
+		[[ ${dns_provider} == "cloudflare" && -z ${CF_Token} ]] && declare -gi cf_token_required="1"
+	fi
+	# @script-note: PHP is the default version unless -php names one; only an exact version in the tested range is accepted
+	[[ -z ${php} ]] && declare -g php="${DEFAULT_PHP}"
+	declare php_ok="" v
+	for v in "${SUPPORTED_PHP[@]}"; do [[ ${php} == "${v}" ]] && php_ok=1; done
+	if [[ -z ${php_ok} ]]; then
+		vstacklet::shell::text::error "PHP '${php}' is not in the tested range (${SUPPORTED_PHP[*]}; default ${DEFAULT_PHP}). Versions newer than ${SUPPORTED_PHP[-1]} are not tested yet; older ones are no longer supported." && exit 1
+	fi
+	# @script-note: no two services on one port (the web ports count with their defaults when a web server is installed)
+	declare -A port_owner=()
+	declare name port
+	for name in ssh_port ftp_port http_port https_port varnish_port mariadb_port mysql_port postgresql_port redis_port sendmail_port; do
+		port="${!name}"
+		if [[ -z ${port} && (-n ${nginx} || -n ${varnish}) ]]; then
+			[[ ${name} == "http_port" ]] && port=80
+			[[ ${name} == "https_port" ]] && port=443
+			[[ ${name} == "varnish_port" && -n ${varnish} ]] && port=6081
+		fi
+		[[ -z ${port} ]] && continue
+		if [[ -n ${port_owner[${port}]} ]]; then
+			vstacklet::shell::text::error "port ${port} is set for both ${port_owner[${port}]} and ${name}; each service needs its own port." && exit 1
+		fi
+		port_owner[${port}]="${name}"
+	done
+}
+
+##################################################################################
+# @name: vstacklet::args::need_value (3.b)
+# @description: Strict option values. Exits unless the option has a value that is present, not empty and not another option.
+# @param: $1 - the option, $2 - the number of words left including the option, $3 - the value
+##################################################################################
+vstacklet::args::need_value() {
+	if [[ $2 -lt 2 || -z $3 || $3 == -* ]]; then
+		vstacklet::shell::text::error "option '$1' needs a value." && exit 1
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::port (3.c)
+# @description: Exits unless the value is a port number from 1 to 65535, checked as text before it is used as a number.
+##################################################################################
+vstacklet::args::port() {
+	if [[ ! $2 =~ ^[0-9]{1,5}$ ]] || ((10#$2 < 1 || 10#$2 > 65535)); then
+		vstacklet::shell::text::error "option '$1': '$2' is not a port number from 1 to 65535." && exit 1
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::fqdn (3.d)
+# @description: Exits unless the value is a fully qualified domain name: letters, digits and inner hyphens per label, a letter-only top level, 253 characters at most.
+##################################################################################
+vstacklet::args::fqdn() {
+	local re='^([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$'
+	if [[ ${#2} -gt 253 || ! $2 =~ ${re} ]]; then
+		vstacklet::shell::text::error "option '$1': '$2' is not a valid domain name (for example: example.com)." && exit 1
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::email (3.e)
+# @description: Exits unless the value is a plain address (local part of letters, digits and . _ % + -, then a domain name).
+##################################################################################
+vstacklet::args::email() {
+	local re='^[A-Za-z0-9._%+-]{1,64}@([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$'
+	if [[ ${#2} -gt 254 || ! $2 =~ ${re} ]]; then
+		vstacklet::shell::text::error "option '$1': '$2' is not a valid email address." && exit 1
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::dbuser (3.f)
+# @description: Exits unless the value is a database user name (a lowercase letter or underscore, then up to 31 lowercase letters, digits or underscores) other than root.
+##################################################################################
+vstacklet::args::dbuser() {
+	local re='^[a-z_][a-z0-9_]{0,31}$'
+	if [[ ! $2 =~ ${re} ]]; then
+		vstacklet::shell::text::error "option '$1': '$2' is not a valid user name (lowercase letters, digits and underscores, 32 at most)." && exit 1
+	fi
+	if [[ $2 == "root" ]]; then
+		vstacklet::shell::text::error "option '$1': the database user cannot be 'root'; choose another name." && exit 1
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::password (3.g)
+# @description: Exits unless the value is 8 to 128 characters from letters, digits and ! # % * + , . : ; = ? @ ^ _ ~ -. Quotes, backslashes, dollar signs, spaces and other shell or SQL characters are refused until every secret is passed on stdin.
+##################################################################################
+vstacklet::args::password() {
+	local re='^[A-Za-z0-9!#%*+,.:;=?@^_~-]{8,128}$'
+	if [[ ! $2 =~ ${re} ]]; then
+		vstacklet::shell::text::error "option '$1': the password must be 8 to 128 characters from letters, digits and ! # % * + , . : ; = ? @ ^ _ ~ -" && exit 1
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::webroot (3.h)
+# @description: Exits unless the value is a folder under /var/www/ or /srv/ whose every part starts with a letter or digit and holds only letters, digits and . _ - (no .., no hidden parts, no system folders).
+##################################################################################
+vstacklet::args::webroot() {
+	local re='^/(var/www|srv)(/[A-Za-z0-9][A-Za-z0-9._-]*)+$'
+	if [[ ${#2} -gt 200 || ! $2 =~ ${re} ]]; then
+		vstacklet::shell::text::error "option '$1': '$2' is not an allowed web root; use a folder under /var/www/ or /srv/ (for example: /var/www/html/vsapp)." && exit 1
+	fi
+}
