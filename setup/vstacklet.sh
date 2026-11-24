@@ -340,7 +340,7 @@ vstacklet::setup::variables() {
 		esac
 	done
 	# @script-note: Set the necessary declarations
-	declare -g vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_php7_path vstacklet_config_hhvm_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname vstacklet_server_stack_script vstacklet_git vstacklet_git_branch
+	declare -g vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_php7_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname vstacklet_server_stack_script vstacklet_git vstacklet_git_branch
 	# @script-note: Set the vstacklet base path
 	# @script-note: fixed install path (the installer expects it; the -P option was removed in 4.0, it passed its value to rm -rf)
 	vstacklet_base_path="/opt/vstacklet"
@@ -352,8 +352,6 @@ vstacklet::setup::variables() {
 	vstacklet_config_php8_path="${vstacklet_config_php8_path:-${vstacklet_config_path}/php8}"
 	# @script-note: Set the vstacklet config php7 path
 	vstacklet_config_php7_path="${vstacklet_config_php7_path:-${vstacklet_config_path}/php7}"
-	# @script-note: Set the vstacklet config hhvm path
-	vstacklet_config_hhvm_path="${vstacklet_config_hhvm_path:-${vstacklet_config_path}/hhvm}"
 	# @script-note: Set the vstacklet config nginx path
 	vstacklet_config_nginx_path="${vstacklet_config_nginx_path:-${vstacklet_config_path}/nginx}"
 	# @script-note: Set the vstacklet config varnish path
@@ -517,6 +515,6 @@ vstacklet::setup::main() {
 # @script-note: call the main function
 vstacklet::setup::main "$@"
 # @script-note: unset the variables
-unset vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_php7_path vstacklet_config_hhvm_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname vstacklet_git vstacklet_git_branch vstacklet_server_stack_script vstacklet_version help version branch
+unset vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_php7_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname vstacklet_git vstacklet_git_branch vstacklet_server_stack_script vstacklet_version help version branch
 # @script-note: exit the script
 exit 0

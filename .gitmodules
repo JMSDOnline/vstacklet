@@ -6,10 +6,6 @@
 #  path = php5
 #  url = https://github.com/JMSDOnline/vstacklet_php5_base.git
 #  branch = development
-#[submodule "hhvm"]
-#  path = hhvm
-#  url = https://github.com/JMSDOnline/vstacklet_hhvm_base.git
-#  branch = development
 #[submodule "nginx"]
 #  path = nginx
 #  url = https://github.com/JMSDOnline/vstacklet_nginx_base.git

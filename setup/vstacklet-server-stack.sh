@@ -81,7 +81,6 @@
 #   - [arguments](#arguments-5)
 #   - [return codes](#return-codes-10)
 #   - [examples](#examples-5)
-# - [vstacklet::hhvm::install()](#vstacklethhvminstall)
 #   - [options](#options-6)
 #   - [return codes](#return-codes-11)
 #   - [examples](#examples-6)
@@ -257,13 +256,12 @@ vstacklet::gate::interim() {
 ##################################################################################
 vstacklet::environment::init() {
 	shopt -s extglob
-	declare -g vstacklet_base_path server_ip local_setup_dir local_php8_dir local_php7_dir local_hhvm_dir local_varnish_dir
+	declare -g vstacklet_base_path server_ip local_setup_dir local_php8_dir local_php7_dir local_varnish_dir
 	server_ip=$(ip addr show | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | cut -d/ -f1 | head -n 1)
 	# @script-note: vstacklet directories
 	local_setup_dir="${vstacklet_base_path:=/opt/vstacklet}/setup"
 	local_php8_dir="/opt/vstacklet/config/php8"
 	local_php7_dir="/opt/vstacklet/config/php7"
-	local_hhvm_dir="/opt/vstacklet/config/hhvm"
 	local_nginx_dir="/opt/vstacklet/config/nginx"
 	local_varnish_dir="/opt/vstacklet/config/varnish"
 	# @script-note: record the server's state before the first change, once per server, for vstacklet --rollback
@@ -316,7 +314,7 @@ vstacklet::args::info() {
 # | -hn   | --hostname                 | hostname to use for the server
 # | -d    | --domain                   | domain name to use for the server
 # | -php  | --php                      | PHP version to install (8.3, 8.4, 8.5; default 8.4)
-# | -hhvm | --hhvm                     | install HHVM
+# | -hhvm | --hhvm                     | refused: HHVM is no longer supported
 # | -nginx| --nginx                    | install Nginx
 # | -varnish | --varnish               | install Varnish
 # | -varnishP | --varnish_port         | port to use for the Varnish server
@@ -1095,7 +1093,6 @@ vstacklet::ask::continue() {
 #   - source_dependencies
 #   - base_dependencies
 #   - php_dependencies
-#   - hhvm_dependencies
 #   - nginx_dependencies
 #   - varnish_dependencies
 #   - mariadb_dependencies
@@ -1113,8 +1110,6 @@ vstacklet::dependencies::array() {
 	declare -ga php_dependencies=("php${php}-fpm" "php${php}-zip" "php${php}-cgi" "php${php}-cli" "php${php}-common" "php${php}-curl" "php${php}-dev" "php${php}-gd" "php${php}-bcmath" "php${php}-gmp" "php${php}-imap" "php${php}-intl" "php${php}-ldap" "php${php}-mbstring" "php${php}-opcache" "php${php}-pspell" "php${php}-readline" "php${php}-soap" "php${php}-xml" "php${php}-imagick" "php${php}-msgpack" "php${php}-igbinary" "libmcrypt-dev" "mcrypt" "libmemcached-dev" "php-memcached" "php${php}-ssh2")
 	[[ -n ${redis} ]] && php_dependencies+=("php${php}-redis")
 	[[ -n ${mariadb} || -n ${mysql} ]] && php_dependencies+=("php${php}-mysql")
-	# @script-note: install hhvm dependencies
-	declare -ga hhvm_dependencies=("hhvm")
 	# @script-note: install nginx dependencies
 	declare -ga nginx_dependencies=("nginx")
 	# @script-note: install varnish dependencies
@@ -1485,7 +1480,6 @@ EOF
 #
 # notes:
 # - keys and sources are set for the following software packages:
-#   - hhvm (only if option `-hhvm|--hhvm` is set)
 #   - nginx (only if option `-nginx|--nginx` is set)
 #   - varnish (only if option `-varnish|--varnish` is set)
 #   - php (only if option `-php|--php` is set)
@@ -1501,11 +1495,6 @@ vstacklet::gpg::keys() {
 	# @script-note: package and repo addition (c) _add signed keys_
 	vstacklet::shell::text::white "adding signed keys and sources for required software packages ... "
 	mkdir -p /etc/apt/sources.list.d /etc/apt/keyrings
-	if [[ -n ${hhvm} ]]; then
-		# @script-note: hhvm
-		curl -fsSL https://dl.hhvm.com/conf/hhvm.gpg.key | gpg --dearmor -o /etc/apt/keyrings/hhvm.gpg >>"${vslog}" 2>&1
-		echo "deb [signed-by=/etc/apt/keyrings/hhvm.gpg] https://dl.hhvm.com/${distro,,} ${codename} main" | tee /etc/apt/sources.list.d/hhvm.list >>"${vslog}" 2>&1
-	fi
 	if [[ -n ${nginx} ]]; then
 		# @script-note: nginx
 		if [[ ${distro,,} == "debian" ]]; then
@@ -1605,7 +1594,6 @@ vstacklet::locale::set() {
 # notes:
 # - versioning:
 #   - supported: "8.3", "8.4" (default, DEFAULT_PHP) and "8.5" (SUPPORTED_PHP); any other value is refused
-# - chose either php or hhvm, not both
 # - php modules are installed based on the following variables:
 #   - `-php [php version]` (default: 8.4) - php version to install
 #   - php_modules are installed based on the php version and neccessity
@@ -1624,14 +1612,11 @@ vstacklet::locale::set() {
 # @example: vstacklet -php 8.4
 # @example: vstacklet --php 8.5
 # @null
-# @return_code: 14 - PHP and HHVM cannot be installed at the same time, please choose one.
 # @return_code: 15 - failed to install PHP dependencies.
 # @break
 ##################################################################################
 vstacklet::php::install() {
-	# @script-note: check for hhvm
-	[[ -n ${php} && -n ${hhvm} ]] && vstacklet::error::display 14
-	if [[ -n ${php} && -z ${hhvm} ]]; then
+	if [[ -n ${php} ]]; then
 		# @script-note: check for nginx \\ to maintain modularity, nginx is not required for PHP
 		#[[ -z ${nginx} ]] && vstacklet::error::display "PHP requires nginx. please install nginx."
 		vstacklet::shell::misc::nl
@@ -1678,77 +1663,6 @@ vstacklet::php::install() {
 		[[ -n ${redis} ]] && phpmods+=("redis")
 		vs::stat::progress::stop # stop progress status
 		# @script-note: php installation complete
-	fi
-}
-
-##################################################################################
-# @name: vstacklet::hhvm::install (24)
-# @description: Install HHVM and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1519-L1561)
-#
-# notes:
-# - not familiar with HHMV?
-#   - https://docs.hhvm.com/hhvm/FAQ/faq
-#   - https://docs.hhvm.com/hhvm/configuration/INI-settings
-# - this is a very basic install, it is recommended to use the official HHVM
-#   documentation to configure HHVM
-# - HHVM is not compatible with PHP, so choose one or the other. HHVM is
-#   not a drop-in replacement for PHP, so you will need to rewrite your
-#   PHP code to work with HHVM accordingly. HHVM is a dialect of PHP, not PHP itself.
-# - unless you are familiar with HHVM, it is recommended to use `-php "8.1"` or `-php "7.4"` instead.
-# - there may be numerous issues when using with `--wordpress` (e.g. plugins, themes, etc.)
-# - phpMyAdmin is not compatible with HHVM, so if you choose HHVM,
-#   you will not be able to install phpMyAdmin.
-# @option: $1 - `-hhvm | --hhvm` (optional) (takes no arguments)
-# @example: vstacklet -hhvm
-# @example: vstacklet --hhvm
-# @null
-# @return_code: 16 - HHVM and PHP cannot be installed at the same time, please choose one.
-# @return_code: 17 - failed to install HHVM dependencies.
-# @return_code: 18 - failed to install HHVM.
-# @return_code: 19 - failed to update PHP alternatives.
-# @break
-##################################################################################
-vstacklet::hhvm::install() {
-	# @script-note: check for php
-	[[ -n ${hhvm} && -n ${php} ]] && vstacklet::error::display 16
-	if [[ -n ${hhvm} && -z ${php} ]]; then
-		# @script-note: check for nginx \\ to maintain modularity, nginx is not required for HHVM
-		#[[ -z ${nginx} ]] && vstacklet::error::display "hhvm requires nginx. please install with -nginx."
-		# @script-note: install hhvm
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "installing and configuring HHVM ... "
-		# @script-note: install php dependencies and php
-		for depend in "${hhvm_dependencies[@]}"; do
-			if [[ $(dpkg-query -W -f='${Status}' "${depend}" 2>/dev/null | grep -c "ok installed") != "1" ]]; then
-				depend_list+=("${depend}")
-			fi
-		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing HHVM dependencies: "
-		for install in "${depend_list[@]}"; do
-			if [[ ${install} == "${depend_list[0]}" ]]; then
-				vstacklet::shell::text::white::sl "${install} "
-			else
-				vstacklet::shell::text::white::sl "| ${install} "
-			fi
-			vstacklet::log apt-get -y install "${install}" --allow-unauthenticated || vstacklet::error::display 17
-			install_list+=("${install}")
-		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
-		for depend in "${hhvm_dependencies[@]}"; do
-			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
-		done
-		unset depend depend_list install
-		# @script-note: install hhvm
-		/usr/share/hhvm/install_fastcgi.sh >>"${vslog}" 2>&1 || vstacklet::error::display 18
-		vstacklet::shell::text::yellow::sl "configuring HHVM ... " &
-		vs::stat::progress::start # start progress status
-		# @script-note: update php alternatives
-		/usr/bin/update-alternatives --install /usr/bin/php php /usr/bin/hhvm 60 >>"${vslog}" 2>&1 || vstacklet::error::display 19
-		# @script-note: get off the port and use socket - vStacklet nginx configurations already know this
-		cp -f "${local_hhvm_dir}/server.ini.template" /etc/hhvm/server.ini
-		cp -f "${local_hhvm_dir}/php.ini.template" /etc/hhvm/php.ini
-		vs::stat::progress::stop # stop progress status
-		# @script-note: hhvm installation complete
 	fi
 }
 
@@ -1842,9 +1756,6 @@ vstacklet::nginx::install() {
 			[[ -z ${varnish} ]] && cp -f "${local_php7_dir}/nginx/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 			# @script-note: import nginx reverse modified for varnish and nginx ssl termination
 			[[ -n ${varnish} ]] && cp -f "${local_php7_dir}/nginx/varnish/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
-		fi
-		if [[ -n ${hhvm} ]]; then
-			cp -f "${local_hhvm_dir}/nginx/default.hhvm.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
 		vstacklet::shell::text::yellow::sl "configuring NGinx and generating self-signed certificates ... " &
 		vs::stat::progress::start # start progress status
@@ -2605,8 +2516,6 @@ vstacklet::redis::install() {
 # @description: Install phpMyAdmin and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2455-L2549)
 #
 # notes:
-# - phpMyAdmin no longer supports HHVM due to the project now just focusing on
-#   their own Hack language rather than PHP compatibility.
 # - phpMyAdmin requires a web server to run. You must select a web server from the list below.
 #   - nginx
 #   - varnish
@@ -2651,7 +2560,6 @@ vstacklet::redis::install() {
 # @break
 ##################################################################################
 vstacklet::phpmyadmin::install() {
-	# check if hhvm is selected and throw an error if it is
 	if [[ -n ${phpmyadmin} ]]; then
 		if [[ (-n ${mariadb} || -n ${mysql}) && (-n ${nginx} || -n ${varnish}) && (-n ${php}) ]]; then
 			declare pma_version pma_bf
@@ -3090,7 +2998,7 @@ EOF
 # - this function requires the following options to be used:
 #   - database: `-mariadb | --mariadb` or `-mysql | --mysql` (only one can be used)
 #   - webserver: `-nginx | --nginx` or `-varnish | --varnish` (both can be used)
-#   - php: `-php | --php` or `-hhvm | --hhvm` (only one can be used)
+#   - php: `-php | --php`
 # - this function will optionally use the following options:
 #   - web root: `-wr | --web_root` (default: /var/www/html/vsapp)
 #
@@ -3099,7 +3007,6 @@ EOF
 # @example: vstacklet -wp -mariadb -nginx -php "8.1" -wr "/var/www/html/vsapp"
 # @example: vstacklet -wp -mysql -nginx -php "8.1"
 # @example: vstacklet -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
-# @example: vstacklet -wp -mariadb -nginx -hhvm -wr "/var/www/html/vsapp"
 # @null
 # @return_code: 96 - failed to download WordPress.
 # @return_code: 97 - failed to extract WordPress.
@@ -3534,7 +3441,6 @@ vstacklet::clean::complete() {
 	[[ -n ${php} ]] && services+=("php${php}-fpm")
 	# @script-note: memcached only when its server package is installed (PHP is always set now, the memcached server is not)
 	[[ -n ${php} && $(dpkg-query -W -f='${Status}' memcached 2>/dev/null) == *"ok installed"* ]] && services+=("memcached")
-	[[ -n ${hhvm} ]] && services+=("hhvm")
 	[[ -n ${mysql} ]] && services+=("mysql")
 	[[ -n ${mariadb} ]] && services+=("mariadb")
 	[[ -n ${postgresql} ]] && services+=("postgresql")
@@ -3583,8 +3489,8 @@ vstacklet::message::complete() {
 	vstacklet::shell::text::white "Be sure to review the above output from the vStacklet installation process"
 	vstacklet::shell::text::white "for relevant information regarding your new server and connection details."
 	vstacklet::shell::misc::nl
-	[[ (-n ${nginx} || -n ${varnish}) && (-n ${php} || -n ${hhvm}) ]] && vstacklet::shell::text::white " - Visit: http://${domain:-${server_ip}}/checkinfo.php"
-	[[ (-n ${nginx} || -n ${varnish}) && (-n ${php} || -n ${hhvm}) ]] && vstacklet::shell::text::white " - Remember to remove or rename the checkinfo.php file after verification."
+	[[ (-n ${nginx} || -n ${varnish}) && -n ${php} ]] && vstacklet::shell::text::white " - Visit: http://${domain:-${server_ip}}/checkinfo.php"
+	[[ (-n ${nginx} || -n ${varnish}) && -n ${php} ]] && vstacklet::shell::text::white " - Remember to remove or rename the checkinfo.php file after verification."
 	[[ ${setup_reboot} -eq "1" ]] && vstacklet::shell::text::white "rebooting ... " && reboot
 	if [[ -z ${setup_reboot} ]]; then
 		declare input
@@ -3652,9 +3558,6 @@ vstacklet::help::display() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -ftp, --ftp"
 	vstacklet::shell::text::white "    Sets the FTP port for the server."
-	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white " -hhvm, --hhvm"
-	vstacklet::shell::text::white "    Installs and configures HHVM."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -hn, --hostname"
 	vstacklet::shell::text::white "    Sets the hostname for the server."
@@ -3790,13 +3693,7 @@ vstacklet::error::display() {
 		# vstacklet::locale::set (22)
 		13) error="failed to set locale." ;;
 		# vstacklet::php::install (23)
-		14) error="PHP and HHVM cannot be installed at the same time. please choose one." ;;
 		15) error="failed to install PHP dependencies." ;;
-		# vstacklet::hhvm::install (24)
-		16) error="HHVM and PHP cannot be installed at the same time. please choose one." ;;
-		17) error="failed to install HHVM dependencies." ;;
-		18) error="failed to install HHVM." ;;
-		19) error="failed to update PHP alternatives." ;;
 		# vstacklet::nginx::install (25)
 		20) error="failed to install NGINX dependencies." ;;
 		21) error="failed to edit NGINX configuration file." ;;
@@ -4465,7 +4362,6 @@ vstacklet::gpg::keys                                                            
 vstacklet::apt::update                                                                                #(5)
 vstacklet::locale::set                                                                                #(22)
 vstacklet::php::install                                                                               #(23)
-vstacklet::hhvm::install                                                                              #(24)
 vstacklet::nginx::install                                                                             #(25)
 vstacklet::varnish::install                                                                           #(26)
 vstacklet::permissions::adjust                                                                        #(27)
