@@ -3706,8 +3706,13 @@ vstacklet::rollback::restore() {
 	local -a apt_opts=(-y -o DPkg::Lock::Timeout=300 -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold) missing=()
 	vstacklet::rollback::check || { vstacklet::shell::text::error "the install record changed after it was checked; nothing was changed." && return 1; }
 	vstacklet::shell::text::white "finishing any interrupted package operation ..."
-	if ! dpkg --configure -a >/dev/null 2>&1 || [[ -n $(dpkg --audit 2>&1) ]]; then
-		vstacklet::shell::text::error "dpkg could not finish an interrupted package operation (see dpkg --audit); nothing else was changed."
+	local dpkg_err
+	if ! dpkg_err="$(dpkg --configure -a 2>&1 >/dev/null)" || [[ -n $(dpkg --audit 2>&1) ]]; then
+		if [[ ${dpkg_err} == *lock* ]]; then
+			vstacklet::shell::text::error "another package operation is running (apt or dpkg holds its lock); wait for it to finish, then run vstacklet --rollback again. Nothing was changed."
+		else
+			vstacklet::shell::text::error "dpkg could not finish an interrupted package operation (see dpkg --audit); nothing else was changed."
+		fi
 		return 1
 	fi
 	vstacklet::rollback::plan quiet || return 1
