@@ -747,7 +747,8 @@ vs::stat::progress::stop() {
 # ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
 #
 # notes:
-# - the log file is located at /var/log/vstacklet/vstacklet.${PPID}.log
+# - one log per run: /var/log/vstacklet/vstacklet.<date-time>.<pid>.log (mode 600); earlier logs are kept
+# - vstacklet::log takes a command as separate words ("$@"), never a string, and returns its exit status
 # @noargs
 # @nooptions
 # @break
@@ -755,21 +756,22 @@ vs::stat::progress::stop() {
 vstacklet::log::check() {
 	vstacklet::shell::text::white "checking log file ... "
 	declare -g log_file vslog
-	log_file="/var/log/vstacklet/vstacklet.${PPID}.log"
-	if [[ ! -d /var/log/vstacklet ]]; then
-		mkdir -p /var/log/vstacklet
-	fi
-	rm -f /var/log/vstacklet/vstacklet.*.log
-	if [[ ! -f ${log_file} ]]; then
-		touch "${log_file}"
-		vslog="/var/log/vstacklet/vstacklet.${PPID}.log"
-		vstacklet::shell::text::yellow "output is being sent to /var/log/vstacklet/vstacklet.${PPID}.log"
-	fi
+	# @script-note: one log per run, kept after the run (an earlier run's log is never removed), readable by root only
+	install -d -m 0700 /var/log/vstacklet || { vstacklet::shell::text::error "cannot create /var/log/vstacklet"; exit 1; }
+	log_file="/var/log/vstacklet/vstacklet.$(date +%Y%m%d-%H%M%S).$$.log"
+	(umask 077 && : >"${log_file}") || { vstacklet::shell::text::error "cannot create the log file ${log_file}"; exit 1; }
+	vslog="${log_file}"
+	vstacklet::shell::text::yellow "output is being sent to ${log_file}"
+	# @script-note: run one command given as separate words, never as a string, so arguments are not split or
+	# globbed again and shell operators are never passed in. Returns the command's own exit status.
+	# usage: vstacklet::log apt-get -y install "${package}"
 	vstacklet::log() {
+		[[ $# -gt 0 ]] || return 2
 		if [[ -z ${verbosity} ]]; then
-			($1 >>"${log_file}" 2>&1)
+			"$@" >>"${log_file}" 2>&1
 		else
-			$1 |& tee -a "${log_file}"
+			"$@" 2>&1 | tee -a "${log_file}"
+			return "${PIPESTATUS[0]}"
 		fi
 	}
 }
@@ -822,7 +824,7 @@ vstacklet::dependencies::install() {
 		else
 			vstacklet::shell::text::white::sl "| ${install} "
 		fi
-		vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::error::display 3
+		vstacklet::log apt-get -y install "${install}" --allow-unauthenticated || vstacklet::error::display 3
 		install_list+=("${install}")
 	done
 	clear
@@ -1015,7 +1017,7 @@ vstacklet::source::dependencies() {
 		else
 			vstacklet::shell::text::white::sl "| ${install} "
 		fi
-		vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::error::display 5
+		vstacklet::log apt-get -y install "${install}" --allow-unauthenticated || vstacklet::error::display 5
 		install_list+=("${install}")
 	done
 	[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1103,8 +1105,8 @@ vstacklet::webroot::set() {
 	if [[ -n ${web_root} ]]; then
 		vstacklet::shell::text::white "setting web root directory to ${web_root:-/var/www/html/vsapp} ... "
 		mkdir -p "${web_root:-/var/www/html/vsapp}"/{public,logs,ssl}
-		vstacklet::log "chown -R www-data:www-data ${web_root:-/var/www/html/vsapp}"
-		vstacklet::log "chmod -R 755 ${web_root:-/var/www/html/vsapp}"
+		vstacklet::log chown -R www-data:www-data "${web_root:-/var/www/html/vsapp}"
+		vstacklet::log chmod -R 755 "${web_root:-/var/www/html/vsapp}"
 	fi
 }
 
@@ -1125,7 +1127,7 @@ vstacklet::ssh::set() {
 		vstacklet::shell::text::white "setting ssh port to ${ssh_port:-22} ... "
 		cp -f /etc/ssh/sshd_config "${vstacklet_base_path}/config/system/sshd_config"
 		sed -i "s/^.*Port .*/Port ${ssh_port:-22}/g" /etc/ssh/sshd_config || vstacklet::error::display 7
-		vstacklet::log "systemctl restart sshd" || vstacklet::error::display 8
+		vstacklet::log systemctl restart sshd || vstacklet::error::display 8
 	fi
 }
 
@@ -1148,8 +1150,8 @@ vstacklet::ftp::set() {
 		openssl req -config "${local_setup_dir}/templates/ssl/openssl.conf" -x509 -nodes -days 720 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.pem -out /etc/ssl/private/vsftpd.pem >/dev/null 2>&1
 		cp -f "${local_setup_dir}/templates/vsftpd/vsftpd.conf" /etc/vsftpd.conf
 		sed -i.bak -e "s|{{ftp_port}}|${ftp_port:-21}|g" -e "s|{{server_ip}}|${server_ip}|g" /etc/vsftpd.conf >>"${vslog}" 2>&1 || vstacklet::error::display 9
-		vstacklet::log "systemctl restart vsftpd" || vstacklet::error::display 10
-		vstacklet::log "iptables -I INPUT -p tcp --destination-port 10090:10100 -j ACCEPT"
+		vstacklet::log systemctl restart vsftpd || vstacklet::error::display 10
+		vstacklet::log iptables -I INPUT -p tcp --destination-port 10090:10100 -j ACCEPT
 		echo "" >/etc/vsftpd.chroot_list
 	fi
 }
@@ -1168,7 +1170,7 @@ vstacklet::ftp::set() {
 vstacklet::block::ssdp() {
 	vstacklet::shell::text::white "blocking port 1900 ..."
 	mkdir -p /etc/iptables/
-	vstacklet::log "iptables -I INPUT 1 -p udp -m udp --dport 1900 -j DROP" || vstacklet::error::display 11
+	vstacklet::log iptables -I INPUT 1 -p udp -m udp --dport 1900 -j DROP || vstacklet::error::display 11
 	iptables-save >/etc/iptables/rules.v4 || vstacklet::error::display 12
 }
 
@@ -1402,15 +1404,15 @@ vstacklet::locale::set() {
 		) >>"${vslog}" 2>&1 || vstacklet::error::display 13
 	else
 		(
-			vstacklet::log "apt-get -y update"
-			[[ ${distro,,} == "debian" ]] && vstacklet::log "apt-get -y install locales locale-gen"
-			[[ ${distro,,} == "ubuntu" ]] && vstacklet::log "apt-get -y install locales"
+			vstacklet::log apt-get -y update
+			[[ ${distro,,} == "debian" ]] && vstacklet::log apt-get -y install locales locale-gen
+			[[ ${distro,,} == "ubuntu" ]] && vstacklet::log apt-get -y install locales
 			update-locale "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
 			dpkg-reconfigure --frontend noninteractive locales
 		) >>"${vslog}" 2>&1 || vstacklet::error::display 13
 	fi
-	[[ ${distro,,} == "debian" ]] && vstacklet::log "locale-gen locales"
-	[[ ${distro,,} == "ubuntu" ]] && vstacklet::log "locale-gen en_US.UTF-8"
+	[[ ${distro,,} == "debian" ]] && vstacklet::log locale-gen locales
+	[[ ${distro,,} == "ubuntu" ]] && vstacklet::log locale-gen en_US.UTF-8
 	declare -xg LANGUAGE="en_US.UTF-8"
 }
 
@@ -1552,7 +1554,7 @@ vstacklet::hhvm::install() {
 			else
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
-			vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::error::display 17
+			vstacklet::log apt-get -y install "${install}" --allow-unauthenticated || vstacklet::error::display 17
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1629,7 +1631,7 @@ vstacklet::nginx::install() {
 			else
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
-			vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::error::display 20
+			vstacklet::log apt-get -y install "${install}" --allow-unauthenticated || vstacklet::error::display 20
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1637,7 +1639,7 @@ vstacklet::nginx::install() {
 			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
 		done
 		unset depend depend_list install
-		vstacklet::log "systemctl stop nginx"
+		vstacklet::log systemctl stop nginx
 		mkdir -p "${local_setup_dir}/nginx/temp"
 		[[ -f /etc/nginx/nginx.conf ]] && mv -f /etc/nginx/nginx.conf "${local_setup_dir}/nginx/temp/nginx.conf"
 		[[ -f /etc/nginx/sites-enabled/default ]] && mv -f /etc/nginx/sites-enabled/default "${local_setup_dir}/nginx/temp/default"
@@ -1711,7 +1713,7 @@ vstacklet::nginx::install() {
 		# @script-note: set override for nginx pid file
 		mkdir -p /etc/systemd/system/nginx.service.d >/dev/null 2>&1
 		printf "[Service]\nExecStartPost=/bin/sleep 1\n" >"/etc/systemd/system/nginx.service.d/override.conf"
-		vstacklet::log "systemctl daemon-reload && systemctl restart nginx" >>"${vslog}" 2>&1
+		vstacklet::log systemctl daemon-reload && vstacklet::log systemctl restart nginx
 		vs::stat::progress::stop # stop progress status
 		# @script-note: nginx installation complete
 		vstacklet::shell::text::green "NGinx and self-signed certificates installed and configured. see details below:"
@@ -1775,7 +1777,7 @@ vstacklet::varnish::install() {
 			else
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
-			vstacklet::log "apt-get -y install ${install} --allow-unauthenticated" || vstacklet::error::display 26
+			vstacklet::log apt-get -y install "${install}" --allow-unauthenticated || vstacklet::error::display 26
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
@@ -1816,7 +1818,7 @@ vstacklet::varnish::install() {
 		# @script-note: create varnish secret file
 		uuidgen | sudo tee /etc/varnish/secret >/dev/null
 		# @script-note: reload systemd=daemon
-		vstacklet::log "systemctl daemon-reload" || vstacklet::error::display 29
+		vstacklet::log systemctl daemon-reload || vstacklet::error::display 29
 		cd "${HOME}" || vstacklet::error::display 30
 		vs::stat::progress::stop # stop progress status
 		# @script-note: varnish installation complete
@@ -1887,8 +1889,8 @@ vstacklet::ioncube::install() {
 		# @script-note: install ioncube loader for php 7.4
 		if [[ ${php} == *"7"* ]]; then
 			cd /tmp || vstacklet::error::display 31
-			vstacklet::log "wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::error::display 32
-			vstacklet::log "tar -xvzf ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::error::display 33
+			vstacklet::log wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz || vstacklet::error::display 32
+			vstacklet::log tar -xvzf ioncube_loaders_lin_x86-64.tar.gz || vstacklet::error::display 33
 			cd ioncube || vstacklet::error::display 34
 			cp -f ioncube_loader_lin_7.4.so /usr/lib/php/20190902/ || vstacklet::error::display 35
 			echo "zend_extension = /usr/lib/php/20190902/ioncube_loader_lin_7.4.so" >/etc/php/7.4/mods-available/ioncube.ini
@@ -1898,8 +1900,8 @@ vstacklet::ioncube::install() {
 		# @script-note: install ioncube loader for php 8.1
 		if [[ ${php} == *"8.1"* ]]; then
 			cd /tmp || vstacklet::error::display 31
-			vstacklet::log "wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::error::display 32
-			vstacklet::log "tar -xvzf ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::error::display 33
+			vstacklet::log wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz || vstacklet::error::display 32
+			vstacklet::log tar -xvzf ioncube_loaders_lin_x86-64.tar.gz || vstacklet::error::display 33
 			cd ioncube || vstacklet::error::display 34
 			cp -f ioncube_loader_lin_8.1.so /usr/lib/php/20210902/ || vstacklet::error::display 35
 			echo "zend_extension = /usr/lib/php/20210902/ioncube_loader_lin_8.1.so" >/etc/php/8.1/mods-available/ioncube.ini
@@ -1909,8 +1911,8 @@ vstacklet::ioncube::install() {
 		# @script-note: install ioncube loader for php 8.3 (not available yet)
 		[[ ${php} == *"8.3"* ]] && vstacklet::shell::text::yellow "ionCube Loader for php-8.3 is not available yet. Skipping ..."
 		#	cd /tmp || vstacklet::error::display 31
-		#	vstacklet::log "wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::error::display 32
-		#	vstacklet::log "tar -xvzf ioncube_loaders_lin_x86-64.tar.gz" || vstacklet::error::display 33
+		#	vstacklet::log wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz || vstacklet::error::display 32
+		#	vstacklet::log tar -xvzf ioncube_loaders_lin_x86-64.tar.gz || vstacklet::error::display 33
 		#	cd ioncube || vstacklet::error::display 34
 		#	cp -f ioncube_loader_lin_8.3.so /usr/lib/php/20230831/ || vstacklet::error::display 35
 		#	echo "zend_extension = /usr/lib/php/20230831/ioncube_loader_lin_8.3.so" >/etc/php/8.3/mods-available/ioncube.ini
@@ -2051,8 +2053,8 @@ DOD
 			echo "password=${mariadb_password:-${mariadb_autoPw}}"
 			echo
 		} >/root/.my.cnf || vstacklet::error::display 39
-		vstacklet::log "systemctl daemon-reload"
-		vstacklet::log "systemctl restart mariadb"
+		vstacklet::log systemctl daemon-reload
+		vstacklet::log systemctl restart mariadb
 		#mysqladmin -u root -h localhost password "${mariadb_password:-${mariadb_autoPw}}"
 		# @script-note: create mariadb user
 		mysql -u root -e "CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>"${vslog}" 2>&1 || vstacklet::error::display 40
@@ -2114,7 +2116,7 @@ vstacklet::mysql::install() {
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring MySQL ... "
 		# @script-note: install mysql deb
-		vstacklet::log "wget https://dev.mysql.com/get/${mysql_deb_version}_all.deb -O /tmp/${mysql_deb_version}_all.deb" || vstacklet::error::display 43
+		vstacklet::log wget "https://dev.mysql.com/get/${mysql_deb_version}_all.deb" -O "/tmp/${mysql_deb_version}_all.deb" || vstacklet::error::display 43
 		declare DEBIAN_FRONTEND=noninteractive
 		yes | DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold install "/tmp/${mysql_deb_version}_all.deb" --allow-change-held-packages >>"${vslog}" 2>&1 || vstacklet::error::display 44
 		# @script-note: run apt maintenance to ensure environment is up-to-date
@@ -2145,8 +2147,8 @@ vstacklet::mysql::install() {
 			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
 		done
 		unset depend_list install_list
-		vstacklet::log "systemctl enable mysql"
-		vstacklet::log "systemctl start mysql"
+		vstacklet::log systemctl enable mysql
+		vstacklet::log systemctl start mysql
 		# @script-note: configure mysql
 		vstacklet::shell::text::yellow::sl "configuring MySQL ... " &
 		vs::stat::progress::start # start progress status
@@ -2205,9 +2207,9 @@ vstacklet::mysql::install() {
 			echo -e "user = ${mysql_user:-admin}"
 			echo -e "password = ${mysql_password:-${mysql_autoPw}}"
 		} >"${HOME}/.my.cnf" || vstacklet::error::display 47
-		vstacklet::log "systemctl daemon-reload"
-		vstacklet::log "systemctl enable mysql"
-		vstacklet::log "systemctl restart mysql"
+		vstacklet::log systemctl daemon-reload
+		vstacklet::log systemctl enable mysql
+		vstacklet::log systemctl restart mysql
 		#mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${mysql_password:-${mysql_autoPw}}';\"" || vstacklet::error::display 79
 		mysql -u root -e "CREATE USER '${mysql_user:-admin}'@'localhost' IDENTIFIED BY '${mysql_password:-${mysql_autoPw}}';" >>"${vslog}" 2>&1 || vstacklet::error::display 48
 		mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '${mysql_user:-admin}'@'localhost' WITH GRANT OPTION;" >>"${vslog}" 2>&1 || vstacklet::error::display 49
@@ -2403,7 +2405,7 @@ vstacklet::redis::install() {
 		cp -f "${local_setup_dir}/templates/redis/redis.conf" /etc/redis/redis.conf || vstacklet::error::display 60
 		sed -i.bak "s/{{redis_port}}/${redis_port:-6379}/g" /etc/redis/redis.conf || vstacklet::error::display 61
 		# @script-note: restart redis
-		vstacklet::log "systemctl restart redis-server" || vstacklet::error::display 62
+		vstacklet::log systemctl restart redis-server || vstacklet::error::display 62
 		# @script-note: set redis password
 		redis-cli -a "" -h localhost -p "${redis_port:-6379}" config set requirepass "${redis_password:-${redis_autoPw}}" >>"${vslog}" 2>&1 || vstacklet::error::display 63
 		vs::stat::progress::stop # stop progress status
@@ -3076,21 +3078,21 @@ vstacklet::wordpress::install() {
 		if [[ ${wp_input_continue} == "true" ]]; then
 			vstacklet::shell::text::white "installing and configuring WordPress ... "
 			# @script-note: download WordPress
-			vstacklet::log "wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz" || vstacklet::error::display 96
+			vstacklet::log wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz || vstacklet::error::display 96
 			# @script-note: extract WordPress
-			vstacklet::log "tar -xzf /tmp/wordpress.tar.gz -C /tmp" || vstacklet::error::display 97
+			vstacklet::log tar -xzf /tmp/wordpress.tar.gz -C /tmp || vstacklet::error::display 97
 			# @script-note: move WordPress to the web root
 			mv /tmp/wordpress/* "${web_root:-/var/www/html/vsapp}/public" || vstacklet::error::display 98
 			# @script-note: create the uploads directory
 			mkdir -p "${web_root:-/var/www/html/vsapp}/public/wp-content/uploads" || vstacklet::error::display 99
 			# @script-note: download the WordPress CLI
-			vstacklet::log "wget -q -O /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar"
+			vstacklet::log wget -q -O /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
 			# @script-note: set the correct permissions
-			vstacklet::log "chmod +x /usr/local/bin/wp"
+			vstacklet::log chmod +x /usr/local/bin/wp
 			vstacklet::shell::text::yellow::sl "configuring WordPress ... " &
 			vs::stat::progress::start # @script-note: start progress status
 			# @script-note: create the wp-config.php file
-			vstacklet::log "cp -f ${web_root:-/var/www/html/vsapp}/public/wp-config-sample.php ${web_root:-/var/www/html/vsapp}/public/wp-config.php" || vstacklet::error::display 100
+			vstacklet::log cp -f "${web_root:-/var/www/html/vsapp}/public/wp-config-sample.php" "${web_root:-/var/www/html/vsapp}/public/wp-config.php" || vstacklet::error::display 100
 			# @script-note: modify the wp-config.php file
 			sed -i \
 				-e "s/database_name_here/${wp_db_name}/g" \
@@ -3116,7 +3118,7 @@ vstacklet::wordpress::install() {
 			# @script-note: flush privileges
 			mysql -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::error::display 105
 			# @script-note: remove the WordPress installation files
-			vstacklet::log "rm -rf /tmp/wordpress /tmp/wordpress.tar.gz" || vstacklet::error::display 106
+			vstacklet::log rm -rf /tmp/wordpress /tmp/wordpress.tar.gz || vstacklet::error::display 106
 			# @script-note: run wp core install
 			wp --path="${web_root:-/var/www/html/vsapp}/public" core install --url="${wp_site_url}" --title="${wp_site_title}" --admin_user="${wp_admin_user}" --admin_password="${wp_admin_password}" --admin_email="${wp_admin_email}" --allow-root >>"${vslog}" 2>&1 || vstacklet::error::display 107
 			vs::stat::progress::stop # stop progress status
@@ -3364,14 +3366,14 @@ vstacklet::clean::complete() {
 	#services+=("sshd")
 	rm -rf "${vstacklet_base_path}/setup_temp"
 	for service in "${services[@]}"; do
-		vstacklet::log "systemctl enable ${service}.service"
-		vstacklet::log "systemctl restart ${service}.service"
+		vstacklet::log systemctl enable "${service}.service"
+		vstacklet::log systemctl restart "${service}.service"
 	done
 	# @script-note: csf requires a restart with its own command this will effectively
 	# stop/start csf and lfd and reload the firewall and rules
-	[[ -n ${csf} ]] && vstacklet::log "csf -x" && vstacklet::log "csf -e" && vstacklet::log "csf -r"
+	[[ -n ${csf} ]] && vstacklet::log csf -x && vstacklet::log csf -e && vstacklet::log csf -r
 	[[ -n ${nginx} ]] && rm -rf /etc/apache2 && rm -rf /usr/sbin/apache2
-	vstacklet::log "iptables-save > /etc/iptables/rules.v4"
+	iptables-save >/etc/iptables/rules.v4 2>>"${log_file}"
 	unset service services
 }
 
