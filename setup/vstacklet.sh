@@ -402,12 +402,23 @@ vstacklet::setup::download() {
 	# @script-note: create vstacklet & backup directory strucutre
 	mkdir -p /backup/{files,databases} || { printf -- "%s\n" "Error: Unable to create /backup/{files,databases}" && exit 1; }
 	# @script-note: download vStacklet
-	rm -rf /tmp/vstacklet
 	if [[ -d "${vstacklet_base_path}/.git" ]]; then
-		# @script-note: update vStacklet
-		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" /tmp/vstacklet || { printf -- "%s\n" "Error: Unable to update vStacklet from GitHub" && exit 1; }
-		cp -rf /tmp/vstacklet/* "${vstacklet_base_path}" || { printf -- "%s\n" "Error: Unable to copy vStacklet files to ${vstacklet_base_path}" && exit 1; }
-		rm -rf /tmp/vstacklet
+		# @script-note: update vStacklet: a fresh clone replaces the checkout, so it stays a real git checkout of the branch (the installer's repair text relies on that); only the installer's own state in config/system is carried over
+		local vs_tmp
+		vs_tmp="$(mktemp -d)" || { printf -- "%s\n" "Error: Unable to create a temporary folder" && exit 1; }
+		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" "${vs_tmp}/vstacklet" || { rm -rf "${vs_tmp}"; printf -- "%s\n" "Error: Unable to update vStacklet from GitHub" && exit 1; }
+		if [[ -d ${vstacklet_base_path}/config/system ]]; then
+			if ! { mkdir -p "${vs_tmp}/vstacklet/config/system" && cp -a "${vstacklet_base_path}/config/system/." "${vs_tmp}/vstacklet/config/system/"; }; then
+				rm -rf "${vs_tmp}"
+				printf -- "%s\n" "Error: Unable to keep ${vstacklet_base_path}/config/system"
+				exit 1
+			fi
+		fi
+		if ! { rm -rf "${vstacklet_base_path}" && mv "${vs_tmp}/vstacklet" "${vstacklet_base_path}"; }; then
+			printf -- "%s\n" "Error: Unable to replace ${vstacklet_base_path}"
+			exit 1
+		fi
+		rm -rf "${vs_tmp}"
 	else
 		# @script-note: install vStacklet
 		[[ -d ${vstacklet_base_path} ]] && rm -rf "${vstacklet_base_path}"
