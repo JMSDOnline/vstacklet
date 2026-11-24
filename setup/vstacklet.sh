@@ -308,8 +308,10 @@ vstacklet::environment::functions() {
 # @break
 ##################################################################################
 vstacklet::setup::variables() {
-	help="${help:-false}"
-	version="${version:-false}"
+	# @script-note: options come from the command line only, never from variables already set in the caller's shell
+	help=false
+	version=false
+	unset branch vstacklet_git_branch
 	while [ $# -gt 0 ]; do
 		case "${1}" in
 		-V | --version)
