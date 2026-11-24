@@ -407,21 +407,31 @@ vstacklet::setup::download() {
 	# @script-note: download vStacklet
 	if [[ -d "${vstacklet_base_path}/.git" ]]; then
 		# @script-note: update vStacklet: a fresh clone replaces the checkout, so it stays a real git checkout of the branch (the installer's repair text relies on that); only the installer's own state in config/system is carried over
-		local vs_tmp
-		vs_tmp="$(mktemp -d)" || { printf -- "%s\n" "Error: Unable to create a temporary folder" && exit 1; }
-		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" "${vs_tmp}/vstacklet" || { rm -rf "${vs_tmp}"; printf -- "%s\n" "Error: Unable to update vStacklet from GitHub" && exit 1; }
+		local vs_new vs_old
+		umask 022
+		vs_new="$(mktemp -d "${vstacklet_base_path%/*}/.vstacklet-new.XXXXXX")" || { printf -- "%s\n" "Error: Unable to create a temporary folder beside ${vstacklet_base_path}" && exit 1; }
+		chmod 755 "${vs_new}"
+		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" "${vs_new}/vstacklet" || { rm -rf "${vs_new}"; printf -- "%s\n" "Error: Unable to update vStacklet from GitHub" && exit 1; }
 		if [[ -d ${vstacklet_base_path}/config/system ]]; then
-			if ! { mkdir -p "${vs_tmp}/vstacklet/config/system" && cp -a "${vstacklet_base_path}/config/system/." "${vs_tmp}/vstacklet/config/system/"; }; then
-				rm -rf "${vs_tmp}"
+			if ! { mkdir -p "${vs_new}/vstacklet/config/system" && cp -a "${vstacklet_base_path}/config/system/." "${vs_new}/vstacklet/config/system/"; }; then
+				rm -rf "${vs_new}"
 				printf -- "%s\n" "Error: Unable to keep ${vstacklet_base_path}/config/system"
 				exit 1
 			fi
 		fi
-		if ! { rm -rf "${vstacklet_base_path}" && mv "${vs_tmp}/vstacklet" "${vstacklet_base_path}"; }; then
-			printf -- "%s\n" "Error: Unable to replace ${vstacklet_base_path}"
+		# @script-note: swap by rename on the same filesystem: the old checkout stays in place until the new one is complete
+		vs_old="${vs_new}/old"
+		if ! mv "${vstacklet_base_path}" "${vs_old}"; then
+			rm -rf "${vs_new}"
+			printf -- "%s\n" "Error: Unable to move the old ${vstacklet_base_path} aside"
 			exit 1
 		fi
-		rm -rf "${vs_tmp}"
+		if ! mv "${vs_new}/vstacklet" "${vstacklet_base_path}"; then
+			mv "${vs_old}" "${vstacklet_base_path}"
+			printf -- "%s\n" "Error: Unable to put the new ${vstacklet_base_path} in place; the old one was kept"
+			exit 1
+		fi
+		rm -rf "${vs_new}"
 	else
 		# @script-note: install vStacklet
 		[[ -d ${vstacklet_base_path} ]] && rm -rf "${vstacklet_base_path}"
