@@ -104,17 +104,49 @@ vstacklet::rollback::check() {
 # @name: vstacklet::rollback::plan
 # @description: Works out what a rollback would change and stops before any change when it would remove something that was there before: the packages added since the record (boot, kernel, SSH and package-manager packages are left in place and listed), a simulated purge that must not take any recorded package with it, the units to disable and to enable again, the installer paths to delete (named in plain words when they hold sites or databases), and the files and apt sources that differ. With "quiet" it only refreshes the lists.
 ################################################################################
+# @script-note: boot, kernel, SSH and package-manager packages: added ones are left in place, and recorded ones the system removed itself (old kernels) are accepted as gone (S4-S10)
+vstacklet::rollback::system_pkg() {
+	[[ ${1%%:*} =~ ^(linux-(image|modules|headers)|linux-.*-signed|grub|shim|initramfs-tools|firmware-|openssh-|systemd|cloud-init|qemu-guest-agent|sudo$|apt$|dpkg$) ]]
+}
+# @script-note: added packages that a recorded package (or one kept for it) depends on, to a fixed point: an OS upgrade's new dependency must stay (S4-S10)
+vstacklet::rollback::needed() {
+	local -x LC_ALL=C
+	local b=/root/vstacklet/baseline round pairs keep_set
+	local -a cand=("${@%%:*}") need=() more=()
+	keep_set="$(sed 's/:.*//' "${b}/packages" | sort -u)"
+	for round in 1 2 3 4 5 6 7 8; do
+		((${#cand[@]})) || break
+		# @script-note: "candidate depender" pairs, then the candidates whose depender is recorded (or already kept)
+		pairs="$(apt-cache rdepends --installed --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances "${cand[@]}" 2>/dev/null | awk '/^[^ ]/ {if ($0 != "Reverse Depends:") pkg = $1; next} /^ / {d = $1; sub(/^[|]/, "", d); sub(/:.*/, "", d); print pkg, d}' | sort -u)"
+		mapfile -t more < <(awk 'NR == FNR {keep[$1] = 1; next} ($2 in keep) {print $1}' <(printf '%s\n' "${keep_set}") <(printf '%s\n' "${pairs}") | sort -u)
+		((${#more[@]})) || break
+		need+=("${more[@]}")
+		keep_set="$(printf '%s\n' "${keep_set}" "${more[@]}" | sort -u)"
+		mapfile -t cand < <(printf '%s\n' "${cand[@]}" | sort -u | comm -23 - <(printf '%s\n' "${need[@]}" | sort -u))
+	done
+	((${#need[@]})) && printf '%s\n' "${need[@]}" | sort -u
+	return 0
+}
 vstacklet::rollback::plan() {
 	local -x LC_ALL=C
 	local - p out size
 	set -o pipefail
 	local b=/root/vstacklet/baseline
 	local -a added=() lost=()
-	declare -ga rb_purge=() rb_kept=() rb_units_off=() rb_units_on=() rb_paths=() rb_files=() rb_apt=() rb_versions=()
+	declare -ga rb_purge=() rb_kept=() rb_needed=() rb_gone_ok=() rb_units_off=() rb_units_on=() rb_paths=() rb_files=() rb_apt=() rb_versions=()
+	local -a cand=() need=()
 	mapfile -t added < <(comm -13 <(sort -u "${b}/packages") <(vstacklet::rollback::installed))
 	for p in "${added[@]}"; do
-		if [[ ${p%%:*} =~ ^(linux-(image|modules|headers)|linux-.*-signed|grub|shim|initramfs-tools|firmware-|openssh-|systemd|cloud-init|qemu-guest-agent|sudo$|apt$|dpkg$) ]]; then rb_kept+=("${p}"); else rb_purge+=("${p}"); fi
+		if vstacklet::rollback::system_pkg "${p}"; then rb_kept+=("${p}"); else cand+=("${p}"); fi
 	done
+	((${#cand[@]})) && mapfile -t need < <(vstacklet::rollback::needed "${cand[@]}")
+	for p in "${cand[@]}"; do
+		if printf '%s\n' "${need[@]}" | grep -qxF -- "${p%%:*}"; then rb_needed+=("${p}"); else rb_purge+=("${p}"); fi
+	done
+	# @script-note: recorded boot and kernel packages the system removed itself (unattended-upgrades drops old kernels) are accepted as gone, not reinstalled
+	while IFS= read -r p; do
+		[[ -n ${p} ]] && vstacklet::rollback::system_pkg "${p}" && rb_gone_ok+=("${p}")
+	done < <(comm -23 <(sort -u "${b}/packages") <(vstacklet::rollback::installed))
 	if ((${#rb_purge[@]})); then
 		if ! out="$(apt-get -s purge "${rb_purge[@]}" 2>&1)"; then
 			vstacklet::shell::text::error "apt could not plan the removal of the added packages; nothing was changed."
@@ -148,6 +180,8 @@ vstacklet::rollback::plan() {
 	vstacklet::shell::text::white "vStacklet will bring this server back to the state it recorded on $(sed -n 's/^recorded=//p' "${b}/complete") (the bootstrap's own tools stay). It will:"
 	vstacklet::shell::text::white " - remove ${#rb_purge[@]} packages added since then: ${rb_purge[*]:-none}"
 	((${#rb_kept[@]})) && vstacklet::shell::text::white " - leave in place ${#rb_kept[@]} boot, kernel, SSH or package-manager packages added since then (remove them yourself if you do not want them): ${rb_kept[*]}"
+	((${#rb_needed[@]})) && vstacklet::shell::text::white " - leave in place ${#rb_needed[@]} packages added since then that packages from before now need (an OS update brought them in): ${rb_needed[*]}"
+	((${#rb_gone_ok[@]})) && vstacklet::shell::text::white " - accept as gone ${#rb_gone_ok[@]} boot or kernel packages the system removed itself since then: ${rb_gone_ok[*]}"
 	vstacklet::shell::text::white " - disable ${#rb_units_off[@]} services added since then: ${rb_units_off[*]:-none}; enable again: ${rb_units_on[*]:-none}"
 	vstacklet::shell::text::white " - restore the package sources that differ: ${rb_apt[*]:-none}; restore these files: ${rb_files[*]:-none}"
 	if ((${#rb_versions[@]})); then
@@ -214,7 +248,7 @@ vstacklet::rollback::restore() {
 	if ((${#rb_purge[@]})); then
 		apt-get "${apt_opts[@]}" purge "${rb_purge[@]}" >/dev/null 2>&1 || { rc=1 && vstacklet::shell::text::warning "apt-get purge reported a problem; the comparison below shows what is left."; }
 	fi
-	mapfile -t missing < <(comm -23 <(sort -u "${b}/packages") <(vstacklet::rollback::installed))
+	mapfile -t missing < <(comm -23 <(sort -u "${b}/packages") <(vstacklet::rollback::installed) | comm -23 - <(printf '%s\n' "${rb_gone_ok[@]}" | sort -u))
 	if ((${#missing[@]})); then
 		if ((apt_ok)); then
 			vstacklet::shell::text::white "reinstalling ${#missing[@]} recorded packages that went missing ..."
@@ -260,11 +294,11 @@ vstacklet::rollback::restore() {
 	if ((${#rb_versions[@]})); then
 		while read -r p _ now; do vstacklet::rollback::offered "${p}" "${now}" || orphaned=$((orphaned + 1)); done < <(printf '%s\n' "${rb_versions[@]}")
 	fi
-	gone=$(comm -23 <(sort -u "${b}/packages") <(vstacklet::rollback::installed) | wc -l)
-	vstacklet::shell::text::white "differences from the record: packages ${left} added and ${gone} missing (${#rb_kept[@]} of the added left in place on purpose), ${orphaned} at a version no restored source offers, services ${#rb_units_off[@]} added and ${#rb_units_on[@]} missing, installer paths ${#rb_paths[@]}, package sources ${#rb_apt[@]}, files ${#rb_files[@]}"
+	gone=$(comm -23 <(sort -u "${b}/packages") <(vstacklet::rollback::installed) | comm -23 - <(printf '%s\n' "${rb_gone_ok[@]}" | sort -u) | grep -c . || true)
+	vstacklet::shell::text::white "differences from the record: packages ${left} added and ${gone} missing (${#rb_kept[@]} boot or system and ${#rb_needed[@]} needed by packages from before left in place on purpose; ${#rb_gone_ok[@]} old kernels the system removed accepted), ${orphaned} at a version no restored source offers, services ${#rb_units_off[@]} added and ${#rb_units_on[@]} missing, installer paths ${#rb_paths[@]}, package sources ${#rb_apt[@]}, files ${#rb_files[@]}"
 	port="$(sshd -T 2>/dev/null | awk '$1 == "port" {print $2; exit}')"
 	vstacklet::shell::text::white "SSH is configured on port ${port:-unknown}; open a new session to check it before you close this one."
-	[[ ${rc} -eq 0 && $((left - ${#rb_kept[@]})) -eq 0 && ${gone} -eq 0 && ${orphaned} -eq 0 && ${#rb_units_off[@]} -eq 0 && ${#rb_units_on[@]} -eq 0 && ${#rb_paths[@]} -eq 0 && ${#rb_apt[@]} -eq 0 && ${#rb_files[@]} -eq 0 ]]
+	[[ ${rc} -eq 0 && $((left - ${#rb_kept[@]} - ${#rb_needed[@]})) -eq 0 && ${gone} -eq 0 && ${orphaned} -eq 0 && ${#rb_units_off[@]} -eq 0 && ${#rb_units_on[@]} -eq 0 && ${#rb_paths[@]} -eq 0 && ${#rb_apt[@]} -eq 0 && ${#rb_files[@]} -eq 0 ]]
 }
 
 ################################################################################
