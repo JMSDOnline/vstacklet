@@ -151,7 +151,7 @@ vstacklet::rollback::plan() {
 	vstacklet::shell::text::white " - disable ${#rb_units_off[@]} services added since then: ${rb_units_off[*]:-none}; enable again: ${rb_units_on[*]:-none}"
 	vstacklet::shell::text::white " - restore the package sources that differ: ${rb_apt[*]:-none}; restore these files: ${rb_files[*]:-none}"
 	if ((${#rb_versions[@]})); then
-		vstacklet::shell::text::white " - check ${#rb_versions[@]} packages whose version changed since the record: a version the restored sources still offer is kept (updated by the system since the record); any other goes back to the recorded version, or to the release's own version if the recorded one is gone (a downgrade, simulated first):"
+		vstacklet::shell::text::white " - check ${#rb_versions[@]} packages whose version changed since the record: a version the restored sources still offer is kept (updated by the system since the record); any other moves to the restored release's version (up or back), or to the recorded version when the release offers none (simulated first):"
 		for p in "${rb_versions[@]}"; do vstacklet::shell::text::white "   ${p% *} -> now ${p##* }"; done
 	fi
 	for p in "${rb_paths[@]}"; do
@@ -276,7 +276,7 @@ vstacklet::rollback::restore() {
 # @example: vstacklet --rollback
 # @break
 ################################################################################
-# @script-note: a recorded package whose version changed is kept when the restored sources still offer its version (the system updated it); otherwise it goes back to the recorded version, or to the restored candidate when that one is gone, with --allow-downgrades after a simulation that must remove nothing recorded. A version no source offers counts as a difference.
+# @script-note: a recorded package whose version changed is kept when the restored sources still offer its version (the system updated it); otherwise it moves to the restored candidate (up or back, so no security fix is dropped), or to the recorded version when there is no candidate, with --allow-downgrades after a simulation that must remove nothing recorded. A version no source offers counts as a difference.
 vstacklet::rollback::versions_restore() {
 	local apt_ok="$1" b=/root/vstacklet/baseline p rec now target out rc=0
 	local -a down=() lost=()
@@ -289,11 +289,9 @@ vstacklet::rollback::versions_restore() {
 			vstacklet::shell::text::white " - ${p} ${now}: updated by the system since the record, kept"
 			continue
 		fi
-		if vstacklet::rollback::offered "${p}" "${rec}"; then
-			target="${rec}"
-		else
-			target="$(LC_ALL=C apt-cache policy "${p}" 2>/dev/null | awk '/Candidate:/ && $2 != "(none)" {print $2}')"
-		fi
+		# @script-note: the restored candidate first (the release's newest version, security fixes included); the recorded version only when no candidate exists
+		target="$(LC_ALL=C apt-cache policy "${p}" 2>/dev/null | awk '/Candidate:/ && $2 != "(none)" {print $2}')"
+		if [[ -z ${target} ]] && vstacklet::rollback::offered "${p}" "${rec}"; then target="${rec}"; fi
 		if [[ -z ${target} ]]; then
 			vstacklet::shell::text::warning " - ${p} ${now}: no restored source offers it or the recorded ${rec}; left as it is"
 			rc=1
@@ -311,7 +309,7 @@ vstacklet::rollback::versions_restore() {
 		vstacklet::shell::text::warning "returning the packages to their recorded versions would remove recorded packages (${lost[*]}); they are left as they are."
 		return 1
 	fi
-	vstacklet::shell::text::white "returning ${#down[@]} packages to the release's versions: ${down[*]}"
+	vstacklet::shell::text::white "moving ${#down[@]} packages to the release's versions: ${down[*]}"
 	LC_ALL=C DEBIAN_FRONTEND=noninteractive apt-get -y -o DPkg::Lock::Timeout=300 -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold --allow-downgrades --no-install-recommends install "${down[@]}" >/dev/null 2>&1 || rc=1
 	return "${rc}"
 }

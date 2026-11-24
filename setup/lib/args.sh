@@ -352,9 +352,10 @@ vstacklet::args::password() {
 # @description: Exits unless the value is a folder under /var/www/ or /srv/ whose every part starts with a letter or digit and holds only letters, digits and . _ - (no .., no hidden parts, no system folders).
 ##################################################################################
 vstacklet::args::webroot() {
-	local re='^/(var/www|srv)(/[A-Za-z0-9][A-Za-z0-9._-]*)+$'
+	# @script-note: /var/www only in this build: the rollback records and removes /var/www, so a web root elsewhere would survive it
+	local re='^/var/www(/[A-Za-z0-9][A-Za-z0-9._-]*)+$'
 	if [[ ${#2} -gt 200 || ! $2 =~ ${re} ]]; then
-		vstacklet::shell::text::error "option '$1': '$2' is not an allowed web root; use a folder under /var/www/ or /srv/ (for example: /var/www/html/vsapp)." && exit 1
+		vstacklet::shell::text::error "option '$1': '$2' is not an allowed web root; use a folder under /var/www/ (for example: /var/www/html/vsapp)." && exit 1
 	fi
 }
 
