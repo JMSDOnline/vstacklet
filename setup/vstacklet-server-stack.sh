@@ -254,16 +254,12 @@ vstacklet::environment::init() {
 # @break
 ##################################################################################
 vstacklet::args::process() {
+	# @script-note: strict option values (4.0): every option is matched exactly, every value-taking option needs a
+	# value that is present and is not another option, and every value is checked against a strict pattern before
+	# it is stored. Numbers are checked as text before any integer assignment, so a value is never evaluated as
+	# arithmetic (bash evaluates the value of an integer variable, which can run commands).
 	while [[ $# -gt 0 ]]; do
 		case "${1}" in
-		# there may be options that can utilize active builds, but for now, we'll just
-		# assume that all options are passive builds triggered by the user (with the options/args set).
-		# `-wp | --wordpress` is the only exception, as it is an active build, and additional information
-		# is required to install WordPress. (e.g. the database name, user, and password)
-		#--non-interactive)
-		#	declare -gi non_interactive="1"
-		#	shift
-		#	;;
 		-V | --version)
 			vstacklet::version::display
 			;;
@@ -283,49 +279,45 @@ vstacklet::args::process() {
 			declare -gi csf_cloudflare="1"
 			shift
 			;;
-		-d* | --domain*)
+		-d | --domain)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::fqdn "$1" "$2"
 			declare -gi domain_ssl=1
 			declare -g domain="${2}"
-			shift
-			shift
-			[[ -n ${domain} && $(echo "${domain}" | grep -P '(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)') == "" ]] && vstacklet::shell::text::error "please provide a valid domain name." && exit 1
+			shift 2
 			;;
-		-e* | --email*)
+		-e | --email)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::email "$1" "$2"
 			declare -g email="${2}"
-			shift
-			shift
+			shift 2
 			;;
-		-ftp* | --ftp_port*)
-			declare -gi ftp_port="${2}"
-			shift
-			shift
-			[[ -n ${ftp_port} && ${ftp_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for the FTP server." && exit 1
-			[[ -n ${ftp_port} && ${ftp_port} -lt 1 || ${ftp_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid FTP port number. please enter a number between 1 and 65535." && exit 1
+		-ftp | --ftp_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi ftp_port=$((10#$2))
+			shift 2
 			;;
 		-hhvm | --hhvm)
-			declare -gi hhvm="1"
-			shift
+			vstacklet::shell::text::error "HHVM is no longer supported. Use -php (${SUPPORTED_PHP[*]}; default ${DEFAULT_PHP})." && exit 1
 			;;
-		-hn* | --hostname*)
+		-hn | --hostname)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::fqdn "$1" "$2"
 			declare -g hostname="${2}"
-			shift
-			shift
-			[[ -n ${hostname} && $(echo "${hostname}" | grep -P '(?=^.{5,254}$)(^(?:(?!\d+\.)[a-zA-Z0-9_\-]{1,63}\.?)+\.(?:[a-z]{2,})$)') == "" ]] && vstacklet::shell::text::error "please provide a valid hostname." && exit 1
-			[[ -z ${hostname} ]] && declare -g hostname && hostname="$(hostname --fqdn)"
+			shift 2
 			;;
-		-https* | --https_port*)
-			declare -gi https_port="${2}"
-			shift
-			shift
-			[[ -n ${https_port} && ${https_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for the HTTPS server." && exit 1
-			[[ -n ${https_port} && ${https_port} -lt 1 || ${https_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid HTTPS port number. please enter a number between 1 and 65535." && exit 1
+		-https | --https_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi https_port=$((10#$2))
+			shift 2
 			;;
-		-http* | --http_port*)
-			declare -gi http_port="${2}"
-			shift
-			shift
-			[[ -n ${http_port} && ${http_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for the HTTP server." && exit 1
-			[[ -n ${http_port} && ${http_port} -lt 1 || ${http_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid HTTP port number. please enter a number between 1 and 65535." && exit 1
+		-http | --http_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi http_port=$((10#$2))
+			shift 2
 			;;
 		-ioncube | --ioncube)
 			declare -gi ioncube="1"
@@ -335,47 +327,45 @@ vstacklet::args::process() {
 			declare -gi mariadb="1"
 			shift
 			;;
-		-mariadbU* | --mariadb_user*)
+		-mariadbU | --mariadb_user)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::dbuser "$1" "$2"
 			declare -g mariadb_user="${2}"
-			shift
-			shift
-			[[ -n ${mariadb_user} && ${mariadb_user} == "root" ]] && declare -g mariadb_user="admin" && vstacklet::shell::text::warning "mariadb username cannot be 'root'. setting to 'admin'." && sleep 2
+			shift 2
 			;;
-		-mariadbPw* | --mariadb_password*)
+		-mariadbPw | --mariadb_password | --mariadb-password)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::password "$1" "$2"
 			declare -g mariadb_password="${2}"
-			shift
-			shift
-			[[ -n ${mariadb_password} && ${#mariadb_password} -lt 8 ]] && vstacklet::shell::text::error "please provide a password for mariadb that is at least 8 characters long." && exit 1
+			shift 2
 			;;
-		-mariadbP* | --mariadb_port*)
-			declare -gi mariadb_port="${2}"
-			shift
-			shift
-			[[ -n ${mariadb_port} && ${mariadb_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for mariadb." && exit 1
-			[[ -n ${mariadb_port} && ${mariadb_port} -lt 1 || ${mariadb_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid mariadb port number. please enter a number between 1 and 65535." && exit 1
+		-mariadbP | --mariadb_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi mariadb_port=$((10#$2))
+			shift 2
 			;;
 		-mysql | --mysql)
 			declare -gi mysql="1"
 			shift
 			;;
-		-mysqlU* | --mysql_user*)
+		-mysqlU | --mysql_user)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::dbuser "$1" "$2"
 			declare -g mysql_user="${2}"
-			shift
-			shift
-			[[ -n ${mysql_user} && ${mysql_user} == "root" ]] && declare -g mysql_user="admin" && vstacklet::shell::text::warning "mysql username cannot be 'root'. setting to 'admin'." && sleep 2
+			shift 2
 			;;
-		-mysqlPw* | --mysql_password*)
+		-mysqlPw | --mysql_password)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::password "$1" "$2"
 			declare -g mysql_password="${2}"
-			shift
-			shift
-			[[ -n ${mysql_password} && ${#mysql_password} -lt 8 ]] && vstacklet::shell::text::error "please provide a password for mysql that is at least 8 characters long." && exit 1
+			shift 2
 			;;
-		-mysqlP* | --mysql_port*)
-			declare -gi mysql_port="${2}"
-			shift
-			shift
-			[[ -n ${mysql_port} && ${mysql_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for mysql." && exit 1
-			[[ -n ${mysql_port} && ${mysql_port} -lt 1 || ${mysql_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid mysql port number. please enter a number between 1 and 65535." && exit 1
+		-mysqlP | --mysql_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi mysql_port=$((10#$2))
+			shift 2
 			;;
 		-nginx | --nginx)
 			declare -gi nginx="1"
@@ -385,95 +375,91 @@ vstacklet::args::process() {
 			declare -gi postgresql="1"
 			shift
 			;;
-		-postgreU* | --postgresql_user*)
+		-postgreU | --postgresql_user)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::dbuser "$1" "$2"
 			declare -g postgresql_user="${2}"
-			shift
-			shift
+			shift 2
 			;;
-		-postgrePw* | --postgresql_password*)
+		-postgrePw | --postgresql_password)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::password "$1" "$2"
 			declare -g postgresql_password="${2}"
-			shift
-			shift
-			[[ -n ${postgresql_password} && ${#postgresql_password} -lt 8 ]] && vstacklet::shell::text::error "please provide a password for postgresql that is at least 8 characters long." && exit 1
+			shift 2
 			;;
-		-postgreP* | --postgresql_port*)
-			declare -gi postgresql_port="${2}"
-			shift
-			shift
-			[[ -n ${postgresql_port} && ${postgresql_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for postgresql." && exit 1
-			[[ -n ${postgresql_port} && ${postgresql_port} -lt 1 || ${postgresql_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid postgresql port number. please enter a number between 1 and 65535." && exit 1
+		-postgreP | --postgresql_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi postgresql_port=$((10#$2))
+			shift 2
 			;;
 		-pma | --phpmyadmin)
 			declare -gi phpmyadmin="1"
 			shift
 			;;
-		-php* | --php*)
+		-php | --php)
+			vstacklet::args::need_value "$1" $# "${2-}"
 			declare -g php="${2}"
-			shift
-			shift
+			shift 2
 			;;
 		-redis | --redis)
 			declare -gi redis="1"
 			shift
 			;;
-		-redisPw* | --redis_password*)
+		-redisPw | --redis_password)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::password "$1" "$2"
 			declare -g redis_password="${2}"
-			shift
-			shift
-			[[ -n ${redis_password} && ${#redis_password} -lt 8 ]] && vstacklet::shell::text::error "please provide a password for redis that is at least 8 characters long." && exit 1
+			shift 2
 			;;
-		-redisP* | --redis_port*)
-			declare -gi redis_port="${2}"
-			shift
-			shift
-			[[ -n ${redis_port} && ${redis_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for redis." && exit 1
-			[[ -n ${redis_port} && ${redis_port} -lt 1 || ${redis_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid redis port number. please enter a number between 1 and 65535." && exit 1
+		-redisP | --redis_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi redis_port=$((10#$2))
+			shift 2
 			;;
 		-sendmail | --sendmail)
 			declare -gi sendmail="1"
 			shift
 			;;
-		-sendmailP* | --sendmail_port*)
-			declare -gi sendmail_port="${2}"
-			shift
-			shift
-			[[ -n ${sendmail_port} && ${sendmail_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for sendmail." && exit 1
-			[[ -n ${sendmail_port} && ${sendmail_port} -lt 1 || ${sendmail_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid sendmail port number. please enter a number between 1 and 65535." && exit 1
+		-sendmailP | --sendmail_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi sendmail_port=$((10#$2))
+			shift 2
 			;;
 		--dns | --dns_provider)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			[[ ${2} != "cloudflare" ]] && vstacklet::shell::text::error "currently only 'cloudflare' is supported as DNS provider." && exit 1
 			declare -gi dns_verification="1"
 			declare -g dns_provider="${2}"
-			shift
-			shift
-			[[ -n ${dns_provider} && ${dns_provider} != "cloudflare" ]] && vstacklet::shell::text::error "currently only 'cloudflare' is supported as DNS provider." && exit 1
+			shift 2
 			;;
-		-ssh* | --ssh_port*)
-			declare -gi ssh_port="${2}"
-			shift
-			shift
-			[[ -n ${ssh_port} && ${ssh_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for ssh." && exit 1
-			[[ -n ${ssh_port} && ${ssh_port} -lt 1 || ${ssh_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid ssh port number. please enter a number between 1 and 65535." && exit 1
+		-ssh | --ssh_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi ssh_port=$((10#$2))
+			shift 2
 			;;
 		-varnish | --varnish)
 			declare -gi varnish="1"
 			shift
 			;;
-		-varnishP* | --varnish_port*)
-			declare -gi varnish_port="${2}"
-			shift
-			shift
-			[[ -n ${varnish_port} && ${varnish_port} != ?(-)+([0-9]) ]] && vstacklet::shell::text::error "please provide a valid port number for varnish." && exit 1
-			[[ -n ${varnish_port} && ${varnish_port} -lt 1 || ${varnish_port} -gt 65535 ]] && vstacklet::shell::text::error "invalid varnish port number. please enter a number between 1 and 65535." && exit 1
+		-varnishP | --varnish_port)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::port "$1" "$2"
+			declare -gi varnish_port=$((10#$2))
+			shift 2
 			;;
 		-wp | --wordpress)
 			declare -gi wordpress="1"
 			shift
 			;;
-		-wr* | --web_root*)
+		-wr | --web_root)
+			vstacklet::args::need_value "$1" $# "${2-}"
+			vstacklet::args::webroot "$1" "$2"
 			declare -g web_root="${2}"
-			shift
-			shift
-			[[ -n ${web_root} && $(sed -e 's/[\\/]/\\/g;s/[\/\/]/\\\//g;' <<<"${web_root}") == "" ]] && vstacklet::shell::text::error "invalid web root. please provide a valid web root. (e.g. /var/www/html/vsapp)" && exit 1
+			shift 2
 			;;
 		--rollback)
 			declare -gi rollback="1" && vstacklet::rollback
@@ -487,17 +473,16 @@ vstacklet::args::process() {
 			;;
 		esac
 	done
+	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::shell::text::error "invalid option(s): ${invalid_option[*]}" && exit 1
 	# @script-note: run sanity checks on the options provided
-	[[ -n ${csfCf} && -z ${csf} ]] && vstacklet::shell::text::error "\`-csfCf\` requires \`-csf\`" && exit 1
+	[[ -n ${csf_cloudflare} && -z ${csf} ]] && vstacklet::shell::text::error "\`-csfCf\` requires \`-csf\`" && exit 1
 	[[ -n ${csf} && -z ${email} ]] && vstacklet::shell::text::error "please provide a valid email address. (required for \`-csf\`, \`-sendmail\`, and \`-csfCf\`)" && exit 1
 	[[ -n ${domain} && -z ${email} ]] && vstacklet::shell::text::error "an email is needed to register with Let's Encrypt. please set an email with \`-e\`." && exit 1
-	[[ -n ${mariadb} && -n ${mysql} ]] && vstacklet::shell::text::error "mariadb and mysql cannot be installed together. choose either mariadb and mysql." && exit 1
+	[[ -n ${mariadb} && -n ${mysql} ]] && vstacklet::shell::text::error "mariadb and mysql cannot be installed together. choose either mariadb or mysql." && exit 1
 	[[ -n ${sendmail} && -z ${email} ]] && vstacklet::shell::text::error "an email is needed to register the server aliases. please set an email with \`-e your@email.com\`." && exit 1
-	[[ -n ${hhvm} && -n ${phpmyadmin} ]] && vstacklet::shell::text::error "phpmyadmin dodes not support hhvm, please use php 7.4|8.1 if you require phpmyadmin" && exit 1
 	if [[ -n ${wordpress} ]]; then
 		[[ (-z ${mariadb}) && (-z ${mysql}) && (-z ${postgresql}) ]] && vstacklet::shell::text::error "WordPress requires a database to be installed." && exit 1
 		[[ (-z ${nginx}) && (-z ${varnish}) ]] && vstacklet::shell::text::error "WordPress requires a webserver to be installed." && exit 1
-		[[ (-z ${php}) && (-z ${hhvm}) ]] && vstacklet::shell::text::error "WordPress requires a php version to be installed." && exit 1
 	fi
 	if [[ -n ${domain_ssl} ]]; then
 		[[ -z ${email} ]] && vstacklet::shell::text::error "please provide an email address with \`-e\`." && exit 1
@@ -505,7 +490,6 @@ vstacklet::args::process() {
 	fi
 	if [[ -n ${dns_verification} ]]; then
 		[[ -z ${domain_ssl} ]] && vstacklet::shell::text::error "DNS verification requires a domain to be specified with \`-d\`." && exit 1
-		[[ -z ${dns_provider} ]] && vstacklet::shell::text::error "DNS verification requires a provider to be specified with \`--dns\`." && exit 1
 		[[ ${dns_provider} == "cloudflare" && -z ${CF_Token} ]] && declare -gi cf_token_required="1"
 	fi
 	# @script-note: PHP is the default version unless -php names one; only an exact version in the tested range is accepted
@@ -515,7 +499,101 @@ vstacklet::args::process() {
 	if [[ -z ${php_ok} ]]; then
 		vstacklet::shell::text::error "PHP '${php}' is not in the tested range (${SUPPORTED_PHP[*]}; default ${DEFAULT_PHP}). Versions newer than ${SUPPORTED_PHP[-1]} are not tested yet; older ones are no longer supported." && exit 1
 	fi
-	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::shell::text::error "invalid option(s): ${invalid_option[*]}" && exit 1
+	# @script-note: no two services on one port (the web ports count with their defaults when a web server is installed)
+	declare -A port_owner=()
+	declare name port
+	for name in ssh_port ftp_port http_port https_port varnish_port mariadb_port mysql_port postgresql_port redis_port sendmail_port; do
+		port="${!name}"
+		if [[ -z ${port} && (-n ${nginx} || -n ${varnish}) ]]; then
+			[[ ${name} == "http_port" ]] && port=80
+			[[ ${name} == "https_port" ]] && port=443
+			[[ ${name} == "varnish_port" && -n ${varnish} ]] && port=6081
+		fi
+		[[ -z ${port} ]] && continue
+		if [[ -n ${port_owner[${port}]} ]]; then
+			vstacklet::shell::text::error "port ${port} is set for both ${port_owner[${port}]} and ${name}; each service needs its own port." && exit 1
+		fi
+		port_owner[${port}]="${name}"
+	done
+}
+
+##################################################################################
+# @name: vstacklet::args::need_value (3.b)
+# @description: Strict option values. Exits unless the option has a value that is present, not empty and not another option.
+# @param: $1 - the option, $2 - the number of words left including the option, $3 - the value
+##################################################################################
+vstacklet::args::need_value() {
+	if [[ $2 -lt 2 || -z $3 || $3 == -* ]]; then
+		vstacklet::shell::text::error "option '$1' needs a value." && exit 1
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::port (3.c)
+# @description: Exits unless the value is a port number from 1 to 65535, checked as text before it is used as a number.
+##################################################################################
+vstacklet::args::port() {
+	if [[ ! $2 =~ ^[0-9]{1,5}$ ]] || ((10#$2 < 1 || 10#$2 > 65535)); then
+		vstacklet::shell::text::error "option '$1': '$2' is not a port number from 1 to 65535." && exit 1
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::fqdn (3.d)
+# @description: Exits unless the value is a fully qualified domain name: letters, digits and inner hyphens per label, a letter-only top level, 253 characters at most.
+##################################################################################
+vstacklet::args::fqdn() {
+	local re='^([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$'
+	if [[ ${#2} -gt 253 || ! $2 =~ ${re} ]]; then
+		vstacklet::shell::text::error "option '$1': '$2' is not a valid domain name (for example: example.com)." && exit 1
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::email (3.e)
+# @description: Exits unless the value is a plain address (local part of letters, digits and . _ % + -, then a domain name).
+##################################################################################
+vstacklet::args::email() {
+	local re='^[A-Za-z0-9._%+-]{1,64}@([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$'
+	if [[ ${#2} -gt 254 || ! $2 =~ ${re} ]]; then
+		vstacklet::shell::text::error "option '$1': '$2' is not a valid email address." && exit 1
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::dbuser (3.f)
+# @description: Exits unless the value is a database user name (a lowercase letter or underscore, then up to 31 lowercase letters, digits or underscores) other than root.
+##################################################################################
+vstacklet::args::dbuser() {
+	local re='^[a-z_][a-z0-9_]{0,31}$'
+	if [[ ! $2 =~ ${re} ]]; then
+		vstacklet::shell::text::error "option '$1': '$2' is not a valid user name (lowercase letters, digits and underscores, 32 at most)." && exit 1
+	fi
+	if [[ $2 == "root" ]]; then
+		vstacklet::shell::text::error "option '$1': the database user cannot be 'root'; choose another name." && exit 1
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::password (3.g)
+# @description: Exits unless the value is 8 to 128 characters from letters, digits and ! # % * + , . : ; = ? @ ^ _ ~ -. Quotes, backslashes, dollar signs, spaces and other shell or SQL characters are refused until every secret is passed on stdin.
+##################################################################################
+vstacklet::args::password() {
+	local re='^[A-Za-z0-9!#%*+,.:;=?@^_~-]{8,128}$'
+	if [[ ! $2 =~ ${re} ]]; then
+		vstacklet::shell::text::error "option '$1': the password must be 8 to 128 characters from letters, digits and ! # % * + , . : ; = ? @ ^ _ ~ -" && exit 1
+	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::webroot (3.h)
+# @description: Exits unless the value is a folder under /var/www/ or /srv/ whose every part starts with a letter or digit and holds only letters, digits and . _ - (no .., no hidden parts, no system folders).
+##################################################################################
+vstacklet::args::webroot() {
+	local re='^/(var/www|srv)(/[A-Za-z0-9][A-Za-z0-9._-]*)+$'
+	if [[ ${#2} -gt 200 || ! $2 =~ ${re} ]]; then
+		vstacklet::shell::text::error "option '$1': '$2' is not an allowed web root; use a folder under /var/www/ or /srv/ (for example: /var/www/html/vsapp)." && exit 1
+	fi
 }
 
 ##################################################################################
