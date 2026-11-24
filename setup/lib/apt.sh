@@ -150,7 +150,11 @@ vstacklet::apt::key() {
 				"${vs_notice:-vstacklet::gate::notice}" "the ${name} key ${fpr} is expired or revoked and is left out."
 				continue
 			fi
-			[[ -n ${expires} && ${expires} -le ${soon} ]] && "${vs_notice:-vstacklet::gate::notice}" "the ${name} key ${fpr} expires on $(date -d "@${expires}" +%F); run vstacklet --refresh-keys after the vendor renews it."
+			if [[ -n ${expires} && ${expires} -le ${soon} ]]; then
+				"${vs_notice:-vstacklet::gate::notice}" "the ${name} key ${fpr} expires on $(date -d "@${expires}" +%F); run vstacklet --refresh-keys after the vendor renews it."
+				# @script-note: kept for the end summary, where it will be read (S4-S17)
+				vs_key_expiry+=("the ${name} key ${fpr} expires on $(date -d "@${expires}" +%F)")
+			fi
 			valid+=("${fpr}")
 			;;
 		esac

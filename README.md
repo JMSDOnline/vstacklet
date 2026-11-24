@@ -187,8 +187,7 @@ To view the available options, run the script with the `-h` option (`vs-perms -h
 
 **You can review the setup script documentation [here](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md)**
 
-**Setup** should be run as **root** on a fresh **Ubuntu** or **Debian** installation.
-**Stack** should be run on a server without any existing LEMP or LAMP components.
+**Setup** should be run as **root** on a fresh **Ubuntu** or **Debian** installation. **Stack** should be run on a server without any existing LEMP or LAMP components.
 
 ---
 
@@ -198,15 +197,13 @@ To view the available options, run the script with the `-h` option (`vs-perms -h
 
 ( *includes backup (`vs-backup`) and www-permissions (`vs-perms`) scripts* )
 
-**This script is to be ran first**.
-First you will need to download the vStacklet installation script and make it executable. You can do this by running the following command:
+**This script is to be ran first**. First you will need to download the vStacklet installation script and make it executable. You can do this by running the following command:
 
 > [!IMPORTANT]
 >
 > - **The development branch is not recommended for production use.**
 > - This script will only download the vStacklet kit installer script and make it executable. (contains the `vstacklet` script and `vs-backup` and `vs-perms` scripts)
-> - Use the `-b` option to specify the branch you wish to install. (default: main)
-> If no branch is specified, the main branch will be used.
+> - Use the `-b` option to specify the branch you wish to install. (default: main) If no branch is specified, the main branch will be used.
 > - The `-b` option is only available for the vStacklet installer script.
 > - The `-h` option will display the help menu for the vStacklet installer script.
 > - The `-V` option will display the version of the vStacklet installer script.
@@ -247,22 +244,7 @@ Once the script has been downloaded and made executable, you can then run the sc
 > 	- IonCube Loader (`-ioncube`),
 >   - Wordpress (`-wp`).
 >
-> Where NGinx and Varnish are installed, we will set the standard web port for NGinx to 8080 `-http '8080'` and Varnish to 80 `-varnishP '80'`. This is to allow for SSL termination on port 443 with NGinx and Varnish caching on port 80 (*Varnish is **actually** forwarded to port 443 for proper SSL*).<br>
-> You'll notice the `-sendmail` flag is not used below, this is OK as the script will install Sendmail if CSF is installed.<br>
-> The `-csf` flag is used to install CSF.<br>
-> The `-csfCf` flag is used to set Cloudflare IP's in the CSF allow list.<br>
-> The `-ioncube` flag is used to install IonCube Loader. (**PHP8.3 currently has no IonCube Loader support.** This will be updated when support is available.)<br>
-> The `-pma` flag is used to install phpMyAdmin.<br>
-> The `-mariadb` flag is used to install MariaDB.<br>
-> The `-mariadbU` flag is used to set the MariaDB database username. (**When setting the username for the database, do not use `root` as the username.** The database is installed with a `root` user by default bound to the localhost.)
-> The `-mariadbPw` flag is used to set the MariaDB database password.<br>
-> The `-varnish` flag is used to install Varnish.<br>
-> The `-nginx` flag is used to install NGinx.<br>
-> The `-php` flag is used to install PHP8.3.<br>
-> The `-d` flag is used to stage a verified Let's Encrypt SSL cert.<br>
-> The `--dns` flag is used to enable DNS-based SSL certificate verification (useful for local development).<br>
-> The `-e` flag is used to set the admin email.<br>
-> The `-wp` flag is used to install Wordpress.
+> Where NGinx and Varnish are installed, we will set the standard web port for NGinx to 8080 `-http '8080'` and Varnish to 80 `-varnishP '80'`. This is to allow for SSL termination on port 443 with NGinx and Varnish caching on port 80 (*Varnish is **actually** forwarded to port 443 for proper SSL*).<br> You'll notice the `-sendmail` flag is not used below, this is OK as the script will install Sendmail if CSF is installed.<br> The `-csf` flag is used to install CSF.<br> The `-csfCf` flag is used to set Cloudflare IP's in the CSF allow list.<br> The `-ioncube` flag is used to install IonCube Loader. (**PHP8.3 currently has no IonCube Loader support.** This will be updated when support is available.)<br> The `-pma` flag is used to install phpMyAdmin.<br> The `-mariadb` flag is used to install MariaDB.<br> The `-mariadbU` flag is used to set the MariaDB database username. (**When setting the username for the database, do not use `root` as the username.** The database is installed with a `root` user by default bound to the localhost.) The `-mariadbPw` flag is used to set the MariaDB database password.<br> The `-varnish` flag is used to install Varnish.<br> The `-nginx` flag is used to install NGinx.<br> The `-php` flag is used to install PHP8.3.<br> The `-d` flag is used to stage a verified Let's Encrypt SSL cert.<br> The `--dns` flag is used to enable DNS-based SSL certificate verification (useful for local development).<br> The `-e` flag is used to set the admin email.<br> The `-wp` flag is used to install Wordpress.
 
 **Standard HTTP Verification Example:**
 ```bash
@@ -380,7 +362,7 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 **A:** MariaDB is a drop-in replacement for MySQL. It is a fork of MySQL and is maintained by the original developers of MySQL. It is designed to be a drop-in replacement for MySQL, and it includes all of the major features found in MySQL. Either can be used, but MariaDB is recommended.
 
 **Q:** Why is there the option to install either php8.3, php8.1, php7.4 or HHVM?<br>
-**A:** PHP8.3 is the latest stable version of PHP. PHP8.1 is the previous stable version of PHP and some folks are still preferring 7 🤷🏽‍♂️. HHVM is a virtual machine designed to execute programs written in Hack and PHP. It is developed by Facebook. HHVM is no longer actively maintained, but is still available for use. PHP8.3 is recommended.
+**A:** PHP8.3 is the latest stable version of PHP. PHP8.1 is the previous stable version of PHP and some folks are still preferring 7 🤷. HHVM is a virtual machine designed to execute programs written in Hack and PHP. It is developed by Facebook. HHVM is no longer actively maintained, but is still available for use. PHP8.3 is recommended.
 > [!NOTE]
 > PHP8.3 is technically the latest stable release, but PHP8.1 is still supported and is a good choice for those who are not ready to move to PHP8.3. *For instance, at the time of writing this note, ioncube has yet to provide a version compatible with 8.3*. PHP7.4 is also supported, but is not recommended as it is no longer supported by the PHP team. HHVM is a virtual machine designed to execute programs written in Hack and PHP. It is developed by Facebook. HHVM is no longer actively maintained, but is still available for use.
 
@@ -389,6 +371,9 @@ bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/bin/w
 
 **Q:** Did you say the script is actively maintained?<br>
 **A:** Yes, the script is actively maintained. Updates are added when stable and when I have time to sit down and test. The script is tested on Ubuntu 20.04/22.04 and Debian 11/12. The script is also tested on a variety of different servers to ensure compatibility. If you have any issues with the script, please let me know and I will do my best to fix them. If you have any suggestions for improvements, please let me know and I will do my best to implement them.
+
+**Q:** What happens when a vendor's repository key (nginx.org, Sury PHP) expires or changes?<br>
+**A:** vStacklet 4.0 installs vendor packages only with keys whose fingerprints it pins. When a pinned key is within 90 days of expiring, the installer says so during the package check and again in the end summary; after the vendor renews it, run `vstacklet --refresh-keys` to fetch the renewed key, which is accepted only if its fingerprint still matches. When a vendor replaces its key with a new one, vStacklet refuses it on purpose: update vStacklet to a version that pins the new key, then run `vstacklet --refresh-keys`.
 
 **Q:** What is the purpose of the vStacklet VS-Backup script?<br>
 **A:** The vStacklet VS-Backup script is designed to help you manage and automate server/site backups. It allows you to backup your files from key locations, backup your mysql/mariadb databases, set the retention period for your backups, and cleanup remaining individual archives after the retention period has been reached. The script is designed to be easy to use and provides you with the ability to download the script and start backing up important directories and databases. Setting a scheduled cron task is easy, just append your `vs-backup` command arguments with the `-cc` flag.

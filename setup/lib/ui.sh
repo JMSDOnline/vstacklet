@@ -97,6 +97,12 @@ vstacklet::message::complete() {
 	vstacklet::shell::text::green "vStacklet Server Installation Complete! (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"
 	vstacklet::shell::text::green " - Installation Completed in: ${vstacklet_total_time_minutes}/min"
 	vstacklet::shell::text::white " - SSH port: ${ssh_port:-22}"
+	# @script-note: a vendor key that expires within 90 days, repeated from the package check so it is seen (S4-S17)
+	if [[ ${vs_key_expiry[0]+x} ]]; then
+		local k
+		vstacklet::shell::misc::nl
+		for k in "${vs_key_expiry[@]}"; do vstacklet::shell::text::yellow " - Note: ${k}; run vstacklet --refresh-keys after the vendor renews it."; done
+	fi
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "Be sure to review the above output from the vStacklet installation process"
 	vstacklet::shell::text::white "for relevant information regarding your new server and connection details."
@@ -159,6 +165,7 @@ vstacklet::help::display() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " --refresh-keys"
 	vstacklet::shell::text::white "    Re-fetches the vendor repository keys vStacklet added and replaces each one that still matches its trusted fingerprint."
+	vstacklet::shell::text::white "    A key the vendor replaces with a new one is refused; that needs an updated vStacklet."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -r, --reboot"
 	vstacklet::shell::text::white "    Reboots the server after installation is complete."

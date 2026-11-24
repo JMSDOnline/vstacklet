@@ -29,7 +29,7 @@ What each installer option and each always-run step does in this build. Every ro
 | `-ioncube` | Refused until its own step |
 | `-hhvm`, `-csf` | Refused: removed in 4.0 |
 | `--rollback` | Rewritten for 4.0: returns the server to its record, keeping the system's own updates |
-| `--refresh-keys` | Rewritten for 4.0: replaces a vendor key only when it still matches its pinned fingerprint |
+| `--refresh-keys` | Rewritten for 4.0: replaces a vendor key only when it still matches its pinned fingerprint; a vendor's new key needs an updated vStacklet, and a key expiring within 90 days is repeated in the end summary |
 | `--check_update` | Rewritten for 4.0: compares 4.x tags |
 
 ## Steps that run on every install
