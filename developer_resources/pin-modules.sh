@@ -13,6 +13,14 @@ main() {
 		sums+="[${m}]=\"$(sha256sum "${root}/setup/lib/${m}.sh" | cut -d' ' -f1)\" "
 	done
 	local new="declare -gA VSTACKLET_MODULE_SHA256=(${sums% })"
+	# @script-note: the interim release check lives in two copies (the gate module and the bootstrap); they must allow the same releases
+	local a b
+	a="$(sed -n '/^vstacklet::gate::interim() {/,/^}/p' "${root}/setup/lib/gate.sh")"
+	b="$(sed -n '/^vstacklet::gate::interim() {/,/^}/p' "${root}/setup/vstacklet.sh")"
+	if [[ -z ${a} || ${a} != "${b}" ]]; then
+		printf 'pin-modules: vstacklet::gate::interim differs between setup/lib/gate.sh and setup/vstacklet.sh (or is missing); make the two copies the same\n' >&2
+		exit 1
+	fi
 	if [[ ${mode} == --check ]]; then
 		grep -qxF -- "${new}" "${entry}" && { echo "pin-modules: current"; exit 0; }
 		echo "pin-modules: the module list in setup/vstacklet-server-stack.sh is stale; run developer_resources/pin-modules.sh" >&2
