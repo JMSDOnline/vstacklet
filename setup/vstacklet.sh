@@ -321,13 +321,9 @@ vstacklet::setup::variables() {
 			shift
 			;;
 		-b | --branch)
+			# @script-note: a branch name only (letters, digits, . _ / -), never another option
+			[[ $# -ge 2 && ${2} =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$ && ${2} != *..* ]] || { printf -- "%s\n" "Invalid branch name for -b: '${2-}'" && exit 1; }
 			branch="${2}"
-			shift
-			shift
-			;;
-		# @script-note: Custom path for vStacklet base directory
-		-P | --path)
-			vstacklet_base_path="${2}"
 			shift
 			shift
 			;;
@@ -340,7 +336,8 @@ vstacklet::setup::variables() {
 	# @script-note: Set the necessary declarations
 	declare -g vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_php7_path vstacklet_config_hhvm_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname vstacklet_server_stack_script vstacklet_git vstacklet_git_branch
 	# @script-note: Set the vstacklet base path
-	vstacklet_base_path="${vstacklet_base_path:-/opt/vstacklet}"
+	# @script-note: fixed install path (the installer expects it; the -P option was removed in 4.0, it passed its value to rm -rf)
+	vstacklet_base_path="/opt/vstacklet"
 	# @script-note: Set the vstacklet setup path
 	vstacklet_setup_path="${vstacklet_setup_path:-${vstacklet_base_path}/setup}"
 	# @script-note: Set the vstacklet config path
@@ -464,7 +461,6 @@ Options:
   -V, --version   Display the version of vStacklet
   -h, --help      Display this help menu
   -b, --branch    Specify the branch to install from (default: main)
-  -P, --path      Specify the path to install vStacklet (default: /opt/vstacklet)
 
 Examples:
   # Install vStacklet from the main branch

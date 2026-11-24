@@ -678,8 +678,8 @@ vstacklet::gate::install() {
 	done
 	[[ -n ${ioncube} && ${vstacklet_arch} == "arm64" ]] && vstacklet::gate::refuse "ionCube Loader is not offered on arm64 by this installer; run without -ioncube."
 	# @script-note: fresh servers only
-	for f in "${VSTACKLET_MARKER}" /opt/vstacklet/config/system/.install_complete /usr/local/bin/vs-backup /usr/local/bin/vs-perms; do
-		[[ -e ${f} ]] && vstacklet::gate::refuse "an earlier vStacklet install was found (${f}). vStacklet 4 installs on fresh servers only; see the upgrade checklist in the README."
+	for f in "${VSTACKLET_MARKER}" /opt/vstacklet/config/system/.install_complete /var/log/vstacklet; do
+		[[ -e ${f} ]] && vstacklet::gate::refuse "an earlier vStacklet install or install attempt was found (${f}). vStacklet 4 installs on fresh servers only: rebuild the server, or see the upgrade checklist in the README."
 	done
 	if [[ -n ${nginx} || -n ${varnish} ]]; then
 		[[ $(dpkg-query -W -f='${Status}' apache2 2>/dev/null) == *"ok installed"* ]] && vstacklet::gate::refuse "apache2 is installed. vStacklet installs nginx on fresh servers only."
@@ -716,7 +716,7 @@ vstacklet::environment::store_flags_args() {
 		command_string+=" ${arg}"
 	done
 	# @script-note: mask the mariadb and mysql passwords
-	command_string=$(echo "${command_string}" | sed -E -e 's/(-mariadbPw|--mariadb_password|--mysqlPw|--mysql_password)[[:space:]]+[^[:space:]]+/\1 ********/g')
+	command_string=$(echo "${command_string}" | sed -E -e 's/(-mariadbPw|--mariadb_password|--mariadb-password|-mysqlPw|--mysql_password|-postgrePw|--postgresql_password|-redisPw|--redis_password)[[:space:]]+[^[:space:]]+/\1 ********/g')
 	# @script-note: store the command string
 	echo "Command:${command_string}" >"${flags_args_file}"
 	vstacklet::shell::misc::nl
@@ -907,7 +907,8 @@ vs::stat::progress::start() {
 	declare -g pg_pid
 	vs::stat::progress &
 	pg_pid=$!
-	trap 'kill -9 ${pg_pid} 2>/dev/null' $(seq 0 15) >/dev/null 2>&1
+	# @script-note: only on exit; INT, TERM and HUP stay with the installer's own trap, which also stops the spinner
+	trap 'kill -9 ${pg_pid} 2>/dev/null' EXIT
 }
 # stop the spinner and remove the function's PID
 vs::stat::progress::stop() {
@@ -924,7 +925,8 @@ vs::stat::progress::stop() {
 #
 # notes:
 # - one log per run: /var/log/vstacklet/vstacklet.<date-time>.<pid>.log (mode 600); earlier logs are kept
-# - vstacklet::log takes a command as separate words ("$@"), never a string, and returns its exit status
+# - vstacklet::log takes a command as separate words ("$@"), never a string, and stops the install when it fails;
+#   vstacklet::log::try logs and returns the status for the few calls whose failure is tolerated today
 # @noargs
 # @nooptions
 # @break
@@ -941,7 +943,20 @@ vstacklet::log::check() {
 	# @script-note: run one command given as separate words, never as a string, so arguments are not split or
 	# globbed again and shell operators are never passed in. Returns the command's own exit status.
 	# usage: vstacklet::log apt-get -y install "${package}"
+	# A failed command stops the install (fail closed): the error names the command and its exit status.
 	vstacklet::log() {
+		local rc
+		vstacklet::log::try "$@"
+		rc=$?
+		if [[ ${rc} -ne 0 ]]; then
+			declare -g vstacklet_failed_step="$* (exit ${rc})"
+			vstacklet::error::display log
+		fi
+		return 0
+	}
+	# The same, for the few calls whose failure is tolerated today; it logs and returns the status, never stops.
+	# Each one goes when its part of the installer is rewritten.
+	vstacklet::log::try() {
 		[[ $# -gt 0 ]] || return 2
 		if [[ -z ${verbosity} ]]; then
 			"$@" >>"${log_file}" 2>&1
@@ -1548,14 +1563,14 @@ vstacklet::locale::set() {
 	else
 		(
 			vstacklet::log apt-get -y update
-			[[ ${distro,,} == "debian" ]] && vstacklet::log apt-get -y install locales locale-gen
+			[[ ${distro,,} == "debian" ]] && vstacklet::log apt-get -y install locales
 			[[ ${distro,,} == "ubuntu" ]] && vstacklet::log apt-get -y install locales
 			update-locale "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
 			dpkg-reconfigure --frontend noninteractive locales
 		) >>"${vslog}" 2>&1 || vstacklet::error::display 13
 	fi
-	[[ ${distro,,} == "debian" ]] && vstacklet::log locale-gen locales
-	[[ ${distro,,} == "ubuntu" ]] && vstacklet::log locale-gen en_US.UTF-8
+	[[ ${distro,,} == "debian" ]] && vstacklet::log::try locale-gen locales
+	[[ ${distro,,} == "ubuntu" ]] && vstacklet::log::try locale-gen en_US.UTF-8
 	declare -xg LANGUAGE="en_US.UTF-8"
 }
 
@@ -3508,7 +3523,7 @@ vstacklet::clean::complete() {
 	done
 	# @script-note: csf requires a restart with its own command this will effectively
 	# stop/start csf and lfd and reload the firewall and rules
-	[[ -n ${csf} ]] && vstacklet::log csf -x && vstacklet::log csf -e && vstacklet::log csf -r
+	[[ -n ${csf} ]] && vstacklet::log::try csf -x && vstacklet::log::try csf -e && vstacklet::log::try csf -r
 	[[ -n ${nginx} ]] && rm -rf /etc/apache2 && rm -rf /usr/sbin/apache2
 	iptables-save >/etc/iptables/rules.v4 2>>"${log_file}"
 	unset service services
@@ -3868,6 +3883,7 @@ vstacklet::error::display() {
 		117) error="failed to issue the certificate." ;;
 		118) error="failed to install the certificate." ;;
 		119) error="failed to edit /etc/nginx/sites-available/${domain}.conf." ;;
+		log) error="a step failed: ${vstacklet_failed_step:-unknown}" ;;
 		*) error="Unknown error" ;;
 		esac
 		vstacklet::shell::text::error "${error}"
@@ -3891,7 +3907,7 @@ vstacklet::error::display() {
 	fi
 	exit 1
 }
-trap 'vstacklet::error::display' SIGINT SIGTERM SIGHUP
+trap '[[ -n ${pg_pid} ]] && kill -9 "${pg_pid}" 2>/dev/null; vstacklet::error::display' SIGINT SIGTERM SIGHUP
 
 ################################################################################
 # @name: vstacklet::rollback
