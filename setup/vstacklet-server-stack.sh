@@ -258,7 +258,7 @@ vstacklet::environment::init() {
 	local_php8_dir="/opt/vstacklet/config/php8"
 	local_nginx_dir="/opt/vstacklet/config/nginx"
 	local_varnish_dir="/opt/vstacklet/config/varnish"
-	# @script-note: record the server's state before the first change, once per server, for vstacklet --rollback
+	# @script-note: record the server's state before the first change (afresh on every install that passed the gate), for vstacklet --rollback
 	vstacklet::rollback::baseline || { vstacklet::shell::text::error "could not record the server's state in /root/vstacklet/baseline; nothing was changed." && exit 1; }
 	# @script-note: from here on the installer changes the server; a failure after this point means a rollback or a rebuild
 	declare -gi vstacklet_changes_started=1
@@ -325,7 +325,7 @@ vstacklet::args::info() {
 # | -wr | --web_root				   | web root to use for the server
 # | -wp | --wordpress				   | install WordPress
 # | -r | --reboot					   | reboot the server after installation
-# | --rollback						   | rollback the server to a previous state
+# | --rollback						   | undo an install: restore the state recorded before its first change
 # | --check_update					   | check the installed branch for a newer 4.x release
 #
 # @example: vstacklet --help
@@ -539,6 +539,7 @@ vstacklet::args::process() {
 			;;
 		--rollback)
 			declare -gi rollback="1" && vstacklet::rollback
+			shift
 			;;
 		--check_update)
 			vstacklet::update::check
@@ -686,13 +687,15 @@ vstacklet::gate::install() {
 	[[ -n ${ioncube} && ${vstacklet_arch} == "arm64" ]] && vstacklet::gate::refuse "ionCube Loader is not offered on arm64 by this installer; run without -ioncube."
 	# @script-note: fresh servers only
 	for f in "${VSTACKLET_MARKER}" /opt/vstacklet/config/system/.install_complete /var/log/vstacklet; do
-		[[ -e ${f} ]] && vstacklet::gate::refuse "an earlier vStacklet install or install attempt was found (${f}). vStacklet 4 installs on fresh servers only: run vstacklet --rollback to undo an earlier attempt, rebuild the server, or see the upgrade checklist in the README."
+		[[ -e ${f} ]] || continue
+		if [[ -f /root/vstacklet/baseline/complete ]]; then
+			vstacklet::gate::refuse "an earlier vStacklet install or install attempt was found (${f}). vStacklet 4 installs on fresh servers only: run vstacklet --rollback to undo it, or rebuild the server."
+		fi
+		vstacklet::gate::refuse "an earlier vStacklet install was found (${f}) with no install record to roll back. vStacklet 4 installs on fresh servers only: rebuild the server, or see the upgrade checklist in the README."
 	done
 	if [[ -n ${nginx} || -n ${varnish} ]]; then
 		[[ $(dpkg-query -W -f='${Status}' apache2 2>/dev/null) == *"ok installed"* ]] && vstacklet::gate::refuse "apache2 is installed. vStacklet installs nginx on fresh servers only."
-		for f in /etc/nginx/sites-enabled/* /etc/nginx/conf.d/*.conf; do
-			[[ -e ${f} && ${f} != "/etc/nginx/sites-enabled/default" ]] && vstacklet::gate::refuse "nginx already has a site configuration (${f}). vStacklet installs on fresh servers only."
-		done
+		[[ -e /etc/nginx ]] && vstacklet::gate::refuse "nginx is already installed on this server (/etc/nginx). vStacklet installs nginx on fresh servers only."
 		command -v ss >/dev/null 2>&1 || vstacklet::gate::refuse "the ss command (iproute2) is missing, so the web ports cannot be checked."
 		for p in "${http_port:-80}" "${https_port:-443}" ${varnish:+"${varnish_port:-6081}"}; do
 			[[ -n $(ss -Hltn "sport = :${p}" 2>/dev/null) ]] && vstacklet::gate::refuse "port ${p} is already in use on this server."
@@ -3527,7 +3530,7 @@ vstacklet::error::display() {
 		# @script-note: fail closed (4.0): a failed step stops the install; nothing is undone, the server is rebuilt
 		vstacklet::shell::misc::nl
 		if [[ -n ${vstacklet_changes_started} ]]; then
-			vstacklet::shell::text::error "the install has stopped and this server is now partly configured. To undo what this run installed, run:"
+			vstacklet::shell::text::error "the install has stopped and this server is now partly configured. To bring it back to the state recorded when the installer first changed it (the bootstrap's own tools stay), run:"
 			vstacklet::shell::text::white "vstacklet --rollback"
 			vstacklet::shell::text::error "If the rollback cannot bring the server back to a clean state, rebuild it from a fresh image."
 		else
@@ -3537,7 +3540,11 @@ vstacklet::error::display() {
 		vstacklet::shell::text::white " - to report a problem: https://github.com/JMSDOnline/vstacklet/issues (include the error above, the log, the vStacklet version ${vstacklet_version:-unknown} and the server's OS and version)"
 		vstacklet::shell::misc::nl
 	else
-		vstacklet::shell::text::error "The rollback process has been cancelled."
+		if [[ -n ${rollback_started} ]]; then
+			vstacklet::shell::text::error "The rollback stopped part-way. Run vstacklet --rollback again to finish it."
+		else
+			vstacklet::shell::text::error "The rollback process has been cancelled; nothing was changed."
+		fi
 		vstacklet::shell::misc::nl
 	fi
 	exit 1
@@ -3546,103 +3553,235 @@ trap '[[ -n ${pg_pid} ]] && kill -9 "${pg_pid}" 2>/dev/null; vstacklet::error::d
 
 ################################################################################
 # @name: vstacklet::rollback::baseline
-# @description: Records the server's state before the installer's first change, once per server, so a rollback can
-# restore exactly that state: the installed packages and their manual marks, the apt sources, keys and preferences,
-# the enabled services, hosts, hostname, sshd_config, root's shell files, and which installer paths already existed.
-# A later install attempt keeps the first record. Stored in /root/vstacklet/baseline (mode 700).
+# @description: Records the server's state before the installer's first change, so vstacklet --rollback can bring it back: every installed or half-installed package by its full name, the manual marks, the apt sources and keys, the enabled units, root's crontab, five system files, and which installer paths existed. Each install that passes the fresh-server gate records afresh. The record is built in a temporary folder and ends with a manifest (machine id, release, architecture, a hash of every file) that the rollback checks before it changes anything. Stored in /root/vstacklet/baseline (mode 700).
+# @return_code: 1 - the record could not be written; nothing was changed.
 ################################################################################
 vstacklet::rollback::paths() {
-	printf '%s\n' /etc/vstacklet /etc/nginx /etc/nginx-pre-vstacklet /etc/systemd/system/nginx.service.d /etc/php /etc/mysql /var/lib/mysql /etc/varnish /etc/redis /var/lib/redis /etc/postgresql /var/lib/postgresql /etc/phpmyadmin /usr/share/phpmyadmin /etc/csf /usr/local/csf /usr/local/src/csf /etc/iptables /etc/vsftpd.conf /etc/vsftpd.chroot_list /etc/vsftpd /etc/mail /root/.my.cnf /root/.acme.sh /root/acme.sh /usr/local/bin/wp /var/www "${web_root:-/var/www/html/vsapp}"
+	printf '%s\n' /etc/vstacklet /etc/nginx /etc/nginx-pre-vstacklet /etc/systemd/system/nginx.service.d /etc/php /etc/mysql /var/lib/mysql /etc/varnish /etc/redis /var/lib/redis /etc/postgresql /var/lib/postgresql /etc/phpmyadmin /usr/share/phpmyadmin /etc/iptables /etc/vsftpd.conf /etc/vsftpd.chroot_list /etc/vsftpd /etc/mail /root/.my.cnf /root/.acme.sh /root/acme.sh /usr/local/bin/wp /var/www /usr/share/keyrings/nginx-archive-keyring.gpg /usr/share/keyrings/redis-archive-keyring.gpg
+}
+vstacklet::rollback::files() {
+	printf '%s\n' /etc/hosts /etc/hostname /etc/ssh/sshd_config /root/.bashrc /root/.profile
+}
+vstacklet::rollback::installed() {
+	dpkg-query -W -f='${db:Status-Status} ${binary:Package}\n' | awk '$1 != "not-installed" && $1 != "config-files" {print $2}' | LC_ALL=C sort -u
+}
+vstacklet::rollback::units() {
+	systemctl list-unit-files --state=enabled --no-legend | awk '{print $1}' | LC_ALL=C sort -u
+}
+vstacklet::rollback::identity() {
+	printf 'machine-id=%s\nrelease=%s %s\narch=%s\n' "$(cat /etc/machine-id 2>/dev/null)" "${distro}" "${codename}" "${vstacklet_arch}"
 }
 vstacklet::rollback::baseline() {
-	local b=/root/vstacklet/baseline p
-	[[ -f ${b}/complete ]] && return 0
-	rm -rf "${b}" && mkdir -p "${b}/apt" && chmod 700 /root/vstacklet "${b}" || return 1
-	dpkg-query -W -f='${db:Status-Abbrev} ${Package}\n' | awk '$1 ~ /^ii/ {print $2}' | sort >"${b}/packages" || return 1
-	apt-mark showmanual | sort >"${b}/packages.manual" || return 1
+	local -x LC_ALL=C
+	local - p
+	set -o pipefail
+	local root=/root/vstacklet b=/root/vstacklet/baseline t=/root/vstacklet/baseline.new
+	if [[ -n $(dpkg --audit 2>&1) ]]; then
+		vstacklet::shell::text::error "apt or dpkg is busy, or a package is half-installed. Wait for it to finish (or run dpkg --configure -a), then run the installer again."
+		return 1
+	fi
+	if [[ -L ${root} || -L ${b} ]]; then
+		vstacklet::shell::text::error "${root} or ${b} is a symbolic link; remove it, then run the installer again."
+		return 1
+	fi
+	{ mkdir -p "${root}" && chmod 700 "${root}" && rm -rf "${t}" && mkdir -p "${t}/apt" && chmod 700 "${t}"; } || return 1
+	vstacklet::rollback::installed >"${t}/packages" || return 1
+	for p in dpkg apt base-files; do
+		grep -qxE "${p}(:[a-z0-9]+)?" "${t}/packages" || return 1
+	done
+	apt-mark showmanual | sort -u >"${t}/packages.manual" || return 1
+	vstacklet::rollback::units >"${t}/units.enabled" || return 1
+	[[ -s ${t}/packages.manual && -s ${t}/units.enabled ]] || return 1
+	crontab -l -u root >"${t}/crontab.root" 2>/dev/null || rm -f "${t}/crontab.root"
 	for p in /etc/apt/sources.list /etc/apt/sources.list.d /etc/apt/keyrings /etc/apt/trusted.gpg.d /etc/apt/preferences.d; do
-		[[ -e ${p} ]] && { cp -a "${p}" "${b}/apt/" || return 1; }
+		if [[ -e ${p} ]]; then cp -a "${p}" "${t}/apt/" || return 1; fi
 	done
-	systemctl list-unit-files --state=enabled --no-legend | awk '{print $1}' | sort >"${b}/units.enabled" || return 1
-	for p in /etc/hosts /etc/hostname /etc/ssh/sshd_config /root/.bashrc /root/.profile; do
-		[[ -f ${p} ]] && { cp -a "${p}" "${b}/files${p//\//_}" || return 1; }
+	while IFS= read -r p; do
+		if [[ -f ${p} ]]; then cp -a "${p}" "${t}/files${p//\//_}" || return 1; fi
+	done < <(vstacklet::rollback::files)
+	vstacklet::rollback::paths >"${t}/paths.checked" || return 1
+	while IFS= read -r p; do
+		if [[ -e ${p} || -L ${p} ]]; then printf '%s\n' "${p}"; fi
+	done <"${t}/paths.checked" >"${t}/paths.present"
+	{
+		vstacklet::rollback::identity
+		printf 'recorded=%s\n' "$(date '+%F %H:%M %Z')"
+		(cd "${t}" && find . -type f ! -name 'complete*' -print0 | sort -z | xargs -0 -r sha256sum)
+	} >"${t}/complete.tmp" || return 1
+	{ sync && mv "${t}/complete.tmp" "${t}/complete" && rm -rf "${b}" && mv "${t}" "${b}" && sync; } || return 1
+}
+
+################################################################################
+# @name: vstacklet::rollback::check
+# @description: Succeeds only when /root/vstacklet/baseline is a complete record of this server: real folders owned by root with mode 700, the same machine id, release and architecture, every file listed in the manifest and every hash matching.
+################################################################################
+vstacklet::rollback::check() {
+	local -x LC_ALL=C
+	local root=/root/vstacklet b=/root/vstacklet/baseline f
+	[[ -d ${root} && ! -L ${root} && -d ${b} && ! -L ${b} && -f ${b}/complete && ! -L ${b}/complete ]] || return 1
+	[[ $(stat -c '%u %a' "${root}") == "0 700" && $(stat -c '%u %a' "${b}") == "0 700" ]] || return 1
+	[[ $(head -n 3 "${b}/complete") == "$(vstacklet::rollback::identity)" ]] || return 1
+	for f in packages packages.manual units.enabled paths.checked paths.present; do
+		grep -qE "^[0-9a-f]{64}  \./${f}\$" "${b}/complete" || return 1
 	done
-	vstacklet::rollback::paths >"${b}/paths.checked"
-	while IFS= read -r p; do [[ -e ${p} ]] && printf '%s\n' "${p}"; done <"${b}/paths.checked" >"${b}/paths.present"
-	: >"${b}/complete"
+	[[ $(cd "${b}" && find . -type f ! -name complete | wc -l) -eq $(grep -cE '^[0-9a-f]{64}  \./' "${b}/complete") ]] || return 1
+	(cd "${b}" && grep -E '^[0-9a-f]{64}  \./' complete | sha256sum --quiet --strict -c - >/dev/null 2>&1) || return 1
+}
+
+################################################################################
+# @name: vstacklet::rollback::plan
+# @description: Works out what a rollback would change and stops before any change when it would remove something that was there before: the packages added since the record (boot, kernel, SSH and package-manager packages are left in place and listed), a simulated purge that must not take any recorded package with it, the units to disable and to enable again, the installer paths to delete (named in plain words when they hold sites or databases), and the files and apt sources that differ. With "quiet" it only refreshes the lists.
+################################################################################
+vstacklet::rollback::plan() {
+	local -x LC_ALL=C
+	local - p out size
+	set -o pipefail
+	local b=/root/vstacklet/baseline
+	local -a added=() lost=()
+	declare -ga rb_purge=() rb_kept=() rb_units_off=() rb_units_on=() rb_paths=() rb_files=() rb_apt=()
+	mapfile -t added < <(comm -13 <(sort -u "${b}/packages") <(vstacklet::rollback::installed))
+	for p in "${added[@]}"; do
+		if [[ ${p%%:*} =~ ^(linux-(image|modules|headers)|linux-.*-signed|grub|shim|initramfs-tools|firmware-|openssh-|systemd|cloud-init|qemu-guest-agent|sudo$|apt$|dpkg$) ]]; then rb_kept+=("${p}"); else rb_purge+=("${p}"); fi
+	done
+	if ((${#rb_purge[@]})); then
+		if ! out="$(apt-get -s purge "${rb_purge[@]}" 2>&1)"; then
+			vstacklet::shell::text::error "apt could not plan the removal of the added packages; nothing was changed."
+			printf '%s\n' "${out}" | tail -n 5
+			return 1
+		fi
+		mapfile -t lost < <(printf '%s\n' "${out}" | awk '$1 == "Purg" || $1 == "Remv" {print $2}' | sed 's/:.*//' | sort -u | comm -12 - <(sed 's/:.*//' "${b}/packages" | sort -u))
+		if ((${#lost[@]})); then
+			vstacklet::shell::text::error "removing the added packages would also remove packages that were here before: ${lost[*]}. Nothing was changed. Rebuild the server from a fresh image."
+			return 1
+		fi
+	fi
+	mapfile -t rb_units_off < <(comm -13 <(sort -u "${b}/units.enabled") <(vstacklet::rollback::units))
+	mapfile -t rb_units_on < <(comm -23 <(sort -u "${b}/units.enabled") <(vstacklet::rollback::units))
+	while IFS= read -r p; do
+		[[ -n ${p} && ${p} == /* ]] || continue
+		grep -qxF -- "${p}" "${b}/paths.checked" || continue
+		grep -qxF -- "${p}" "${b}/paths.present" && continue
+		if [[ -e ${p} || -L ${p} ]]; then rb_paths+=("${p}"); fi
+	done < <(vstacklet::rollback::paths)
+	while IFS= read -r p; do
+		if [[ -f ${b}/files${p//\//_} ]] && ! cmp -s "${b}/files${p//\//_}" "${p}"; then rb_files+=("${p}"); fi
+	done < <(vstacklet::rollback::files)
+	for p in sources.list sources.list.d keyrings trusted.gpg.d preferences.d; do
+		if [[ -e ${b}/apt/${p} || -e /etc/apt/${p} ]] && ! diff -rq "${b}/apt/${p}" "/etc/apt/${p}" >/dev/null 2>&1; then rb_apt+=("/etc/apt/${p}"); fi
+	done
+	[[ ${1-} == "quiet" ]] && return 0
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "vStacklet will bring this server back to the state it recorded on $(sed -n 's/^recorded=//p' "${b}/complete") (the bootstrap's own tools stay). It will:"
+	vstacklet::shell::text::white " - remove ${#rb_purge[@]} packages added since then: ${rb_purge[*]:-none}"
+	((${#rb_kept[@]})) && vstacklet::shell::text::white " - leave in place ${#rb_kept[@]} boot, kernel, SSH or package-manager packages added since then (remove them yourself if you do not want them): ${rb_kept[*]}"
+	vstacklet::shell::text::white " - disable ${#rb_units_off[@]} services added since then: ${rb_units_off[*]:-none}; enable again: ${rb_units_on[*]:-none}"
+	vstacklet::shell::text::white " - restore the package sources that differ: ${rb_apt[*]:-none}; restore these files: ${rb_files[*]:-none}"
+	for p in "${rb_paths[@]}"; do
+		size="$(du -sh -- "${p}" 2>/dev/null | cut -f1)"
+		case "${p}" in
+		/var/lib/mysql | /var/lib/postgresql) vstacklet::shell::text::warning " - delete ${p} (${size:-?}): every database on this server" ;;
+		/var/www) vstacklet::shell::text::warning " - delete ${p} (${size:-?}): every site and file under it" ;;
+		*) vstacklet::shell::text::white " - delete ${p} (${size:-?})" ;;
+		esac
+	done
+	return 0
 }
 
 ################################################################################
 # @name: vstacklet::rollback::restore
-# @description: Brings the server back to the recorded baseline: the apt sources first, then the services added since,
-# then exactly the packages added since (never a dependency tree), any baseline package that went missing, the package
-# marks, the installer paths that did not exist before, and the saved files. Each step reports what it did.
+# @description: Applies the plan: finishes any interrupted dpkg run, swaps the recorded apt sources back in, disables the services added since the record, removes exactly the planned packages, reinstalls recorded packages that went missing, applies only the differences in the manual marks, deletes the planned installer paths, restores the files, root's crontab and the SSH listener, then compares packages, units, paths and sources with the record. Succeeds only when nothing differs.
 ################################################################################
 vstacklet::rollback::restore() {
-	local b=/root/vstacklet/baseline p u rc=0
-	local -a added=() missing=() units=()
-	vstacklet::rollback::installed() { dpkg-query -W -f='${db:Status-Abbrev} ${Package}\n' | awk '$1 ~ /^ii/ {print $2}' | sort; }
+	local -x LC_ALL=C DEBIAN_FRONTEND=noninteractive
+	local - p u rc=0 apt_ok=1 left gone port
+	set -o pipefail
+	local b=/root/vstacklet/baseline s=/etc/apt/.vstacklet-restore
+	local -a apt_opts=(-y -o DPkg::Lock::Timeout=300 -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold) missing=()
+	vstacklet::rollback::check || { vstacklet::shell::text::error "the install record changed after it was checked; nothing was changed." && return 1; }
+	vstacklet::shell::text::white "finishing any interrupted package operation ..."
+	if ! dpkg --configure -a >/dev/null 2>&1 || [[ -n $(dpkg --audit 2>&1) ]]; then
+		vstacklet::shell::text::error "dpkg could not finish an interrupted package operation (see dpkg --audit); nothing else was changed."
+		return 1
+	fi
+	vstacklet::rollback::plan quiet || return 1
 	vstacklet::shell::text::white "restoring the package sources ..."
+	rm -rf "${s}" && mkdir -p "${s}" || return 1
+	for p in sources.list sources.list.d keyrings trusted.gpg.d preferences.d; do
+		if [[ -e ${b}/apt/${p} ]] && ! cp -a "${b}/apt/${p}" "${s}/"; then
+			rm -rf "${s}"
+			vstacklet::shell::text::error "could not copy the recorded apt sources; nothing was changed."
+			return 1
+		fi
+	done
 	for p in sources.list sources.list.d keyrings trusted.gpg.d preferences.d; do
 		rm -rf "/etc/apt/${p:?}"
-		[[ -e ${b}/apt/${p} ]] && { cp -a "${b}/apt/${p}" /etc/apt/ || rc=1; }
+		if [[ -e ${s}/${p} ]]; then mv "${s}/${p}" /etc/apt/ || rc=1; fi
 	done
-	[[ ${rc} -eq 0 ]] || { vstacklet::shell::text::error "could not restore /etc/apt from ${b}/apt; stopping before any package is removed." && exit 1; }
-	vstacklet::shell::text::white "stopping and disabling services added since the first run ..."
-	mapfile -t units < <(comm -13 "${b}/units.enabled" <(systemctl list-unit-files --state=enabled --no-legend | awk '{print $1}' | sort))
-	for u in "${units[@]}"; do systemctl disable --now "${u}" >/dev/null 2>&1; vstacklet::shell::text::white " - ${u}"; done
-	DEBIAN_FRONTEND=noninteractive apt-get -yqq update >/dev/null 2>&1 || vstacklet::shell::text::warning "apt-get update reported a problem with the restored sources; continuing with the package lists apt has."
-	mapfile -t added < <(comm -13 "${b}/packages" <(vstacklet::rollback::installed))
-	vstacklet::shell::text::white "removing the ${#added[@]} packages added since the first run ..."
-	if ((${#added[@]})); then
-		DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" purge "${added[@]}" >/dev/null 2>&1 || vstacklet::shell::text::warning "apt-get purge reported a problem; the comparison below shows what is left."
+	rm -rf "${s}"
+	vstacklet::shell::text::white "stopping and disabling services added since the record ..."
+	for u in "${rb_units_off[@]}"; do
+		systemctl disable --now "${u}" >/dev/null 2>&1 || rc=1
+		vstacklet::shell::text::white " - ${u}"
+	done
+	if ! apt-get -o DPkg::Lock::Timeout=300 -qq update --error-on=any >/dev/null 2>&1; then
+		apt_ok=0
+		vstacklet::shell::text::warning "apt-get update could not fetch every restored source; packages that went missing will not be reinstalled."
 	fi
-	mapfile -t missing < <(comm -23 "${b}/packages" <(vstacklet::rollback::installed))
+	vstacklet::shell::text::white "removing the ${#rb_purge[@]} packages added since the record ..."
+	if ((${#rb_purge[@]})); then
+		apt-get "${apt_opts[@]}" purge "${rb_purge[@]}" >/dev/null 2>&1 || { rc=1 && vstacklet::shell::text::warning "apt-get purge reported a problem; the comparison below shows what is left."; }
+	fi
+	mapfile -t missing < <(comm -23 <(sort -u "${b}/packages") <(vstacklet::rollback::installed))
 	if ((${#missing[@]})); then
-		vstacklet::shell::text::white "reinstalling ${#missing[@]} packages that were present before the first run ..."
-		DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${missing[@]}" >/dev/null 2>&1 || vstacklet::shell::text::warning "apt-get install of the missing packages reported a problem."
+		if ((apt_ok)); then
+			vstacklet::shell::text::white "reinstalling ${#missing[@]} recorded packages that went missing ..."
+			apt-get "${apt_opts[@]}" --no-install-recommends install "${missing[@]}" >/dev/null 2>&1 || rc=1
+		else
+			rc=1
+		fi
 	fi
-	xargs -r apt-mark auto <"${b}/packages" >/dev/null 2>&1
-	xargs -r apt-mark manual <"${b}/packages.manual" >/dev/null 2>&1
-	vstacklet::shell::text::white "removing installer paths that did not exist before the first run ..."
-	while IFS= read -r p; do
-		[[ -n ${p} && ${p} == /* ]] || continue
-		grep -qxF -- "${p}" "${b}/paths.present" && continue
-		[[ -e ${p} ]] && rm -rf -- "${p}" && vstacklet::shell::text::white " - ${p}"
-	done <"${b}/paths.checked"
-	for p in /etc/hosts /etc/hostname /etc/ssh/sshd_config /root/.bashrc /root/.profile; do
-		[[ -f ${b}/files${p//\//_} ]] && cp -a "${b}/files${p//\//_}" "${p}"
+	vstacklet::shell::text::white "restoring the manual package marks ..."
+	comm -12 <(comm -13 <(apt-mark showmanual | sort -u) <(sort -u "${b}/packages.manual")) <(dpkg-query -W -f='${Package}\n' | sort -u) | xargs -r apt-mark manual >/dev/null 2>&1 || rc=1
+	comm -23 <(apt-mark showmanual | sort -u) <(sort -u "${b}/packages.manual") | xargs -r apt-mark auto >/dev/null 2>&1 || rc=1
+	vstacklet::shell::text::white "removing installer paths that did not exist before the record ..."
+	for p in "${rb_paths[@]}"; do
+		rm -rf -- "${p}" || rc=1
+		vstacklet::shell::text::white " - ${p}"
 	done
-	[[ -f /etc/hostname ]] && hostnamectl set-hostname "$(cat /etc/hostname)" >/dev/null 2>&1
+	for p in "${rb_files[@]}"; do
+		if [[ ${p} == /etc/ssh/sshd_config ]] && ! sshd -t -f "${b}/files${p//\//_}" >/dev/null 2>&1; then
+			vstacklet::shell::text::warning "the recorded ${p} does not pass sshd -t here; the current one is kept."
+			rc=1
+			continue
+		fi
+		cp -a "${b}/files${p//\//_}" "${p}" || rc=1
+		vstacklet::shell::text::white " - restored ${p}"
+	done
+	if [[ -f ${b}/crontab.root ]]; then
+		crontab -l -u root 2>/dev/null | cmp -s - "${b}/crontab.root" || crontab -u root "${b}/crontab.root" || rc=1
+	elif crontab -l -u root >/dev/null 2>&1; then
+		crontab -r -u root || rc=1
+	fi
+	[[ -f /etc/hostname ]] && { hostnamectl set-hostname "$(cat /etc/hostname)" >/dev/null 2>&1 || rc=1; }
 	while iptables -D INPUT -p udp -m udp --dport 1900 -j DROP 2>/dev/null; do :; done
 	while iptables -D INPUT -p tcp --destination-port 10090:10100 -j ACCEPT 2>/dev/null; do :; done
 	systemctl daemon-reload >/dev/null 2>&1
-	systemctl restart ssh.service >/dev/null 2>&1
-	DEBIAN_FRONTEND=noninteractive apt-get -y autoclean >/dev/null 2>&1
-	# @script-note: what differs from the baseline now, so the user sees whether the rollback is complete
-	local left gone
-	left=$(comm -13 "${b}/packages" <(vstacklet::rollback::installed) | wc -l)
-	gone=$(comm -23 "${b}/packages" <(vstacklet::rollback::installed) | wc -l)
-	vstacklet::shell::text::white "packages differing from the baseline: ${left} added, ${gone} missing"
-	[[ ${left} -eq 0 && ${gone} -eq 0 ]]
+	for u in "${rb_units_on[@]}"; do systemctl enable "${u}" >/dev/null 2>&1 || rc=1; done
+	if systemctl is-enabled --quiet ssh.socket 2>/dev/null; then systemctl restart ssh.socket >/dev/null 2>&1 || rc=1; else systemctl restart ssh.service >/dev/null 2>&1 || rc=1; fi
+	apt-get -y autoclean >/dev/null 2>&1
+	# @script-note: compare with the record, so "rolled back" means nothing differs
+	vstacklet::rollback::plan quiet || rc=1
+	left=$(comm -13 <(sort -u "${b}/packages") <(vstacklet::rollback::installed) | wc -l)
+	gone=$(comm -23 <(sort -u "${b}/packages") <(vstacklet::rollback::installed) | wc -l)
+	vstacklet::shell::text::white "differences from the record: packages ${left} added and ${gone} missing (${#rb_kept[@]} of the added left in place on purpose), services ${#rb_units_off[@]} added and ${#rb_units_on[@]} missing, installer paths ${#rb_paths[@]}, package sources ${#rb_apt[@]}, files ${#rb_files[@]}"
+	port="$(sshd -T 2>/dev/null | awk '$1 == "port" {print $2; exit}')"
+	vstacklet::shell::text::white "SSH is configured on port ${port:-unknown}; open a new session to check it before you close this one."
+	[[ ${rc} -eq 0 && $((left - ${#rb_kept[@]})) -eq 0 && ${gone} -eq 0 && ${#rb_units_off[@]} -eq 0 && ${#rb_units_on[@]} -eq 0 && ${#rb_paths[@]} -eq 0 && ${#rb_apt[@]} -eq 0 && ${#rb_files[@]} -eq 0 ]]
 }
 
 ################################################################################
 # @name: vstacklet::rollback
-# @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3672-L3964)
-#
-# notes:
-# - it will remove the temporary files and directories created during the installation
-#   process.
-# - it will remove the vStacklet log file.
-# - it will remove any dependencies installed during the installation process.
-#  (only dependencies installed by vStacklet will be removed)
-# - it will remove any services installed during the installation process.
-#  (only services installed by vStacklet will be removed)
-# - it will remove any configuration files created during the installation process.
-#  (only configuration files created by vStacklet will be removed)
-# - it will remove any directories created during the installation process.
-#  (only directories created by vStacklet will be removed)
+# @description: Brings a server back to the state recorded before vStacklet's first change. It refuses, changing nothing, when the record is missing (a server set up by an earlier vStacklet version), damaged or from another server. It shows the full plan first, including any sites and databases it would delete, and goes ahead only on the word yes. A lock stops a second rollback, a dropped connection does not stop this one, and the run is logged in /root/vstacklet. The install markers are cleared, so the installer can run again, only when nothing differs from the record afterwards.
 # @nooptions
 # @noargs
 #
@@ -3650,314 +3789,43 @@ vstacklet::rollback::restore() {
 # @break
 ################################################################################
 vstacklet::rollback() {
-	# @script-note: distro and codename come from the gate, which has already read /etc/os-release
-	# @script-note: with a recorded baseline (4.x installs), restore exactly that state; older installs use the file-based path below
-	if [[ -f /root/vstacklet/baseline/complete ]]; then
-		declare confirm
-		vstacklet::shell::text::white "vStacklet will bring this server back to the state recorded before its first install run (/root/vstacklet/baseline): packages, package sources, services and the installer's files. Anything else installed since then is removed too."
-		vstacklet::shell::text::white::sl "Enter yes to continue: " && read -r confirm
-		[[ ${confirm,,} == "yes" || ${confirm,,} == "y" ]] || { vstacklet::shell::text::error "Rollback cancelled." && exit 1; }
-		if vstacklet::rollback::restore; then
-			vstacklet::shell::text::success "Server rolled back to its recorded state. You may run the installer again."
+	local confirm u rc=0
+	local -a held=()
+	if ! vstacklet::rollback::check; then
+		if [[ -e /root/vstacklet/baseline ]]; then
+			vstacklet::shell::text::error "this server's install record (/root/vstacklet/baseline) is damaged or belongs to another server; nothing was changed. Rebuild the server from a fresh image."
 		else
-			vstacklet::shell::text::error "The rollback finished, but the server still differs from its recorded state (see above). Run vstacklet --rollback again, or rebuild the server from a fresh image."
+			vstacklet::shell::text::error "No install record was found on this server (it was set up by an earlier vStacklet version, or the record was removed). vStacklet 4 cannot roll it back safely; nothing was changed. Rebuild the server from a fresh image, or see the upgrade checklist in the README."
 		fi
+		exit 1
+	fi
+	vstacklet::rollback::plan || exit 1
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "Type yes to roll back as listed above (run this inside screen or tmux if your connection may drop):"
+	vstacklet::shell::text::white::sl "> "
+	read -r confirm || confirm=""
+	[[ ${confirm} == "yes" ]] || { vstacklet::shell::text::error "Rollback cancelled; nothing was changed." && exit 1; }
+	exec 9>/root/vstacklet/rollback.lock
+	flock -n 9 || { vstacklet::shell::text::error "a rollback is already running on this server." && exit 1; }
+	trap '' SIGHUP
+	declare -gi rollback_started=1
+	exec > >(tee -a "/root/vstacklet/rollback-$(date +%Y%m%d-%H%M%S).log") 2>&1
+	for u in apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service; do
+		systemctl is-active --quiet "${u}" 2>/dev/null && held+=("${u}")
+	done
+	((${#held[@]})) && systemctl stop "${held[@]}" >/dev/null 2>&1
+	if vstacklet::rollback::restore; then
 		rm -rf /root/vstacklet/setup_temp >/dev/null 2>&1
 		rm -f /opt/vstacklet/config/system/.install_complete "${VSTACKLET_MARKER}" >/dev/null 2>&1
 		if [[ -d ${VSTACKLET_MARKER%/*} ]]; then rmdir --ignore-fail-on-non-empty "${VSTACKLET_MARKER%/*}" || true; fi
 		[[ -d /var/log/vstacklet ]] && mv /var/log/vstacklet "/var/log/vstacklet-rolled-back-$(date +%Y%m%d-%H%M%S)"
-		exit 0
+		vstacklet::shell::text::success "Server rolled back to its recorded state. You may run the installer again."
+	else
+		rc=1
+		vstacklet::shell::text::error "The rollback stopped before the server matched its record (see above). The install markers are kept, so the installer stays closed. Run vstacklet --rollback again, or rebuild the server from a fresh image."
 	fi
-	# @script-note: build an interactive prompt for the user to select and confirm a rollback file.
-	declare input
-	vstacklet::shell::misc::nl
-	rollback_files=()
-	while IFS= read -r -d '' file; do
-		rollback_files+=("$(basename "$file")")
-	done < <(find "/root/vstacklet/setup_temp" -type f -name "vstacklet_install_command*" -print0 2>/dev/null)
-	# @script-note: check if rollback files exist
-	if [[ ${#rollback_files[@]} -eq 0 ]]; then
-		vstacklet::shell::text::error "No rollback files found."
-		exit 1
-	fi
-	rollback_intro() {
-		vstacklet::shell::text::white "Welcome to the vStacklet rollback process."
-		vstacklet::shell::text::white "This process will allow you to remove the changes made during the installation process."
-		vstacklet::shell::text::white "Essentially, this process will revert your server back to its original state."
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::yellow "How does the rollback process work?"
-		vstacklet::shell::text::white "    The rollback process will remove the temporary files and directories created during the installation process.
-    It accomplishes this by reading the contents of the rollback files and executing the commands in reverse order.
-    This process will remove any dependencies, services, configuration files, and directories created during the installation process."
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::yellow "What do I need to do?"
-		vstacklet::shell::text::white "    You will be presented with a list of rollback files to choose from.
-    Each rollback file contains the commands executed during the installation process.
-    You will be prompted to select a rollback file to restore the server to.
-    Once you have selected a rollback file, the rollback process will begin."
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::yellow "Is there are way to reverse a rollback?"
-		vstacklet::shell::text::white "    No, the rollback process is irreversible.
-    Once the rollback process is complete, the changes made during the installation process will be removed.
-    You can always re-run the vStacklet installation process to reapply the changes and/or try a different configuration."
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::magenta "Example:"
-		vstacklet::shell::text::white "    Assume your server was configured with the following command:"
-		vstacklet::shell::text::green "    vstacklet -nginx -php '8.3' -mariadb -mariadbU 'username' -mariadbPw 'password' -varnish -csf
-    -csfCf -wp -pma -ioncube -wr '/var/www/html/vsapp' -d 'example.com' -e 'email@email.com'"
-		vstacklet::shell::text::white "    The rollback process will remove the changes made by the above command."
-		vstacklet::shell::text::white "    The rollback process will remove NGINX, PHP, MariaDB, Varnish, CSF, phpMyAdmin, ionCube,
-    Domain Certificate, and the WordPress installation directory specified in the command."
-		vstacklet::shell::misc::nl
-		rollback_continue
-	}
-	rollback_continue() {
-		vstacklet::shell::text::green "Press any key to continue $(tput setaf 7)(${shell_reset}$(tput setaf 3)ctrl+C${shell_reset} $(tput setaf 7)on PC or $(tput setaf 7)${shell_reset}$(tput setaf 3)⌘+C${shell_reset} $(tput setaf 7)on Mac to ${shell_reset}$(tput setaf 1)exit${shell_reset}$(tput setaf 7)) ..."
-		read -r -n 1
-		vstacklet::shell::misc::nl
-	}
-	rollback_intro
-	vstacklet::shell::text::white "Select a rollback file for the server to restore from:"
-	for ((i = 0; i < ${#rollback_files[@]}; i++)); do
-		vstacklet::shell::misc::nl
-		# @script-note: display the contents of the rollback file
-		vstacklet::shell::text::white "################################################################################"
-		vstacklet::shell::text::white "# ${i}: ${rollback_files[i]}"
-		vstacklet::shell::text::white "################################################################################"
-		fold -w 80 <"/root/vstacklet/setup_temp/${rollback_files[i]}"
-		vstacklet::shell::text::white "################################################################################"
-	done
-	vstacklet::shell::misc::nl
-	# @script-note: prompt the user to select a rollback file
-	vstacklet::shell::text::yellow::sl "Select a rollback file for the server to restore from: "
-	vstacklet::shell::icon::arrow::white && vstacklet::shell::text::green::sl " #" && read -r input
-	# @script-note: check if the input is a number
-	if [[ ! ${input} =~ ^[0-9]+$ ]]; then
-		vstacklet::shell::text::error "Invalid selection."
-		return 1
-	fi
-	# @script-note: check if the input is within the range of the rollback files
-	if [[ ${input} -lt 0 || ${input} -ge ${#rollback_files[@]} ]]; then
-		vstacklet::shell::text::error "Invalid selection."
-		return 1
-	fi
-	# @script-note: confirm the rollback file selection
-	declare confirm
-	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "Are you sure you want to restore the server using the selected rollback file?"
-	vstacklet::shell::text::white " - ${rollback_files[input]}"
-	vstacklet::shell::text::white::sl "Enter "
-	vstacklet::shell::text::green::sl "yes"
-	vstacklet::shell::text::white::sl " to confirm or "
-	vstacklet::shell::text::red::sl "no"
-	vstacklet::shell::text::white::sl " to cancel: "
-	vstacklet::shell::icon::arrow::white && read -r confirm && confirm=${confirm,,}
-	# @script-note: check if the user confirmed the rollback file selection
-	if [[ ${confirm,,} != "yes" && ${confirm,,} != "y" ]]; then
-		vstacklet::shell::text::error "Rollback cancelled."
-		exit 1
-	fi
-	vstacklet::shell::misc::nl
-	# @script-note: restore the selected rollback file
-	declare command_string
-	command_string=$(grep "Command:" <"/root/vstacklet/setup_temp/${rollback_files[input]}" | awk '{$1=""; print $0}')
-	# @script-note: extract the PHP version from the command string
-	le_domain=$(grep -oP '(-d|--domain)\s+\K\S+' <<<"${command_string}" 2>/dev/null || true)
-	php_version=$(grep -oP '(?<=-php\s)\S+' <<<"${command_string}" 2>/dev/null || true)
-	web_root=$(grep -oP '(-wr|--web_root)\s+\K\S+' <<<"${command_string}" 2>/dev/null || true)
-	# @script-note: parse the command string
-	declare -a flags=()
-	while IFS= read -r -d ' '; do
-		# @script-note: remove leading hyphens from flags
-		flag=${REPLY#-}
-		# @script-note: check if the flag is one of the specified flags
-		case $flag in
-		csf | hostname | ioncube | mariadb | mysql | nginx | phpmyadmin | postgresql | redis | sendmail | varnish)
-			flags+=("${flag}=1")
-			# @script-note: check if csf flag is set, then add sendmail flag as well
-			if [[ ${flag} == "csf" ]]; then
-				flags+=("sendmail=1")
-			fi
-			;;
-		d)
-			flags+=("domain=${le_domain}")
-			;;
-		domain)
-			flags+=("domain=${le_domain}")
-			;;
-		php)
-			flags+=("php=${php_version}")
-			;;
-		pma)
-			flags+=("phpmyadmin=1")
-			;;
-		postgre)
-			flags+=("postgresql=1")
-			;;
-		hn)
-			flags+=("hostname=1")
-			;;
-		wr)
-			flags+=("web_root=${web_root}")
-			;;
-		web_root)
-			flags+=("web_root=${web_root}")
-			;;
-		esac
-	done < <(echo "${command_string}")
-	# @script-note: print out the flags
-	vstacklet::shell::text::white "Command string after processing flags:"
-	for item in "${flags[@]}"; do
-		vstacklet::shell::text::white "${item}"
-	done
-	vstacklet::shell::misc::nl
-	iptables -D INPUT -p udp --dport 1900 -j DROP 2>/dev/null
-	[[ -d ${web_root:-/var/www/html/vsapp} ]] && rm -rf "${web_root:-/var/www/html/vsapp}"/{public,logs,ssl}
-	#[[ -f /usr/local/bin/vstacklet ]] && rm -f "/usr/local/bin/vstacklet"
-	[[ -f /usr/local/bin/vs-backup ]] && rm -f "/usr/local/bin/vs-backup"
-	[[ -f /usr/local/bin/vs-perms ]] && rm -f "/usr/local/bin/vs-perms"
-	# @script-note: create install list from dependencies file
-	if [[ -f "${vstacklet_base_path}/config/system/dependencies" ]]; then
-		declare -a install_list=()
-		while IFS= read -r line; do
-			install_list+=("${line}")
-		done < <(grep -v "^#" "${vstacklet_base_path}/config/system/dependencies")
-		vstacklet::shell::misc::nl
-		# @script-note: remove dependencies from the install list
-		vstacklet::shell::text::yellow "Removing dependencies logged during installation ..."
-		if [[ -n ${install_list[*]} ]]; then
-			for installed in "${install_list[@]}"; do
-				DEBIAN_FRONTEND=noninteractive apt-get -y purge "$(apt-cache depends "${installed}" | awk '{ print $2 }' | tr '\n' ' ')" >/dev/null 2>&1
-				DEBIAN_FRONTEND=noninteractive apt-get -y --purge autoremove "${installed}" >/dev/null 2>&1
-				apt-get -y autopurge "${installed}" >/dev/null 2>&1
-				apt-get -y autoremove "${installed}" >/dev/null 2>&1
-			done
-			# @script-note: remove the dependencies file
-			rm -f "${vstacklet_base_path}/config/system/dependencies"
-		fi
-		# @script-note: run apt-get update and cleanup
-		vstacklet::shell::text::yellow "Running apt-get update and cleanup ..."
-		apt-get -y update >/dev/null 2>&1
-		apt-get -y check >/dev/null 2>&1
-		apt-get -fy install >/dev/null 2>&1
-		apt-get -y autoclean >/dev/null 2>&1
-		apt-get -y autoremove >/dev/null 2>&1
-		apt-get -y autoclean >/dev/null 2>&1
-	fi
-	if [[ " ${flags[*]} " =~ " csf=1 " ]]; then
-		vstacklet::shell::text::yellow "Uninstalling CSF ..."
-		sh /usr/local/src/csf/uninstall.sh >/dev/null 2>&1
-		rm -rf /etc/csf/ /usr/local/src/csf/ /usr/local/csf/
-	fi
-	if [[ " ${flags[*]} " =~ domain=${domain} ]]; then
-		vstacklet::shell::text::yellow "Uninstalling Let's Encrypt ..."
-		rm -rf ~/.acme.sh/"${domain}"* ~/acme.sh >/dev/null 2>&1
-	fi
-	if [[ " ${flags[*]} " =~ " hhvm=1 " ]]; then
-		vstacklet::shell::text::yellow "Uninstalling HHVM ..."
-		rm -rf "/etc/hhvm" "/etc/hhvm" >/dev/null 2>&1
-		apt-get -y autopurge hhvm* >/dev/null 2>&1
-		apt-get -y autoremove hhvm* >/dev/null 2>&1
-		rm -rf "/etc/apt/sources.list.d/hhvm.list" "/etc/apt/trusted.gpg.d/hhvm.gpg" >/dev/null 2>&1
-	fi
-	if [[ " ${flags[*]} " =~ " ioncube=1 " ]]; then
-		vstacklet::shell::text::yellow "Uninstalling IonCube ..."
-		rm -rf "/tmp/ioncube" >/dev/null 2>&1
-	fi
-	if [[ " ${flags[*]} " =~ " mariadb=1 " ]]; then
-		vstacklet::shell::text::yellow "Uninstalling MariaDB ..."
-		rm -rf "/var/lib/mysql" "/var/run/mysqld" "/etc/mysql" "/root/.my.cnf" >/dev/null 2>&1
-		apt-get -y autopurge mariadb* >/dev/null 2>&1
-		apt-get -y autoremove mariadb* >/dev/null 2>&1
-		rm -rf "/etc/apt/sources.list.d/mariadb.list" "/etc/apt/keyrings/mariadb.gpg" >/dev/null 2>&1
-	fi
-	if [[ " ${flags[*]} " =~ " mysql=1 " ]]; then
-		vstacklet::shell::text::yellow "Uninstalling MySQL ..."
-		rm -rf "/var/lib/mysql" "/var/run/mysql" "/var/run/mysqld" "/etc/mysql" "/root/.my.cnf" >/dev/null 2>&1
-		apt-get -y autopurge mysql* >/dev/null 2>&1
-		apt-get -y autoremove mysql* >/dev/null 2>&1
-	fi
-	if [[ " ${flags[*]} " =~ " nginx=1 " ]]; then
-		vstacklet::shell::text::yellow "Uninstalling Nginx ..."
-		rm -rf "/etc/nginx-pre-vstacklet" "/etc/nignx" >/dev/null 2>&1
-		apt-get -y autopurge nginx* >/dev/null 2>&1
-		apt-get -y autoremove nginx* >/dev/null 2>&1
-		[[ ${distro,,} == "debian" ]] && rm -rf "/etc/apt/sources.list.d/nginx.list" "/etc/apt/keyrings/nginx.gpg" >/dev/null 2>&1
-		[[ ${distro,,} == "ubuntu" ]] && rm -rf "/etc/apt/sources.list.d/nginx.list" "/usr/share/keyrings/nginx-archive-keyring.gpg" >/dev/null 2>&1
-	fi
-	if [[ " ${flags[*]} " =~ php=${php_version} ]]; then
-		vstacklet::shell::text::yellow "Uninstalling PHP ..."
-		apt-get -y autopurge php* >/dev/null 2>&1
-		apt-get -y autoremove php* >/dev/null 2>&1
-		[[ ${distro,,} == "debian" ]] && rm -rf "/etc/apt/sources.list.d/php-sury.list" "/etc/apt/keyrings/php.gpg" >/dev/null 2>&1
-		[[ ${distro,,} == "ubuntu" ]] && rm -rf "/etc/apt/sources.list.d/ondrej-ubuntu-php-${codename,,}.list" "/etc/apt/trusted.gpg.d/ondrej-ubuntu-php."* >/dev/null 2>&1
-	fi
-	if [[ " ${flags[*]} " =~ " phpmyadmin=1 " ]]; then
-		vstacklet::shell::text::yellow "Uninstalling phpMyAdmin ..."
-		apt-get -y autopurge phpmyadmin* >/dev/null 2>&1
-		apt-get -y autoremove phpmyadmin* >/dev/null 2>&1
-	fi
-	if [[ " ${flags[*]} " =~ " postgresql=1 " ]]; then
-		vstacklet::shell::text::yellow "Uninstalling PostgreSQL ..."
-		rm -rf "/var/lib/postgresql" "/var/run/postgresql" "/etc/postgresql" >/dev/null 2>&1
-		apt-get -y autopurge postgresql* >/dev/null 2>&1
-		apt-get -y autoremove postgresql* >/dev/null 2>&1
-		rm -rf "/etc/apt/sources.list.d/postgresql.list" "/etc/apt/trusted.gpg.d/postgresql.gpg" >/dev/null 2>&1
-	fi
-	if [[ " ${flags[*]} " =~ " redis=1 " ]]; then
-		vstacklet::shell::text::yellow "Uninstalling Redis ..."
-		rm -rf "/var/lib/redis" "/var/run/redis" "/etc/redis" >/dev/null 2>&1
-		apt-get -y autopurge redis* >/dev/null 2>&1
-		apt-get -y autoremove redis* >/dev/null 2>&1
-		rm -rf "/etc/apt/sources.list.d/redis.list" "/etc/apt/keyrings/redis.gpg" >/dev/null 2>&1
-	fi
-	if [[ " ${flags[*]} " =~ " sendmail=1 " ]]; then
-		vstacklet::shell::text::yellow "Uninstalling Sendmail ..."
-		rm -rf "/etc/mail" "/etc/mail.rc" "/etc/mailcap" "/etc/mailcap.order"
-		apt-get -y autopurge sendmail* >/dev/null 2>&1
-		apt-get -y autoremove sendmail* >/dev/null 2>&1
-	fi
-	if [[ " ${flags[*]} " =~ " varnish=1 " ]]; then
-		vstacklet::shell::text::yellow "Uninstalling Varnish ..."
-		rm -rf "/etc/varnish" >/dev/null 2>&1
-		apt-get -y autopurge varnish* >/dev/null 2>&1
-		apt-get -y autoremove varnish* >/dev/null 2>&1
-		[[ ${distro,,} == "debian" ]] && rm -rf "/etc/apt/sources.list.d/varnishcache_varnish74.list" "/etc/apt/keyrings/varnishcache_varnish74-archive-keyring.gpg" >/dev/null 2>&1
-		[[ ${distro,,} == "ubuntu" ]] && rm -rf "/etc/apt/sources.list.d/varnishcache_varnish74.list" "/etc/apt/trusted.gpg.d/varnish.gpg" >/dev/null 2>&1
-	fi
-	# @script-note: reset the bashrc and profile files
-	vstacklet::shell::text::yellow "resetting bashrc and profile files to default ..."
-	bashrc_path="${HOME}/.bashrc"
-	profile_path="${HOME}/.profile"
-	[[ -f "${vstacklet_base_path}/config/system/bashrc" ]] && \cp -f "${vstacklet_base_path}/config/system/bashrc" "${bashrc_path}"
-	[[ -f "${vstacklet_base_path}/config/system/profile" ]] && \cp -f "${vstacklet_base_path}/config/system/profile" "${profile_path}"
-	[[ -f "${vstacklet_base_path}/config/system/sshd_config" ]] && \cp -f "${vstacklet_base_path}/config/system/sshd_config" "/etc/ssh/sshd_config"
-	[[ -f "/etc/vsftpd.chroot_list" ]] && rm -rf "/etc/vsftpd.chroot_list" "/etc/vsftpd"
-	systemctl daemon-reload >/dev/null 2>&1
-	# @script-note: should the above purge be too aggressive, the following will restore the system to a working state.
-	# the following commands are not logged, but are here to ensure that the system is
-	# in a clean state after a failed installation attempt. If the system is not in a
-	# clean state, the installer will not be able to detect it and will not be able to
-	# install the software correctly.
-	DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update
-	DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" check
-	DEBIAN_FRONTEND=noninteractive apt-get -yf -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install
-	DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" autoclean
-	DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" autoremove
-	DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" autoclean
-	DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install --reinstall ssh openssh-server openssh-client sudo curl wget ca-certificates apt-transport-https lsb-release gnupg2 software-properties-common
-	vstacklet::shell::misc::nl
-	vstacklet::shell::text::success "Server setup has been rolled back. You may attempt to run the installer again."
-	vstacklet::shell::misc::nl
-	# @script-note: remove the vStacklet command files
-	rm -f "/root/vstacklet/setup_temp/"*.txt >/dev/null 2>&1
-	# @script-note: clear the install markers the fresh-server check reads, so the installer can run again;
-	# the logs are kept, moved aside with the rollback time
-	rm -f /opt/vstacklet/config/system/.install_complete "${VSTACKLET_MARKER}" >/dev/null 2>&1
-	if [[ -d ${VSTACKLET_MARKER%/*} ]]; then rmdir --ignore-fail-on-non-empty "${VSTACKLET_MARKER%/*}" || true; fi
-	[[ -d /var/log/vstacklet ]] && mv /var/log/vstacklet "/var/log/vstacklet-rolled-back-$(date +%Y%m%d-%H%M%S)"
-	systemctl restart sshd.service >/dev/null 2>&1
-	exit 0
+	((${#held[@]})) && systemctl start "${held[@]}" >/dev/null 2>&1
+	exit "${rc}"
 }
 
 ################################################################################
