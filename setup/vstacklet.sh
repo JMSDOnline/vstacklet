@@ -31,9 +31,7 @@
 #
 # vStacklet will install and configure the following:
 # - NGinx 1.25.+ (mainline) | 1.18.+ (extras) (HTTP Server)
-# - PHP 7.4 (FPM) with common extensions
-# - PHP 8.1 (FPM) with common extensions
-# - PHP 8.3 (FPM) with common extensions
+# - PHP 8.3, 8.4 (default) or 8.5 (FPM) with common extensions
 # - MariaDB 10.11.+ (MySQL Database)
 # - Varnish 7.4.x (HTTP Cache)
 # - CSF 14.+ (Config Server Firewall)
@@ -340,7 +338,7 @@ vstacklet::setup::variables() {
 		esac
 	done
 	# @script-note: Set the necessary declarations
-	declare -g vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_php7_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname vstacklet_server_stack_script vstacklet_git vstacklet_git_branch
+	declare -g vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname vstacklet_server_stack_script vstacklet_git vstacklet_git_branch
 	# @script-note: Set the vstacklet base path
 	# @script-note: fixed install path (the installer expects it; the -P option was removed in 4.0, it passed its value to rm -rf)
 	vstacklet_base_path="/opt/vstacklet"
@@ -350,8 +348,6 @@ vstacklet::setup::variables() {
 	vstacklet_config_path="${vstacklet_config_path:-${vstacklet_base_path}/config}"
 	# @script-note: Set the vstacklet config php8 path
 	vstacklet_config_php8_path="${vstacklet_config_php8_path:-${vstacklet_config_path}/php8}"
-	# @script-note: Set the vstacklet config php7 path
-	vstacklet_config_php7_path="${vstacklet_config_php7_path:-${vstacklet_config_path}/php7}"
 	# @script-note: Set the vstacklet config nginx path
 	vstacklet_config_nginx_path="${vstacklet_config_nginx_path:-${vstacklet_config_path}/nginx}"
 	# @script-note: Set the vstacklet config varnish path
@@ -515,6 +511,6 @@ vstacklet::setup::main() {
 # @script-note: call the main function
 vstacklet::setup::main "$@"
 # @script-note: unset the variables
-unset vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_php7_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname vstacklet_git vstacklet_git_branch vstacklet_server_stack_script vstacklet_version help version branch
+unset vstacklet_base_path vstacklet_setup_path vstacklet_config_path vstacklet_config_php8_path vstacklet_config_nginx_path vstacklet_config_varnish_path server_ip server_hostname vstacklet_git vstacklet_git_branch vstacklet_server_stack_script vstacklet_version help version branch
 # @script-note: exit the script
 exit 0

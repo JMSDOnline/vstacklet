@@ -4,7 +4,7 @@
 # @file_name: vstacklet-server-stack.sh
 # @version: 3.1.2239
 # @description: Lightweight script to quickly install a LEMP stack with Nginx,
-# Varnish, PHP7.4/8.1/8.3 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
+# Varnish, PHP 8.3/8.4/8.5 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
 # and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
 # website-based server applications.
 #
@@ -20,9 +20,7 @@
 #
 # vStacklet will install and configure the following:
 # - NGinx 1.25.+ (mainline) | 1.18.+ (extras) (HTTP Server)
-# - PHP 7.4 (FPM) with common extensions
-# - PHP 8.1 (FPM) with common extensions
-# - PHP 8.3 (FPM) with common extensions
+# - PHP 8.3, 8.4 (default) or 8.5 (FPM) with common extensions
 # - MariaDB 10.11.+ (MySQL Database)
 # - Varnish 7.4.x (HTTP Cache)
 # - CSF 14.+ (Config Server Firewall)
@@ -256,12 +254,11 @@ vstacklet::gate::interim() {
 ##################################################################################
 vstacklet::environment::init() {
 	shopt -s extglob
-	declare -g vstacklet_base_path server_ip local_setup_dir local_php8_dir local_php7_dir local_varnish_dir
+	declare -g vstacklet_base_path server_ip local_setup_dir local_php8_dir local_varnish_dir
 	server_ip=$(ip addr show | grep 'inet ' | grep -v 127.0.0.1 | awk '{print $2}' | cut -d/ -f1 | head -n 1)
 	# @script-note: vstacklet directories
 	local_setup_dir="${vstacklet_base_path:=/opt/vstacklet}/setup"
 	local_php8_dir="/opt/vstacklet/config/php8"
-	local_php7_dir="/opt/vstacklet/config/php7"
 	local_nginx_dir="/opt/vstacklet/config/nginx"
 	local_varnish_dir="/opt/vstacklet/config/varnish"
 	# @script-note: record the server's state before the first change, once per server, for vstacklet --rollback
@@ -336,7 +333,7 @@ vstacklet::args::info() {
 #
 # @example: vstacklet --help
 # @example: vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -hn "yourhostname" -php "8.3" -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "db_user" -mariadbPw "db_password" -pma -csf -csfCf -wr "/var/www/html/vsapp" -wp
-# @example: vstacklet -e "your@email.com" -ftp "2121" -ssh "2222" -http "8080" -d "yourdomain.com" -php "8.1" -nginx -varnish -varnishP "80" -mariadb -mariadbU "db_user" -mariadbPw "db_password" -sendmail -wr "/var/www/html/vsapp" -wp --reboot
+# @example: vstacklet -e "your@email.com" -ftp "2121" -ssh "2222" -http "8080" -d "yourdomain.com" -php "8.4" -nginx -varnish -varnishP "80" -mariadb -mariadbU "db_user" -mariadbPw "db_password" -sendmail -wr "/var/www/html/vsapp" -wp --reboot
 # @example: vstacklet -e "your@email.com" -d "example.com" -php "8.3" -nginx -mariadb -mariadbU "db_user" -mariadbPw "db_password" --dns "cloudflare"
 # @null
 # @break
@@ -1693,8 +1690,8 @@ vstacklet::php::install() {
 # @option: $1 - `-nginx | --nginx` (optional) (takes no arguments)
 # @example: vstacklet -nginx
 # @example: vstacklet --nginx
-# @example: vstacklet -nginx -php 8.1 -varnish -varnishP 80 -http 8080 -https 443
-# @example: vstacklet --nginx --php 8.1 --varnish --varnishP 80 --http 8080 --https 443
+# @example: vstacklet -nginx -php 8.4 -varnish -varnishP 80 -http 8080 -https 443
+# @example: vstacklet --nginx --php 8.4 --varnish --varnishP 80 --http 8080 --https 443
 # @null
 # @return_code: 20 - failed to install NGINX dependencies.
 # @return_code: 21 - failed to edit NGINX configuration file.
@@ -1751,11 +1748,6 @@ vstacklet::nginx::install() {
 			[[ -z ${varnish} ]] && cp -f "${local_php8_dir}/nginx/default.php8.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 			# @script-note: import nginx reverse modified for varnish and nginx ssl termination
 			[[ -n ${varnish} ]] && cp -f "${local_php8_dir}/nginx/varnish/default.php8.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
-		fi
-		if [[ ${php} == *"7"* ]]; then
-			[[ -z ${varnish} ]] && cp -f "${local_php7_dir}/nginx/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
-			# @script-note: import nginx reverse modified for varnish and nginx ssl termination
-			[[ -n ${varnish} ]] && cp -f "${local_php7_dir}/nginx/varnish/default.php7.conf" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf"
 		fi
 		vstacklet::shell::text::yellow::sl "configuring NGinx and generating self-signed certificates ... " &
 		vs::stat::progress::start # start progress status
@@ -1957,10 +1949,7 @@ vstacklet::permissions::adjust() {
 # - the ioncube loader will be available for the php version specified
 #   from the `-php | --php` option.
 # @option: $1 - `-ioncube | --ioncube` (optional) (takes no arguments)
-# @example: vstacklet -ioncube -php 8.1
-# @example: vstacklet --ioncube --php 8.1
-# @example: vstacklet -ioncube -php 7.4
-# @example: vstacklet --ioncube --php 7.4
+# @example: vstacklet -ioncube -php 8.4
 # @null
 # @return_code: 31 - failed to switch to /tmp directory.
 # @return_code: 32 - failed to download ionCube loader.
@@ -1972,40 +1961,8 @@ vstacklet::permissions::adjust() {
 vstacklet::ioncube::install() {
 	if [[ -n ${ioncube} ]]; then
 		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "installing IonCube Loader for php-${php} ... "
-		# @script-note: install ioncube loader for php 7.4
-		if [[ ${php} == *"7"* ]]; then
-			cd /tmp || vstacklet::error::display 31
-			vstacklet::log wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz || vstacklet::error::display 32
-			vstacklet::log tar -xvzf ioncube_loaders_lin_x86-64.tar.gz || vstacklet::error::display 33
-			cd ioncube || vstacklet::error::display 34
-			cp -f ioncube_loader_lin_7.4.so /usr/lib/php/20190902/ || vstacklet::error::display 35
-			echo "zend_extension = /usr/lib/php/20190902/ioncube_loader_lin_7.4.so" >/etc/php/7.4/mods-available/ioncube.ini
-			ln -sf /etc/php/7.4/mods-available/ioncube.ini /etc/php/7.4/cli/conf.d/00-ioncube.ini
-			ln -sf /etc/php/7.4/mods-available/ioncube.ini /etc/php/7.4/fpm/conf.d/00-ioncube.ini
-		fi
-		# @script-note: install ioncube loader for php 8.1
-		if [[ ${php} == *"8.1"* ]]; then
-			cd /tmp || vstacklet::error::display 31
-			vstacklet::log wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz || vstacklet::error::display 32
-			vstacklet::log tar -xvzf ioncube_loaders_lin_x86-64.tar.gz || vstacklet::error::display 33
-			cd ioncube || vstacklet::error::display 34
-			cp -f ioncube_loader_lin_8.1.so /usr/lib/php/20210902/ || vstacklet::error::display 35
-			echo "zend_extension = /usr/lib/php/20210902/ioncube_loader_lin_8.1.so" >/etc/php/8.1/mods-available/ioncube.ini
-			ln -sf /etc/php/8.1/mods-available/ioncube.ini /etc/php/8.1/cli/conf.d/00-ioncube.ini
-			ln -sf /etc/php/8.1/mods-available/ioncube.ini /etc/php/8.1/fpm/conf.d/00-ioncube.ini
-		fi
-		# @script-note: install ioncube loader for php 8.3 (not available yet)
-		[[ ${php} == *"8.3"* ]] && vstacklet::shell::text::yellow "ionCube Loader for php-8.3 is not available yet. Skipping ..."
-		#	cd /tmp || vstacklet::error::display 31
-		#	vstacklet::log wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz || vstacklet::error::display 32
-		#	vstacklet::log tar -xvzf ioncube_loaders_lin_x86-64.tar.gz || vstacklet::error::display 33
-		#	cd ioncube || vstacklet::error::display 34
-		#	cp -f ioncube_loader_lin_8.3.so /usr/lib/php/20230831/ || vstacklet::error::display 35
-		#	echo "zend_extension = /usr/lib/php/20230831/ioncube_loader_lin_8.3.so" >/etc/php/8.3/mods-available/ioncube.ini
-		#	ln -sf /etc/php/8.3/mods-available/ioncube.ini /etc/php/8.3/cli/conf.d/00-ioncube.ini
-		#	ln -sf /etc/php/8.3/mods-available/ioncube.ini /etc/php/8.3/fpm/conf.d/00-ioncube.ini
-		#fi
+		# @script-note: the 3.x loader paths covered PHP 7.4 and 8.1 only; the 4.0 loader install (pinned download, every supported PHP) is not written yet
+		vstacklet::shell::text::yellow "ionCube Loader is not installed by this development build for PHP ${php}. Skipping ..."
 	fi
 }
 
@@ -2523,9 +2480,7 @@ vstacklet::redis::install() {
 #   - mariadb
 #   - mysql
 # - phpMyAdmin requires php to run. You must select a php version from the list below.
-#   - 8.3
-#   - 8.1
-#   - 7.4
+#   - 8.3, 8.4 or 8.5
 # - phpMyAdmin requires a web port to run. This argmuent is supplied by the `-http | --http_port` option.
 # - phpMyAdmin will use the following options to configure itself:
 #   - web server: nginx, varnish
@@ -2535,7 +2490,7 @@ vstacklet::redis::install() {
 #     - mariaDB usage: `-mariadbU [user] | --mariadb_user [user]` & `-mariadbPw [password] | --mariadb_password [password]`
 #     - mysql usage: `-mysqlU [user] | --mysql_user [user]` & `-mysqlPw [password] | --mysql_password [password]`
 #     - note: if no user or password is provided, the default user and password will be used. (admin, auto-generated password)
-#   - php version: php7.4, php8.1, php8.3
+#   - php version: 8.3, 8.4 or 8.5
 #     - PHP usage: `-php [version] | --php [version]`
 #   - port: http
 #     - usage: `-http [port] | --http [port]`
@@ -3004,9 +2959,9 @@ EOF
 #
 # @option: $1 - `-wp | --wordpress` (optional)
 # @noargs
-# @example: vstacklet -wp -mariadb -nginx -php "8.1" -wr "/var/www/html/vsapp"
-# @example: vstacklet -wp -mysql -nginx -php "8.1"
-# @example: vstacklet -wp -mariadb -nginx -php "8.1" -varnish -varnishP 80 -http 8080 -https 443
+# @example: vstacklet -wp -mariadb -nginx -php "8.4" -wr "/var/www/html/vsapp"
+# @example: vstacklet -wp -mysql -nginx -php "8.4"
+# @example: vstacklet -wp -mariadb -nginx -php "8.4" -varnish -varnishP 80 -http 8080 -https 443
 # @null
 # @return_code: 96 - failed to download WordPress.
 # @return_code: 97 - failed to extract WordPress.
