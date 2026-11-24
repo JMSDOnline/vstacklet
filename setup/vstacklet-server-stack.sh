@@ -679,7 +679,7 @@ vstacklet::gate::install() {
 	[[ -n ${ioncube} && ${vstacklet_arch} == "arm64" ]] && vstacklet::gate::refuse "ionCube Loader is not offered on arm64 by this installer; run without -ioncube."
 	# @script-note: fresh servers only
 	for f in "${VSTACKLET_MARKER}" /opt/vstacklet/config/system/.install_complete /var/log/vstacklet; do
-		[[ -e ${f} ]] && vstacklet::gate::refuse "an earlier vStacklet install or install attempt was found (${f}). vStacklet 4 installs on fresh servers only: rebuild the server, or see the upgrade checklist in the README."
+		[[ -e ${f} ]] && vstacklet::gate::refuse "an earlier vStacklet install or install attempt was found (${f}). vStacklet 4 installs on fresh servers only: run vstacklet --rollback to undo an earlier attempt, rebuild the server, or see the upgrade checklist in the README."
 	done
 	if [[ -n ${nginx} || -n ${varnish} ]]; then
 		[[ $(dpkg-query -W -f='${Status}' apache2 2>/dev/null) == *"ok installed"* ]] && vstacklet::gate::refuse "apache2 is installed. vStacklet installs nginx on fresh servers only."
@@ -3899,7 +3899,9 @@ vstacklet::error::display() {
 		# @script-note: fail closed (4.0): a failed step stops the install; nothing is undone, the server is rebuilt
 		vstacklet::shell::misc::nl
 		if [[ -n ${vstacklet_changes_started} ]]; then
-			vstacklet::shell::text::error "the install has stopped and this server is now partly configured. vStacklet does not undo a partial install: rebuild the server from a fresh image, then run the installer again."
+			vstacklet::shell::text::error "the install has stopped and this server is now partly configured. To undo what this run installed, run:"
+			vstacklet::shell::text::white "vstacklet --rollback"
+			vstacklet::shell::text::error "If the rollback cannot bring the server back to a clean state, rebuild it from a fresh image."
 		else
 			vstacklet::shell::text::error "the install has stopped before any change was made to this server."
 		fi
@@ -3940,9 +3942,7 @@ vstacklet::rollback() {
 	# @script-note: vstacklet base path
 	declare vstacklet_base_path
 	vstacklet_base_path="/opt/vstacklet"
-	declare -g codename distro
-	codename=$(lsb_release -cs)
-	distro=$(lsb_release -is)
+	# @script-note: distro and codename come from the gate, which has already read /etc/os-release
 	# @script-note: build an interactive prompt for the user to select and confirm a rollback file.
 	declare input
 	vstacklet::shell::misc::nl
@@ -4226,6 +4226,10 @@ vstacklet::rollback() {
 	vstacklet::shell::misc::nl
 	# @script-note: remove the vStacklet command files
 	rm -f "/root/vstacklet/setup_temp/"*.txt >/dev/null 2>&1
+	# @script-note: clear the install markers the fresh-server check reads, so the installer can run again;
+	# the logs are kept, moved aside with the rollback time
+	rm -f /opt/vstacklet/config/system/.install_complete "${VSTACKLET_MARKER}" >/dev/null 2>&1
+	[[ -d /var/log/vstacklet ]] && mv /var/log/vstacklet "/var/log/vstacklet-rolled-back-$(date +%Y%m%d-%H%M%S)"
 	systemctl restart sshd.service >/dev/null 2>&1
 	exit 0
 }
