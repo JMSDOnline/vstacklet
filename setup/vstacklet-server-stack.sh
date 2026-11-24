@@ -260,7 +260,9 @@ vstacklet::environment::init() {
 	local_hhvm_dir="/opt/vstacklet/config/hhvm"
 	local_nginx_dir="/opt/vstacklet/config/nginx"
 	local_varnish_dir="/opt/vstacklet/config/varnish"
-	# @script-note: from here on the installer changes the server; a failure after this point means a rebuild
+	# @script-note: record the server's state before the first change, once per server, for vstacklet --rollback
+	vstacklet::rollback::baseline || { vstacklet::shell::text::error "could not record the server's state in /root/vstacklet/baseline; nothing was changed." && exit 1; }
+	# @script-note: from here on the installer changes the server; a failure after this point means a rollback or a rebuild
 	declare -gi vstacklet_changes_started=1
 	# @script-note: create vstacklet directories
 	mkdir -p "${vstacklet_base_path}/setup_temp"    # temporary setup directory - stores default files edited by vStacklet
@@ -3917,6 +3919,89 @@ vstacklet::error::display() {
 trap '[[ -n ${pg_pid} ]] && kill -9 "${pg_pid}" 2>/dev/null; vstacklet::error::display' SIGINT SIGTERM SIGHUP
 
 ################################################################################
+# @name: vstacklet::rollback::baseline
+# @description: Records the server's state before the installer's first change, once per server, so a rollback can
+# restore exactly that state: the installed packages and their manual marks, the apt sources, keys and preferences,
+# the enabled services, hosts, hostname, sshd_config, root's shell files, and which installer paths already existed.
+# A later install attempt keeps the first record. Stored in /root/vstacklet/baseline (mode 700).
+################################################################################
+vstacklet::rollback::paths() {
+	printf '%s\n' /etc/nginx /etc/nginx-pre-vstacklet /etc/systemd/system/nginx.service.d /etc/php /etc/mysql /var/lib/mysql /etc/varnish /etc/redis /var/lib/redis /etc/postgresql /var/lib/postgresql /etc/phpmyadmin /usr/share/phpmyadmin /etc/csf /usr/local/csf /usr/local/src/csf /etc/iptables /etc/vsftpd.conf /etc/vsftpd.chroot_list /etc/vsftpd /etc/mail /root/.my.cnf /root/.acme.sh /root/acme.sh /usr/local/bin/wp /var/www "${web_root:-/var/www/html/vsapp}"
+}
+vstacklet::rollback::baseline() {
+	local b=/root/vstacklet/baseline p
+	[[ -f ${b}/complete ]] && return 0
+	rm -rf "${b}" && mkdir -p "${b}/apt" && chmod 700 /root/vstacklet "${b}" || return 1
+	dpkg-query -W -f='${db:Status-Abbrev} ${Package}\n' | awk '$1 ~ /^ii/ {print $2}' | sort >"${b}/packages" || return 1
+	apt-mark showmanual | sort >"${b}/packages.manual" || return 1
+	for p in /etc/apt/sources.list /etc/apt/sources.list.d /etc/apt/keyrings /etc/apt/trusted.gpg.d /etc/apt/preferences.d; do
+		[[ -e ${p} ]] && { cp -a "${p}" "${b}/apt/" || return 1; }
+	done
+	systemctl list-unit-files --state=enabled --no-legend | awk '{print $1}' | sort >"${b}/units.enabled" || return 1
+	for p in /etc/hosts /etc/hostname /etc/ssh/sshd_config /root/.bashrc /root/.profile; do
+		[[ -f ${p} ]] && { cp -a "${p}" "${b}/files${p//\//_}" || return 1; }
+	done
+	vstacklet::rollback::paths >"${b}/paths.checked"
+	while IFS= read -r p; do [[ -e ${p} ]] && printf '%s\n' "${p}"; done <"${b}/paths.checked" >"${b}/paths.present"
+	: >"${b}/complete"
+}
+
+################################################################################
+# @name: vstacklet::rollback::restore
+# @description: Brings the server back to the recorded baseline: the apt sources first, then the services added since,
+# then exactly the packages added since (never a dependency tree), any baseline package that went missing, the package
+# marks, the installer paths that did not exist before, and the saved files. Each step reports what it did.
+################################################################################
+vstacklet::rollback::restore() {
+	local b=/root/vstacklet/baseline p u rc=0
+	local -a added=() missing=() units=()
+	vstacklet::rollback::installed() { dpkg-query -W -f='${db:Status-Abbrev} ${Package}\n' | awk '$1 ~ /^ii/ {print $2}' | sort; }
+	vstacklet::shell::text::white "restoring the package sources ..."
+	for p in sources.list sources.list.d keyrings trusted.gpg.d preferences.d; do
+		rm -rf "/etc/apt/${p:?}"
+		[[ -e ${b}/apt/${p} ]] && { cp -a "${b}/apt/${p}" /etc/apt/ || rc=1; }
+	done
+	[[ ${rc} -eq 0 ]] || { vstacklet::shell::text::error "could not restore /etc/apt from ${b}/apt; stopping before any package is removed." && exit 1; }
+	vstacklet::shell::text::white "stopping and disabling services added since the first run ..."
+	mapfile -t units < <(comm -13 "${b}/units.enabled" <(systemctl list-unit-files --state=enabled --no-legend | awk '{print $1}' | sort))
+	for u in "${units[@]}"; do systemctl disable --now "${u}" >/dev/null 2>&1; vstacklet::shell::text::white " - ${u}"; done
+	DEBIAN_FRONTEND=noninteractive apt-get -yqq update >/dev/null 2>&1 || vstacklet::shell::text::warning "apt-get update reported a problem with the restored sources; continuing with the package lists apt has."
+	mapfile -t added < <(comm -13 "${b}/packages" <(vstacklet::rollback::installed))
+	vstacklet::shell::text::white "removing the ${#added[@]} packages added since the first run ..."
+	if ((${#added[@]})); then
+		DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" purge "${added[@]}" >/dev/null 2>&1 || vstacklet::shell::text::warning "apt-get purge reported a problem; the comparison below shows what is left."
+	fi
+	mapfile -t missing < <(comm -23 "${b}/packages" <(vstacklet::rollback::installed))
+	if ((${#missing[@]})); then
+		vstacklet::shell::text::white "reinstalling ${#missing[@]} packages that were present before the first run ..."
+		DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${missing[@]}" >/dev/null 2>&1 || vstacklet::shell::text::warning "apt-get install of the missing packages reported a problem."
+	fi
+	xargs -r apt-mark auto <"${b}/packages" >/dev/null 2>&1
+	xargs -r apt-mark manual <"${b}/packages.manual" >/dev/null 2>&1
+	vstacklet::shell::text::white "removing installer paths that did not exist before the first run ..."
+	while IFS= read -r p; do
+		[[ -n ${p} && ${p} == /* ]] || continue
+		grep -qxF -- "${p}" "${b}/paths.present" && continue
+		[[ -e ${p} ]] && rm -rf -- "${p}" && vstacklet::shell::text::white " - ${p}"
+	done <"${b}/paths.checked"
+	for p in /etc/hosts /etc/hostname /etc/ssh/sshd_config /root/.bashrc /root/.profile; do
+		[[ -f ${b}/files${p//\//_} ]] && cp -a "${b}/files${p//\//_}" "${p}"
+	done
+	[[ -f /etc/hostname ]] && hostnamectl set-hostname "$(cat /etc/hostname)" >/dev/null 2>&1
+	while iptables -D INPUT -p udp -m udp --dport 1900 -j DROP 2>/dev/null; do :; done
+	while iptables -D INPUT -p tcp --destination-port 10090:10100 -j ACCEPT 2>/dev/null; do :; done
+	systemctl daemon-reload >/dev/null 2>&1
+	systemctl restart ssh.service >/dev/null 2>&1
+	DEBIAN_FRONTEND=noninteractive apt-get -y autoclean >/dev/null 2>&1
+	# @script-note: what differs from the baseline now, so the user sees whether the rollback is complete
+	local left gone
+	left=$(comm -13 "${b}/packages" <(vstacklet::rollback::installed) | wc -l)
+	gone=$(comm -23 "${b}/packages" <(vstacklet::rollback::installed) | wc -l)
+	vstacklet::shell::text::white "packages differing from the baseline: ${left} added, ${gone} missing"
+	[[ ${left} -eq 0 && ${gone} -eq 0 ]]
+}
+
+################################################################################
 # @name: vstacklet::rollback
 # @description: This function is called when a rollback is required. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3672-L3964)
 #
@@ -3943,6 +4028,21 @@ vstacklet::rollback() {
 	declare vstacklet_base_path
 	vstacklet_base_path="/opt/vstacklet"
 	# @script-note: distro and codename come from the gate, which has already read /etc/os-release
+	# @script-note: with a recorded baseline (4.x installs), restore exactly that state; older installs use the file-based path below
+	if [[ -f /root/vstacklet/baseline/complete ]]; then
+		declare confirm
+		vstacklet::shell::text::white "vStacklet will bring this server back to the state recorded before its first install run (/root/vstacklet/baseline): packages, package sources, services and the installer's files. Anything else installed since then is removed too."
+		vstacklet::shell::text::white::sl "Enter yes to continue: " && read -r confirm
+		[[ ${confirm,,} == "yes" || ${confirm,,} == "y" ]] || { vstacklet::shell::text::error "Rollback cancelled." && exit 1; }
+		if vstacklet::rollback::restore; then
+			vstacklet::shell::text::success "Server rolled back to its recorded state. You may run the installer again."
+		else
+			vstacklet::shell::text::error "The rollback finished, but the server still differs from its recorded state (see above). Run vstacklet --rollback again, or rebuild the server from a fresh image."
+		fi
+		rm -f /root/vstacklet/setup_temp/*.txt /opt/vstacklet/config/system/.install_complete "${VSTACKLET_MARKER}" >/dev/null 2>&1
+		[[ -d /var/log/vstacklet ]] && mv /var/log/vstacklet "/var/log/vstacklet-rolled-back-$(date +%Y%m%d-%H%M%S)"
+		exit 0
+	fi
 	# @script-note: build an interactive prompt for the user to select and confirm a rollback file.
 	declare input
 	vstacklet::shell::misc::nl
