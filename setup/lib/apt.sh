@@ -407,7 +407,8 @@ vstacklet::packages::install() {
 	# @script-note: kept for the 3.x tools that read it
 	printf '%s\n' "${vs_packages[@]}" >>"${vstacklet_base_path}/config/system/dependencies"
 	# @script-note: a PHP package that a later upgrade would hold back means the pins and the vendor disagree; say so
-	out="$(vstacklet::apt::real apt-get -s -o DPkg::Lock::Timeout=300 upgrade 2>/dev/null | awk '/kept back:/ {f=1; next} f && /^  / {print} f && !/^  / {f=0}' | tr -s ' \n' ' ')"
+	# @script-note: C locale so the heading is never translated; apt 2.x and apt-get on 3.x print "The following packages have been kept back:", apt 3.x at output version 30 or later prints "Not upgrading:"; names may be packed several to a line
+	out="$(LC_ALL=C vstacklet::apt::real apt-get -s -o DPkg::Lock::Timeout=300 upgrade 2>/dev/null | awk '/(kept back|^Not upgrading):$/ {f=1; next} f && /^  / {print} f && !/^  / {f=0}' | tr -s ' \n' ' ')"
 	declare -g vs_php_kept_back=""
 	# shellcheck disable=SC2086 # one package name per word
 	for k in ${out}; do [[ ${k} == "php${php}" || ${k} == php${php}-* || ${k} == "php-common" ]] && vs_php_kept_back+="${k} "; done
