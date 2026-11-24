@@ -979,7 +979,7 @@ vstacklet::log::check() {
 vstacklet::apt::update() {
 	vstacklet::shell::text::white "running apt update ... "
 	# @script-note: a repository that fails to fetch is an error (--error-on=any), not a silent skip
-	DEBIAN_FRONTEND=noninteractive apt-get -yqq --error-on=any -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update >/dev/null 2>&1 || vstacklet::error::display apt
+	DEBIAN_FRONTEND=noninteractive apt-get -yqq --error-on=any -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update >>"${vslog:-/dev/null}" 2>&1 || vstacklet::error::display apt
 	if [[ -n ${apt_upgrade} ]]; then
 		DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade >/dev/null 2>&1
 		DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" autoremove >/dev/null 2>&1
@@ -3888,7 +3888,7 @@ vstacklet::error::display() {
 		118) error="failed to install the certificate." ;;
 		119) error="failed to edit /etc/nginx/sites-available/${domain}.conf." ;;
 		log) error="a step failed: ${vstacklet_failed_step:-unknown}" ;;
-		apt) error="apt-get update failed: a package repository could not be fetched or verified." ;;
+		apt) error="apt-get update failed: a package repository could not be fetched or verified (the failing repository is named in the log)." ;;
 		*) error="Unknown error" ;;
 		esac
 		vstacklet::shell::text::error "${error}"
