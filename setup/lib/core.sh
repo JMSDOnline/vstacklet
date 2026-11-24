@@ -30,6 +30,7 @@ vs::stat::progress::start() {
 vstacklet::exit::cleanup() {
 	[[ -n ${pg_pid-} ]] && kill -9 "${pg_pid}" 2>/dev/null
 	if declare -F vstacklet::apt::private::cleanup >/dev/null; then vstacklet::apt::private::cleanup; fi
+	if declare -F vstacklet::apt::resume_units >/dev/null && ((${#vs_held_units[@]})); then vstacklet::apt::resume_units; fi
 	return 0
 }
 

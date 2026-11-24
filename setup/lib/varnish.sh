@@ -49,7 +49,7 @@ vstacklet::varnish::install() {
 			else
 				vstacklet::shell::text::white::sl "| ${install} "
 			fi
-			vstacklet::log apt-get -y install "${install}" --allow-unauthenticated || vstacklet::error::display 26
+			vstacklet::log apt-get -y install "${install}" || vstacklet::error::display 26
 			install_list+=("${install}")
 		done
 		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl

@@ -41,19 +41,17 @@ vstacklet::bashrc::set() {
 # @break
 ##################################################################################
 vstacklet::hostname::set() {
-	if [[ -n ${hostname} && -z ${domain} ]]; then
-		vstacklet::shell::text::white "setting hostname to ${hostname} ... "
-		hostnamectl set-hostname "${hostname}" >>"${vslog}" 2>&1 || vstacklet::error::display 6
-		vstacklet::shell::misc::nl
-	elif [[ -n ${domain} && -z ${hostname} ]]; then
-		vstacklet::shell::text::white "setting hostname to ${domain} ... "
-		hostnamectl set-hostname "${domain}" >>"${vslog}" 2>&1 || vstacklet::error::display 6
-		vstacklet::shell::misc::nl
+	local name="${hostname:-${domain}}"
+	# @script-note: nothing changes unless -hn or -d names the host
+	[[ -n ${name} ]] || return 0
+	vstacklet::shell::text::white "setting hostname to ${name} ... "
+	hostnamectl set-hostname "${name}" >>"${vslog}" 2>&1 || vstacklet::error::display 6
+	if grep -qE '^127\.0\.1\.1[[:space:]]' /etc/hosts; then
+		sed -i -E "s/^127\.0\.1\.1[[:space:]].*/127.0.1.1\t${name} ${name%%.*}/" /etc/hosts || vstacklet::error::display 6
 	else
-		vstacklet::shell::text::white "setting hostname to $(hostname --fqdn) ... "
-		hostnamectl set-hostname "$(hostname --fqdn)" >>"${vslog}" 2>&1 || vstacklet::error::display 6
-		vstacklet::shell::misc::nl
+		printf '127.0.1.1\t%s %s\n' "${name}" "${name%%.*}" >>/etc/hosts || vstacklet::error::display 6
 	fi
+	vstacklet::shell::misc::nl
 }
 
 ##################################################################################

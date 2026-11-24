@@ -148,25 +148,8 @@ vstacklet::wordpress::install() {
 		vstacklet::wp::admin_user
 		vstacklet::wp::admin_password
 		vstacklet::wp::admin_email
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white::sl "Are the entered details correct? "
-		vstacklet::shell::text::green::sl "[y]"
-		vstacklet::shell::text::white::sl "es"
-		vstacklet::shell::text::white::sl " or "
-		vstacklet::shell::text::red::sl "[n]"
-		vstacklet::shell::text::white::sl "o: "
-		vstacklet::shell::icon::arrow::white
-		read -r wp_input
-		# @script-note: while loop to check if entered details are correct, if not, repeat
-		while [[ ${wp_input,,} =~ ^(no|n)$ ]]; do
-			vstacklet::wp::db
-			vstacklet::wp::user
-			vstacklet::wp::password
-			vstacklet::wp::site_url
-			vstacklet::wp::site_title
-			vstacklet::wp::admin_user
-			vstacklet::wp::admin_password
-			vstacklet::wp::admin_email
+		# @script-note: only y or yes goes on; n or no asks for the details again; anything else asks the question again; no answer at all (no terminal) stops, so WordPress is never skipped silently
+		vstacklet::wp::confirm() {
 			vstacklet::shell::misc::nl
 			vstacklet::shell::text::white::sl "Are the entered details correct? "
 			vstacklet::shell::text::green::sl "[y]"
@@ -175,10 +158,27 @@ vstacklet::wordpress::install() {
 			vstacklet::shell::text::red::sl "[n]"
 			vstacklet::shell::text::white::sl "o: "
 			vstacklet::shell::icon::arrow::white
-			read -r wp_input
+		}
+		while :; do
+			vstacklet::wp::confirm
+			read -r wp_input || vstacklet::apt::fail "no answer to the WordPress confirmation (no terminal?), so WordPress was not installed"
+			case "${wp_input,,}" in
+			y | yes) break ;;
+			n | no)
+				vstacklet::wp::db
+				vstacklet::wp::user
+				vstacklet::wp::password
+				vstacklet::wp::site_url
+				vstacklet::wp::site_title
+				vstacklet::wp::admin_user
+				vstacklet::wp::admin_password
+				vstacklet::wp::admin_email
+				;;
+			*) vstacklet::shell::text::white "please answer y or n." ;;
+			esac
 		done
 		vstacklet::shell::misc::nl
-		[[ ${wp_input,,} =~ ^(yes|y)$ ]] && declare wp_input_continue="true"
+		declare wp_input_continue="true"
 		if [[ ${wp_input_continue} == "true" ]]; then
 			vstacklet::shell::text::white "installing and configuring WordPress ... "
 			# @script-note: download WordPress

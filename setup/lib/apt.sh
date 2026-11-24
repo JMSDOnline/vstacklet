@@ -236,7 +236,7 @@ vstacklet::apt::plan() {
 	fi
 	printf '%s\n' "${out}" | awk '$1 == "Remv" {print "REMOVE\t" $2}'
 	# @script-note: the origin of each source, from apt's own policy (o=), never from the label in the simulate output
-	while IFS=$'\t' read -r key o; do src_origin["${key}"]="${o}"; done < <(vstacklet::apt::"${mode}" apt-cache policy 2>/dev/null | awk '/^ *-?[0-9]+ / && $2 ~ /^[a-z+]+:/ {k=$2" "$3; next} /^ +release / && k != "" {o=""; n=split($2, a, ","); for (i=1;i<=n;i++) if (a[i] ~ /^o=/) o=substr(a[i],3); print k "\t" o; k=""}')
+	while IFS=$'\t' read -r key o; do src_origin["${key}"]="${o}"; done < <(vstacklet::apt::"${mode}" apt-cache policy 2>/dev/null | awk '/^ *-?[0-9]+ / && $2 ~ /^[a-z+]+:/ {k=$2" "$3; next} /^ +release / && k != "" {o=""; s=""; n=split($2, a, ","); for (i=1;i<=n;i++) {if (a[i] ~ /^o=/) o=substr(a[i],3); if (a[i] ~ /^n=/) s=substr(a[i],3)}; print k "\t" o "@" s; k=""}')
 	local -a names=()
 	local -A newver=() oldver=()
 	local -a w
@@ -262,7 +262,7 @@ vstacklet::apt::plan() {
 # @description: The rules every plan must meet: nothing removed; exactly the chosen PHP version, never another; PHP from the origin the matrix picks; nginx from nginx.org; no installed package replaced from a vendor unless the release's library list allows it.
 ##################################################################################
 vstacklet::apt::plan::check() {
-	local plan="$1" fail="$2" name ver origin kind want_php os_o
+	local plan="$1" fail="$2" name ver origin kind want_php os_o o n
 	[[ ${distro} == "Debian" ]] && os_o="Debian" || os_o="Ubuntu"
 	[[ $(vstacklet::php::origin) == "sury" ]] && want_php="${VS_REPO_ORIGIN[sury]}" || want_php="${os_o}"
 	local -a bad=()
@@ -270,6 +270,10 @@ vstacklet::apt::plan::check() {
 	grep -q '^FAIL' "${plan}" && { "${fail}" "apt cannot install the package list on this server: $(cut -f2 "${plan}" | head -n 1)"; return 1; }
 	grep -q '^REMOVE' "${plan}" && { "${fail}" "installing would remove packages already on this server: $(awk -F'\t' '$1=="REMOVE"{printf "%s ", $2}' "${plan}")"; return 1; }
 	while IFS=$'\t' read -r name ver origin kind; do
+		o="${origin%@*}" n="${origin#*@}"
+		# @script-note: a package from the release's own archive must come from this release (its own, -updates or -security suite), never from another release the server lists
+		if [[ ${o} == "${os_o}" && ${n} != "${codename}" && ${n} != "${codename}-updates" && ${n} != "${codename}-security" ]]; then bad+=("${name} would come from ${o} ${n}, not ${codename}"); continue; fi
+		origin="${o}"
 		if [[ ${name} =~ ^php([0-9]+\.[0-9]+)(-|$) && ${BASH_REMATCH[1]} != "${php}" ]]; then bad+=("${name} is PHP ${BASH_REMATCH[1]}, not ${php}"); continue; fi
 		if [[ ${name} == "php${php}" || ${name} == php${php}-* || ${name} == "php-common" ]]; then
 			[[ ${origin} == "${want_php}" ]] || bad+=("${name} would come from ${origin}, not ${want_php}")
@@ -335,6 +339,12 @@ vstacklet::apt::gate() {
 	return 0
 }
 
+vstacklet::apt::resume_units() {
+	((${#vs_held_units[@]})) && systemctl start "${vs_held_units[@]}" >/dev/null 2>&1
+	vs_held_units=()
+	return 0
+}
+
 # @script-note: apt's W: lines from an update: one about a source vStacklet adds (a vstacklet-* file, nginx.org, packages.sury.org) stops the run; one about the server's own sources is shown as a notice, since it is not vStacklet's to fix
 vstacklet::apt::warnings() {
 	local out="$1" fail="$2" ours rest
@@ -359,6 +369,13 @@ vstacklet::apt::fail() {
 vstacklet::packages::install() {
 	local r out k
 	vstacklet::shell::text::white "installing ${vs_plan_count} packages in one step ... "
+	# @script-note: the system's own apt timers are held from here to the end of the install, so they cannot move a package between the check and the install
+	local u
+	declare -ga vs_held_units=()
+	for u in apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service; do
+		systemctl is-active --quiet "${u}" 2>/dev/null && vs_held_units+=("${u}")
+	done
+	((${#vs_held_units[@]})) && systemctl stop "${vs_held_units[@]}" >/dev/null 2>&1
 	install -d -m 0755 /etc/apt/keyrings /etc/apt/sources.list.d /etc/apt/preferences.d || vstacklet::apt::fail "could not create the apt folders"
 	for r in "${vs_repos[@]}"; do
 		k="/etc/apt/keyrings/vstacklet-${r}.gpg"
@@ -377,6 +394,10 @@ vstacklet::packages::install() {
 		vstacklet::apt::fail "the package plan changed since the check ($(diff <(cut -f1,3 "${vs_apt_tmp}/plan.gate") <(cut -f1,3 "${vs_apt_tmp}/plan.real") | grep -E '^[<>]' | head -n 5 | tr '\t\n' ' '))"
 	fi
 	vstacklet::apt::real apt-get -y -q -o DPkg::Lock::Timeout=300 -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold install --no-install-recommends "${vs_packages[@]}" >>"${vslog}" 2>&1 || vstacklet::apt::fail "apt-get install failed (see the log)"
+	vstacklet::apt::resume_units
+	# @script-note: packages from a vendor outside the PHP and nginx sets are named, so a vendor library never arrives unseen
+	out="$(awk -F'\t' -v os="$([[ ${distro} == "Debian" ]] && echo Debian || echo Ubuntu)" '{split($3, a, "@")} a[1] != os && $1 !~ /^(php|nginx)/ {printf "%s (%s) ", $1, a[1]}' "${vs_apt_tmp}/plan.real")"
+	[[ -n ${out} ]] && vstacklet::shell::text::white "also from a vendor repository: ${out}"
 	# @script-note: kept for the 3.x tools that read it
 	printf '%s\n' "${vs_packages[@]}" >>"${vstacklet_base_path}/config/system/dependencies"
 	# @script-note: a PHP package that a later upgrade would hold back means the pins and the vendor disagree; say so
@@ -420,8 +441,7 @@ vstacklet::apt::refresh_keys() {
 		vstacklet::shell::text::green "${name}: the key was renewed."
 		n=$((n + 1))
 	done
-	out="$(LC_ALL=C apt-get -q -o DPkg::Lock::Timeout=300 --error-on=any update 2>&1)" || { printf '%s
-' "${out}" | grep -E '^(E|Err|W):' | head -n 5; vstacklet::shell::text::error "apt-get update failed after the key refresh."; return 1; }
+	out="$(LC_ALL=C apt-get -q -o DPkg::Lock::Timeout=300 --error-on=any update 2>&1)" || { printf '%s\n' "${out}" | grep -E '^(E|Err|W):' | head -n 5; vstacklet::shell::text::error "apt-get update failed after the key refresh."; return 1; }
 	if grep -qE '^W: ' <<<"${out}"; then
 		grep -E '^W: ' <<<"${out}" | head -n 5
 		vstacklet::shell::text::error "apt warned while reading the package sources after the key refresh (above)."

@@ -22,8 +22,10 @@ vstacklet::intro() {
 	vstacklet::shell::text::white "Documentation can be found at:"
 	vstacklet::shell::text::white "https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md"
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "vStacklet installation log can be found at:"
-	vstacklet::shell::text::yellow "${vslog}"
+	if [[ -n ${vslog-} ]]; then
+		vstacklet::shell::text::white "vStacklet installation log can be found at:"
+		vstacklet::shell::text::yellow "${vslog}"
+	fi
 	vstacklet::shell::misc::nl
 }
 
