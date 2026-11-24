@@ -4039,7 +4039,8 @@ vstacklet::rollback() {
 		else
 			vstacklet::shell::text::error "The rollback finished, but the server still differs from its recorded state (see above). Run vstacklet --rollback again, or rebuild the server from a fresh image."
 		fi
-		rm -f /root/vstacklet/setup_temp/*.txt /opt/vstacklet/config/system/.install_complete "${VSTACKLET_MARKER}" >/dev/null 2>&1
+		rm -rf /root/vstacklet/setup_temp >/dev/null 2>&1
+		rm -f /opt/vstacklet/config/system/.install_complete "${VSTACKLET_MARKER}" >/dev/null 2>&1
 		[[ -d /var/log/vstacklet ]] && mv /var/log/vstacklet "/var/log/vstacklet-rolled-back-$(date +%Y%m%d-%H%M%S)"
 		exit 0
 	fi
