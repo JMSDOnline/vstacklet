@@ -23,7 +23,7 @@ vstacklet::gate::install() {
 	[[ -n ${ioncube} && ${vstacklet_arch} == "arm64" ]] && vstacklet::gate::refuse "ionCube Loader is not offered on arm64 by this installer; run without -ioncube."
 	# @script-note: Docker's published ports bypass ufw and its rules conflict with direct nftables use, so the firewall vStacklet sets up could not be trusted
 	if command -v docker >/dev/null 2>&1 || [[ $(dpkg-query -W -f='${Status}' docker-ce docker.io moby-engine 2>/dev/null) == *"ok installed"* ]]; then
-		vstacklet::gate::refuse "Docker is installed on this server. vStacklet manages the firewall with ufw, and Docker's published ports bypass ufw, so vStacklet installs on servers without Docker only."
+		vstacklet::gate::refuse "Docker is installed on this server. Docker's published ports bypass the host firewall rules, so vStacklet installs on servers without Docker only."
 	fi
 	# @script-note: fresh servers only
 	for f in "${VSTACKLET_MARKER}" "${VSTACKLET_STARTED}" /opt/vstacklet/config/system/.install_complete /var/log/vstacklet; do

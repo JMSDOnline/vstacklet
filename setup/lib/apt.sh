@@ -174,26 +174,28 @@ vstacklet::apt::private::setup() {
 	declare -g vs_apt_tmp="${t}"
 	trap 'vstacklet::exit::cleanup' EXIT
 	chmod 0755 "${t}"
-	mkdir -p "${t}/etc/sources.list.d" "${t}/etc/preferences.d" "${t}/etc/apt.conf.d" "${t}/state/lists" "${t}/cache/archives/partial" || vstacklet::gate::refuse "could not prepare the package check."
+	mkdir -p "${t}/etc/sources.list.d" "${t}/etc/preferences.d" "${t}/etc/apt.conf.d" "${t}/state/lists" "${t}/cache/archives/partial" "${t}/log" || vstacklet::gate::refuse "could not prepare the package check."
 	install -d -m 0700 "${t}/keys"
 	if [[ -f /etc/apt/sources.list ]]; then cp -p /etc/apt/sources.list "${t}/etc/sources.list"; else : >"${t}/etc/sources.list"; fi
 	[[ -f /etc/apt/preferences ]] && cp -p /etc/apt/preferences "${t}/etc/preferences"
 	find /etc/apt/sources.list.d -maxdepth 1 -type f \( -name '*.list' -o -name '*.sources' \) -exec cp -p -t "${t}/etc/sources.list.d" {} + 2>/dev/null
 	find /etc/apt/preferences.d -maxdepth 1 -type f -exec cp -p -t "${t}/etc/preferences.d" {} + 2>/dev/null
 	find /etc/apt/apt.conf.d -maxdepth 1 -type f -exec cp -p -t "${t}/etc/apt.conf.d" {} + 2>/dev/null
+	# @script-note: the main /etc/apt/apt.conf is read after the parts, so it is copied in as an early part instead and the real one is skipped (Dir::Etc::main below); the private settings in the last part then win
+	[[ -f /etc/apt/apt.conf ]] && cp -p /etc/apt/apt.conf "${t}/etc/apt.conf.d/00vstacklet-main-apt.conf"
 	# @script-note: the package lists are seeded from the server's own (read only), so only changed indexes download again
-	find /var/lib/apt/lists -maxdepth 1 -type f ! -name lock -exec cp -p -t "${t}/state/lists" {} + 2>/dev/null
+	find /var/lib/apt/lists -maxdepth 1 -type f ! -name lock -exec cp -p -t "${t}/state/lists" {} + || vstacklet::gate::refuse "could not copy the package lists into ${t} (is /tmp full?)."
 	[[ -f /var/lib/apt/extended_states ]] && cp -p /var/lib/apt/extended_states "${t}/state/extended_states"
 	install -d -m 0700 "${t}/state/lists/partial"
 	if id -u _apt >/dev/null 2>&1; then chown _apt:root "${t}/state/lists/partial" "${t}/cache/archives/partial"; chmod 0700 "${t}/cache/archives/partial"; fi
 	chmod 0755 "${t}/state" "${t}/state/lists" "${t}/cache" "${t}/cache/archives"
 	# @script-note: APT_CONFIG is read before the configuration parts, so it can point apt at the private copy of them; the last part clears every hook, so no hook runs or writes during the check
 	{
-		printf 'Dir::Etc::Parts "%s";\n' "${t}/etc/apt.conf.d"
+		printf 'Dir::Etc::Parts "%s";\nDir::Etc::main "/dev/null";\n' "${t}/etc/apt.conf.d"
 	} >"${t}/apt.conf"
 	{
-		printf '#clear APT::Update::Pre-Invoke;\n#clear APT::Update::Post-Invoke;\n#clear APT::Update::Post-Invoke-Success;\n#clear DPkg::Pre-Invoke;\n#clear DPkg::Post-Invoke;\n#clear DPkg::Pre-Install-Pkgs;\n'
-		printf 'Dir::State "%s";\nDir::State::status "/var/lib/dpkg/status";\nDir::Cache "%s";\n' "${t}/state" "${t}/cache"
+		printf '#clear APT::Update::Pre-Invoke;\n#clear APT::Update::Post-Invoke;\n#clear APT::Update::Post-Invoke-Success;\n#clear APT::Update::Post-Invoke-Stats;\n#clear DPkg::Pre-Invoke;\n#clear DPkg::Post-Invoke;\n#clear DPkg::Pre-Install-Pkgs;\n'
+		printf 'Dir::State "%s";\nDir::State::status "/var/lib/dpkg/status";\nDir::Cache "%s";\nDir::Log "%s";\n' "${t}/state" "${t}/cache" "${t}/log"
 		printf 'Dir::Etc::SourceList "%s";\nDir::Etc::SourceParts "%s";\nDir::Etc::Preferences "%s";\nDir::Etc::PreferencesParts "%s";\n' "${t}/etc/sources.list" "${t}/etc/sources.list.d" "${t}/etc/preferences" "${t}/etc/preferences.d"
 	} >"${t}/etc/apt.conf.d/zzzz-vstacklet-private"
 	for f in "${vs_repos[@]}"; do
@@ -301,9 +303,7 @@ vstacklet::apt::gate() {
 	if ! out="$(vstacklet::apt::priv apt-get -q -o DPkg::Lock::Timeout=300 --error-on=any update 2>&1)"; then
 		vstacklet::gate::refuse "apt could not update the package lists: $(printf '%s\n' "${out}" | grep -E '^(E|Err):' | head -n 3 | tr '\n' ' ')"
 	fi
-	if grep -qE '^W: ' <<<"${out}"; then
-		vstacklet::gate::refuse "apt warned while reading the package sources: $(grep -E '^W: ' <<<"${out}" | head -n 3 | tr '\n' ' ')"
-	fi
+	vstacklet::apt::warnings "${out}" vstacklet::gate::refuse
 	# @script-note: the release's own suites, as apt sees them
 	pol="$(vstacklet::apt::priv apt-cache policy 2>/dev/null | awk '/^ +release / {o=""; n=""; c=""; m=split($2, a, ","); for (i=1;i<=m;i++) {if (a[i] ~ /^o=/) o=substr(a[i],3); if (a[i] ~ /^n=/) n=substr(a[i],3); if (a[i] ~ /^c=/) c=substr(a[i],3)}; print o "|" n "|" c}' | sort -u)"
 	[[ ${distro} == "Debian" ]] && os_o="Debian" || os_o="Ubuntu"
@@ -330,6 +330,18 @@ vstacklet::apt::gate() {
 	vstacklet::apt::plan::check "${vs_apt_tmp}/plan.gate" vstacklet::gate::refuse
 	declare -g vs_plan_count
 	vs_plan_count="$(grep -cvE '^(FAIL|REMOVE)' "${vs_apt_tmp}/plan.gate")"
+	# @script-note: only the checked keys and the plan are needed from here on; the private lists and caches can be large and /tmp may be in RAM
+	rm -rf -- "${vs_apt_tmp:?}/state" "${vs_apt_tmp:?}/cache" "${vs_apt_tmp:?}/log"
+	return 0
+}
+
+# @script-note: apt's W: lines from an update: one about a source vStacklet adds (a vstacklet-* file, nginx.org, packages.sury.org) stops the run; one about the server's own sources is shown as a notice, since it is not vStacklet's to fix
+vstacklet::apt::warnings() {
+	local out="$1" fail="$2" ours rest
+	ours="$(grep -E '^W: ' <<<"${out}" | grep -E 'vstacklet-|nginx\.org|packages\.sury\.org' | head -n 3 | tr '\n' ' ')"
+	rest="$(grep -E '^W: ' <<<"${out}" | grep -vE 'vstacklet-|nginx\.org|packages\.sury\.org' | head -n 3 | tr '\n' ' ')"
+	[[ -n ${rest} ]] && vstacklet::gate::notice "apt warned about this server's own package sources (not changed by vStacklet): ${rest}"
+	[[ -n ${ours} ]] && "${fail}" "apt warned about a package source vStacklet adds: ${ours}"
 	return 0
 }
 
@@ -358,7 +370,7 @@ vstacklet::packages::install() {
 	done
 	out="$(vstacklet::apt::real apt-get -q -o DPkg::Lock::Timeout=300 --error-on=any update 2>&1)" || { printf '%s\n' "${out}" >>"${vslog}"; vstacklet::apt::fail "apt-get update failed (see the log)"; }
 	printf '%s\n' "${out}" >>"${vslog}"
-	grep -qE '^W: ' <<<"${out}" && vstacklet::apt::fail "apt warned while reading the package sources: $(grep -E '^W: ' <<<"${out}" | head -n 3 | tr '\n' ' ')"
+	vstacklet::apt::warnings "${out}" vstacklet::apt::fail
 	vstacklet::apt::plan real "${vs_packages[@]}" | LC_ALL=C sort >"${vs_apt_tmp}/plan.real"
 	vstacklet::apt::plan::check "${vs_apt_tmp}/plan.real" vstacklet::apt::fail
 	if ! diff -q <(cut -f1,3 "${vs_apt_tmp}/plan.gate") <(cut -f1,3 "${vs_apt_tmp}/plan.real") >/dev/null; then
