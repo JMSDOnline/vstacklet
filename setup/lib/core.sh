@@ -23,7 +23,14 @@ vs::stat::progress::start() {
 	vs::stat::progress &
 	pg_pid=$!
 	# @script-note: only on exit; INT, TERM and HUP stay with the installer's own trap, which also stops the spinner
-	trap 'kill -9 ${pg_pid} 2>/dev/null' EXIT
+	trap 'vstacklet::exit::cleanup' EXIT
+}
+
+# @script-note: the one EXIT trap: stops the spinner and removes the package check's temporary folder (keys, private apt state)
+vstacklet::exit::cleanup() {
+	[[ -n ${pg_pid-} ]] && kill -9 "${pg_pid}" 2>/dev/null
+	if declare -F vstacklet::apt::private::cleanup >/dev/null; then vstacklet::apt::private::cleanup; fi
+	return 0
 }
 
 # stop the spinner and remove the function's PID
@@ -102,12 +109,7 @@ vstacklet::error::display() {
 		1) error="you must be root to run this script." ;;
 		# vstacklet::environment::checkdistro (8)
 		2) error="this script only supports Ubuntu 20.04/22.04 and Debian 11/12." ;;
-		# vstacklet::dependencies::install (6)
-		3) error="failed to install script dependencies." ;;
-		# vstacklet::base::dependencies (12)
-		4) error="failed to install base dependencies." ;;
-		# vstacklet::source::dependencies (13)
-		5) error="failed to install source dependencies." ;;
+		# 3 to 5 were the 3.x dependency steps; packages now install in one step (vstacklet::packages::install), whose failures name themselves
 		# vstacklet::hostname::set (15)
 		6) error="failed to set hostname." ;;
 		# vstacklet::ssh::set (17)

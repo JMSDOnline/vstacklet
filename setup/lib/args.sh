@@ -85,11 +85,7 @@ vstacklet::args::process() {
 			vstacklet::shell::text::error "CSF is no longer supported by vStacklet 4.0." && exit 1
 			;;
 		-d | --domain)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::fqdn "$1" "$2"
-			declare -gi domain_ssl=1
-			declare -g domain="${2}"
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-e | --email)
 			vstacklet::args::need_value "$1" $# "${2-}"
@@ -98,10 +94,7 @@ vstacklet::args::process() {
 			shift 2
 			;;
 		-ftp | --ftp_port)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::port "$1" "$2"
-			declare -gi ftp_port=$((10#$2))
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-hhvm | --hhvm)
 			vstacklet::shell::text::error "HHVM is no longer supported. Use -php (${SUPPORTED_PHP[*]}; default ${DEFAULT_PHP})." && exit 1
@@ -150,56 +143,35 @@ vstacklet::args::process() {
 			shift 2
 			;;
 		-mysql | --mysql)
-			declare -gi mysql="1"
-			shift
+			vstacklet::args::not_yet "$1"
 			;;
 		-mysqlU | --mysql_user)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::dbuser "$1" "$2"
-			declare -g mysql_user="${2}"
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-mysqlPw | --mysql_password)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::password "$1" "$2"
-			declare -g mysql_password="${2}"
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-mysqlP | --mysql_port)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::port "$1" "$2"
-			declare -gi mysql_port=$((10#$2))
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-nginx | --nginx)
 			declare -gi nginx="1"
 			shift
 			;;
 		-postgre | --postgresql)
-			declare -gi postgresql="1"
-			shift
+			vstacklet::args::not_yet "$1"
 			;;
 		-postgreU | --postgresql_user)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::dbuser "$1" "$2"
-			declare -g postgresql_user="${2}"
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-postgrePw | --postgresql_password)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::password "$1" "$2"
-			declare -g postgresql_password="${2}"
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-postgreP | --postgresql_port)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::port "$1" "$2"
-			declare -gi postgresql_port=$((10#$2))
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-pma | --phpmyadmin)
-			declare -gi phpmyadmin="1"
-			shift
+			vstacklet::args::not_yet "$1"
 			;;
 		-php | --php)
 			vstacklet::args::need_value "$1" $# "${2-}"
@@ -207,53 +179,35 @@ vstacklet::args::process() {
 			shift 2
 			;;
 		-redis | --redis)
-			declare -gi redis="1"
-			shift
+			vstacklet::args::not_yet "$1"
 			;;
 		-redisPw | --redis_password)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::password "$1" "$2"
-			declare -g redis_password="${2}"
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-redisP | --redis_port)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::port "$1" "$2"
-			declare -gi redis_port=$((10#$2))
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-sendmail | --sendmail)
-			declare -gi sendmail="1"
-			shift
+			vstacklet::args::not_yet "$1"
 			;;
 		-sendmailP | --sendmail_port)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::port "$1" "$2"
-			declare -gi sendmail_port=$((10#$2))
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		--dns | --dns_provider)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			[[ ${2} != "cloudflare" ]] && vstacklet::shell::text::error "currently only 'cloudflare' is supported as DNS provider." && exit 1
-			declare -gi dns_verification="1"
-			declare -g dns_provider="${2}"
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-ssh | --ssh_port)
+			[[ ${distro} == "Ubuntu" ]] && vstacklet::shell::text::error "-ssh is not available on Ubuntu in this development build yet; it returns before the 4.0 release." && exit 1
 			vstacklet::args::need_value "$1" $# "${2-}"
 			vstacklet::args::port "$1" "$2"
 			declare -gi ssh_port=$((10#$2))
 			shift 2
 			;;
 		-varnish | --varnish)
-			declare -gi varnish="1"
-			shift
+			vstacklet::args::not_yet "$1"
 			;;
 		-varnishP | --varnish_port)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::port "$1" "$2"
-			declare -gi varnish_port=$((10#$2))
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-wp | --wordpress)
 			declare -gi wordpress="1"
@@ -264,6 +218,10 @@ vstacklet::args::process() {
 			vstacklet::args::webroot "$1" "$2"
 			declare -g web_root="${2}"
 			shift 2
+			;;
+		--refresh-keys)
+			vstacklet::apt::refresh_keys
+			exit $?
 			;;
 		--rollback)
 			declare -gi rollback="1" && vstacklet::rollback
@@ -280,6 +238,7 @@ vstacklet::args::process() {
 	done
 	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::shell::text::error "invalid option(s): ${invalid_option[*]}" && exit 1
 	# @script-note: run sanity checks on the options provided
+	[[ -n ${mariadb_password} && -z ${mariadb_user} ]] && vstacklet::shell::text::error "-mariadbPw sets the password of the admin account; name the account with -mariadbU." && exit 1
 	[[ -n ${domain} && -z ${email} ]] && vstacklet::shell::text::error "an email is needed to register with Let's Encrypt. please set an email with \`-e\`." && exit 1
 	[[ -n ${mariadb} && -n ${mysql} ]] && vstacklet::shell::text::error "mariadb and mysql cannot be installed together. choose either mariadb or mysql." && exit 1
 	[[ -n ${sendmail} && -z ${email} ]] && vstacklet::shell::text::error "an email is needed to register the server aliases. please set an email with \`-e your@email.com\`." && exit 1
@@ -397,4 +356,13 @@ vstacklet::args::webroot() {
 	if [[ ${#2} -gt 200 || ! $2 =~ ${re} ]]; then
 		vstacklet::shell::text::error "option '$1': '$2' is not an allowed web root; use a folder under /var/www/ or /srv/ (for example: /var/www/html/vsapp)." && exit 1
 	fi
+}
+
+##################################################################################
+# @name: vstacklet::args::not_yet
+# @description: Refuses an option whose feature has not been rewritten for 4.0 yet, before any change, so no 3.x code runs.
+##################################################################################
+vstacklet::args::not_yet() {
+	vstacklet::shell::text::error "${1} is not available in this development build of vStacklet 4.0 yet; it returns before the 4.0 release. Nothing was changed."
+	exit 1
 }

@@ -17,7 +17,7 @@
 #   - wordpress database user
 #   - wordpress database password
 # - this function requires the following options to be used:
-#   - database: `-mariadb | --mariadb` or `-mysql | --mysql` (only one can be used)
+#   - database: `-mariadb | --mariadb` (MySQL is not available in this development build)
 #   - webserver: `-nginx | --nginx` or `-varnish | --varnish` (both can be used)
 #   - php: `-php | --php`
 # - this function will optionally use the following options:
@@ -26,7 +26,6 @@
 # @option: $1 - `-wp | --wordpress` (optional)
 # @noargs
 # @example: vstacklet -wp -mariadb -nginx -php "8.4" -wr "/var/www/html/vsapp"
-# @example: vstacklet -wp -mysql -nginx -php "8.4"
 # @example: vstacklet -wp -mariadb -nginx -php "8.4" -varnish -varnishP 80 -http 8080 -https 443
 # @null
 # @return_code: 96 - failed to download WordPress.
@@ -47,7 +46,7 @@
 vstacklet::wordpress::install() {
 	# @script-note: check if WordPress has been selected
 	if [[ -n ${wordpress} ]]; then
-		declare wp_db_name wp_db_user wp_db_password
+		declare wp_db_name wp_db_user wp_db_password wp_sum
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "please enter the following information for WordPress:"
 		# @script-note: get WordPress database name
@@ -55,7 +54,7 @@ vstacklet::wordpress::install() {
 			vstacklet::shell::text::white::sl "WordPress database name: "
 			vstacklet::shell::icon::arrow::white
 			while read -r wp_db_name; do
-				[[ -z ${wp_db_name} ]] && vstacklet::shell::text::error "WordPress database name cannot be empty." && vstacklet::shell::text::white::sl "WordPress database name: " && vstacklet::shell::icon::arrow::white && continue
+				[[ ! ${wp_db_name} =~ ^[A-Za-z0-9_]{1,64}$ ]] && vstacklet::shell::text::error "use letters, digits and underscores only (64 at most)." && vstacklet::shell::text::white::sl "WordPress database name: " && vstacklet::shell::icon::arrow::white && continue
 				break
 			done
 		}
@@ -65,7 +64,8 @@ vstacklet::wordpress::install() {
 			vstacklet::shell::icon::arrow::white
 			while read -r wp_db_user; do
 				# @script-note: check if WordPress database user already exists, if so, use current user
-				db_user_present="$(mysql -u root -sse "SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = '${wp_db_user}')")"
+				[[ ! ${wp_db_user} =~ ^[a-z_][a-z0-9_]{0,31}$ || ${wp_db_user} == "root" ]] && vstacklet::shell::text::error "use lowercase letters, digits and underscores (32 at most), not root." && vstacklet::shell::text::white::sl "WordPress database user: " && vstacklet::shell::icon::arrow::white && continue
+				db_user_present="$(mariadb --protocol=socket -sse "SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = '${wp_db_user}')")"
 				if [[ "${db_user_present}" == "1" ]]; then
 					vstacklet::shell::text::magenta::sl "Database user already exists: "
 					vstacklet::shell::text::white "Using previously created database ${wp_db_user} user."
@@ -90,7 +90,7 @@ vstacklet::wordpress::install() {
 				vstacklet::shell::text::white::sl "WordPress database password: "
 				vstacklet::shell::icon::arrow::white
 				while read -r wp_db_password; do
-					[[ -z ${wp_db_password} ]] && vstacklet::shell::text::error "WordPress database password cannot be empty." && vstacklet::shell::text::white::sl "WordPress database password: " && vstacklet::shell::icon::arrow::white && continue
+					[[ ! ${wp_db_password} =~ ^[A-Za-z0-9!#%*+,.:\;=?@^_~-]{8,128}$ ]] && vstacklet::shell::text::error "use 8 to 128 letters, digits or !#%*+,.:;=?@^_~- (no quotes, spaces or slashes)." && vstacklet::shell::text::white::sl "WordPress database password: " && vstacklet::shell::icon::arrow::white && continue
 					break
 				done
 			fi
@@ -182,7 +182,9 @@ vstacklet::wordpress::install() {
 		if [[ ${wp_input_continue} == "true" ]]; then
 			vstacklet::shell::text::white "installing and configuring WordPress ... "
 			# @script-note: download WordPress
-			vstacklet::log wget -q -O /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz || vstacklet::error::display 96
+			vstacklet::log curl -fsSL --proto '=https' -o /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz || vstacklet::error::display 96
+			wp_sum="$(curl -fsSL --proto '=https' https://wordpress.org/latest.tar.gz.sha1)" || vstacklet::error::display 96
+			[[ ${wp_sum} =~ ^[0-9a-f]{40}$ && $(sha1sum /tmp/wordpress.tar.gz | cut -d' ' -f1) == "${wp_sum}" ]] || { declare -g vstacklet_failed_step="the WordPress download does not match wordpress.org's published checksum"; vstacklet::error::display log; }
 			# @script-note: extract WordPress
 			vstacklet::log tar -xzf /tmp/wordpress.tar.gz -C /tmp || vstacklet::error::display 97
 			# @script-note: move WordPress to the web root
@@ -190,7 +192,10 @@ vstacklet::wordpress::install() {
 			# @script-note: create the uploads directory
 			mkdir -p "${web_root:-/var/www/html/vsapp}/public/wp-content/uploads" || vstacklet::error::display 99
 			# @script-note: download the WordPress CLI
-			vstacklet::log wget -q -O /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+			# @script-note: wp-cli 2.12.0, checked against the SHA-512 published with the release (read 2026-11-24)
+			vstacklet::log curl -fsSL --proto '=https' -o /usr/local/bin/wp.new https://github.com/wp-cli/wp-cli/releases/download/v2.12.0/wp-cli-2.12.0.phar
+			[[ $(sha512sum /usr/local/bin/wp.new | cut -d' ' -f1) == "be928f6b8ca1e8dfb9d2f4b75a13aa4aee0896f8a9a0a1c45cd5d2c98605e6172e6d014dda2e27f88c98befc16c040cbb2bd1bfa121510ea5cdf5f6a30fe8832" ]] || { rm -f /usr/local/bin/wp.new; declare -g vstacklet_failed_step="the wp-cli download does not match its published SHA-512"; vstacklet::error::display log; }
+			vstacklet::log mv -f /usr/local/bin/wp.new /usr/local/bin/wp
 			# @script-note: set the correct permissions
 			vstacklet::log chmod +x /usr/local/bin/wp
 			vstacklet::shell::text::yellow::sl "configuring WordPress ... " &
@@ -202,25 +207,25 @@ vstacklet::wordpress::install() {
 				-e "s/database_name_here/${wp_db_name}/g" \
 				-e "s/username_here/${wp_db_user}/g" \
 				-e "s/password_here/${wp_db_password}/g" \
-				-e "s/utf8mb4/utf8/g" \
 				"${web_root:-/var/www/html/vsapp}/public/wp-config.php" || vstacklet::error::display 101
 			# @script-note: remove old salt keys
 			sed -i -e "/define( 'AUTH_KEY',/d" -e "/define( 'SECURE_AUTH_KEY',/d" -e "/define( 'LOGGED_IN_KEY',/d" -e "/define( 'NONCE_KEY',/d" -e "/define( 'AUTH_SALT',/d" -e "/define( 'SECURE_AUTH_SALT',/d" -e "/define( 'LOGGED_IN_SALT',/d" -e "/define( 'NONCE_SALT',/d" "${web_root:-/var/www/html/vsapp}/public/wp-config.php"
 			# @script-note: import updated salt keys
-			wp_salts=$(curl -s https://api.wordpress.org/secret-key/1.1/salt/)
+			wp_salts=$(curl -fsSL --proto '=https' https://api.wordpress.org/secret-key/1.1/salt/)
+			[[ $(grep -c "define(" <<<"${wp_salts}") -eq 8 ]] || { declare -g vstacklet_failed_step="could not fetch fresh WordPress salts"; vstacklet::error::display log; }
 			sed -i "/#@-/r /dev/stdin" "${web_root:-/var/www/html/vsapp}/public/wp-config.php" <<<"${wp_salts}"
-			# @script-note: add security constants to wp-config.php (disable file editor and set FS_METHOD to ssh2 for secure file transfers)
-			sed -i "/Add any custom values between this line and the \"stop editing\" line./a \\\n/**\n * The plugins and themes file editor is a very convenient tool because it\n * enables you to make quick changes without the need to use FTP.\n *\n * Unfortunately, it's also a security issue because it not only shows the\n * PHP source code, it also enables attackers to inject malicious code into\n * your site if they manage to gain access to admin.\n * To prevent this, you can disable the file editor.\n *\n * @link https://developer.wordpress.org/advanced-administration/wordpress/wp-config/#disable-the-plugin-and-theme-file-editor\n */\n\ndefine('DISALLOW_FILE_EDIT', true);\ndefine('FS_METHOD', 'ssh2');\n" "${web_root:-/var/www/html/vsapp}/public/wp-config.php"
+			# @script-note: add security constants to wp-config.php (disable the file editor)
+			sed -i "/Add any custom values between this line and the \"stop editing\" line./a \\\n/**\n * The plugins and themes file editor is a very convenient tool because it\n * enables you to make quick changes without the need to use FTP.\n *\n * Unfortunately, it's also a security issue because it not only shows the\n * PHP source code, it also enables attackers to inject malicious code into\n * your site if they manage to gain access to admin.\n * To prevent this, you can disable the file editor.\n *\n * @link https://developer.wordpress.org/advanced-administration/wordpress/wp-config/#disable-the-plugin-and-theme-file-editor\n */\n\ndefine('DISALLOW_FILE_EDIT', true);\n" "${web_root:-/var/www/html/vsapp}/public/wp-config.php"
 			# @script-note: create the database
-			mysql -e "CREATE DATABASE ${wp_db_name};" >>"${vslog}" 2>&1 || vstacklet::error::display 102
+			mariadb --protocol=socket -e "CREATE DATABASE \`${wp_db_name}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" >>"${vslog}" 2>&1 || vstacklet::error::display 102
 			if [[ "${db_user_present}" != "1" ]]; then
 				# @script-note: create the database user
-				mysql -e "CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';" >>"${vslog}" 2>&1 || vstacklet::error::display 103
+				mariadb --protocol=socket -e "CREATE USER '${wp_db_user}'@'localhost' IDENTIFIED BY '${wp_db_password}';" >>"${vslog}" 2>&1 || vstacklet::error::display 103
 			fi
 			# @script-note: grant privileges to the database user
-			mysql -e "GRANT ALL PRIVILEGES ON ${wp_db_name}.* TO '${wp_db_user}'@'localhost';" >>"${vslog}" 2>&1 || vstacklet::error::display 104
+			mariadb --protocol=socket -e "GRANT ALL PRIVILEGES ON \`${wp_db_name}\`.* TO '${wp_db_user}'@'localhost';" >>"${vslog}" 2>&1 || vstacklet::error::display 104
 			# @script-note: flush privileges
-			mysql -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::error::display 105
+			mariadb --protocol=socket -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::error::display 105
 			# @script-note: remove the WordPress installation files
 			vstacklet::log rm -rf /tmp/wordpress /tmp/wordpress.tar.gz || vstacklet::error::display 106
 			# @script-note: run wp core install

@@ -4,158 +4,53 @@
 
 ##################################################################################
 # @name: vstacklet::mariadb::install (29)
-# @description: Install mariaDB and configure. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L1935-L2057)
+# @description: Configure MariaDB from the release's own archive (10.11 on Debian 12 and Ubuntu 24.04, 11.8 on Debian 13 and Ubuntu 26.04).
 #
 # notes:
-# - if `-mysql | --mysql` is specified, then mariadb will not be installed. choose either mariadb or mysql.
-# - actual mariadb version installed is 10.11.+ LTS.
+# - root signs in through the unix socket (run `mariadb` as root); no root password is set or stored
+# - the full-access admin account with a stored password is created only when `-mariadbU` names it, with `-mariadbPw` or a generated password, kept in /root/.my.cnf (0600)
+# - each WordPress site gets its own database user (see `-wp`)
 # @option: $1 - `-mariadb | --mariadb` (optional) (takes no arguments)
 # @option: $2 - `-mariadbP | --mariadb_port` (optional) (takes one argument)
-# @option: $3 - `-mariadbU | --mariadb_user` (optional) (takes one argument)
-# @option: $4 - `-mariadbPw | --mariadb_password` (optional) (takes one argument)
+# @option: $3 - `-mariadbU | --mariadb_user` (optional) (takes one argument): create the admin account
+# @option: $4 - `-mariadbPw | --mariadb_password` (optional) (takes one argument): its password (needs `-mariadbU`)
 # @arg: $2 - `[port]` (optional) (default: 3306)
-# @arg: $3 - `[user]` (optional) (default: admin)
-# @arg: $4 - `[password]` (optional) (default: password auto-generated)
-# @example: vstacklet -mariadb -mariadbP 3306 -mariadbU admin -mariadbPw password
-# @example: vstacklet --mariadb --mariadb_port 3306 --mariadb_user admin --mariadb_password password
-# @example: vstacklet -mariadb -mariadbP 3306 -mariadbU admin
-# @example: vstacklet --mariadb --mariadb_port 3306 --mariadb_user admin
-# @example: vstacklet -mariadb -mariadbP 3306
-# @example: vstacklet --mariadb --mariadb_port 3306
 # @example: vstacklet -mariadb
-# @example: vstacklet --mariadb
+# @example: vstacklet -mariadb -mariadbU admin
+# @example: vstacklet --mariadb --mariadb_port 3306 --mariadb_user admin --mariadb_password password
 # @null
-# @return_code: 36 - failed to install MariaDB dependencies.
-# @return_code: 37 - failed to initialize MariaDB secure installation.
-# @return_code: 38 - failed to set MariaDB client and server configuration.
-# @return_code: 39 - failed to set MariaDB .my.cnf configuration.
-# @return_code: 40 - failed to create MariaDB user.
-# @return_code: 41 - failed to create MariaDB user privileges.
-# @return_code: 42 - failed to flush privileges.
+# @return_code: 38 - failed to set the MariaDB server configuration.
+# @return_code: 39 - failed to write /root/.my.cnf.
+# @return_code: 40 - failed to create the MariaDB admin account.
+# @return_code: 41 - failed to grant the MariaDB admin account its privileges.
 # @break
 ##################################################################################
 vstacklet::mariadb::install() {
-	if [[ -n ${mariadb} ]]; then
+	[[ -n ${mariadb} ]] || return 0
+	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white "configuring MariaDB ... "
+	# @script-note: MariaDB comes from the release's own archive (installed by vstacklet::packages::install); root signs in through the unix socket as the packages set it, so there is nothing for mysql_secure_installation to do
+	command -v mariadb >/dev/null 2>&1 || vstacklet::apt::fail "the mariadb client is missing after the install"
+	# @script-note: server settings only; no account or password is ever written to /etc/mysql
+	{
+		printf '%s\n' "[mysqld]" "port = ${mariadb_port:-3306}" "socket = /run/mysqld/mysqld.sock" "bind-address = 127.0.0.1" "datadir = /var/lib/mysql" "log-error = /var/log/mysql/error.log" "pid-file = /run/mysqld/mysqld.pid" "max_allowed_packet = 16M" "max_heap_table_size = 16M" "max_sp_recursion_depth = 255" "max_sort_length = 1024" "max_join_size = 1000000" "max_length_for_sort_data = 1024" "max_seeks_for_key = 4294967295" "max_write_lock_count = 4294967295" "max_prepared_stmt_count = 16382" "max_delayed_threads = 20"
+	} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::error::display 38
+	chmod 0644 /etc/mysql/conf.d/vstacklet.cnf
+	vstacklet::log systemctl restart mariadb
+	vstacklet::log mariadb-admin --protocol=socket ping
+	if [[ -n ${mariadb_user} ]]; then
+		# @script-note: the full-access admin account with a stored password is off by default; -mariadbU turns it on
 		declare mariadb_autoPw
-		mariadb_autoPw="$(perl -e 'print map +(A..Z,a..z,0..9)[rand 62], 0..15')"
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "installing and configuring MariaDB ... "
-		# @script-note: install mariadb dependencies
-		for depend in "${mariadb_dependencies[@]}"; do
-			if [[ $(dpkg-query -W -f='${Status}' "${depend}" 2>/dev/null | grep -c "ok installed") != "1" ]]; then
-				depend_list+=("${depend}")
-			fi
-		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing MariaDB dependencies: "
-		for install in "${depend_list[@]}"; do
-			if [[ ${install} == "${depend_list[0]}" ]]; then
-				vstacklet::shell::text::white::sl "${install} "
-			else
-				vstacklet::shell::text::white::sl "| ${install} "
-			fi
-			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || vstacklet::error::display 36
-			install_list+=("${install}")
-		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
-		for depend in "${mariadb_dependencies[@]}"; do
-			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
-		done
-		unset depend depend_list install
-		# @script-note: configure mariadb
-		vstacklet::shell::text::yellow::sl "configuring MariaDB ... " &
-		vs::stat::progress::start # start progress status
-		(
-			prog=/usr/bin/mysql_secure_installation
-			/usr/bin/expect <<DOD
-spawn "${prog}"
-send "\r"
-expect "(y/n)?\r"
-send "n\r"
-expect "(y/n)?\r"
-send "n\r"
-expect "(y/n)?\r"
-send "y\r"
-expect "(y/n)?\r"
-send "y\r"
-expect "(y/n)?\r"
-send "y\r"
-expect "(y/n)?\r"
-send "y\r"
-expect dof
-exit
-DOD
-		) >>"${vslog}" 2>&1 || vstacklet::error::display 37
-		# @script-note: set mariadb client and server configuration
-		{
-			echo -e "[client]"
-			echo -e "user = ${mariadb_user:-admin}"
-			echo -e "password = ${mariadb_password:-${mariadb_autoPw}}"
-			echo
-			echo -e "[mysqld]"
-			echo -e "port = ${mariadb_port:-3306}"
-			echo -e "socket = /run/mysqld/mysqld.sock"
-			echo -e "bind-address = 127.0.0.1"
-			echo -e "datadir = /var/lib/mysql"
-			echo -e "log-error = /var/log/mysql/error.log"
-			echo -e "pid-file = /var/run/mysqld/mysqld.pid"
-			echo -e "max_allowed_packet = 16M"
-			echo -e "max_heap_table_size = 16M"
-			echo -e "max_sp_recursion_depth = 255"
-			echo -e "max_binlog_size = 100M"
-			echo -e "max_binlog_cache_size = 1M"
-			echo -e "max_binlog_stmt_cache_size = 1M"
-			echo -e "max_sort_length = 1024"
-			echo -e "max_join_size = 1000000"
-			echo -e "max_length_for_sort_data = 1024"
-			echo -e "max_seeks_for_key = 4294967295"
-			echo -e "max_write_lock_count = 4294967295"
-			echo -e "max_tmp_tables = 32"
-			echo -e "max_prepared_stmt_count = 16382"
-			echo -e "max_delayed_threads = 20"
-		} >/etc/mysql/conf.d/vstacklet.cnf || vstacklet::error::display 38
-		# @script-note: set .my.cnf
-		{
-			echo "[client]"
-			echo "user=${mariadb_user:-admin}"
-			echo "password=${mariadb_password:-${mariadb_autoPw}}"
-			echo
-			echo "[mysql]"
-			echo "user=root"
-			echo "password=${mariadb_password:-${mariadb_autoPw}}"
-			echo
-			echo "[mysqldump]"
-			echo "user=root"
-			echo "password=${mariadb_password:-${mariadb_autoPw}}"
-			echo
-			echo "[mysqldiff]"
-			echo "user=root"
-			echo "password=${mariadb_password:-${mariadb_autoPw}}"
-			echo
-		} >/root/.my.cnf || vstacklet::error::display 39
-		vstacklet::log systemctl daemon-reload
-		vstacklet::log systemctl restart mariadb
-		#mysqladmin -u root -h localhost password "${mariadb_password:-${mariadb_autoPw}}"
-		# @script-note: create mariadb user
-		mysql -u root -e "CREATE USER '${mariadb_user:-admin}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>"${vslog}" 2>&1 || vstacklet::error::display 40
-		mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user:-admin}'@'localhost' WITH GRANT OPTION;" >>"${vslog}" 2>&1 || vstacklet::error::display 41
-		mysql -u root -e "FLUSH PRIVILEGES;" >>"${vslog}" 2>&1 || vstacklet::error::display 42
-		vs::stat::progress::stop # stop progress status
-		# @script-note: mariadb installation complete
-		vstacklet::shell::text::green "mariaDB installed and configured. see details below:"
-		vstacklet::shell::text::white::sl "mariaDB password: "
-		vstacklet::shell::text::green "${mariadb_password:-${mariadb_autoPw}}"
-		vstacklet::shell::text::white::sl "mariaDB user: "
-		vstacklet::shell::text::green "${mariadb_user:-admin}"
-		vstacklet::shell::text::white::sl "mariaDB port: "
-		vstacklet::shell::text::green "${mariadb_port:-3306}"
-		vstacklet::shell::text::white::sl "mariaDB socket: "
-		vstacklet::shell::text::green "/var/run/mysqld/mysqld.sock"
-		vstacklet::shell::text::white::sl "mariaDB configuration file: "
-		vstacklet::shell::text::green "/etc/mysql/conf.d/vstacklet.cnf"
-		declare -g pma_password
-		pma_password="${mariadb_password:-${mariadb_autoPw}}"
+		mariadb_autoPw="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24)"
+		[[ ${#mariadb_autoPw} -eq 24 ]] || vstacklet::apt::fail "could not generate a password"
+		mariadb --protocol=socket -e "CREATE USER '${mariadb_user}'@'localhost' IDENTIFIED BY '${mariadb_password:-${mariadb_autoPw}}';" >>"${vslog}" 2>&1 || vstacklet::error::display 40
+		mariadb --protocol=socket -e "GRANT ALL PRIVILEGES ON *.* TO '${mariadb_user}'@'localhost' WITH GRANT OPTION;" >>"${vslog}" 2>&1 || vstacklet::error::display 41
+		(umask 077 && printf '%s\n' "[client]" "user=${mariadb_user}" "password=${mariadb_password:-${mariadb_autoPw}}" >/root/.my.cnf) || vstacklet::error::display 39
+		chmod 0600 /root/.my.cnf
+		declare -g pma_password="${mariadb_password:-${mariadb_autoPw}}"
+		vstacklet::shell::text::green "MariaDB admin account ${mariadb_user} created; its password is in /root/.my.cnf (readable by root only)."
 	fi
+	vstacklet::shell::text::green "MariaDB configured: root signs in through the socket (run mariadb as root), port ${mariadb_port:-3306} on 127.0.0.1, settings in /etc/mysql/conf.d/vstacklet.cnf."
 }
 
 ##################################################################################

@@ -15,6 +15,21 @@ vstacklet::rollback::files() {
 	printf '%s\n' /etc/hosts /etc/hostname /etc/ssh/sshd_config /root/.bashrc /root/.profile
 }
 
+# @script-note: the apt sources the record keeps and the rollback restores; one list, so the record, the plan and the restore cannot drift
+vstacklet::rollback::apt_dirs() {
+	printf '%s\n' sources.list sources.list.d keyrings trusted.gpg.d preferences.d
+}
+
+# @script-note: installed packages with their versions, one "name version" per line (a separate file, so the name comparisons stay as they are)
+vstacklet::rollback::versions() {
+	dpkg-query -W -f='${db:Status-Status} ${binary:Package} ${Version}\n' | awk '$1 != "not-installed" && $1 != "config-files" {print $2, $3}' | LC_ALL=C sort -u
+}
+
+# @script-note: true when the current sources offer VERSION of NAME (the installed copy alone, /var/lib/dpkg/status, does not count)
+vstacklet::rollback::offered() {
+	LC_ALL=C apt-cache policy "$1" 2>/dev/null | awk -v v="$2" '/^ (\*\*\*|   ) [^ ]+ -?[0-9]+$/ {cur=($1=="***")?$2:$1; next} /^ +-?[0-9]+ / && cur == v && $2 != "/var/lib/dpkg/status" {f=1} END {exit !f}'
+}
+
 vstacklet::rollback::installed() {
 	dpkg-query -W -f='${db:Status-Status} ${binary:Package}\n' | awk '$1 != "not-installed" && $1 != "config-files" {print $2}' | LC_ALL=C sort -u
 }
@@ -42,6 +57,7 @@ vstacklet::rollback::baseline() {
 	fi
 	{ mkdir -p "${root}" && chmod 700 "${root}" && rm -rf "${t}" && mkdir -p "${t}/apt" && chmod 700 "${t}"; } || return 1
 	vstacklet::rollback::installed >"${t}/packages" || return 1
+	vstacklet::rollback::versions >"${t}/packages.versions" || return 1
 	for p in dpkg apt base-files; do
 		grep -qxE "${p}(:[a-z0-9]+)?" "${t}/packages" || return 1
 	done
@@ -49,9 +65,9 @@ vstacklet::rollback::baseline() {
 	vstacklet::rollback::units >"${t}/units.enabled" || return 1
 	[[ -s ${t}/packages.manual && -s ${t}/units.enabled ]] || return 1
 	crontab -l -u root >"${t}/crontab.root" 2>/dev/null || rm -f "${t}/crontab.root"
-	for p in /etc/apt/sources.list /etc/apt/sources.list.d /etc/apt/keyrings /etc/apt/trusted.gpg.d /etc/apt/preferences.d; do
-		if [[ -e ${p} ]]; then cp -a "${p}" "${t}/apt/" || return 1; fi
-	done
+	while IFS= read -r p; do
+		if [[ -e /etc/apt/${p} ]]; then cp -a "/etc/apt/${p}" "${t}/apt/" || return 1; fi
+	done < <(vstacklet::rollback::apt_dirs)
 	while IFS= read -r p; do
 		if [[ -f ${p} ]]; then cp -a "${p}" "${t}/files${p//\//_}" || return 1; fi
 	done < <(vstacklet::rollback::files)
@@ -77,7 +93,7 @@ vstacklet::rollback::check() {
 	[[ -d ${root} && ! -L ${root} && -d ${b} && ! -L ${b} && -f ${b}/complete && ! -L ${b}/complete ]] || return 1
 	[[ $(stat -c '%u %a' "${root}") == "0 700" && $(stat -c '%u %a' "${b}") == "0 700" ]] || return 1
 	[[ $(head -n 3 "${b}/complete") == "$(vstacklet::rollback::identity)" ]] || return 1
-	for f in packages packages.manual units.enabled paths.checked paths.present; do
+	for f in packages packages.versions packages.manual units.enabled paths.checked paths.present; do
 		grep -qE "^[0-9a-f]{64}  \./${f}\$" "${b}/complete" || return 1
 	done
 	[[ $(cd "${b}" && find . -type f ! -name complete | wc -l) -eq $(grep -cE '^[0-9a-f]{64}  \./' "${b}/complete") ]] || return 1
@@ -94,7 +110,7 @@ vstacklet::rollback::plan() {
 	set -o pipefail
 	local b=/root/vstacklet/baseline
 	local -a added=() lost=()
-	declare -ga rb_purge=() rb_kept=() rb_units_off=() rb_units_on=() rb_paths=() rb_files=() rb_apt=()
+	declare -ga rb_purge=() rb_kept=() rb_units_off=() rb_units_on=() rb_paths=() rb_files=() rb_apt=() rb_versions=()
 	mapfile -t added < <(comm -13 <(sort -u "${b}/packages") <(vstacklet::rollback::installed))
 	for p in "${added[@]}"; do
 		if [[ ${p%%:*} =~ ^(linux-(image|modules|headers)|linux-.*-signed|grub|shim|initramfs-tools|firmware-|openssh-|systemd|cloud-init|qemu-guest-agent|sudo$|apt$|dpkg$) ]]; then rb_kept+=("${p}"); else rb_purge+=("${p}"); fi
@@ -122,9 +138,11 @@ vstacklet::rollback::plan() {
 	while IFS= read -r p; do
 		if [[ -f ${b}/files${p//\//_} ]] && ! cmp -s "${b}/files${p//\//_}" "${p}"; then rb_files+=("${p}"); fi
 	done < <(vstacklet::rollback::files)
-	for p in sources.list sources.list.d keyrings trusted.gpg.d preferences.d; do
+	while IFS= read -r p; do
 		if [[ -e ${b}/apt/${p} || -e /etc/apt/${p} ]] && ! diff -rq "${b}/apt/${p}" "/etc/apt/${p}" >/dev/null 2>&1; then rb_apt+=("/etc/apt/${p}"); fi
-	done
+	done < <(vstacklet::rollback::apt_dirs)
+	# @script-note: recorded packages whose installed version changed since the record (by the install, or by the system's own updates)
+	mapfile -t rb_versions < <(LC_ALL=C join <(sort "${b}/packages.versions") <(vstacklet::rollback::versions) | awk '$2 != $3 {print $1 " " $2 " " $3}')
 	[[ ${1-} == "quiet" ]] && return 0
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "vStacklet will bring this server back to the state it recorded on $(sed -n 's/^recorded=//p' "${b}/complete") (the bootstrap's own tools stay). It will:"
@@ -132,6 +150,10 @@ vstacklet::rollback::plan() {
 	((${#rb_kept[@]})) && vstacklet::shell::text::white " - leave in place ${#rb_kept[@]} boot, kernel, SSH or package-manager packages added since then (remove them yourself if you do not want them): ${rb_kept[*]}"
 	vstacklet::shell::text::white " - disable ${#rb_units_off[@]} services added since then: ${rb_units_off[*]:-none}; enable again: ${rb_units_on[*]:-none}"
 	vstacklet::shell::text::white " - restore the package sources that differ: ${rb_apt[*]:-none}; restore these files: ${rb_files[*]:-none}"
+	if ((${#rb_versions[@]})); then
+		vstacklet::shell::text::white " - check ${#rb_versions[@]} packages whose version changed since the record: a version the restored sources still offer is kept (updated by the system since the record); any other goes back to the recorded version, or to the release's own version if the recorded one is gone (a downgrade, simulated first):"
+		for p in "${rb_versions[@]}"; do vstacklet::shell::text::white "   ${p% *} -> now ${p##* }"; done
+	fi
 	for p in "${rb_paths[@]}"; do
 		size="$(du -sh -- "${p}" 2>/dev/null | cut -f1)"
 		case "${p}" in
@@ -167,17 +189,17 @@ vstacklet::rollback::restore() {
 	vstacklet::rollback::plan quiet || return 1
 	vstacklet::shell::text::white "restoring the package sources ..."
 	rm -rf "${s}" && mkdir -p "${s}" || return 1
-	for p in sources.list sources.list.d keyrings trusted.gpg.d preferences.d; do
+	while IFS= read -r p; do
 		if [[ -e ${b}/apt/${p} ]] && ! cp -a "${b}/apt/${p}" "${s}/"; then
 			rm -rf "${s}"
 			vstacklet::shell::text::error "could not copy the recorded apt sources; nothing was changed."
 			return 1
 		fi
-	done
-	for p in sources.list sources.list.d keyrings trusted.gpg.d preferences.d; do
+	done < <(vstacklet::rollback::apt_dirs)
+	while IFS= read -r p; do
 		rm -rf "/etc/apt/${p:?}"
 		if [[ -e ${s}/${p} ]]; then mv "${s}/${p}" /etc/apt/ || rc=1; fi
-	done
+	done < <(vstacklet::rollback::apt_dirs)
 	rm -rf "${s}"
 	vstacklet::shell::text::white "stopping and disabling services added since the record ..."
 	for u in "${rb_units_off[@]}"; do
@@ -201,6 +223,7 @@ vstacklet::rollback::restore() {
 			rc=1
 		fi
 	fi
+	vstacklet::rollback::versions_restore "${apt_ok}" || rc=1
 	vstacklet::shell::text::white "restoring the manual package marks ..."
 	comm -12 <(comm -13 <(apt-mark showmanual | sort -u) <(sort -u "${b}/packages.manual")) <(dpkg-query -W -f='${Package}\n' | sort -u) | xargs -r apt-mark manual >/dev/null 2>&1 || rc=1
 	comm -23 <(apt-mark showmanual | sort -u) <(sort -u "${b}/packages.manual") | xargs -r apt-mark auto >/dev/null 2>&1 || rc=1
@@ -233,11 +256,15 @@ vstacklet::rollback::restore() {
 	# @script-note: compare with the record, so "rolled back" means nothing differs
 	vstacklet::rollback::plan quiet || rc=1
 	left=$(comm -13 <(sort -u "${b}/packages") <(vstacklet::rollback::installed) | wc -l)
+	local orphaned=0
+	if ((${#rb_versions[@]})); then
+		while read -r p _ now; do vstacklet::rollback::offered "${p}" "${now}" || orphaned=$((orphaned + 1)); done < <(printf '%s\n' "${rb_versions[@]}")
+	fi
 	gone=$(comm -23 <(sort -u "${b}/packages") <(vstacklet::rollback::installed) | wc -l)
-	vstacklet::shell::text::white "differences from the record: packages ${left} added and ${gone} missing (${#rb_kept[@]} of the added left in place on purpose), services ${#rb_units_off[@]} added and ${#rb_units_on[@]} missing, installer paths ${#rb_paths[@]}, package sources ${#rb_apt[@]}, files ${#rb_files[@]}"
+	vstacklet::shell::text::white "differences from the record: packages ${left} added and ${gone} missing (${#rb_kept[@]} of the added left in place on purpose), ${orphaned} at a version no restored source offers, services ${#rb_units_off[@]} added and ${#rb_units_on[@]} missing, installer paths ${#rb_paths[@]}, package sources ${#rb_apt[@]}, files ${#rb_files[@]}"
 	port="$(sshd -T 2>/dev/null | awk '$1 == "port" {print $2; exit}')"
 	vstacklet::shell::text::white "SSH is configured on port ${port:-unknown}; open a new session to check it before you close this one."
-	[[ ${rc} -eq 0 && $((left - ${#rb_kept[@]})) -eq 0 && ${gone} -eq 0 && ${#rb_units_off[@]} -eq 0 && ${#rb_units_on[@]} -eq 0 && ${#rb_paths[@]} -eq 0 && ${#rb_apt[@]} -eq 0 && ${#rb_files[@]} -eq 0 ]]
+	[[ ${rc} -eq 0 && $((left - ${#rb_kept[@]})) -eq 0 && ${gone} -eq 0 && ${orphaned} -eq 0 && ${#rb_units_off[@]} -eq 0 && ${#rb_units_on[@]} -eq 0 && ${#rb_paths[@]} -eq 0 && ${#rb_apt[@]} -eq 0 && ${#rb_files[@]} -eq 0 ]]
 }
 
 ################################################################################
@@ -249,6 +276,46 @@ vstacklet::rollback::restore() {
 # @example: vstacklet --rollback
 # @break
 ################################################################################
+# @script-note: a recorded package whose version changed is kept when the restored sources still offer its version (the system updated it); otherwise it goes back to the recorded version, or to the restored candidate when that one is gone, with --allow-downgrades after a simulation that must remove nothing recorded. A version no source offers counts as a difference.
+vstacklet::rollback::versions_restore() {
+	local apt_ok="$1" b=/root/vstacklet/baseline p rec now target out rc=0
+	local -a down=() lost=()
+	vstacklet::rollback::plan quiet || return 1
+	((${#rb_versions[@]})) || return 0
+	((apt_ok)) || { vstacklet::shell::text::warning "the restored sources could not be read, so ${#rb_versions[@]} changed package versions were not checked."; return 1; }
+	vstacklet::shell::text::white "checking ${#rb_versions[@]} packages whose version changed since the record ..."
+	while read -r p rec now; do
+		if vstacklet::rollback::offered "${p}" "${now}"; then
+			vstacklet::shell::text::white " - ${p} ${now}: updated by the system since the record, kept"
+			continue
+		fi
+		if vstacklet::rollback::offered "${p}" "${rec}"; then
+			target="${rec}"
+		else
+			target="$(LC_ALL=C apt-cache policy "${p}" 2>/dev/null | awk '/Candidate:/ && $2 != "(none)" {print $2}')"
+		fi
+		if [[ -z ${target} ]]; then
+			vstacklet::shell::text::warning " - ${p} ${now}: no restored source offers it or the recorded ${rec}; left as it is"
+			rc=1
+			continue
+		fi
+		down+=("${p}=${target}")
+	done < <(printf '%s\n' "${rb_versions[@]}")
+	((${#down[@]})) || return "${rc}"
+	if ! out="$(LC_ALL=C apt-get -s --allow-downgrades --no-install-recommends install "${down[@]}" 2>&1)"; then
+		vstacklet::shell::text::warning "apt could not plan returning ${#down[@]} packages to their recorded versions; they are left as they are."
+		return 1
+	fi
+	mapfile -t lost < <(printf '%s\n' "${out}" | awk '$1 == "Purg" || $1 == "Remv" {print $2}' | sed 's/:.*//' | sort -u | comm -12 - <(sed 's/:.*//' "${b}/packages" | sort -u))
+	if ((${#lost[@]})); then
+		vstacklet::shell::text::warning "returning the packages to their recorded versions would remove recorded packages (${lost[*]}); they are left as they are."
+		return 1
+	fi
+	vstacklet::shell::text::white "returning ${#down[@]} packages to the release's versions: ${down[*]}"
+	LC_ALL=C DEBIAN_FRONTEND=noninteractive apt-get -y -o DPkg::Lock::Timeout=300 -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold --allow-downgrades --no-install-recommends install "${down[@]}" >/dev/null 2>&1 || rc=1
+	return "${rc}"
+}
+
 vstacklet::rollback::apt_resume() {
 	local u
 	for u in apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service; do

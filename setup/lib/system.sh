@@ -120,23 +120,14 @@ vstacklet::block::ssdp() {
 ##################################################################################
 vstacklet::locale::set() {
 	vstacklet::shell::text::white "setting locale to en_US.UTF-8 ..."
-	apt-get -y install language-pack-en-base >>"${vslog}" 2>&1
-	if [[ -e /usr/sbin/locale-gen ]]; then
-		(
-			update-locale "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
-			dpkg-reconfigure --frontend noninteractive locales
-		) >>"${vslog}" 2>&1 || vstacklet::error::display 13
+	# @script-note: locales (and language-pack-en-base on Ubuntu) come in the one package install
+	if [[ ${distro,,} == "debian" ]]; then
+		sed -i 's/^# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen || vstacklet::error::display 13
+		vstacklet::log locale-gen
 	else
-		(
-			vstacklet::log apt-get -y update
-			[[ ${distro,,} == "debian" ]] && vstacklet::log apt-get -y install locales
-			[[ ${distro,,} == "ubuntu" ]] && vstacklet::log apt-get -y install locales
-			update-locale "LANGUAGE=en_US.UTF-8" >/dev/null 2>&1
-			dpkg-reconfigure --frontend noninteractive locales
-		) >>"${vslog}" 2>&1 || vstacklet::error::display 13
+		vstacklet::log locale-gen en_US.UTF-8
 	fi
-	[[ ${distro,,} == "debian" ]] && vstacklet::log::try locale-gen locales
-	[[ ${distro,,} == "ubuntu" ]] && vstacklet::log::try locale-gen en_US.UTF-8
+	vstacklet::log update-locale LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8
 	declare -xg LANGUAGE="en_US.UTF-8"
 }
 

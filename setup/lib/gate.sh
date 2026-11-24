@@ -9,7 +9,7 @@ vstacklet::gate::interim() {
 
 ##################################################################################
 # @name: vstacklet::gate::install (3.i)
-# @description: Runs after the options are read and before anything on the server is changed: the PHP version's support dates, ionCube on arm64, fresh servers only (no earlier vStacklet install, no apache2, no nginx site of its own, the web ports free).
+# @description: Runs after the options are read and before anything on the server is changed: the PHP version's support dates, ionCube on arm64, fresh servers only (no earlier vStacklet install, no apache2, no nginx site of its own, the web ports free), then the package check (vstacklet::apt::gate: the server's sources, the vendor keys, and a simulated install of the whole package list in a private apt state).
 ##################################################################################
 vstacklet::gate::install() {
 	local row r_ver r_active r_security today f p
@@ -41,5 +41,10 @@ vstacklet::gate::install() {
 			[[ -n $(ss -Hltn "sport = :${p}" 2>/dev/null) ]] && vstacklet::gate::refuse "port ${p} is already in use on this server."
 		done
 	fi
+	local t
+	for t in gpg curl; do
+		command -v "${t}" >/dev/null 2>&1 || vstacklet::gate::refuse "${t} is not installed on this server; install it with apt-get install ${t}, then run vstacklet again."
+	done
+	vstacklet::apt::gate
 	return 0
 }

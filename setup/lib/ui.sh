@@ -154,6 +154,9 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white " -V, --version"
 	vstacklet::shell::text::white "    Displays the current version of vStacklet."
 	vstacklet::shell::misc::nl
+	vstacklet::shell::text::white " --refresh-keys"
+	vstacklet::shell::text::white "    Re-fetches the vendor repository keys vStacklet added and replaces each one that still matches its trusted fingerprint."
+	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -r, --reboot"
 	vstacklet::shell::text::white "    Reboots the server after installation is complete."
 	vstacklet::shell::misc::nl

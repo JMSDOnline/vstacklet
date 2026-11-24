@@ -32,7 +32,6 @@
 # @example: vstacklet -nginx -php 8.4 -varnish -varnishP 80 -http 8080 -https 443
 # @example: vstacklet --nginx --php 8.4 --varnish --varnishP 80 --http 8080 --https 443
 # @null
-# @return_code: 20 - failed to install NGINX dependencies.
 # @return_code: 21 - failed to edit NGINX configuration file.
 # @return_code: 22 - failed to enable NGINX configuration file.
 # @return_code: 23 - failed to generate dhparam file.
@@ -43,28 +42,9 @@
 vstacklet::nginx::install() {
 	if [[ -n ${nginx} ]]; then
 		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "installing and configuring NGinx ... "
+		vstacklet::shell::text::white "configuring nginx ... "
 		# @script-note: install nginx dependencies
-		for depend in "${nginx_dependencies[@]}"; do
-			if [[ $(dpkg-query -W -f='${Status}' "${depend}" 2>/dev/null | grep -c "ok installed") != "1" ]]; then
-				depend_list+=("${depend}")
-			fi
-		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing NGinx dependencies: "
-		for install in "${depend_list[@]}"; do
-			if [[ ${install} == "${depend_list[0]}" ]]; then
-				vstacklet::shell::text::white::sl "${install} "
-			else
-				vstacklet::shell::text::white::sl "| ${install} "
-			fi
-			vstacklet::log apt-get -y install "${install}" --allow-unauthenticated || vstacklet::error::display 20
-			install_list+=("${install}")
-		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
-		for depend in "${nginx_dependencies[@]}"; do
-			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
-		done
-		unset depend depend_list install
+		# @script-note: nginx (from nginx.org) is installed by vstacklet::packages::install
 		vstacklet::log systemctl stop nginx
 		mkdir -p "${local_setup_dir}/nginx/temp"
 		[[ -f /etc/nginx/nginx.conf ]] && mv -f /etc/nginx/nginx.conf "${local_setup_dir}/nginx/temp/nginx.conf"

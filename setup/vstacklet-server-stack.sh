@@ -39,14 +39,11 @@
 # - [vstacklet::environment::store_flags_args()](#vstackletenvironmentstore_flags_args)
 # - [vstacklet::environment::functions()](#vstackletenvironmentfunctions)
 # - [vstacklet::log::check()](#vstackletlogcheck)
-# - [vstacklet::apt::update()](#vstackletaptupdate)
-# - [vstacklet::dependencies::install()](#vstackletdependenciesinstall)
+# - [vstacklet::packages::install()](#vstackletpackagesinstall)
 #    - [return codes](#return-codes-1)
 # - [vstacklet::intro()](#vstackletintro)
 # - [vstacklet::dependencies::array()](#vstackletdependenciesarray)
-# - [vstacklet::base::dependencies()](#vstackletbasedependencies)
 #    - [return codes](#return-codes-4)
-# - [vstacklet::source::dependencies()](#vstackletsourcedependencies)
 #    - [return codes](#return-codes-5)
 # - [vstacklet::bashrc::set()](#vstackletbashrcset)
 # - [vstacklet::hostname::set()](#vstacklethostnameset)
@@ -69,8 +66,8 @@
 #   - [examples](#examples-4)
 # - [vstacklet::block::ssdp()](#vstackletblockssdp)
 #   - [return codes](#return-codes-8)
-# - [vstacklet::sources::update()](#vstackletsourcesupdate)
-# - [vstacklet::gpg::keys()](#vstackletgpgkeys)
+# - [vstacklet::apt::gate()](#vstackletaptgate)
+# - [vstacklet::apt::refresh_keys()](#vstackletaptrefresh_keys)
 # - [vstacklet::locale::set()](#vstackletlocaleset)
 #   - [return codes](#return-codes-9)
 # - [vstacklet::php::install()](#vstackletphpinstall)
@@ -242,7 +239,7 @@ vstacklet::gate::system() {
 # <<< vstacklet gate
 # >>> vstacklet modules: the installer's functions live in setup/lib/ (one file per area); the loader trusts only root-owned, non-writable regular files whose SHA-256 matches this list, so a copy and a checkout from different versions never mix. Regenerate the list with developer_resources/pin-modules.sh in the same commit as any module change.
 declare -gar VSTACKLET_MODULES=("core" "ui" "gate" "args" "environment" "apt" "system" "php" "nginx" "varnish" "database" "redis" "phpmyadmin" "wordpress" "tls" "ssh" "ftp" "mail" "rollback" "update")
-declare -gA VSTACKLET_MODULE_SHA256=([core]="68f3e1532b77f4f9752d3e2701dd1661216c351583fc377d531d70d30d641bad" [ui]="13b062770986a3ef7e7aa964fcdd681bed8b12ec386707268d4aa7c75bd17800" [gate]="aceaa0123aa0ae38988e46399c79f85b89552918141258261761ae53e8f44da5" [args]="5eba423774da73676a03d47d17126b3bc9e2a135ee846019ffeadc8ac464e7d2" [environment]="a37cc3fd4152a8594065823713344ff5bc81e6eb24fcb37549f51656f874f4b2" [apt]="5659e024f3470423f1585a8906c1de04f70a996eb13b891a8b9677ddf9fbd97a" [system]="7a5523b3f18c0b236593be7cfbe013550eac6e20ab120d7674db24e3e9aac9d0" [php]="aee92eb42d89183408588e211f72370e24f2156efb4e959651fe8fe4a40198ca" [nginx]="0a557c7d136709cb9adbadc69ac69749ed45bfdfd8f9f35e85f7d58755ffe0b3" [varnish]="6c6eda90f02ffce04fac062bb3ce9906a576004a7428b6bcd06a6bb08058b364" [database]="fcee78c22bfd2f5c6b4c2b5caf140039301117efc324a97910ea77914fbbf590" [redis]="b8ab1217304731e1edb7de1b51b708f3988b0456ac586c590e70c0b025c7e427" [phpmyadmin]="625a57eb811e5de0da43069349b6c9770242a40b039b41a50d8f50662b0a565f" [wordpress]="781595d2990c2c0263905ada79fdf4a5fd72948e48ad28569cf1cb83bd68bbee" [tls]="d9d8e4de501654c57a59487190b83eeeb060bb48ea15d8d7003edd59b05ba2af" [ssh]="ea5e3383ce696db54b8b01c50cd1a731070131851767a69b8bdb74fa96767e27" [ftp]="a262099a9e080f27a8bd312b1920de38b497710a89f82578151c549270058b86" [mail]="4b0c1c4b22bbe432f6656f143325fa11cdf535e3e98704329fe8115e7b31ea99" [rollback]="f8e84027cd7be6341f5b5a628422de4d3bef85270ff33ae79da50eb173964b01" [update]="b2f41fcb57e3fe07c1eeee40c232afac614f2250650e09afef38635190b5f66a")
+declare -gA VSTACKLET_MODULE_SHA256=([core]="0eab54d7a7a3b6b1372d087bb55f7380d7e30f9cb027eb9f55c36c1e66c04399" [ui]="51412288f1378e9032ed895cbb300fb22928e1dc007952e36ade993e4281088f" [gate]="03c035a1250ebd094cc0f115a2b3abead3e412c36a1d6122e47d06c25c8b2742" [args]="b4decc00517b4eb61c254f2b67b064f2896ce1bccdc15028f83876b9347fb2a5" [environment]="a37cc3fd4152a8594065823713344ff5bc81e6eb24fcb37549f51656f874f4b2" [apt]="1af081240754da85588c94a838850ee0a6916458b46f1946f2eafbc09ba321f5" [system]="05063f2726c1600bb8d64e4135eb313cbdf54452adb5067db097ae407718700c" [php]="aa6ecd4e90aa688d4a3bbc22c0ddbb26f605f6e65ac14a3de28b0e3840fcc4a0" [nginx]="a0069ab174bca5db19a27ce0d85bb0ce830e0b1136f2bb61b8543291ac3a9a18" [varnish]="6c6eda90f02ffce04fac062bb3ce9906a576004a7428b6bcd06a6bb08058b364" [database]="3e41baad3cf3c595833fb67df3efbe4585ec88d8bf1148fb173018ce14efb395" [redis]="b8ab1217304731e1edb7de1b51b708f3988b0456ac586c590e70c0b025c7e427" [phpmyadmin]="625a57eb811e5de0da43069349b6c9770242a40b039b41a50d8f50662b0a565f" [wordpress]="cd2dfa01a63be2c3e0d9e9f0ac5d7e0279bf35dd808b3ea51a4d11eef482a337" [tls]="d9d8e4de501654c57a59487190b83eeeb060bb48ea15d8d7003edd59b05ba2af" [ssh]="ea5e3383ce696db54b8b01c50cd1a731070131851767a69b8bdb74fa96767e27" [ftp]="a262099a9e080f27a8bd312b1920de38b497710a89f82578151c549270058b86" [mail]="4b0c1c4b22bbe432f6656f143325fa11cdf535e3e98704329fe8115e7b31ea99" [rollback]="114b7aad2248f6818c0e94021aa3a034e967c2ef2c31f7ad3757c44004d0e012" [update]="b2f41fcb57e3fe07c1eeee40c232afac614f2250650e09afef38635190b5f66a")
 vstacklet::lib::load() {
 	local lib="${vstacklet_base_path}/setup/lib" m f p sum
 	[[ -d ${vstacklet_base_path} ]] || { printf 'vStacklet: %s is missing; restore it with: git clone --branch <branch> https://github.com/JMSDOnline/vstacklet.git %s (the branch you installed from, main if unsure), then run vstacklet again. Nothing was changed.\n' "${vstacklet_base_path}" "${vstacklet_base_path}" >&2; exit 1; }
@@ -282,13 +279,9 @@ vstacklet::gate::install                      #(3.i) PHP support dates, fresh se
 vstacklet::environment::init                  #(1) the first change to the server
 vstacklet::environment::store_flags_args "$@" # @script-note: store the flags and arguments to a file for rollback
 vstacklet::log::check                         #(4)
-vstacklet::apt::update                        #(5)
-vstacklet::dependencies::install              #(6)
 vstacklet::intro                              #(9)
 vstacklet::ask::continue                      #(10)
-vstacklet::dependencies::array                #(11)
-vstacklet::base::dependencies                 #(12)
-vstacklet::source::dependencies               #(13)
+vstacklet::packages::install                  #(5) one apt call for the whole list the gate checked
 if [[ ${vstacklet_installed} -eq 0 ]]; then
 	vstacklet::bashrc::set   #(14)
 	vstacklet::hostname::set #(15)
@@ -297,9 +290,6 @@ if [[ ${vstacklet_installed} -eq 0 ]]; then
 	vstacklet::ftp::set      #(18)
 	vstacklet::block::ssdp   #(19)
 fi
-vstacklet::sources::update                                                                            #(20)
-vstacklet::gpg::keys                                                                                  #(21)
-vstacklet::apt::update                                                                                #(5)
 vstacklet::locale::set                                                                                #(22)
 vstacklet::php::install                                                                               #(23)
 vstacklet::nginx::install                                                                             #(25)

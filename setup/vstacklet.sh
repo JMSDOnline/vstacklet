@@ -377,7 +377,7 @@ vstacklet::setup::variables() {
 # packages and install them if they are not found.
 #   - these include:
 #     ```bash
-#     curl sudo wget git apt-transport-https lsb-release dnsutils openssl
+#     curl sudo wget git gpg lsb-release bind9-dnsutils openssl bc
 #     ```
 #
 # @break
@@ -395,7 +395,7 @@ vstacklet::setup::download() {
 	# @script-note: on a server vStacklet already changed, only missing tools are added; present ones keep their versions, so the rollback's record still matches
 	local -a vs_apt_opts=()
 	[[ -e /root/vstacklet/baseline/complete || -e /etc/vstacklet ]] && vs_apt_opts=(--no-upgrade)
-	apt-get -yqq "${vs_apt_opts[@]}" install curl sudo wget git apt-transport-https lsb-release dnsutils openssl bc >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to install script dependencies" && exit 1; }
+	apt-get -yqq "${vs_apt_opts[@]}" install curl sudo wget git gpg lsb-release bind9-dnsutils openssl bc >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to install script dependencies" && exit 1; }
 	# @script-note: adjust .bashrc TERM variable if not set (fixes some issues with nano)
 	if ! grep -q "export TERM=xterm" /root/.bashrc; then
 		echo -en "export TERM=xterm" >>"/root/.bashrc"
