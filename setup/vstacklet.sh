@@ -5,8 +5,8 @@
 # @version: 3.1.1096
 # @description: This script will download and install the vStacklet server stack
 # on your server (this only handles downloading and setting up the vStacklet scripts).
-# It will also download and install the vStacklet VS-Perms
-# (www-permissions.sh) and VS-Backup (vs-backup) scripts. Please ensure you have
+# The 3.x VS-Perms and VS-Backup tools stay in the repository for 3.x servers and are
+# not installed by vStacklet 4. Please ensure you have
 # read the documentation before continuing. You can find documentation on the main
 # vStacklet script, the vStacklet server stack, and the vStacklet VS-Perms and
 # VS-Backup scripts at the links seen below.
@@ -373,10 +373,6 @@ vstacklet::setup::variables() {
 #   - VStacklet will be downloaded to `/opt/vstacklet`.
 #   - `vstacklet-server-stack.sh` will be loaded to `/usr/local/bin/vstacklet`. This
 # will allow you to run `vstacklet [options] [args]` from anywhere on the server.
-#   - `vs-backup` will be loaded to `/usr/local/bin/vs-backup`. This
-# will allow you to run `vs-backup` from anywhere on the server.
-#   - `www-permissions.sh` will be loaded to `/usr/local/bin/vs-perms`. This
-# will allow you to run `vs-perms` from anywhere on the server.
 # - This script function will also check for the existence of the required
 # packages and install them if they are not found.
 #   - these include:
@@ -414,14 +410,7 @@ vstacklet::setup::download() {
 		[[ -d ${vstacklet_base_path} ]] && rm -rf "${vstacklet_base_path}"
 		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" "${vstacklet_base_path}" || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
 	fi
-	# @script-note: send vStacklet backup (www-permissions.sh) to /usr/local/bin
-	cp -f "${vstacklet_base_path}/bin/www-permissions.sh" "/usr/local/bin/vs-perms" || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
-	# @script-note: make vs-perms executable
-	chmod +x "/usr/local/bin/vs-perms" || { printf -- "%s\n" "Error: Unable to make vs-perms executable" && exit 1; }
-	# @script-note: send vStacklet backup (vs-backup) to /usr/local/bin
-	cp -f "${vstacklet_base_path}/bin/backup/vs-backup" "/usr/local/bin/vs-backup" || { printf -- "%s\n" "Error: Unable to copy vs-backup to /usr/local/bin" && exit 1; }
-	# @script-note: make vs-backup executable
-	chmod +x "/usr/local/bin/vs-backup" || { printf -- "%s\n" "Error: Unable to chmod +x /usr/local/bin/vs-backup" && exit 1; }
+	# @script-note: the 3.x tools (bin/backup/vs-backup, bin/www-permissions.sh) stay frozen for 3.x servers and are not installed here
 	# @script-note: send vStacklet server stack script to /usr/local/bin
 	cp -f "${vstacklet_server_stack_script}" "/usr/local/bin/vstacklet" || { printf -- "%s\n" "Error: Unable to copy vstacklet to /usr/local/bin" && exit 1; }
 	# @script-note: make vstacklet executable

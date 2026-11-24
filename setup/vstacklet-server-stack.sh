@@ -3231,11 +3231,18 @@ vstacklet::message::complete() {
 	unset vstacklet_log_location vstacklet_start_time vstacklet_end_time vstacklet_total_time vstacklet_total_time_minutes
 	# @script-note: reload bashrc
 	source /root/.bashrc
-	# @script-note: save install file to declare the installation is complete (for modularity)
-	touch "/opt/vstacklet/config/system/.install_complete"
-	# @script-note: add installed vstacklet version to .install_complete
-	vstacklet_version="$(grep -oP '(?<=Version: v)[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' </opt/vstacklet/README.md)"
-	echo "${vstacklet_version}" >"/opt/vstacklet/config/system/.install_complete"
+}
+
+##################################################################################
+# @name: vstacklet::marker::write (38.1)
+# @description: Writes the 4.x install marker after every step has finished. The gate refuses a second install where it exists, and --check_update needs it.
+# @return_code: 120 - failed to write the install marker.
+##################################################################################
+vstacklet::marker::write() {
+	local version branch
+	version="$(awk '/^# @version:/ {print $3; exit}' "${vstacklet_base_path}/setup/vstacklet-server-stack.sh")"
+	branch="$(cat "${vstacklet_base_path}/config/system/branch" 2>/dev/null || true)"
+	{ mkdir -p "${VSTACKLET_MARKER%/*}" && printf 'version=%s\nbranch=%s\ninstalled=%s\n' "${version:-unknown}" "${branch:-unknown}" "$(date +%F)" >"${VSTACKLET_MARKER}"; } || vstacklet::error::display 120
 }
 
 ################################################################################
@@ -3506,6 +3513,8 @@ vstacklet::error::display() {
 		117) error="failed to issue the certificate." ;;
 		118) error="failed to install the certificate." ;;
 		119) error="failed to edit /etc/nginx/sites-available/${domain}.conf." ;;
+		# vstacklet::marker::write (38.1)
+		120) error="failed to write the install marker." ;;
 		log) error="a step failed: ${vstacklet_failed_step:-unknown}" ;;
 		apt) error="apt-get update failed: a package repository could not be fetched or verified (the failing repository is named in the log)." ;;
 		*) error="Unknown error" ;;
@@ -3543,7 +3552,7 @@ trap '[[ -n ${pg_pid} ]] && kill -9 "${pg_pid}" 2>/dev/null; vstacklet::error::d
 # A later install attempt keeps the first record. Stored in /root/vstacklet/baseline (mode 700).
 ################################################################################
 vstacklet::rollback::paths() {
-	printf '%s\n' /etc/nginx /etc/nginx-pre-vstacklet /etc/systemd/system/nginx.service.d /etc/php /etc/mysql /var/lib/mysql /etc/varnish /etc/redis /var/lib/redis /etc/postgresql /var/lib/postgresql /etc/phpmyadmin /usr/share/phpmyadmin /etc/csf /usr/local/csf /usr/local/src/csf /etc/iptables /etc/vsftpd.conf /etc/vsftpd.chroot_list /etc/vsftpd /etc/mail /root/.my.cnf /root/.acme.sh /root/acme.sh /usr/local/bin/wp /var/www "${web_root:-/var/www/html/vsapp}"
+	printf '%s\n' /etc/vstacklet /etc/nginx /etc/nginx-pre-vstacklet /etc/systemd/system/nginx.service.d /etc/php /etc/mysql /var/lib/mysql /etc/varnish /etc/redis /var/lib/redis /etc/postgresql /var/lib/postgresql /etc/phpmyadmin /usr/share/phpmyadmin /etc/csf /usr/local/csf /usr/local/src/csf /etc/iptables /etc/vsftpd.conf /etc/vsftpd.chroot_list /etc/vsftpd /etc/mail /root/.my.cnf /root/.acme.sh /root/acme.sh /usr/local/bin/wp /var/www "${web_root:-/var/www/html/vsapp}"
 }
 vstacklet::rollback::baseline() {
 	local b=/root/vstacklet/baseline p
@@ -3655,6 +3664,7 @@ vstacklet::rollback() {
 		fi
 		rm -rf /root/vstacklet/setup_temp >/dev/null 2>&1
 		rm -f /opt/vstacklet/config/system/.install_complete "${VSTACKLET_MARKER}" >/dev/null 2>&1
+		if [[ -d ${VSTACKLET_MARKER%/*} ]]; then rmdir --ignore-fail-on-non-empty "${VSTACKLET_MARKER%/*}" || true; fi
 		[[ -d /var/log/vstacklet ]] && mv /var/log/vstacklet "/var/log/vstacklet-rolled-back-$(date +%Y%m%d-%H%M%S)"
 		exit 0
 	fi
@@ -3944,6 +3954,7 @@ vstacklet::rollback() {
 	# @script-note: clear the install markers the fresh-server check reads, so the installer can run again;
 	# the logs are kept, moved aside with the rollback time
 	rm -f /opt/vstacklet/config/system/.install_complete "${VSTACKLET_MARKER}" >/dev/null 2>&1
+	if [[ -d ${VSTACKLET_MARKER%/*} ]]; then rmdir --ignore-fail-on-non-empty "${VSTACKLET_MARKER%/*}" || true; fi
 	[[ -d /var/log/vstacklet ]] && mv /var/log/vstacklet "/var/log/vstacklet-rolled-back-$(date +%Y%m%d-%H%M%S)"
 	systemctl restart sshd.service >/dev/null 2>&1
 	exit 0
@@ -4074,6 +4085,7 @@ vstacklet::phpmyadmin::install                                                  
 vstacklet::wordpress::install                                                                         #(36)
 vstacklet::domain::ssl                                                                                #(37)
 vstacklet::clean::complete                                                                            #(38)
+vstacklet::marker::write                                                                              #(38.1)
 [[ ${vstacklet_installed} -eq 0 ]] && vstacklet::message::complete && rm -rf ~/vstacklet.sh && exit 0 #(39)
 ################################################################################
 # @description: End of script.
