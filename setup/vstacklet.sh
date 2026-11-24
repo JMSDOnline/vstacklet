@@ -387,9 +387,12 @@ vstacklet::setup::download() {
 	cd "${HOME}" || { printf -- "%s\n" "Error: Unable to move to ${HOME}" && exit 1; }
 	# @script-note: run apt update and upgrade (quietly and non-interactive)
 	DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update >/dev/null 2>&1
-	DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to run apt-upgrade, please check your apt with 'apt -y update && apt -y upgrade'" && exit 1; }
+	# @script-note: upgrade only a fresh server; on a server vStacklet already changed, an upgrade would move the state its rollback compares against
+	if [[ ! -e /root/vstacklet/baseline/complete && ! -e /etc/vstacklet ]]; then
+		DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to run apt-upgrade, please check your apt with 'apt -y update && apt -y upgrade'" && exit 1; }
+	fi
 	# @script-note: install the essential dependencies
-	apt-get -yqq install curl sudo wget git apt-transport-https lsb-release dnsutils openssl bc --allow-unauthenticated >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to install script dependencies" && exit 1; }
+	apt-get -yqq install curl sudo wget git apt-transport-https lsb-release dnsutils openssl bc >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to install script dependencies" && exit 1; }
 	# @script-note: adjust .bashrc TERM variable if not set (fixes some issues with nano)
 	if ! grep -q "export TERM=xterm" /root/.bashrc; then
 		echo -en "export TERM=xterm" >>"/root/.bashrc"
