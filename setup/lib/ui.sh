@@ -95,14 +95,14 @@ vstacklet::message::complete() {
 	vstacklet::shell::text::green "vStacklet Server Installation Complete! (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"
 	vstacklet::shell::text::green " - Installation Completed in: ${vstacklet_total_time_minutes}/min"
 	vstacklet::shell::text::white " - SSH port: ${ssh_port:-22}"
-	vstacklet::shell::text::white " - FTP port: ${ftp_port:-21}"
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "Be sure to review the above output from the vStacklet installation process"
 	vstacklet::shell::text::white "for relevant information regarding your new server and connection details."
 	vstacklet::shell::misc::nl
 	[[ ${setup_reboot} -eq "1" ]] && vstacklet::shell::text::white "rebooting ... " && reboot
-	if [[ -z ${setup_reboot} ]]; then
-		declare input
+	# @script-note: reboot only on -r or an explicit yes at a terminal; no answer (or no terminal) never reboots
+	if [[ -z ${setup_reboot} && -t 0 ]]; then
+		declare input=""
 		vstacklet::shell::text::white::sl "do you want to reboot (recommended)? "
 		vstacklet::shell::text::green::sl "[y]"
 		vstacklet::shell::text::white::sl "es"
@@ -110,12 +110,13 @@ vstacklet::message::complete() {
 		vstacklet::shell::text::red::sl "[n]"
 		vstacklet::shell::text::white::sl "o: "
 		vstacklet::shell::icon::arrow::white
-		read -r input
+		read -r input || input=""
 		case "${input,,}" in
-		[y] | [y][e][s] | "") vstacklet::shell::text::white "rebooting ... " && reboot ;;
-		[n] | [n][o]) vstacklet::shell::text::white "skipping reboot ... " ;;
-		*) ;;
+		y | yes) vstacklet::shell::text::white "rebooting ... " && reboot ;;
+		*) vstacklet::shell::text::white "not rebooting; reboot when it suits you." ;;
 		esac
+	elif [[ -z ${setup_reboot} ]]; then
+		vstacklet::shell::text::white "not rebooting (no terminal to ask); reboot when it suits you, or pass -r next time."
 	fi
 	vstacklet::shell::misc::nl
 	unset vstacklet_log_location vstacklet_start_time vstacklet_end_time vstacklet_total_time vstacklet_total_time_minutes
