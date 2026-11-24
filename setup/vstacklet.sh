@@ -34,7 +34,6 @@
 # - PHP 8.3, 8.4 (default) or 8.5 (FPM) with common extensions
 # - MariaDB 10.11.+ (MySQL Database)
 # - Varnish 7.4.x (HTTP Cache)
-# - CSF 14.+ (Config Server Firewall)
 # - and more!
 #
 # @save_tasks:

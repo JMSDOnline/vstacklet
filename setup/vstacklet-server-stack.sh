@@ -23,7 +23,6 @@
 # - PHP 8.3, 8.4 (default) or 8.5 (FPM) with common extensions
 # - MariaDB 10.11.+ (MySQL Database)
 # - Varnish 7.4.x (HTTP Cache)
-# - CSF 14.+ (Config Server Firewall)
 # - and more!
 #
 # Important Links:
@@ -121,12 +120,10 @@
 #   - [arguments](#arguments-11)
 #   - [return codes](#return-codes-19)
 #   - [examples](#examples-14)
-# - [vstacklet::csf::install()](#vstackletcsfinstall)
 #   - [options](#options-15)
 #   - [arguments](#arguments-12)
 #   - [return codes](#return-codes-20)
 #   - [examples](#examples-15)
-# - [vstacklet::cloudflare::csf()](#vstackletcloudflarecsf)
 #   - [options](#options-16)
 #   - [return codes](#return-codes-21)
 #   - [examples](#examples-16)
@@ -320,8 +317,8 @@ vstacklet::args::info() {
 # | -mariadbU | --mariadb_user         | user to use for the MariaDB server<br>Avoid using 'root' as the username
 # | -mariadbPw | --mariadb-password    | password to use for the MariaDB user
 # | -pma | --phpmyadmin                | install phpMyAdmin
-# | -csf | --csf                       | install CSF firewall
-# | -csfCf | --csf_cloudflare          | enable Cloudflare support in CSF
+# | -csf | --csf                       | refused: CSF is no longer supported
+# | -csfCf | --csf_cloudflare          | refused: CSF is no longer supported
 # | -sendmail | --sendmail              | install Sendmail
 # | -sendmailP | --sendmail_port        | port to use for the Sendmail server
 # | --dns | --dns_provider             | DNS provider for SSL cert verification (e.g., cloudflare)
@@ -332,7 +329,7 @@ vstacklet::args::info() {
 # | --check_update					   | check for updates to the script
 #
 # @example: vstacklet --help
-# @example: vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -hn "yourhostname" -php "8.3" -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "db_user" -mariadbPw "db_password" -pma -csf -csfCf -wr "/var/www/html/vsapp" -wp
+# @example: vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -hn "yourhostname" -php "8.3" -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "db_user" -mariadbPw "db_password" -pma -wr "/var/www/html/vsapp" -wp
 # @example: vstacklet -e "your@email.com" -ftp "2121" -ssh "2222" -http "8080" -d "yourdomain.com" -php "8.4" -nginx -varnish -varnishP "80" -mariadb -mariadbU "db_user" -mariadbPw "db_password" -sendmail -wr "/var/www/html/vsapp" -wp --reboot
 # @example: vstacklet -e "your@email.com" -d "example.com" -php "8.3" -nginx -mariadb -mariadbU "db_user" -mariadbPw "db_password" --dns "cloudflare"
 # @null
@@ -355,14 +352,8 @@ vstacklet::args::process() {
 		-h | --help)
 			vstacklet::help::display
 			;;
-		-csf | --csf)
-			declare -gi sendmail_skip="1"
-			declare -gi csf="1"
-			shift
-			;;
-		-csfCf | --csf_cloudflare)
-			declare -gi csf_cloudflare="1"
-			shift
+		-csf | --csf | -csfCf | --csf_cloudflare)
+			vstacklet::shell::text::error "CSF is no longer supported by vStacklet 4.0." && exit 1
 			;;
 		-d | --domain)
 			vstacklet::args::need_value "$1" $# "${2-}"
@@ -560,8 +551,6 @@ vstacklet::args::process() {
 	done
 	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::shell::text::error "invalid option(s): ${invalid_option[*]}" && exit 1
 	# @script-note: run sanity checks on the options provided
-	[[ -n ${csf_cloudflare} && -z ${csf} ]] && vstacklet::shell::text::error "\`-csfCf\` requires \`-csf\`" && exit 1
-	[[ -n ${csf} && -z ${email} ]] && vstacklet::shell::text::error "please provide a valid email address. (required for \`-csf\`, \`-sendmail\`, and \`-csfCf\`)" && exit 1
 	[[ -n ${domain} && -z ${email} ]] && vstacklet::shell::text::error "an email is needed to register with Let's Encrypt. please set an email with \`-e\`." && exit 1
 	[[ -n ${mariadb} && -n ${mysql} ]] && vstacklet::shell::text::error "mariadb and mysql cannot be installed together. choose either mariadb or mysql." && exit 1
 	[[ -n ${sendmail} && -z ${email} ]] && vstacklet::shell::text::error "an email is needed to register the server aliases. please set an email with \`-e your@email.com\`." && exit 1
@@ -1121,8 +1110,6 @@ vstacklet::dependencies::array() {
 	declare -ga redis_dependencies=("redis")
 	# @script-note: install phpmyadmin dependencies
 	declare -ga phpmyadmin_dependencies=("phpmyadmin")
-	# @script-note: install csf dependencies
-	declare -ga csf_dependencies=("e2fsprogs" "libwww-perl" "liblwp-protocol-https-perl" "libgd-graph-perl" "libio-socket-ssl-perl" "libcrypt-ssleay-perl" "perl" "libnet-libidn-perl" "libio-socket-inet6-perl" "libsocket6-perl")
 	# @script-note: install sendmail dependencies
 	declare -ga sendmail_dependencies=("sendmail" "sendmail-bin" "sendmail-cf" "mailutils" "libsasl2-modules")
 }
@@ -2612,226 +2599,16 @@ vstacklet::phpmyadmin::install() {
 }
 
 ##################################################################################
-# @name: vstacklet::csf::install (34)
-# @description: Install CSF firewall. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2586-L2716)
-#
-# notes:
-# - https://configserver.com/cp/csf.html
-# - installing CSF will also install LFD (Linux Firewall Daemon)
-# - CSF will be configured to allow SSH, FTP, HTTP, HTTPS, MySQL, Redis,
-#   Postgres, and Varnish.
-# - CSF will be configured to block all other ports.
-# - CSF requires sendmail to be installed. if the `-sendmail` option is not
-#   specified, sendmail will be automatically installed and configured to use the
-#   specified email address from the `-email` option.
-# - (`-e`|`--email` required) As expressed above, CSF will also require the `-email` option to be
-#   specified. this is the email address that will be used to send CSF alerts.
-# - if your domain is routing through Cloudflare, you will need to use the
-#   `-csfCf | --csf_cloudflare` option in order to allow Cloudflare IPs through CSF.
-# @option: $1 - `-csf | --csf` (optional) (takes no argument)
-# @arg: `-csf | --csf` does not take any arguments. However, it requires the options as expressed above.
-# @example: vstacklet -csf -e "your@email.com" -csfCf -sendmail
-# @example: vstacklet --csf --email "your@email.com" --csf_cloudflare --sendmail
-# @null
-# @return_code: 76 - failed to install CSF firewall dependencies.
-# @return_code: 77 - failed to download CSF firewall.
-# @return_code: 78 - failed to switch to /usr/local/src/csf directory.
-# @return_code: 79 - failed to install CSF firewall.
-# @return_code: 80 - failed to initialize CSF firewall.
-# @return_code: 81 - failed to modify CSF blocklist.
-# @return_code: 82 - failed to modify CSF ignore list.
-# @return_code: 83 - failed to modify CSF allow list.
-# @return_code: 84 - failed to modify CSF allow ports (inbound).
-# @return_code: 85 - failed to modify CSF allow ports (outbound).
-# @return_code: 86 - failed to modify CSF configuration file (csf.conf).
-# @break
-##################################################################################
-vstacklet::csf::install() {
-	if [[ -n ${csf} ]]; then
-		# @script-note: the following signals for sendmail to be installed
-		# if the `-sendmail` flag is not passed to the script. sendmail is a
-		# dependency for csf to function properly.
-		[[ -z ${sendmail} || ${sendmail_skip} -eq 1 ]] && vstacklet::sendmail::install &&
-			# @script-note: check if csf is installed
-			vstacklet::shell::misc::nl
-		[[ -f /etc/csf/csf.conf ]] && vstacklet::shell::text::yellow "CSF is already installed. skipping ... " && return 0
-		# @script-note: install csf
-		vstacklet::shell::text::white "installing and configuring CSF (ConfigServer Security & Firewall) firewall ... "
-		# @script-note: install csf dependencies and csf
-		for depend in "${csf_dependencies[@]}"; do
-			if [[ $(dpkg-query -W -f='${Status}' "${depend}" 2>/dev/null | grep -c "ok installed") != "1" ]]; then
-				depend_list+=("${depend}")
-			fi
-		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::text::white::sl "installing CSF dependencies: "
-		for install in "${depend_list[@]}"; do
-			if [[ ${install} == "${depend_list[0]}" ]]; then
-				vstacklet::shell::text::white::sl "${install} "
-			else
-				vstacklet::shell::text::white::sl "| ${install} "
-			fi
-			# shellcheck disable=SC2015
-			DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install "${install}" "${install}" >>"${vslog}" 2>&1 && sleep 2 || vstacklet::error::display 76
-			install_list+=("${install}")
-		done
-		[[ -n ${depend_list[*]} ]] && vstacklet::shell::misc::nl
-		for depend in "${csf_dependencies[@]}"; do
-			echo "${depend}" >>"${vstacklet_base_path}/config/system/dependencies"
-		done
-		unset depend depend_list install
-		# @script-note: install csf
-		wget -qO - https://download.configserver.com/csf.tgz | tar -xz -C /usr/local/src >>"${vslog}" 2>&1 || vstacklet::error::display 77
-		cd /usr/local/src/csf || vstacklet::error::display 78
-		sh install.sh >>"${vslog}" 2>&1 || vstacklet::error::display 79
-		# @script-note: configure csf
-		vstacklet::shell::text::yellow::sl "configuring CSF ... " &
-		vs::stat::progress::start # start progress status
-		perl /usr/local/csf/bin/csftest.pl >>"${vslog}" 2>&1 || vstacklet::error::display 80
-		# @script-note: modify csf blocklists - essentiallly like cloudflare, but for csf
-		# https://www.configserver.com/cp/csf.html#blocklists
-		sed -i.bak -e 's/#SPAMDROP|86400|0|/SPAMDROP|86400|100|/g' -e 's/#SPAMDROPV6|86400|0|/SPAMDROPV6|86400|100|/g' -e 's/#SPAMEDROP|86400|0|/SPAMEDROP|86400|100|/g' -e 's/#DSHIELD|86400|0|/DSHIELD|86400|100|/g' -e 's/#TOR|86400|0|/TOR|86400|100|/g' -e 's/#ALTTOR|86400|0|/ALTTOR|86400|100|/g' -e 's/#BOGON|86400|0|/BOGON|86400|100|/g' -e 's/#HONEYPOT|86400|0|/HONEYPOT|86400|100|/g' -e 's/#CIARMY|86400|0|/CIARMY|86400|100|/g' -e 's/#BFB|86400|0|/BFB|86400|100|/g' -e 's/#OPENBL|86400|0|/OPENBL|86400|100|/g' -e 's/#AUTOSHUN|86400|0|/AUTOSHUN|86400|100|/g' -e 's/#MAXMIND|86400|0|/MAXMIND|86400|100|/g' -e 's/#BDE|3600|0|/BDE|3600|100|/g' -e 's/#BDEALL|86400|0|/BDEALL|86400|100|/g' /etc/csf/csf.blocklists || vstacklet::error::display 81
-		# @script-note: set defaults for ports
-		declare csf_allow_port
-		declare -a csf_allow_ports=()
-		[[ -n ${ssh_port} ]] && csf_allow_ports+=("${ssh_port:-22}")
-		[[ -n ${ftp_port} ]] && csf_allow_ports+=("${ftp_port:-21}")
-		[[ -n ${http_port} ]] && csf_allow_ports+=("${http_port:-80}")
-		[[ -n ${https_port} ]] && csf_allow_ports+=("${https_port:-443}")
-		[[ -n ${mysql_port} ]] && csf_allow_ports+=("${mysql_port:-3306}")
-		[[ -n ${mariadb_port} ]] && csf_allow_ports+=("${mariadb_port:-3306}")
-		#[[ -n ${postgresql_port} ]] && csf_allow_ports+=("${postgresql_port:-5432}")
-		#[[ -n ${redis_port} ]] && csf_allow_ports+=("${redis_port:-6379}")
-		[[ -n ${varnish_port} ]] && csf_allow_ports+=("${varnish_port:-6081}")
-		[[ -n ${varnish_https_port} ]] && csf_allow_ports+=("${varnish_https_port:-8443}")
-		[[ -n ${sendmail_port} ]] && csf_allow_ports+=("${sendmail_port:-587}")
-		[[ -n ${csf_ui_port} ]] && csf_allow_ports+=("${csf_ui_port:-1043}")
-		[[ -z "${csf_ui_pass}" ]] && csf_ui_pass="$(openssl rand -base64 32)"
-		# @script-note: sanitize csf_ui_pass for use in sed
-		declare -g csf_ui_pass_sanitzied && csf_ui_pass_sanitzied="$(sed -e 's/[\/&]/\\&/g' <<<"${csf_ui_pass}")"
-		# @script-note: declare default TCP ports. these are the ports that will be allowed through CSF.
-		# the ports seen below are the deault ports as defined by CSF on a fresh install.
-		TCP_IN="20,25,53,853,110,143,465,993,995,"
-		TCP_OUT="20,25,53,853,110,113,993,995,"
-		TCP6_IN="20,25,53,853,110,143,465,993,995,"
-		TCP6_OUT="20,25,53,853,110,113,993,995,"
-		for csf_allow_port in "${csf_allow_ports[@]}"; do
-			TCP_IN+="${csf_allow_port},"
-			TCP_OUT+="${csf_allow_port},"
-			TCP6_IN+="${csf_allow_port},"
-			TCP6_OUT+="${csf_allow_port},"
-		done
-		# @script-note: remove duplicate ports, sort by unique numerics, remove trailing and leading commas
-		TCP_IN="$(tr ',' '\n,' <<<"${TCP_IN}" | sort -un | tr '\n' ',' | sed 's/,$//g' | sed 's/^,//g')"
-		TCP_OUT="$(tr ',' '\n,' <<<"${TCP_OUT}" | sort -un | tr '\n' ',' | sed 's/,$//g' | sed 's/^,//g')"
-		TCP6_IN="$(tr ',' '\n,' <<<"${TCP6_IN}" | sort -un | tr '\n' ',' | sed 's/,$//g' | sed 's/^,//g')"
-		TCP6_OUT="$(tr ',' '\n,' <<<"${TCP6_OUT}" | sort -un | tr '\n' ',' | sed 's/,$//g' | sed 's/^,//g')"
-		# @script-note: remove csf_ui_port from TCP_OUT and TCP6_OUT
-		TCP_OUT="${TCP_OUT//${csf_ui_port},/}"
-		TCP6_OUT="${TCP6_OUT//${csf_ui_port},/}"
-		# @script-note: modify csf.conf - allow ssh, ftp, http, https, mysql, mariadb, sendmail, and varnish
-		sed -i.orig -e "s/^TCP_IN = .*/TCP_IN = \"${TCP_IN}\"/g" -e "s/^TCP6_IN = .*/TCP6_IN = \"${TCP6_IN}\"/g" -e "s/^TCP_OUT = .*/TCP_OUT = \"${TCP_OUT}\"/g" -e "s/^TCP6_OUT = .*/TCP6_OUT = \"${TCP6_OUT}\"/g" /etc/csf/csf.conf || vstacklet::error::display 85
-		# @script-note: modify csf.conf - set csf configuration options
-		sed -i.bak -e "s/^TESTING = \"1\"/TESTING = \"0\"/g" -e "s/^RESTRICT_SYSLOG = \"0\"/RESTRICT_SYSLOG = \"3\"/g" -e "s/^DENY_TEMP_IP_LIMIT = \"100\"/DENY_TEMP_IP_LIMIT = \"1000\"/g" -e "s/^SMTP_ALLOW_USER = \"\"/SMTP_ALLOW_USER = \"root\"/g" -e "s/^PT_USERMEM = \"200\"/PT_USERMEM = \"1000\"/g" -e "s/^PT_USERTIME = \"1800\"/PT_USERTIME = \"7200\"/g" -e "s/^UI = \"0\"/UI = \"1\"/g" -e "s/^UI_USER = \"username\"/UI_USER = \"${csf_ui_user:-sysop}\"/g" -e "s/^UI_PASS = \"password\"/UI_PASS = \"${csf_ui_pass_sanitzied}\"/g" -e "s/^UI_PORT = \"6666\"/UI_PORT = \"${csf_ui_port:-1043}\"/g" /etc/csf/csf.conf || vstacklet::error::display 86
-		# @script-note: unset csf_allow_ports variable for security purposes
-		unset csf_allow_ports
-		# @script-note: grab local installed IP and set to /etc/csf/ui/ui.allow
-		csf_authorized_ip=$(who | cut -d"(" -f2 | cut -d")" -f1 | tail -n1)
-		# this is to prevent unauthorized access to the CSF UI
-		echo "${csf_authorized_ip}" >>/etc/csf/ui/ui.allow
-		# @script-note: add authorized IP to /etc/csf/csf.ignore
-		echo "${csf_authorized_ip}" >>/etc/csf/csf.ignore
-		# @script-note: run cloudflare ip allow function if the `--csf_cloudflare` flag is set
-		[[ -n ${csf_cloudflare} ]] && vstacklet::cloudflare::csf &&
-			vs::stat::progress::stop # stop progress status
-		# @script-note: show csf installation summary
-		vstacklet::shell::text::green "CSF firewall has been installed and configured successfully. see details below:"
-		vstacklet::shell::text::white::sl "CSF configuration file: "
-		vstacklet::shell::text::green "/etc/csf/csf.conf"
-		vstacklet::shell::text::white::sl "CSF allow file: "
-		vstacklet::shell::text::green "/etc/csf/csf.allow"
-		vstacklet::shell::text::white::sl "CSF ignore file: "
-		vstacklet::shell::text::green "/etc/csf/csf.ignore"
-		vstacklet::shell::text::white::sl "CSF blocklist file: "
-		vstacklet::shell::text::green "/etc/csf/csf.blocklists"
-		vstacklet::shell::text::white::sl "CSF UI enabled: "
-		vstacklet::shell::text::green "true"
-		vstacklet::shell::text::white::sl "CSF UI port: "
-		vstacklet::shell::text::green "${csf_ui_port:-1043}"
-		vstacklet::shell::text::white::sl "CSF UI user: "
-		vstacklet::shell::text::green "${csf_ui_user:-sysop}"
-		vstacklet::shell::text::white::sl "CSF UI password: "
-		vstacklet::shell::text::green "${csf_ui_pass}"
-		vstacklet::shell::misc::nl
-		vstacklet::shell::text::white "Note: You can access the CSF UI using the credentials provided above."
-		vstacklet::shell::text::white "  UI access is currently restricted."
-		vstacklet::shell::text::white "  Your installation IP address (${csf_authorized_ip}) has been added to the"
-		vstacklet::shell::text::white "  /etc/csf/ui/ui.allow file."
-		vstacklet::shell::text::white "  You can allow more IP addresses to access the UI by doing the following:"
-		vstacklet::shell::text::white::sl "    1. "
-		vstacklet::shell::text::green "Add your IP address to the /etc/csf/ui/ui.allow file."
-		vstacklet::shell::text::white::sl "    2. "
-		vstacklet::shell::text::green "Restart CSF: csf -r"
-		vstacklet::shell::text::white::sl "    3. "
-		vstacklet::shell::text::green "Restart LFD: systemctl restart lfd"
-		vstacklet::shell::text::white::sl "    4. "
-		vstacklet::shell::text::green "Access the CSF UI at https://${server_ip}:${csf_ui_port:-1043}"
-	fi
-}
-
-##################################################################################
-# @name: vstacklet::cloudflare::csf (34.1)
-# @description: Configure Cloudflare IP addresses in CSF. This is to be used
-# when Cloudflare is used as a CDN. This will allow CSF to
-# recognize Cloudflare IPs as trusted. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2739-L2756)
-#
-# notes:
-# - This function is only called under the following conditions:
-#   - the option `-csf` is used (required)
-#   - the option `-csfCf` is used directly
-# - This function is only utilized if the option for `-csf` is used.
-# - This function adds the Cloudflare IP addresses to the CSF allow list. This
-#   is done to ensure that the server can be accessed by Cloudflare. The list
-#   is located in /etc/csf/csf.allow.
-# @option: $1 - `-csfCf | --csf_cloudflare` (optional)
-# @noargs
-# @example: vstacklet -csfCf -csf -e "your@email.com"
-# @null
-# @return_code: 87 - CSF allow file does not exist.
-# @break
-##################################################################################
-vstacklet::cloudflare::csf() {
-	# @script-note: check if Cloudflare has been selected
-	if [[ -n ${csf_cloudflare} ]]; then
-		# @script-note: check if the csf.allow file exists
-		[[ ! -f "/etc/csf/csf.allow" ]] && vstacklet::error::display 87
-		# @script-note: add Cloudflare IP addresses to the allow list
-		{
-			echo "# Cloudflare IP addresses"
-			curl -s https://www.cloudflare.com/ips-v4
-			curl -s https://www.cloudflare.com/ips-v6
-			echo "# End Cloudflare IP addresses"
-		} >>/etc/csf/csf.allow
-	fi
-	# @script-note: exit back to parent function
-	return 0
-}
-
-##################################################################################
 # @name: vstacklet::sendmail::install (35)
-# @description: Install and configure sendmail. This is a required component for
-# CSF to function properly. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2785-L2876)
+# @description: Install and configure sendmail. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L2785-L2876)
 #
 # notes:
 # - The `-e | --email` option is required for this function to run properly.
 #   the email address provided will be used to configure sendmail.
-# - If installing CSF, this function will be called automatically. As such, it
-#   is not necessary to call this function manually with the `-csf | --csf` option.
-# @param: $1 - sendmail_skip installation (this is siliently passed if `-csf` is used)
 # @option: $1 - `-sendmail | --sendmail` (optional) (takes no arguments)
 # @noargs
 # @example: vstacklet -sendmail -e "your@email.com"
 # @example: vstacklet --sendmail --email "your@email.com"
-# @example: vstacklet -csf -e "your@email.com"
 # @null
 # @return_code: 88 - failed to install sendmail dependencies.
 # @return_code: 89 - failed to edit aliases file.
@@ -2844,7 +2621,7 @@ vstacklet::cloudflare::csf() {
 # @break
 ##################################################################################
 vstacklet::sendmail::install() {
-	if [[ -n ${sendmail} || -n ${sendmail_skip} ]]; then
+	if [[ -n ${sendmail} ]]; then
 		# @script-note: install sendmail
 		vstacklet::shell::misc::nl
 		vstacklet::shell::text::white "installing and configuring sendmail ... "
@@ -2932,7 +2709,6 @@ EOF
 		else
 			vstacklet::shell::text::green "$(hostname --fqdn)"
 		fi
-		[[ ${sendmail_skip} -eq 1 ]] && return 0
 	fi
 }
 
@@ -3400,16 +3176,12 @@ vstacklet::clean::complete() {
 	[[ -n ${mariadb} ]] && services+=("mariadb")
 	[[ -n ${postgresql} ]] && services+=("postgresql")
 	[[ -n ${sendmail} ]] && services+=("sendmail")
-	[[ -n ${csf} ]] && services+=("lfd")
 	#services+=("sshd")
 	rm -rf "${vstacklet_base_path}/setup_temp"
 	for service in "${services[@]}"; do
 		vstacklet::log systemctl enable "${service}.service"
 		vstacklet::log systemctl restart "${service}.service"
 	done
-	# @script-note: csf requires a restart with its own command this will effectively
-	# stop/start csf and lfd and reload the firewall and rules
-	[[ -n ${csf} ]] && vstacklet::log::try csf -x && vstacklet::log::try csf -e && vstacklet::log::try csf -r
 	[[ -n ${nginx} ]] && rm -rf /etc/apache2 && rm -rf /usr/sbin/apache2
 	iptables-save >/etc/iptables/rules.v4 2>>"${log_file}" || vstacklet::error::display 12
 	unset service services
@@ -3496,12 +3268,6 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white " -r, --reboot"
 	vstacklet::shell::text::white "    Reboots the server after installation is complete."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white " -csf, --csf"
-	vstacklet::shell::text::white "    Installs and configures CSF."
-	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white " -csfCf, --csf_cloudfare"
-	vstacklet::shell::text::white "    Installs and configures CSF with CloudFlare support."
-	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -d, --domain"
 	vstacklet::shell::text::white "    Sets the domain name for the server."
 	vstacklet::shell::misc::nl
@@ -3581,7 +3347,7 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white "    Sets the web root for the server."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "example with standard HTTP-based SSL verification: "
-	vstacklet::shell::text::white "vstacklet -nginx -php '8.3' -mariadb -mariadbU 'username' -mariadbPw 'password' -varnish -csf -csfCf -wp -pma -ioncube -wr '/var/www/html/vsapp' -d 'example.com' -e 'your@email.com'"
+	vstacklet::shell::text::white "vstacklet -nginx -php '8.3' -mariadb -mariadbU 'username' -mariadbPw 'password' -varnish -wp -pma -ioncube -wr '/var/www/html/vsapp' -d 'example.com' -e 'your@email.com'"
 	vstacklet::shell::misc::nl
 	# Example with DNS-based SSL verification
 	vstacklet::shell::text::white "example with DNS-based SSL verification: "
@@ -3713,20 +3479,6 @@ vstacklet::error::display() {
 		73) error="failed to set symlink of ./phpmyadmin to ${web_root}/public/phpmyadmin." ;;
 		74) error="failed to create htpasswd file." ;;
 		75) error="failed to create phpMyAdmin configuration file." ;;
-		# vstacklet::csf::install (34)
-		76) error="failed to install CSF firewall dependencies." ;;
-		77) error="failed to download CSF firewall." ;;
-		78) error="failed to switch to /usr/local/src/csf directory." ;;
-		79) error="failed to install CSF firewall." ;;
-		80) error="failed to initialize CSF firewall." ;;
-		81) error="failed to modify CSF blocklist." ;;
-		82) error="failed to modify CSF ignore list." ;;
-		83) error="failed to modify CSF allow list." ;;
-		84) error="failed to modify CSF allow ports (inbound4/6)." ;;
-		85) error="failed to modify CSF allow ports (outbound4/6)." ;;
-		86) error="failed to modify CSF configuration file (csf.conf)." ;;
-		# vstacklet::cloudflare::csf (34.1)
-		87) error="CSF allow file does not exist." ;;
 		# vstacklet::sendmail::install (35)
 		88) error="failed to install sendmail dependencies." ;;
 		89) error="failed to edit aliases file." ;;
@@ -4326,8 +4078,7 @@ vstacklet::mysql::install                                                       
 vstacklet::postgre::install                                                                           #(31)
 vstacklet::redis::install                                                                             #(32)
 vstacklet::phpmyadmin::install                                                                        #(33)
-vstacklet::csf::install                                                                               #(34)
-[[ -n ${sendmail} && ${sendmail_skip} != "1" ]] && vstacklet::sendmail::install                       #(35)
+[[ -n ${sendmail} ]] && vstacklet::sendmail::install                                                  #(35)
 vstacklet::wordpress::install                                                                         #(36)
 vstacklet::domain::ssl                                                                                #(37)
 vstacklet::clean::complete                                                                            #(38)
