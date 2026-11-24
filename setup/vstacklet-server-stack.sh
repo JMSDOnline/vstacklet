@@ -171,6 +171,8 @@ declare -gr DEFAULT_PHP="8.4"
 declare -gar SUPPORTED_PHP=("8.3" "8.4" "8.5")
 # @script-note: written at the end of a completed 4.x install; its presence means the server is not fresh
 declare -gr VSTACKLET_MARKER="/etc/vstacklet/installed"
+# @script-note: written at the first change of an install; only a complete rollback removes it
+declare -gr VSTACKLET_STARTED="/etc/vstacklet/started"
 # >>> vstacklet gate: this block is kept identical in setup/vstacklet.sh and setup/vstacklet-server-stack.sh
 ##################################################################################
 # @name: vstacklet::gate (0)
@@ -262,6 +264,7 @@ vstacklet::environment::init() {
 	vstacklet::rollback::baseline || { vstacklet::shell::text::error "could not record the server's state in /root/vstacklet/baseline; nothing was changed." && exit 1; }
 	# @script-note: from here on the installer changes the server; a failure after this point means a rollback or a rebuild
 	declare -gi vstacklet_changes_started=1
+	{ mkdir -p "${VSTACKLET_STARTED%/*}" && date '+%F %H:%M %Z' >"${VSTACKLET_STARTED}"; } || { vstacklet::shell::text::error "could not write ${VSTACKLET_STARTED}; stopping." && exit 1; }
 	# @script-note: create vstacklet directories
 	mkdir -p "${vstacklet_base_path}/setup_temp"    # temporary setup directory - stores default files edited by vStacklet
 	mkdir -p "${vstacklet_base_path}/config/system" # system configuration directory - stores dependencies, keys, and other system files
@@ -304,7 +307,7 @@ vstacklet::args::info() {
 # | -ssh  | --ssh_port                 | port to use for the SSH server
 # | -http | --http_port                | port to use for the HTTP server
 # | -https| --https_port               | port to use for the HTTPS server
-# | -ioncube | --ioncube               | install IonCube Loader
+# | -ioncube | --ioncube               | refused until the 4.0 ionCube install is written
 # | -hn   | --hostname                 | hostname to use for the server
 # | -d    | --domain                   | domain name to use for the server
 # | -php  | --php                      | PHP version to install (8.3, 8.4, 8.5; default 8.4)
@@ -396,8 +399,7 @@ vstacklet::args::process() {
 			shift 2
 			;;
 		-ioncube | --ioncube)
-			declare -gi ioncube="1"
-			shift
+			vstacklet::shell::text::error "ionCube Loader is not installed by this development build of vStacklet 4.0 yet; run without -ioncube." && exit 1
 			;;
 		-mariadb | --mariadb)
 			declare -gi mariadb="1"
@@ -686,12 +688,12 @@ vstacklet::gate::install() {
 	done
 	[[ -n ${ioncube} && ${vstacklet_arch} == "arm64" ]] && vstacklet::gate::refuse "ionCube Loader is not offered on arm64 by this installer; run without -ioncube."
 	# @script-note: fresh servers only
-	for f in "${VSTACKLET_MARKER}" /opt/vstacklet/config/system/.install_complete /var/log/vstacklet; do
+	for f in "${VSTACKLET_MARKER}" "${VSTACKLET_STARTED}" /opt/vstacklet/config/system/.install_complete /var/log/vstacklet; do
 		[[ -e ${f} ]] || continue
 		if [[ -f /root/vstacklet/baseline/complete ]]; then
 			vstacklet::gate::refuse "an earlier vStacklet install or install attempt was found (${f}). vStacklet 4 installs on fresh servers only: run vstacklet --rollback to undo it, or rebuild the server."
 		fi
-		vstacklet::gate::refuse "an earlier vStacklet install was found (${f}) with no install record to roll back. vStacklet 4 installs on fresh servers only: rebuild the server, or see the upgrade checklist in the README."
+		vstacklet::gate::refuse "an earlier vStacklet install was found (${f}) with no install record to roll back. vStacklet 4 installs on fresh servers only: rebuild the server."
 	done
 	if [[ -n ${nginx} || -n ${varnish} ]]; then
 		[[ $(dpkg-query -W -f='${Status}' apache2 2>/dev/null) == *"ok installed"* ]] && vstacklet::gate::refuse "apache2 is installed. vStacklet installs nginx on fresh servers only."
@@ -3541,6 +3543,7 @@ vstacklet::error::display() {
 		vstacklet::shell::misc::nl
 	else
 		if [[ -n ${rollback_started} ]]; then
+			vstacklet::rollback::apt_resume
 			vstacklet::shell::text::error "The rollback stopped part-way. Run vstacklet --rollback again to finish it."
 		else
 			vstacklet::shell::text::error "The rollback process has been cancelled; nothing was changed."
@@ -3788,6 +3791,12 @@ vstacklet::rollback::restore() {
 # @example: vstacklet --rollback
 # @break
 ################################################################################
+vstacklet::rollback::apt_resume() {
+	local u
+	for u in apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service; do
+		if systemctl is-enabled --quiet "${u}" 2>/dev/null; then systemctl start "${u}" >/dev/null 2>&1 || true; fi
+	done
+}
 vstacklet::rollback() {
 	local confirm u rc=0
 	local -a held=()
@@ -3795,7 +3804,7 @@ vstacklet::rollback() {
 		if [[ -e /root/vstacklet/baseline ]]; then
 			vstacklet::shell::text::error "this server's install record (/root/vstacklet/baseline) is damaged or belongs to another server; nothing was changed. Rebuild the server from a fresh image."
 		else
-			vstacklet::shell::text::error "No install record was found on this server (it was set up by an earlier vStacklet version, or the record was removed). vStacklet 4 cannot roll it back safely; nothing was changed. Rebuild the server from a fresh image, or see the upgrade checklist in the README."
+			vstacklet::shell::text::error "No install record was found on this server (it was set up by an earlier vStacklet version, or the record was removed). vStacklet 4 cannot roll it back safely; nothing was changed. Rebuild the server from a fresh image."
 		fi
 		exit 1
 	fi
@@ -3816,7 +3825,7 @@ vstacklet::rollback() {
 	((${#held[@]})) && systemctl stop "${held[@]}" >/dev/null 2>&1
 	if vstacklet::rollback::restore; then
 		rm -rf /root/vstacklet/setup_temp >/dev/null 2>&1
-		rm -f /opt/vstacklet/config/system/.install_complete "${VSTACKLET_MARKER}" >/dev/null 2>&1
+		rm -f /opt/vstacklet/config/system/.install_complete "${VSTACKLET_MARKER}" "${VSTACKLET_STARTED}" >/dev/null 2>&1
 		if [[ -d ${VSTACKLET_MARKER%/*} ]]; then rmdir --ignore-fail-on-non-empty "${VSTACKLET_MARKER%/*}" || true; fi
 		[[ -d /var/log/vstacklet ]] && mv /var/log/vstacklet "/var/log/vstacklet-rolled-back-$(date +%Y%m%d-%H%M%S)"
 		vstacklet::shell::text::success "Server rolled back to its recorded state. You may run the installer again."
@@ -3824,7 +3833,7 @@ vstacklet::rollback() {
 		rc=1
 		vstacklet::shell::text::error "The rollback stopped before the server matched its record (see above). The install markers are kept, so the installer stays closed. Run vstacklet --rollback again, or rebuild the server from a fresh image."
 	fi
-	((${#held[@]})) && systemctl start "${held[@]}" >/dev/null 2>&1
+	vstacklet::rollback::apt_resume
 	exit "${rc}"
 }
 
