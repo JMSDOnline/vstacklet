@@ -45,10 +45,6 @@
 # - [vstacklet::apt::update()](#vstackletaptupdate)
 # - [vstacklet::dependencies::install()](#vstackletdependenciesinstall)
 #    - [return codes](#return-codes-1)
-# - [vstacklet::environment::checkroot()](#vstackletenvironmentcheckroot)
-#    - [return codes](#return-codes-2)
-# - [vstacklet::environment::checkdistro()](#vstackletenvironmentcheckdistro)
-#    - [return codes](#return-codes-3)
 # - [vstacklet::intro()](#vstackletintro)
 # - [vstacklet::dependencies::array()](#vstackletdependenciesarray)
 # - [vstacklet::base::dependencies()](#vstackletbasedependencies)
@@ -177,6 +173,75 @@
 # @script-note: the one default PHP version and the tested range; the version checks and every template use these
 declare -gr DEFAULT_PHP="8.4"
 declare -gar SUPPORTED_PHP=("8.3" "8.4" "8.5")
+# @script-note: written at the end of a completed 4.x install; its presence means the server is not fresh
+declare -gr VSTACKLET_MARKER="/etc/vstacklet/installed"
+# >>> vstacklet gate: this block is kept identical in setup/vstacklet.sh and setup/vstacklet-server-stack.sh
+##################################################################################
+# @name: vstacklet::gate (0)
+# @description: Runs before anything on the server is changed: root, the release and its support dates, the architecture.
+#
+# Support dates come from the vendors' own pages, read 2026-11-23:
+# - Debian: https://www.debian.org/releases/bookworm/ , https://www.debian.org/releases/trixie/ , https://wiki.debian.org/LTS
+# - Ubuntu: https://ubuntu.com/about/release-cycle (states a month only; the gate uses the last day of that month)
+# - PHP:    https://www.php.net/supported-versions.php
+# A release counts as supported until its free security support ends: for Debian the end of Debian LTS (a Debian
+# project), for Ubuntu the end of standard support. Paid extended support (Freexian ELTS for Debian, Ubuntu ESM) is
+# not counted. A Debian release past its regular security support but inside Debian LTS installs with a notice.
+# Row: id|version|codename|regular security end|free security end|end as the vendor states it|who supports it until then
+##################################################################################
+declare -ga VSTACKLET_GATE_RELEASES=(
+	"debian|12|bookworm|2026-07-11|2028-06-30|30 June 2028|Debian LTS"
+	"debian|13|trixie|2028-08-09|2030-06-30|30 June 2030|Debian LTS"
+	"ubuntu|24.04|noble|2029-05-31|2029-05-31|May 2029 (month only)|Ubuntu standard support"
+	"ubuntu|26.04|resolute|2031-05-31|2031-05-31|May 2031 (month only)|Ubuntu standard support"
+)
+# Row: PHP version|end of active support|end of security support
+declare -ga VSTACKLET_GATE_PHP=(
+	"8.3|2025-12-31|2027-12-31"
+	"8.4|2026-12-31|2028-12-31"
+	"8.5|2027-12-31|2029-12-31"
+)
+vstacklet::gate::refuse() {
+	printf 'vStacklet: %s\n' "$@" >&2
+	printf 'vStacklet: the install has stopped before any change was made to this server.\n' >&2
+	exit 1
+}
+vstacklet::gate::notice() {
+	printf 'vStacklet notice: %s\n' "$@" >&2
+}
+vstacklet::gate::system() {
+	local key value os_id="" os_version="" os_codename="" row r_id r_ver r_code r_regular r_free r_shown r_who today arch
+	[[ ${EUID} -eq 0 ]] || vstacklet::gate::refuse "run the installer as root."
+	[[ -r /etc/os-release ]] || vstacklet::gate::refuse "cannot read /etc/os-release, so the release cannot be checked."
+	# @script-note: read three keys only; the file is never sourced
+	while IFS='=' read -r key value; do
+		value="${value%\"}" && value="${value#\"}"
+		case "${key}" in
+		ID) os_id="${value}" ;;
+		VERSION_ID) os_version="${value}" ;;
+		VERSION_CODENAME) os_codename="${value}" ;;
+		esac
+	done </etc/os-release
+	today="$(date +%F)"
+	for row in "${VSTACKLET_GATE_RELEASES[@]}"; do
+		IFS='|' read -r r_id r_ver r_code r_regular r_free r_shown r_who <<<"${row}"
+		[[ ${os_id} == "${r_id}" && ${os_version} == "${r_ver}" ]] || continue
+		[[ -z ${os_codename} || ${os_codename} == "${r_code}" ]] || vstacklet::gate::refuse "${os_id} ${os_version} reports the codename '${os_codename}', expected '${r_code}'; the release cannot be confirmed."
+		if [[ ${today} > "${r_free}" ]]; then
+			vstacklet::gate::refuse "${os_id} ${os_version} reached the end of its free security support (${r_who}, ${r_shown}). Rebuild the server on a supported release: Debian 12 or 13, Ubuntu 24.04 or 26.04."
+		fi
+		[[ ${today} > "${r_regular}" ]] && vstacklet::gate::notice "${os_id} ${os_version} has left regular security support and is covered by ${r_who} until ${r_shown}, for fewer packages and architectures. Plan a move to a newer release."
+		arch="$(dpkg --print-architecture 2>/dev/null)"
+		[[ ${arch} == "amd64" || ${arch} == "arm64" ]] || vstacklet::gate::refuse "the architecture '${arch:-unknown}' is not supported (amd64 or arm64)."
+		declare -g distro codename vstacklet_arch="${arch}"
+		codename="${r_code}"
+		[[ ${r_id} == "debian" ]] && distro="Debian"
+		[[ ${r_id} == "ubuntu" ]] && distro="Ubuntu"
+		return 0
+	done
+	vstacklet::gate::refuse "${os_id:-unknown} ${os_version:-unknown} is not supported. Supported: Debian 12 and 13, Ubuntu 24.04 and 26.04. For Debian 11 or Ubuntu 20.04 and 22.04, the last 3.x release is the tag v3.1.2239, which is no longer maintained."
+}
+# <<< vstacklet gate
 ##################################################################################
 # @name: vstacklet::environment::init (1)
 # @description: Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L184-L205)
@@ -599,6 +664,37 @@ vstacklet::args::webroot() {
 }
 
 ##################################################################################
+# @name: vstacklet::gate::install (3.i)
+# @description: Runs after the options are read and before anything on the server is changed: the PHP version's support dates, ionCube on arm64, fresh servers only (no earlier vStacklet install, no apache2, no nginx site of its own, the web ports free).
+##################################################################################
+vstacklet::gate::install() {
+	local row r_ver r_active r_security today f p
+	today="$(date +%F)"
+	for row in "${VSTACKLET_GATE_PHP[@]}"; do
+		IFS='|' read -r r_ver r_active r_security <<<"${row}"
+		[[ ${php} == "${r_ver}" ]] || continue
+		[[ ${today} > "${r_security}" ]] && vstacklet::gate::refuse "PHP ${php} reached the end of its security support on ${r_security}; choose a newer version with -php."
+		[[ ${today} > "${r_active}" ]] && vstacklet::gate::notice "PHP ${php} receives security fixes only (until ${r_security}); a newer version gets bug fixes too."
+	done
+	[[ -n ${ioncube} && ${vstacklet_arch} == "arm64" ]] && vstacklet::gate::refuse "ionCube Loader is not offered on arm64 by this installer; run without -ioncube."
+	# @script-note: fresh servers only
+	for f in "${VSTACKLET_MARKER}" /opt/vstacklet/config/system/.install_complete /usr/local/bin/vs-backup /usr/local/bin/vs-perms; do
+		[[ -e ${f} ]] && vstacklet::gate::refuse "an earlier vStacklet install was found (${f}). vStacklet 4 installs on fresh servers only; see the upgrade checklist in the README."
+	done
+	if [[ -n ${nginx} || -n ${varnish} ]]; then
+		[[ $(dpkg-query -W -f='${Status}' apache2 2>/dev/null) == *"ok installed"* ]] && vstacklet::gate::refuse "apache2 is installed. vStacklet installs nginx on fresh servers only."
+		for f in /etc/nginx/sites-enabled/* /etc/nginx/conf.d/*.conf; do
+			[[ -e ${f} && ${f} != "/etc/nginx/sites-enabled/default" ]] && vstacklet::gate::refuse "nginx already has a site configuration (${f}). vStacklet installs on fresh servers only."
+		done
+		command -v ss >/dev/null 2>&1 || vstacklet::gate::refuse "the ss command (iproute2) is missing, so the web ports cannot be checked."
+		for p in "${http_port:-80}" "${https_port:-443}" ${varnish:+"${varnish_port:-6081}"}; do
+			[[ -n $(ss -Hltn "sport = :${p}" 2>/dev/null) ]] && vstacklet::gate::refuse "port ${p} is already in use on this server."
+		done
+	fi
+	return 0
+}
+
+##################################################################################
 # @name: vstacklet::environment::store_flags_args (3.a)
 # @description: Store the flags and arguments to a file for rollback if needed.  [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L517-L535)
 #
@@ -908,39 +1004,6 @@ vstacklet::dependencies::install() {
 		install_list+=("${install}")
 	done
 	clear
-}
-
-##################################################################################
-# @name: vstacklet::environment::checkroot (7)
-# @description: Check if the user is root. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L825-L827)
-#
-# ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
-# @return_code: 1 - you must be root to run this script.
-# @break
-##################################################################################
-vstacklet::environment::checkroot() {
-	[[ $(whoami) != "root" ]] && vstacklet::error::display 1
-}
-
-##################################################################################
-# @name: vstacklet::environment::checkdistro (8)
-# @description: Check if the distro is Ubuntu 20.04/22.04 | Debian 11/12 [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L837-L848)
-#
-# ![@dev-note: This function is required](https://img.shields.io/badge/%40dev--note-This%20function%20is%20required-blue)
-# @return_code: 2 - this script only supports Ubuntu 20.04/22.04 | Debian 11/12
-# @break
-##################################################################################
-vstacklet::environment::checkdistro() {
-	declare -g codename distro
-	declare -a allowed_codename=("focal" "jammy" "bullseye" "bookworm")
-	codename=$(lsb_release -cs)
-	distro=$(lsb_release -is)
-	if ! vstacklet::array::contains "${codename}" "supported distro" ${allowed_codename[@]}; then
-		declare allowed_codename_string="${allowed_codename[*]}"
-		vstacklet::shell::text::yellow::sl "supported distros: "
-		vstacklet::shell::text::white "${allowed_codename_string//${IFS:0:1}/, }"
-		vstacklet::error::display 2
-	fi
 }
 
 ##################################################################################
@@ -4231,15 +4294,15 @@ vstacklet::update::check() {
 # the following functions are called in the order they are listed and
 # are used for post-installation setup.
 ################################################################################
-vstacklet::environment::init                  #(1)
 vstacklet::environment::functions             #(2)
+vstacklet::gate::system                       #(0) root, release, support dates, architecture: before any change
 vstacklet::args::process "$@"                 #(3)
+vstacklet::gate::install                      #(3.i) PHP support dates, fresh server only: before any change
+vstacklet::environment::init                  #(1) the first change to the server
 vstacklet::environment::store_flags_args "$@" # @script-note: store the flags and arguments to a file for rollback
 vstacklet::log::check                         #(4)
 vstacklet::apt::update                        #(5)
 vstacklet::dependencies::install              #(6)
-vstacklet::environment::checkroot             #(7)
-vstacklet::environment::checkdistro           #(8)
 vstacklet::intro                              #(9)
 vstacklet::ask::continue                      #(10)
 vstacklet::dependencies::array                #(11)

@@ -57,6 +57,73 @@
 ################################################################################
 # shellcheck disable=SC2068,SC2034,SC1091
 ################################################################################
+# >>> vstacklet gate: this block is kept identical in setup/vstacklet.sh and setup/vstacklet-server-stack.sh
+##################################################################################
+# @name: vstacklet::gate (0)
+# @description: Runs before anything on the server is changed: root, the release and its support dates, the architecture.
+#
+# Support dates come from the vendors' own pages, read 2026-11-23:
+# - Debian: https://www.debian.org/releases/bookworm/ , https://www.debian.org/releases/trixie/ , https://wiki.debian.org/LTS
+# - Ubuntu: https://ubuntu.com/about/release-cycle (states a month only; the gate uses the last day of that month)
+# - PHP:    https://www.php.net/supported-versions.php
+# A release counts as supported until its free security support ends: for Debian the end of Debian LTS (a Debian
+# project), for Ubuntu the end of standard support. Paid extended support (Freexian ELTS for Debian, Ubuntu ESM) is
+# not counted. A Debian release past its regular security support but inside Debian LTS installs with a notice.
+# Row: id|version|codename|regular security end|free security end|end as the vendor states it|who supports it until then
+##################################################################################
+declare -ga VSTACKLET_GATE_RELEASES=(
+	"debian|12|bookworm|2026-07-11|2028-06-30|30 June 2028|Debian LTS"
+	"debian|13|trixie|2028-08-09|2030-06-30|30 June 2030|Debian LTS"
+	"ubuntu|24.04|noble|2029-05-31|2029-05-31|May 2029 (month only)|Ubuntu standard support"
+	"ubuntu|26.04|resolute|2031-05-31|2031-05-31|May 2031 (month only)|Ubuntu standard support"
+)
+# Row: PHP version|end of active support|end of security support
+declare -ga VSTACKLET_GATE_PHP=(
+	"8.3|2025-12-31|2027-12-31"
+	"8.4|2026-12-31|2028-12-31"
+	"8.5|2027-12-31|2029-12-31"
+)
+vstacklet::gate::refuse() {
+	printf 'vStacklet: %s\n' "$@" >&2
+	printf 'vStacklet: the install has stopped before any change was made to this server.\n' >&2
+	exit 1
+}
+vstacklet::gate::notice() {
+	printf 'vStacklet notice: %s\n' "$@" >&2
+}
+vstacklet::gate::system() {
+	local key value os_id="" os_version="" os_codename="" row r_id r_ver r_code r_regular r_free r_shown r_who today arch
+	[[ ${EUID} -eq 0 ]] || vstacklet::gate::refuse "run the installer as root."
+	[[ -r /etc/os-release ]] || vstacklet::gate::refuse "cannot read /etc/os-release, so the release cannot be checked."
+	# @script-note: read three keys only; the file is never sourced
+	while IFS='=' read -r key value; do
+		value="${value%\"}" && value="${value#\"}"
+		case "${key}" in
+		ID) os_id="${value}" ;;
+		VERSION_ID) os_version="${value}" ;;
+		VERSION_CODENAME) os_codename="${value}" ;;
+		esac
+	done </etc/os-release
+	today="$(date +%F)"
+	for row in "${VSTACKLET_GATE_RELEASES[@]}"; do
+		IFS='|' read -r r_id r_ver r_code r_regular r_free r_shown r_who <<<"${row}"
+		[[ ${os_id} == "${r_id}" && ${os_version} == "${r_ver}" ]] || continue
+		[[ -z ${os_codename} || ${os_codename} == "${r_code}" ]] || vstacklet::gate::refuse "${os_id} ${os_version} reports the codename '${os_codename}', expected '${r_code}'; the release cannot be confirmed."
+		if [[ ${today} > "${r_free}" ]]; then
+			vstacklet::gate::refuse "${os_id} ${os_version} reached the end of its free security support (${r_who}, ${r_shown}). Rebuild the server on a supported release: Debian 12 or 13, Ubuntu 24.04 or 26.04."
+		fi
+		[[ ${today} > "${r_regular}" ]] && vstacklet::gate::notice "${os_id} ${os_version} has left regular security support and is covered by ${r_who} until ${r_shown}, for fewer packages and architectures. Plan a move to a newer release."
+		arch="$(dpkg --print-architecture 2>/dev/null)"
+		[[ ${arch} == "amd64" || ${arch} == "arm64" ]] || vstacklet::gate::refuse "the architecture '${arch:-unknown}' is not supported (amd64 or arm64)."
+		declare -g distro codename vstacklet_arch="${arch}"
+		codename="${r_code}"
+		[[ ${r_id} == "debian" ]] && distro="Debian"
+		[[ ${r_id} == "ubuntu" ]] && distro="Ubuntu"
+		return 0
+	done
+	vstacklet::gate::refuse "${os_id:-unknown} ${os_version:-unknown} is not supported. Supported: Debian 12 and 13, Ubuntu 24.04 and 26.04. For Debian 11 or Ubuntu 20.04 and 22.04, the last 3.x release is the tag v3.1.2239, which is no longer maintained."
+}
+# <<< vstacklet gate
 
 ##################################################################################
 # @name: vstacklet::environment::checkroot (1)
@@ -439,6 +506,8 @@ vstacklet::setup::main() {
 	vstacklet::setup::variables "$@"
 	[[ "${help}" == "true" ]] && vstacklet::setup::help && exit 0
 	[[ "${version}" == "true" ]] && vstacklet::version::display && exit 0
+	# @script-note: the release, its support dates and the architecture are checked before apt runs or anything is downloaded
+	vstacklet::gate::system
 	vstacklet::setup::download
 }
 
