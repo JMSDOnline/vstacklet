@@ -1685,7 +1685,7 @@ vstacklet::php::install() {
 # @return_code: 22 - failed to enable NGINX configuration file.
 # @return_code: 23 - failed to generate dhparam file.
 # @return_code: 24 - failed to generate self-signed certificate.
-# @return_code: 25 - failed to stage checkinfo.php verification file.
+# @return_code: 25 - failed to create the web root's public folder.
 # @break
 ##################################################################################
 vstacklet::nginx::install() {
@@ -1723,7 +1723,7 @@ vstacklet::nginx::install() {
 		wr_sanitize=$(echo "${web_root:-/var/www/html/vsapp}" | sed 's/\//\\\//g')
 		sed -i "s|{{webroot}}|${wr_sanitize}|g" "${local_nginx_dir}/server.configs/location/letsencrypt.conf"
 		sleep 3
-		rsync -aP --exclude=/pagespeed --exclude=LICENSE --exclude=README --exclude=.git "${local_nginx_dir}"/* /etc/nginx/ >/dev/null 2>&1
+		rsync -aP --exclude=LICENSE --exclude=README --exclude=.git "${local_nginx_dir}"/* /etc/nginx/ >/dev/null 2>&1
 		\cp -rf /etc/nginx-pre-vstacklet/uwsgi_params /etc/nginx-pre-vstacklet/fastcgi_params /etc/nginx/
 		chown -R www-data:www-data /etc/nginx/cache
 		chmod -R 755 /etc/nginx/cache
@@ -1756,15 +1756,11 @@ vstacklet::nginx::install() {
 			openssl req -config "${vstacklet_base_path}/setup/templates/ssl/openssl.conf" -x509 -nodes -days 720 -newkey rsa:2048 -keyout /etc/ssl/private/ssl-cert-snakeoil.key -out /etc/ssl/certs/ssl-cert-snakeoil.pem >>"${vslog}" 2>&1 || vstacklet::error::display 24
 		fi
 		vs::stat::progress::stop # stop progress status
-		vstacklet::shell::text::yellow::sl "staging checkinfo.php and adjusting permissions on ${web_root:-/var/www/html/vsapp} ... " &
+		vstacklet::shell::text::yellow::sl "adjusting permissions on ${web_root:-/var/www/html/vsapp} ... " &
 		vs::stat::progress::start # start progress status
 		# Create the public directory if it doesn't exist
 		mkdir -p "${web_root:-/var/www/html/vsapp}/public" || vstacklet::error::display 25
-		# Remove any existing checkinfo.php to avoid conflicts
-		rm -f "${web_root:-/var/www/html/vsapp}/public/checkinfo.php" >>"${vslog}" 2>&1
-		# Create the checkinfo.php file
-		# @script-note: create checkinfo.php file to verify nginx and php-fpm are working correctly
-		echo '<?php phpinfo(); ?>' >"${web_root:-/var/www/html/vsapp}/public/checkinfo.php" || vstacklet::error::display 25
+		# @script-note: no public phpinfo() page: it showed the server's full PHP and environment details to anyone
 		chown -R www-data:www-data "${web_root:-/var/www/html/vsapp}"
 		chmod -R 755 "${web_root:-/var/www/html/vsapp}"
 		chmod -R g+rw "${web_root:-/var/www/html/vsapp}"
@@ -1791,8 +1787,6 @@ vstacklet::nginx::install() {
 		vstacklet::shell::text::green "/etc/ssl/private/ssl-cert-snakeoil.key"
 		vstacklet::shell::text::white::sl "Diffie-Hellman parameters file: "
 		vstacklet::shell::text::green "/etc/nginx/ssl/dhparam.pem"
-		vstacklet::shell::text::white::sl "checkinfo.php: "
-		vstacklet::shell::text::green "${web_root:-/var/www/html/vsapp}/public/checkinfo.php"
 	fi
 }
 
@@ -3216,8 +3210,6 @@ vstacklet::message::complete() {
 	vstacklet::shell::text::white "Be sure to review the above output from the vStacklet installation process"
 	vstacklet::shell::text::white "for relevant information regarding your new server and connection details."
 	vstacklet::shell::misc::nl
-	[[ (-n ${nginx} || -n ${varnish}) && -n ${php} ]] && vstacklet::shell::text::white " - Visit: http://${domain:-${server_ip}}/checkinfo.php"
-	[[ (-n ${nginx} || -n ${varnish}) && -n ${php} ]] && vstacklet::shell::text::white " - Remember to remove or rename the checkinfo.php file after verification."
 	[[ ${setup_reboot} -eq "1" ]] && vstacklet::shell::text::white "rebooting ... " && reboot
 	if [[ -z ${setup_reboot} ]]; then
 		declare input
@@ -3421,7 +3413,7 @@ vstacklet::error::display() {
 		22) error="failed to enable NGINX configuration." ;;
 		23) error="failed to generate dhparam file." ;;
 		24) error="failed to generate self-signed certificate." ;;
-		25) error="failed to stage checkinfo.php verification file." ;;
+		25) error="failed to create the web root's public folder." ;;
 		# vstacklet::varnish::install (26)
 		26) error="failed to install Varnish dependencies." ;;
 		27) error="could not switch to /etc/varnish directory." ;;
