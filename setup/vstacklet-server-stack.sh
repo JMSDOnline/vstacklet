@@ -174,6 +174,9 @@
 # <END METADATA>
 ##################################################################################
 # shellcheck disable=1091,2068,2119,2249,2312
+# @script-note: the one default PHP version and the tested range; the version checks and every template use these
+declare -gr DEFAULT_PHP="8.4"
+declare -gar SUPPORTED_PHP=("8.3" "8.4" "8.5")
 ##################################################################################
 # @name: vstacklet::environment::init (1)
 # @description: Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L184-L205)
@@ -197,10 +200,9 @@ vstacklet::environment::init() {
 	mkdir -p "${vstacklet_base_path}/config/system" # system configuration directory - stores dependencies, keys, and other system files
 	# @script-note: script start time
 	vstacklet_start_time=$(date +%s)
-	# @script-note: check if nginx and/or php is installed
-	declare -gi nginx_installed php_installed vstacklet_installed
+	# @script-note: check if nginx is installed
+	declare -gi nginx_installed vstacklet_installed
 	nginx_installed=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
-	php_installed=$(find /etc/php -maxdepth 1 -type d -name "*" | wc -l)
 	vstacklet_installed=$(find /opt/vstacklet/config/system -maxdepth 1 -type f -name ".install_complete" | wc -l)
 }
 
@@ -223,7 +225,7 @@ vstacklet::environment::init() {
 # | -ioncube | --ioncube               | install IonCube Loader
 # | -hn   | --hostname                 | hostname to use for the server
 # | -d    | --domain                   | domain name to use for the server
-# | -php  | --php                      | PHP version to install (7.4, 8.1, 8.3)
+# | -php  | --php                      | PHP version to install (8.3, 8.4, 8.5; default 8.4)
 # | -hhvm | --hhvm                     | install HHVM
 # | -nginx| --nginx                    | install Nginx
 # | -varnish | --varnish               | install Varnish
@@ -506,14 +508,12 @@ vstacklet::args::process() {
 		[[ -z ${dns_provider} ]] && vstacklet::shell::text::error "DNS verification requires a provider to be specified with \`--dns\`." && exit 1
 		[[ ${dns_provider} == "cloudflare" && -z ${CF_Token} ]] && declare -gi cf_token_required="1"
 	fi
-	if [[ ${php_installed} -eq 0 ]]; then
-		[[ ${php} == *"7"* ]] && declare -g php="7.4"
-		[[ ${php} == *"8.1"* ]] && declare -g php="8.1"
-		[[ ${php} == *"8.3"* ]] && declare -g php="8.3"
-		declare -a allowed_php=("7.4" "8.1" "8.3")
-		if ! vstacklet::array::contains "${php}" "supported php versions" ${allowed_php[@]}; then
-			vstacklet::shell::text::error "please provide a valid php version. supported versions are: ${allowed_php[*]}" && exit 1
-		fi
+	# @script-note: PHP is the default version unless -php names one; only an exact version in the tested range is accepted
+	[[ -z ${php} ]] && declare -g php="${DEFAULT_PHP}"
+	declare php_ok="" v
+	for v in "${SUPPORTED_PHP[@]}"; do [[ ${php} == "${v}" ]] && php_ok=1; done
+	if [[ -z ${php_ok} ]]; then
+		vstacklet::shell::text::error "PHP '${php}' is not in the tested range (${SUPPORTED_PHP[*]}; default ${DEFAULT_PHP}). Versions newer than ${SUPPORTED_PHP[-1]} are not tested yet; older ones are no longer supported." && exit 1
 	fi
 	[[ ${#invalid_option[@]} -gt 0 ]] && vstacklet::shell::text::error "invalid option(s): ${invalid_option[*]}" && exit 1
 }
@@ -1422,15 +1422,10 @@ vstacklet::locale::set() {
 #
 # notes:
 # - versioning:
-#   - php < "7.4" - not supported, deprecated
-#   - php = "7.4" - supported
-#   - php = "8.0" - superceded by php="8.1"
-#   - php = "8.1" - supported
-#   - php = "8.2" - superceded by php="8.3"
-#   - php = "8.3" - supported
+#   - supported: "8.3", "8.4" (default, DEFAULT_PHP) and "8.5" (SUPPORTED_PHP); any other value is refused
 # - chose either php or hhvm, not both
 # - php modules are installed based on the following variables:
-#   - `-php [php version]` (default: 8.1) - php version to install
+#   - `-php [php version]` (default: 8.4) - php version to install
 #   - php_modules are installed based on the php version and neccessity
 # - the php_modules installed/enabled on vstacklet are:
 #   - "opcache"
@@ -1443,10 +1438,9 @@ vstacklet::locale::set() {
 #   - "bcmath"
 #   - "msgpack"
 # @option: $1 - `-php | --php`
-# @arg: $2 - `[version]` - `7.4` | `8.1` | `8.3`
-# @example: vstacklet -php 8.3
-# @example: vstacklet -php 8.1
-# @example: vstacklet --php 7.4
+# @arg: $2 - `[version]` - `8.3` | `8.4` | `8.5`
+# @example: vstacklet -php 8.4
+# @example: vstacklet --php 8.5
 # @null
 # @return_code: 14 - PHP and HHVM cannot be installed at the same time, please choose one.
 # @return_code: 15 - failed to install PHP dependencies.
@@ -1673,12 +1667,12 @@ vstacklet::nginx::install() {
 		vstacklet::shell::text::yellow::sl "configuring NGinx and generating self-signed certificates ... " &
 		vs::stat::progress::start # start progress status
 		# @script-note: post necessary edits to nginx config files
-		sed -i "s|{{php}}|${php:-8.1}|g" "/etc/nginx/wordpress.conf" >/dev/null 2>&1
+		sed -i "s|{{php}}|${php:-${DEFAULT_PHP}}|g" "/etc/nginx/wordpress.conf" >/dev/null 2>&1
 		if [[ -z ${varnish} ]]; then
-			sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::error::display 21
+			sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-${DEFAULT_PHP}}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::error::display 21
 		fi
 		if [[ -n ${varnish} ]]; then
-			sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{varnish_port}}|${varnish_port:-6081}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::error::display 21
+			sed -i.bak -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{varnish_port}}|${varnish_port:-6081}|g" -e "s|{{domain}}|${domain:-${hostname:-vs-site1}}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-${DEFAULT_PHP}}|g" "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" || vstacklet::error::display 21
 		fi
 		# @script-note: enable site
 		ln -sf "/etc/nginx/sites-available/${domain:-${hostname:-vs-site1}}.conf" "/etc/nginx/sites-enabled/${domain:-${hostname:-vs-site1}}.conf" >>"${vslog}" 2>&1 || vstacklet::error::display 22
@@ -3287,7 +3281,7 @@ vstacklet::domain::ssl() {
 			cp -f "${local_setup_dir}/templates/nginx/acme" "/etc/nginx/sites-enabled/"
 			# @script-note: post necessary edits to nginx acme file
 			wr_sanitize=$(echo "${web_root:-/var/www/html/vsapp}" | sed 's/\//\\\//g')
-			sed -i -e "s|{{domain}}|${domain}|g" -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-8.1}|g" /etc/nginx/sites-enabled/acme
+			sed -i -e "s|{{domain}}|${domain}|g" -e "s|{{http_port}}|${http_port:-80}|g" -e "s|{{https_port}}|${https_port:-443}|g" -e "s|{{webroot}}|${wr_sanitize}|g" -e "s|{{php}}|${php:-${DEFAULT_PHP}}|g" /etc/nginx/sites-enabled/acme
 			systemctl reload nginx.service >>"${vslog}" 2>&1 || vstacklet::error::display 114
 		fi
 
