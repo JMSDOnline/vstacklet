@@ -326,7 +326,7 @@ vstacklet::args::info() {
 # | -wp | --wordpress				   | install WordPress
 # | -r | --reboot					   | reboot the server after installation
 # | --rollback						   | rollback the server to a previous state
-# | --check_update					   | check for updates to the script
+# | --check_update					   | check the installed branch for a newer 4.x release
 #
 # @example: vstacklet --help
 # @example: vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -hn "yourhostname" -php "8.3" -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "db_user" -mariadbPw "db_password" -pma -wr "/var/www/html/vsapp" -wp
@@ -3962,78 +3962,37 @@ vstacklet::rollback() {
 
 ################################################################################
 # @name: vstacklet::update::check
-# @description: Checks for updates to the vStacklet script. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L3974-L4043)
+# @description: Checks the branch this server was installed from for a newer 4.x release tag and, on a yes, moves /opt/vstacklet to that tag and installs its installer as /usr/local/bin/vstacklet. Runs only on a server with a completed 4.x install; the 3.x tools are never installed.
 #
 # @nooptions
 # @noargs
 # @break
 ################################################################################
 vstacklet::update::check() {
-	# @script-note: check for updates to the vStacklet script
-	vstacklet::shell::text::yellow "Checking for updates to the vStacklet script ..."
-	# @script-note: get the latest version of the vStacklet script
-	# @script-note: check the branch set in the vStacklet config
-	declare branch_name
-	branch_name=$(cat /opt/vstacklet/config/system/branch)
-	declare current_version latest_version
-	current_version=$(grep -oP '(?<=Version: v)[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' /opt/vstacklet/README.md)
-	latest_version=$(curl -s "https://raw.githubusercontent.com/JMSDOnline/vstacklet/${branch_name}/README.md" | grep -oP '(?<=Version: v)[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
-	# @script-note: check if the latest version is available
-	if [[ -n ${latest_version} ]]; then
-		# @script-note: check if the latest version is different from the current version
-		if [[ ${current_version} != "${latest_version}" ]]; then
-			vstacklet::shell::text::yellow "A new version of the vStacklet script is available."
-			vstacklet::shell::text::yellow "Current version: ${current_version}"
-			vstacklet::shell::text::yellow "Latest version: ${latest_version}"
-			vstacklet::shell::misc::nl
-			# @script-note: prompt the user asking if they would like to update the vStacklet script
-			vstacklet::shell::text::yellow "Would you like to update the vStacklet script?"
-			vstacklet::shell::text::yellow " - ${shell_reset}$(tput setaf 3)yes${shell_reset}$(tput setaf 7) to update the vStacklet script"
-			vstacklet::shell::text::yellow " - ${shell_reset}$(tput setaf 1)no${shell_reset}$(tput setaf 7) to skip the update"
-			vstacklet::shell::misc::nl
-			vstacklet::shell::text::yellow "Enter your selection: "
-			vstacklet::shell::icon::arrow::white && read -r input && input=${input,,}
-			# @script-note: check if the user selected to update the vStacklet script
-			if [[ ${input} == "yes" || ${input} == "y" ]]; then
-				vstacklet::shell::text::yellow "Updating the vStacklet script ..."
-				# @script-note: update the git repository
-				# @script-note: check if the vStacklet base path exists
-				if [[ -d ${vstacklet_base_path} ]]; then
-					# @script-note: force update the git repository
-					git -C "${vstacklet_base_path}" fetch --all >/dev/null 2>&1
-					git -C "${vstacklet_base_path}" reset --hard origin/main >/dev/null 2>&1
-					git -C "${vstacklet_base_path}" pull --rebase >/dev/null 2>&1
-					\cp -f "${vstacklet_base_path}/setup/vstacklet-server-stack.sh" /usr/local/bin/vstacklet
-					chmod +x /usr/local/bin/vstacklet
-					\cp -f "${vstacklet_base_path}/bin/backup/vs-backup" /usr/local/bin/vs-backup
-					chmod +x /usr/local/bin/vs-backup
-					\cp -f "${vstacklet_base_path}/bin/www-permissions.sh" /usr/local/bin/vs-perms
-					chmod +x /usr/local/bin/vs-perms
-					# @script-note: check if the vStacklet script has been updated
-					if [[ ${current_version} != "${latest_version}" ]]; then
-						vstacklet::shell::text::success "The vStacklet script has been updated."
-						vstacklet::shell::misc::nl
-					else
-						vstacklet::shell::text::error "The vStacklet script has not been updated."
-						vstacklet::shell::misc::nl
-					fi
-				else
-					# @script-note: set error message (path does not exist)
-					vstacklet::shell::text::error "The vStacklet base path does not exist."
-					vstacklet::shell::misc::nl
-				fi
-			else
-				vstacklet::shell::text::yellow "The vStacklet script update has been cancelled."
-				vstacklet::shell::misc::nl
-			fi
-		else
-			vstacklet::shell::text::green "The vStacklet script is up to date."
-			vstacklet::shell::misc::nl
-		fi
-	else
-		vstacklet::shell::text::error "Failed to check for updates to the vStacklet script."
-		vstacklet::shell::misc::nl
+	local branch current latest input
+	[[ -f ${VSTACKLET_MARKER} ]] || { vstacklet::shell::text::error "no completed vStacklet 4 install was found on this server (${VSTACKLET_MARKER}); --check_update works on 4.x installs only." && exit 1; }
+	[[ -d ${vstacklet_base_path}/.git ]] || { vstacklet::shell::text::error "${vstacklet_base_path} is not a git checkout of vStacklet; rerun the bootstrap to restore it." && exit 1; }
+	branch="$(cat "${vstacklet_base_path}/config/system/branch" 2>/dev/null || true)"
+	[[ ${branch} =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$ && ${branch} != *..* ]] || { vstacklet::shell::text::error "the stored branch name in ${vstacklet_base_path}/config/system/branch is missing or not valid." && exit 1; }
+	vstacklet::shell::text::yellow "Checking branch ${branch} for a newer vStacklet 4 release ..."
+	git -C "${vstacklet_base_path}" fetch --quiet --tags origin "refs/heads/${branch}" || { vstacklet::shell::text::error "could not fetch branch ${branch} from the vStacklet repository." && exit 1; }
+	current="$(git -C "${vstacklet_base_path}" describe --tags --match 'v4.*' --abbrev=0 HEAD 2>/dev/null || true)"
+	latest="$(git -C "${vstacklet_base_path}" describe --tags --match 'v4.*' --abbrev=0 FETCH_HEAD 2>/dev/null || true)"
+	if [[ -z ${latest} ]]; then
+		vstacklet::shell::text::white "No vStacklet 4 release is tagged on branch ${branch} yet; nothing to update."
+		exit 0
 	fi
+	if [[ ${latest} == "${current}" ]]; then
+		vstacklet::shell::text::green "vStacklet is up to date (${current}, branch ${branch})."
+		exit 0
+	fi
+	vstacklet::shell::text::yellow "A newer release is available on branch ${branch}: ${latest} (installed: ${current:-untagged})."
+	vstacklet::shell::text::yellow "Type yes to update the vStacklet scripts. The update changes nothing else on this server."
+	vstacklet::shell::icon::arrow::white && read -r input
+	[[ ${input,,} == "yes" || ${input,,} == "y" ]] || { vstacklet::shell::text::yellow "Update cancelled." && exit 0; }
+	git -C "${vstacklet_base_path}" checkout --quiet --detach "refs/tags/${latest}" || { vstacklet::shell::text::error "could not switch ${vstacklet_base_path} to ${latest}; local changes there may block it (see git -C ${vstacklet_base_path} status)." && exit 1; }
+	install -m 0755 "${vstacklet_base_path}/setup/vstacklet-server-stack.sh" /usr/local/bin/vstacklet || { vstacklet::shell::text::error "could not install the ${latest} installer as /usr/local/bin/vstacklet." && exit 1; }
+	vstacklet::shell::text::success "vStacklet scripts updated to ${latest}."
 	exit 0
 }
 
