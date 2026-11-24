@@ -392,7 +392,10 @@ vstacklet::setup::download() {
 		DEBIAN_FRONTEND=noninteractive apt-get -yqq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to run apt-upgrade, please check your apt with 'apt -y update && apt -y upgrade'" && exit 1; }
 	fi
 	# @script-note: install the essential dependencies
-	apt-get -yqq install curl sudo wget git apt-transport-https lsb-release dnsutils openssl bc >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to install script dependencies" && exit 1; }
+	# @script-note: on a server vStacklet already changed, only missing tools are added; present ones keep their versions, so the rollback's record still matches
+	local -a vs_apt_opts=()
+	[[ -e /root/vstacklet/baseline/complete || -e /etc/vstacklet ]] && vs_apt_opts=(--no-upgrade)
+	apt-get -yqq "${vs_apt_opts[@]}" install curl sudo wget git apt-transport-https lsb-release dnsutils openssl bc >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to install script dependencies" && exit 1; }
 	# @script-note: adjust .bashrc TERM variable if not set (fixes some issues with nano)
 	if ! grep -q "export TERM=xterm" /root/.bashrc; then
 		echo -en "export TERM=xterm" >>"/root/.bashrc"
