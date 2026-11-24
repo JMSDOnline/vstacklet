@@ -171,6 +171,8 @@
 ##################################################################################
 # shellcheck disable=1091,2068,2119,2249,2312
 # @script-note: the one default PHP version and the tested range; the version checks and every template use these
+# @script-note: where the bootstrap clones vStacklet; fixed, so -V, the rollback and the update check never depend on install order
+declare -gr vstacklet_base_path="/opt/vstacklet"
 declare -gr DEFAULT_PHP="8.4"
 declare -gar SUPPORTED_PHP=("8.3" "8.4" "8.5")
 # @script-note: written at the end of a completed 4.x install; its presence means the server is not fresh
@@ -242,6 +244,10 @@ vstacklet::gate::system() {
 	vstacklet::gate::refuse "${os_id:-unknown} ${os_version:-unknown} is not supported. Supported: Debian 12 and 13, Ubuntu 24.04 and 26.04. For Debian 11 or Ubuntu 20.04 and 22.04, the last 3.x release is the tag v3.1.2239, which is no longer maintained."
 }
 # <<< vstacklet gate
+# @script-note: interim, until the 4.0 package sources are written: on Debian 13 and Ubuntu the 3.x sources code would rewrite the release's own sources, so this build stops there before any change
+vstacklet::gate::interim() {
+	[[ ${1-} == "bookworm" ]] || vstacklet::gate::refuse "this development build of vStacklet 4.0 installs on Debian 12 only for now; Debian 13 and Ubuntu 24.04 and 26.04 follow before the 4.0 release."
+}
 ##################################################################################
 # @name: vstacklet::environment::init (1)
 # @description: Setup the environment and set variables. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet-server-stack.sh#L184-L205)
@@ -273,6 +279,21 @@ vstacklet::environment::init() {
 	declare -gi nginx_installed vstacklet_installed
 	nginx_installed=$(dpkg-query -W -f='${Status}' nginx 2>/dev/null | grep -c "ok installed")
 	vstacklet_installed=$(find /opt/vstacklet/config/system -maxdepth 1 -type f -name ".install_complete" | wc -l)
+}
+
+##################################################################################
+# @name: vstacklet::args::info
+# @description: Prints the help or the version and exits when -h or -V is given. Runs before the gate, since printing changes nothing on the server.
+##################################################################################
+vstacklet::args::info() {
+	local a
+	for a in "$@"; do
+		case "${a}" in
+		-h | --help) vstacklet::help::display ;;
+		-V | --version) vstacklet::version::display ;;
+		esac
+	done
+	return 0
 }
 
 ##################################################################################
@@ -4024,9 +4045,6 @@ vstacklet::rollback::restore() {
 # @break
 ################################################################################
 vstacklet::rollback() {
-	# @script-note: vstacklet base path
-	declare vstacklet_base_path
-	vstacklet_base_path="/opt/vstacklet"
 	# @script-note: distro and codename come from the gate, which has already read /etc/os-release
 	# @script-note: with a recorded baseline (4.x installs), restore exactly that state; older installs use the file-based path below
 	if [[ -f /root/vstacklet/baseline/complete ]]; then
@@ -4372,8 +4390,6 @@ vstacklet::update::check() {
 			if [[ ${input} == "yes" || ${input} == "y" ]]; then
 				vstacklet::shell::text::yellow "Updating the vStacklet script ..."
 				# @script-note: update the git repository
-				declare vstacklet_base_path
-				vstacklet_base_path="/opt/vstacklet"
 				# @script-note: check if the vStacklet base path exists
 				if [[ -d ${vstacklet_base_path} ]]; then
 					# @script-note: force update the git repository
@@ -4421,7 +4437,9 @@ vstacklet::update::check() {
 # are used for post-installation setup.
 ################################################################################
 vstacklet::environment::functions             #(2)
+vstacklet::args::info "$@"                    # -h and -V only print: before the gate, no root or supported release needed
 vstacklet::gate::system                       #(0) root, release, support dates, architecture: before any change
+vstacklet::gate::interim "${codename}"        # until the 4.0 package sources are in: Debian 12 only
 vstacklet::args::process "$@"                 #(3)
 vstacklet::gate::install                      #(3.i) PHP support dates, fresh server only: before any change
 vstacklet::environment::init                  #(1) the first change to the server
