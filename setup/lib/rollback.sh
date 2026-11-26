@@ -108,7 +108,7 @@ vstacklet::rollback::check() {
 vstacklet::rollback::system_pkg() {
 	[[ ${1%%:*} =~ ^(linux-(image|modules|headers)|linux-.*-signed|grub|shim|initramfs-tools|firmware-|openssh-|systemd|cloud-init|qemu-guest-agent|sudo$|apt$|dpkg$) ]]
 }
-# @script-note: added packages that a recorded package (or one kept for it) depends on, to a fixed point: an OS upgrade's new dependency must stay (S4-S10)
+# @script-note: added packages that a recorded package (or one kept for it) depends on, to a fixed point: an OS upgrade's new dependency must stay
 vstacklet::rollback::needed() {
 	local -x LC_ALL=C
 	local b=/root/vstacklet/baseline round pairs keep_set
@@ -222,11 +222,12 @@ vstacklet::rollback::restore() {
 	fi
 	vstacklet::rollback::plan quiet || return 1
 	vstacklet::shell::text::white "restoring the package sources ..."
-	rm -rf "${s}" && mkdir -p "${s}" || return 1
+	local cur="${s}.current"
+	rm -rf "${s}" "${cur}" && mkdir -p "${s}" "${cur}" || return 1
 	while IFS= read -r p; do
-		if [[ -e ${b}/apt/${p} ]] && ! cp -a "${b}/apt/${p}" "${s}/"; then
-			rm -rf "${s}"
-			vstacklet::shell::text::error "could not copy the recorded apt sources; nothing was changed."
+		if { [[ -e ${b}/apt/${p} ]] && ! cp -a "${b}/apt/${p}" "${s}/"; } || { [[ -e /etc/apt/${p} ]] && ! cp -a "/etc/apt/${p}" "${cur}/"; }; then
+			rm -rf "${s}" "${cur}"
+			vstacklet::shell::text::error "could not copy the apt sources; nothing was changed."
 			return 1
 		fi
 	done < <(vstacklet::rollback::apt_dirs)
@@ -235,15 +236,23 @@ vstacklet::rollback::restore() {
 		if [[ -e ${s}/${p} ]]; then mv "${s}/${p}" /etc/apt/ || rc=1; fi
 	done < <(vstacklet::rollback::apt_dirs)
 	rm -rf "${s}"
+	# @script-note: the restored sources must be readable before anything that cannot be undone (a release past support may have moved to archive.debian.org); when they are not, the current sources go back and the rollback stops
+	if ! apt-get -o DPkg::Lock::Timeout=300 -qq update --error-on=any >/dev/null 2>&1; then
+		while IFS= read -r p; do
+			rm -rf "/etc/apt/${p:?}"
+			if [[ -e ${cur}/${p} ]]; then mv "${cur}/${p}" /etc/apt/ || rc=1; fi
+		done < <(vstacklet::rollback::apt_dirs)
+		rm -rf "${cur}"
+		apt-get -o DPkg::Lock::Timeout=300 -qq update >/dev/null 2>&1 || true
+		vstacklet::shell::text::error "the recorded package sources cannot be read (this release may have moved to archive.debian.org); the sources were put back and nothing else was changed."
+		return 1
+	fi
+	rm -rf "${cur}"
 	vstacklet::shell::text::white "stopping and disabling services added since the record ..."
 	for u in "${rb_units_off[@]}"; do
 		systemctl disable --now "${u}" >/dev/null 2>&1 || rc=1
 		vstacklet::shell::text::white " - ${u}"
 	done
-	if ! apt-get -o DPkg::Lock::Timeout=300 -qq update --error-on=any >/dev/null 2>&1; then
-		apt_ok=0
-		vstacklet::shell::text::warning "apt-get update could not fetch every restored source; packages that went missing will not be reinstalled."
-	fi
 	vstacklet::shell::text::white "removing the ${#rb_purge[@]} packages added since the record ..."
 	if ((${#rb_purge[@]})); then
 		apt-get "${apt_opts[@]}" purge "${rb_purge[@]}" >/dev/null 2>&1 || { rc=1 && vstacklet::shell::text::warning "apt-get purge reported a problem; the comparison below shows what is left."; }

@@ -224,8 +224,9 @@ vstacklet::args::process() {
 			exit $?
 			;;
 		--rollback)
-			declare -gi rollback="1" && vstacklet::rollback
-			shift
+			# @script-note: --rollback is handled by vstacklet::gate::rollback_first before the release gates and never returns; reaching this line is an internal error
+			printf 'vStacklet: internal error: --rollback reached the option reader. Nothing was changed.\n' >&2
+			exit 1
 			;;
 		--check_update)
 			vstacklet::update::check

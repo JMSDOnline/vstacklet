@@ -30,7 +30,7 @@ main() {
 	check "updated by the system and still offered: kept" "updated by the system since the record, kept"
 	# b) recorded 1.0, security update 1.1 installed, 1.2 now offered and 1.1 gone: up to the candidate 1.2, never back to 1.0
 	rb_versions=("libx 1.0 1.1") OFFER=([libx]="1.0 1.2") CAND=([libx]="1.2")
-	check "installed version gone, a newer candidate exists: up to it (S4-M1)" "to the release's versions: libx=1.2"
+	check "installed version gone, a newer candidate exists: up to it, so no security fix is dropped" "to the release's versions: libx=1.2"
 	# c) a vendor build 9.0 whose source is gone, the release offers its own 1.0 (also the recorded one): back to 1.0
 	rb_versions=("php-common 1.0 9.0") OFFER=([php-common]="1.0") CAND=([php-common]="1.0")
 	check "vendor build with its source gone: back to the release's version" "to the release's versions: php-common=1.0"

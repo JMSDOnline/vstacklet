@@ -25,7 +25,7 @@ vstacklet::apt::pins() {
 	)
 	# @script-note: the Origin field of each vendor's Release file, as apt reports it (o=)
 	declare -gA VS_REPO_ORIGIN=([nginx]="nginx" [sury]="deb.sury.org")
-	# @script-note: vendor libraries that may replace an installed release package, per release and PHP, read from the vendor's package index; none is needed for bookworm with PHP 8.4 (read 2026-11-24), and none for bookworm with 8.3 or 8.5 (lab install and rollback, 2026-11-24, S4-S12). A pair whose plan replaces any other installed package from a vendor is refused.
+	# @script-note: vendor libraries that may replace an installed release package, per release and PHP, read from the vendor's package index; none is needed for bookworm with PHP 8.4 (read 2026-11-24), and none for bookworm with 8.3 or 8.5 (lab install and rollback, 2026-11-24), and none for trixie with PHP 8.4 (lab install and rollback, 2026-11-25); trixie with 8.3 or 8.5 is refused until its own run. A pair whose plan replaces any other installed package from a vendor is refused.
 	declare -gA VS_PHP_LIBS=()
 }
 
@@ -57,7 +57,7 @@ vstacklet::dependencies::array() {
 		vs_php_required=("fpm" "cli" "common" "xml" "mbstring" "curl" "zip" "gd" "intl")
 		[[ -n ${mariadb} ]] && vs_php_required+=("mysql")
 		vs_php_optional=("bcmath" "gmp" "readline" "soap" "igbinary" "msgpack" "imagick" "memcached")
-		# @script-note: PHP 8.5 builds OPcache into PHP itself, so there is no package to install; its php.ini settings apply either way (lab, S4-S12)
+		# @script-note: PHP 8.5 builds OPcache into PHP itself, so there is no package to install; its php.ini settings apply either way (seen on a lab install)
 		[[ ${php} == "8.3" || ${php} == "8.4" ]] && vs_php_optional=("opcache" "${vs_php_optional[@]}")
 	fi
 	[[ -n ${nginx} ]] && vs_packages+=("nginx")
@@ -154,7 +154,7 @@ vstacklet::apt::key() {
 			fi
 			if [[ -n ${expires} && ${expires} -le ${soon} ]]; then
 				"${vs_notice:-vstacklet::gate::notice}" "the ${name} key ${fpr} expires on $(date -d "@${expires}" +%F); run vstacklet --refresh-keys after the vendor renews it."
-				# @script-note: kept for the end summary, where it will be read (S4-S17)
+				# @script-note: kept for the end summary, where it will be read
 				vs_key_expiry+=("the ${name} key ${fpr} expires on $(date -d "@${expires}" +%F)")
 			fi
 			valid+=("${fpr}")

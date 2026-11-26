@@ -9,36 +9,67 @@ vstacklet::gate::interim() {
 
 ##################################################################################
 # @name: vstacklet::gate::rollback_first
-# @description: With --rollback, runs the rollback before the release gates, after the root check, so a server whose release has left support since its install can still roll back. The release identity the install record holds (rollback.sh, identity) is read from /etc/os-release here; a server whose release changed since the install (an OS upgrade) is refused by name, because a rollback would put back the old release's packages.
+# @description: With --rollback, runs the rollback before the release gates, after the root check, so a server whose release has left support since its install can still roll back. --rollback runs on its own only. The release is worked out from /etc/os-release the way vstacklet::gate::system does (by ID and VERSION_ID through the release table); a server whose release changed since the install (an OS upgrade) is refused by name, because a rollback would put back the old release's packages, and the refusal lists, read-only, what vStacklet added so it can be removed by hand.
 ##################################################################################
+vstacklet::gate::release_name() {
+	local row r_id r_ver r_code r_rest
+	for row in "${VSTACKLET_GATE_RELEASES[@]}"; do
+		IFS='|' read -r r_id r_ver r_code r_rest <<<"${row}"
+		[[ ${r_code} == "${2-}" ]] && { printf '%s %s (%s)' "${1-}" "${r_ver}" "${r_code}" && return 0; }
+	done
+	printf '%s %s' "${1-}" "${2-}"
+}
 vstacklet::gate::rollback_first() {
-	local a found=0 key value os_id="" os_codename="" rec cur
+	local a found=0 key value os_id="" os_version="" os_codename="" row r_id r_ver r_code r_rest rec rec_code f
 	for a in "$@"; do [[ ${a} == "--rollback" ]] && found=1; done
 	((found)) || return 0
 	[[ ${EUID} -eq 0 ]] || { printf 'vStacklet: run the installer as root.\n' >&2 && exit 1; }
+	(($# == 1)) || { printf 'vStacklet: --rollback takes no other options; run vstacklet --rollback on its own. Nothing was changed.\n' >&2 && exit 1; }
 	[[ -r /etc/os-release ]] || { printf 'vStacklet: cannot read /etc/os-release, so the release cannot be checked; nothing was changed.\n' >&2 && exit 1; }
-	# @script-note: read two keys only; the file is never sourced
+	# @script-note: read three keys only, as vstacklet::gate::system does; the file is never sourced
 	while IFS='=' read -r key value; do
 		value="${value%\"}" && value="${value#\"}"
 		case "${key}" in
 		ID) os_id="${value}" ;;
+		VERSION_ID) os_version="${value}" ;;
 		VERSION_CODENAME) os_codename="${value}" ;;
 		esac
 	done </etc/os-release
-	declare -g distro="" codename="${os_codename}" vstacklet_arch
+	declare -g distro="" codename="" vstacklet_arch
+	for row in "${VSTACKLET_GATE_RELEASES[@]}"; do
+		IFS='|' read -r r_id r_ver r_code r_rest <<<"${row}"
+		[[ ${os_id} == "${r_id}" && ${os_version} == "${r_ver}" ]] && codename="${r_code}" && break
+	done
+	[[ -n ${codename} ]] || codename="${os_codename}"
+	[[ -n ${codename} ]] || { printf "vStacklet: cannot read this server's release codename, so the release cannot be checked against the install record; nothing was changed.\n" >&2 && exit 1; }
 	[[ ${os_id} == "debian" ]] && distro="Debian"
 	[[ ${os_id} == "ubuntu" ]] && distro="Ubuntu"
 	vstacklet_arch="$(dpkg --print-architecture 2>/dev/null)"
 	if [[ -f /root/vstacklet/baseline/complete ]]; then
 		rec="$(sed -n '2p' /root/vstacklet/baseline/complete)"
-		cur="release=${distro} ${codename}"
-		if [[ ${rec} == release=* && ${rec} != "${cur}" ]]; then
-			printf 'vStacklet: this server was recorded on %s and now runs %s; a rollback would put back the packages of the old release, so nothing was changed. Rebuild the server from a fresh image.\n' "${rec#release=}" "${cur#release=}" >&2
+		if [[ ${rec} == release=* && ${rec} != "release=${distro} ${codename}" ]]; then
+			rec="${rec#release=}" && rec_code="${rec##* }"
+			printf 'vStacklet: this server was recorded on %s and now runs %s; a rollback would put back the packages of the old release, so nothing was changed.\n' "$(vstacklet::gate::release_name "${rec% *}" "${rec_code}")" "$(vstacklet::gate::release_name "${distro}" "${codename}")" >&2
+			printf 'vStacklet: what this install added, to remove by hand (nothing here was changed):\n' >&2
+			for f in /etc/apt/sources.list.d/vstacklet-*.sources /etc/apt/keyrings/vstacklet-*.gpg /etc/apt/preferences.d/vstacklet-*; do
+				[[ -e ${f} ]] && printf '  %s\n' "${f}" >&2
+			done
+			if [[ -f /root/vstacklet/baseline/paths.checked ]]; then
+				while IFS= read -r f; do
+					[[ -n ${f} && -e ${f} ]] || continue
+					grep -qxF -- "${f}" /root/vstacklet/baseline/paths.present 2>/dev/null || printf '  %s\n' "${f}" >&2
+				done </root/vstacklet/baseline/paths.checked
+			fi
+			for f in /root/vstacklet/setup_temp/vstacklet_install_command.*.txt; do
+				[[ -f ${f} ]] && printf '  the install options: %s\n' "$(sed -n '1s/^Command://p' "${f}")" >&2
+			done
+			printf 'vStacklet: remove these by hand, or rebuild the server from a fresh image.\n' >&2
 			exit 1
 		fi
 	fi
 	declare -gi rollback=1
 	vstacklet::rollback
+	exit 1
 }
 
 ##################################################################################
@@ -54,6 +85,8 @@ vstacklet::gate::install() {
 		[[ ${today} > "${r_security}" ]] && vstacklet::gate::refuse "PHP ${php} reached the end of its security support on ${r_security}; choose a newer version with -php."
 		[[ ${today} > "${r_active}" ]] && vstacklet::gate::notice "PHP ${php} receives security fixes only (until ${r_security}); a newer version gets bug fixes too."
 	done
+	# @script-note: on Debian 13 only the native PHP 8.4 has been through a full install and rollback; 8.3 and 8.5 come from packages.sury.org there and wait for their own run
+	[[ ${codename} == "trixie" && ${php} != "8.4" ]] && vstacklet::gate::refuse "PHP 8.3 and 8.5 on Debian 13 follow before the 4.0 release; use -php 8.4."
 	[[ -n ${ioncube} && ${vstacklet_arch} == "arm64" ]] && vstacklet::gate::refuse "ionCube Loader is not offered on arm64 by this installer; run without -ioncube."
 	# @script-note: Docker's published ports bypass ufw and its rules conflict with direct nftables use, so the firewall vStacklet sets up could not be trusted
 	if command -v docker >/dev/null 2>&1 || [[ $(dpkg-query -W -f='${Status}' docker-ce docker.io moby-engine 2>/dev/null) == *"ok installed"* ]]; then
