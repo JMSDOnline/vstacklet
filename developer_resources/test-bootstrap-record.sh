@@ -130,5 +130,20 @@ printf 'apt\nbase-files\ndpkg\ngit\ngnupg\nlibfoo:amd64\n' >"${rec}/packages"; p
 vstacklet::rollback::pre_merge "${rec}" "${pre}" "${tmp}/bashrc-now"
 check "a mark the owner removed after the bootstrap stays removed" "no" "$(grep -qx libfoo "${rec}/packages.manual" && echo yes || echo no)"
 
+# bashrc_kept: the function alone; the record's source file says bashrc=kept only when the bootstrap's TERM line stays after a rollback
+sed -n '/^vstacklet::rollback::bashrc_kept() {$/,/^}$/p' "${here}/setup/lib/rollback.sh" >"${tmp}/kept.sh"
+# shellcheck source=/dev/null
+source "${tmp}/kept.sh"
+kt="${tmp}/kept-rec" kp="${tmp}/kept-pre"
+rm -rf "${kt}" "${kp}"; mkdir -p "${kt}" "${kp}"
+printf 'alias ll=ls\nexport TERM=xterm\n' >"${kt}/files_root_.bashrc"
+check "no copy of /root/.bashrc from before the bootstrap: bashrc=kept" "bashrc=kept" "$(vstacklet::rollback::bashrc_kept "${kt}" "${kp}")"
+printf 'alias ll=ls\n' >"${kp}/files_root_.bashrc"
+check "the record keeps the TERM line the copy from before lacks (edited after the bootstrap): bashrc=kept" "bashrc=kept" "$(vstacklet::rollback::bashrc_kept "${kt}" "${kp}")"
+printf 'alias ll=ls\n' >"${kt}/files_root_.bashrc"
+check "an unedited file, restored from before the bootstrap: nothing" "" "$(vstacklet::rollback::bashrc_kept "${kt}" "${kp}")"
+printf 'alias ll=ls\nexport TERM=xterm\n' >"${kt}/files_root_.bashrc"; cp "${kt}/files_root_.bashrc" "${kp}/files_root_.bashrc"
+check "a TERM line that was already there before the bootstrap: nothing" "" "$(vstacklet::rollback::bashrc_kept "${kt}" "${kp}")"
+
 printf '%s passed, %s failed\n' "${pass}" "${fail}"
 [[ ${fail} -eq 0 ]]

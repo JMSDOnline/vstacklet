@@ -63,5 +63,19 @@ php_list() {
 check "one PHP version reads 'is'" "PHP 8.3 is not offered" "PHP $(php_list 8.3) not offered"
 check "two PHP versions read 'and ... are'" "PHP 8.3 and 8.5 are not offered" "PHP $(php_list 8.3 8.5) not offered"
 check "three PHP versions are joined with commas" "PHP 8.1, 8.3 and 8.5 are not offered" "PHP $(php_list 8.1 8.3 8.5) not offered"
+# the option reader: -e and --email are refused before any change, like every option vStacklet 4.0 does not offer
+args_run() {
+	(
+		vstacklet::shell::text::error() { printf 'ERROR %s\n' "$*"; }
+		vstacklet::update::check() { printf 'UPDATE RAN\n'; exit 0; }
+		# shellcheck source=/dev/null
+		source "${here}/setup/lib/args.sh"
+		vstacklet::args::process "$@"
+		printf 'RETURNED\n'
+	) 2>&1
+	printf 'rc=%s\n' "$?"
+}
+check "-e is refused with the 4.0 line" "ERROR -e is not offered in vStacklet 4.0. Nothing was changed."$'\n'"rc=1" "$(args_run -e 'owner@example.com' -nginx)"
+check "--email is refused with the 4.0 line" "ERROR --email is not offered in vStacklet 4.0. Nothing was changed."$'\n'"rc=1" "$(args_run --email 'owner@example.com')"
 printf 'test-rollback-first: %s/%s passed\n' "${pass}" "$((pass + fail))"
 ((fail == 0))

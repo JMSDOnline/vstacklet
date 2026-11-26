@@ -10,8 +10,8 @@
 
 ## Script status
 
-  Version: v3.1.1.897
-  Build: 897
+  Version: v4.0.0.948
+  Build: 948
 
 [![MIT License](https://img.shields.io/badge/license-MIT%20License-blue.svg?style=flat-square)](https://github.com/JMSDOnline/vstacklet/blob/main/LICENSE)
 
@@ -73,12 +73,12 @@ vStacklet 4.0 installs Nginx from nginx.org, your choice of PHP 8.3, 8.4 or 8.5 
 - Each run writes its own log to `/var/log/vstacklet/` for additional observations; earlier logs are kept.
 - Color Coding for emphasis on install processes.
 - Nginx from nginx.org, with HTTP/2 and IPv6, and a self-signed certificate on 443 to start with.
-- Your choice of PHP 8.3, 8.4 or 8.5 (on Debian 13, PHP 8.4 only for now), with OPcache and the Memcached, igbinary and Imagick extensions.
+- Your choice of PHP 8.3, 8.4 or 8.5 (on Debian 13, PHP 8.4 only for now), with OPcache, and the Memcached, igbinary and Imagick PHP extensions where the release offers them.
 - MariaDB from the release's own archive, with a database and user staged for WordPress.
 - WordPress installed and staged in your web root (`-wp`).
 - Vendor packages only with repository keys whose fingerprints vStacklet pins.
 - No Apache - Full throttle!
-- Dynamic rollback built-in should the install fail: run `vstacklet --rollback` on its own. It removes the packages and directories the installer added. On the first install on a fresh server, run within six hours of the bootstrap, it also removes the tools the bootstrap installed for itself (git, gpg and the like), while tools that were already on the server, and anything you installed between the bootstrap and the installer, stay. These always stay: sudo, the vStacklet command and its folders (/opt/vstacklet, /usr/local/bin/vstacklet, /root/vstacklet) and the empty /backup folders. It works on a release that has since left support; a server upgraded to a new release since its install cannot be rolled back and must be rebuilt from a fresh image.
+- Dynamic rollback built-in should the install fail: run `vstacklet --rollback` on its own. It removes the packages and directories the installer added. On the first install on a fresh server, run within six hours of the bootstrap, it also removes the tools the bootstrap installed for itself (git, gpg and the like), while tools that were already on the server, and anything you installed between the bootstrap and the installer, stay. These always stay: sudo, the vStacklet command and its folders (/opt/vstacklet, /usr/local/bin/vstacklet, /root/vstacklet) and the empty /backup folders. It also works after a release leaves regular support, while its packages are still on the Debian mirrors; once a release has moved to archive.debian.org, the rollback cannot restore its package sources and the server must be rebuilt from a fresh image. A server upgraded to a new release since its install cannot be rolled back and must be rebuilt from a fresh image.
 - Actively maintained w/ updates added when stable.
 
 ---
@@ -94,7 +94,7 @@ These options are not offered in vStacklet 4.0. Passing one stops the installer 
 - ionCube Loader (`-ioncube`)
 - An FTP server (`-ftp`)
 - MySQL (`-mysql`, `-mysqlU`, `-mysqlPw`, `-mysqlP`), PostgreSQL (`-postgre` and its options) and Redis (`-redis` and its options)
-- Let's Encrypt certificates (`-d`, `--dns`)
+- Let's Encrypt certificates (`-d`, `--dns`) and the email they registered with (`-e`)
 - HHVM (`-hhvm`)
 
 The 3.x helper tools `vs-backup` and `vs-perms` are not installed by vStacklet 4.0.
@@ -121,9 +121,8 @@ The 3.x helper tools `vs-backup` and `vs-perms` are not installed by vStacklet 4
 
 > [!IMPORTANT]
 >
-> - **The development branch is not recommended for production use.**
 > - This script will only download the vStacklet kit and install the `vstacklet` command.
-> - Use the `-b` option to specify the branch you wish to install. (default: main) If no branch is specified, the main branch will be used.
+> - Install from the main branch. The `-b` option names another branch (default: main); other branches are for development and may hold older or unfinished code, so do not use them on a server you depend on.
 > - The `-b` option is only available for the vStacklet installer script.
 > - The `-h` option will display the help menu for the vStacklet installer script.
 > - The `-V` option will display the version of the vStacklet installer script.
@@ -132,14 +131,8 @@ Run these as **root**. On a server where you log in as a user with sudo, become 
 
 **Grab the latest *`stable`* release**
 ```bash
-apt -y install curl &&
+apt update && apt -y install curl &&
 bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh)
-```
-
-**Grab the latest *`development`* release**
-```bash
-apt -y install curl &&
-bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh) -b development
 ```
 
 Once the script has been downloaded and made executable, you can then run the script to install the vStacklet kit, as seen in the example below.
@@ -151,7 +144,6 @@ Once the script has been downloaded and made executable, you can then run the sc
 > [!TIP]
 >
 > The following example will:
-> - set the admin email (`-e`),
 > - set the server's hostname (`-hn`),
 > - install Nginx (`-nginx`),
 > - install PHP 8.4 (`-php '8.4'`),
@@ -162,7 +154,7 @@ Once the script has been downloaded and made executable, you can then run the sc
 > The `-mariadbU` flag sets the MariaDB database username. (**When setting the username for the database, do not use `root` as the username.** The database is installed with a `root` user by default bound to the localhost.) The `-mariadbPw` flag sets the MariaDB database password. On Debian 12 you can choose `-php '8.3'`, `-php '8.4'` or `-php '8.5'`; on Debian 13, `-php '8.4'` for now.
 
 ```bash
-vstacklet -e 'your@email.com' -hn 'server.example.com' -nginx -php '8.4' -mariadb -mariadbU 'db_username' -mariadbPw 'db_password' -wr '/var/www/html/vsapp' -wp
+vstacklet -hn 'server.example.com' -nginx -php '8.4' -mariadb -mariadbU 'db_username' -mariadbPw 'db_password' -wr '/var/www/html/vsapp' -wp
 ```
 
 ---
@@ -197,7 +189,7 @@ To view the available options, run the script with the `-h` option (`vstacklet -
 **A:** vStacklet is designed to be a lightweight and fast install. Apache is not included in the script as it is not needed. Nginx is a high-performance web server that is designed to be lightweight and fast. It is a better choice for most web applications. If you are having reservations about using Nginx due to the lack of familiarity, I would recommend using the script on a test server to get a feel for it. vStacklet will handle the setting up of the necessary configurations for you.
 
 **Q:** Did you say the script is actively maintained?<br>
-**A:** Yes, the script is actively maintained. Updates are added when stable and when I have time to sit down and test. vStacklet 4.0 is tested on Debian 12 and Debian 13 lab servers. If you have any issues with the script, please let me know and I will do my best to fix them. If you have any suggestions for improvements, please let me know and I will do my best to implement them.
+**A:** Yes, the script is actively maintained. Updates are added when stable and when I have time to sit down and test. vStacklet 4.0 is tested on Debian 12 and Debian 13 amd64 lab servers; arm64 installs but has not had the same test run yet. If you have any issues with the script, please let me know and I will do my best to fix them. If you have any suggestions for improvements, please let me know and I will do my best to implement them.
 
 **Q:** What happens when a vendor's repository key (nginx.org, Sury PHP) expires or changes?<br>
 **A:** vStacklet 4.0 installs vendor packages only with keys whose fingerprints it pins. When a pinned key is within 90 days of expiring, the installer says so during the package check and again in the end summary; after the vendor renews it, run `vstacklet --refresh-keys` to fetch the renewed key, which is accepted only if its fingerprint still matches. When a vendor replaces its key with a new one, vStacklet refuses it on purpose: update vStacklet to a version that pins the new key, then run `vstacklet --refresh-keys`.
@@ -215,7 +207,7 @@ To view the available options, run the script with the `-h` option (`vstacklet -
 
 ## The TO-DO List <sup><sub>([Back to top](#vstacklet---a-buff-lemp-stack-kit))</sub></sup>
 
-- [x] OPcache and Memcached for PHP
+- [x] OPcache, and the PHP Memcached extension (the Memcached server itself is not installed)
 - [x] Your choice of PHP 8.3, 8.4 or 8.5
 - [x] Debian 12 and Debian 13
 - [x] Vendor repository keys pinned by fingerprint

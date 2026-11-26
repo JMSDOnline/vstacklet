@@ -70,6 +70,12 @@ vstacklet::rollback::pre_ok() {
 	[[ -z $(comm -23 <(sort -u "${pre}/packages") <(sort -u "${now_pkgs}")) ]] || return 1
 }
 
+# @script-note: the bootstrap's TERM line stays when /root/.bashrc was missing before the bootstrap or was edited after it; prints bashrc=kept for the record's source file, so the rollback says so
+vstacklet::rollback::bashrc_kept() {
+	if grep -qxF "export TERM=xterm" "${1}/files_root_.bashrc" 2>/dev/null && ! grep -qxF "export TERM=xterm" "${2}/files_root_.bashrc" 2>/dev/null; then printf 'bashrc=kept\n'; fi
+	return 0
+}
+
 # @script-note: merges the bootstrap's record into the installer's record folder T: packages from before the bootstrap plus those added after it finished; manual marks from before, minus those removed since the bootstrap finished, plus those added since; versions for the recorded names only; the copy of BASHRC from before the bootstrap only when BASHRC still equals the copy taken after the bootstrap
 vstacklet::rollback::pre_merge() {
 	local -x LC_ALL=C
@@ -125,8 +131,7 @@ vstacklet::rollback::baseline() {
 		{
 			printf 'packages, manual marks and /root/.bashrc as they were before the bootstrap added its tools, plus anything installed between the bootstrap and the installer\n'
 			printf 'pre_recorded=%s\n' "$(sed -n 's/^recorded=//p' "${pre}/complete")"
-			# @script-note: the bootstrap's TERM line stays when /root/.bashrc was missing before the bootstrap or was edited after it; the rollback says so
-			if grep -qxF "export TERM=xterm" "${t}/files_root_.bashrc" 2>/dev/null && ! grep -qxF "export TERM=xterm" "${pre}/files_root_.bashrc" 2>/dev/null; then printf 'bashrc=kept\n'; fi
+			vstacklet::rollback::bashrc_kept "${t}" "${pre}"
 		} >"${t}/source" || return 1
 	elif [[ -d ${pre} ]]; then
 		vstacklet::shell::text::warning "The bootstrap's record of this server is older than 6 hours or no longer matches, so a rollback will keep the tools the bootstrap installed."
@@ -315,7 +320,7 @@ vstacklet::rollback::restore() {
 		rm -rf "${cur}"
 		apt-get -o DPkg::Lock::Timeout=300 -qq update >/dev/null 2>&1 || true
 		failed="$(printf '%s\n' "${upd_out}" | grep -E '^(Err:|E:|W: Failed)' | grep -oE 'https?://[^ ]+' | sed 's#/*$##' | sort -u | paste -sd' ')"
-		vstacklet::shell::text::error "the recorded package sources could not all be read (${failed:-see apt-get update}): check the network, a proxy setting, or that source; if this release has moved to archive.debian.org, point its sources there. The current sources were kept and nothing else was changed."
+		vstacklet::shell::text::error "the recorded package sources could not all be read (${failed:-see apt-get update}): check the network, a proxy setting, or that source; if this release has moved to archive.debian.org, the rollback cannot restore its sources; rebuild the server from a fresh image. The current sources were kept and nothing else was changed."
 		printf '%s\n' "${upd_out}" | grep -E '^(Err:|E:)' | head -n 8 | while IFS= read -r p; do vstacklet::shell::text::white "   ${p}"; done
 		return 1
 	fi

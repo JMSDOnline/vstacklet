@@ -2,147 +2,59 @@
 ##################################################################################
 # <START METADATA>
 # @file_name: vstacklet-server-stack.sh
-# @version: 3.1.2239
-# @description: Lightweight script to quickly install a LEMP stack with Nginx,
-# Varnish, PHP 8.3/8.4/8.5 (PHP-FPM), OPCode Cache, IonCube Loader, MariaDB, Sendmail
-# and more on a fresh Ubuntu 20.04/22.04 or Debian 11/12 server for
-# website-based server applications.
+# @version: 4.0.0
+# @description: Installs and configures a LEMP stack and WordPress on a fresh Debian 12 or Debian 13 server, in one run.
 #
 # @project_name: vstacklet
 #
 # @path: setup/vstacklet-server-stack.sh
 #
-# @brief: This script is designed to be run on a fresh Ubuntu 20.04/22.04 or
-# Debian 11/12 server. I have done my best to keep it tidy and with as much
-# error checking as possible. Couple this with loads of comments and you should
-# have a pretty good idea of what is going on. If you have any questions,
-# comments, or suggestions, please feel free to open an issue on GitHub.
+# @brief: vStacklet 4.0 installs and configures a LEMP stack and WordPress on a fresh Debian 12 (bookworm) or Debian 13 (trixie) server, run as root. Ubuntu 24.04 and 26.04 are not supported yet; the installer refuses them, and every option it does not offer, before making any change. The bootstrap (setup/vstacklet.sh) installs this script as the `vstacklet` command; its functions live in setup/lib/, one file per area, and the loader accepts only the files whose SHA-256 it pins.
 #
-# vStacklet will install and configure the following:
-# - NGinx 1.25.+ (mainline) | 1.18.+ (extras) (HTTP Server)
-# - PHP 8.3, 8.4 (default) or 8.5 (FPM) with common extensions
-# - MariaDB 10.11.+ (MySQL Database)
-# - Varnish 7.4.x (HTTP Cache)
-# - and more!
+# vStacklet 4.0 installs and configures the following:
+# - Nginx from nginx.org, with HTTP/2 and IPv6, and a self-signed certificate on 443 to start with
+# - PHP 8.3, 8.4 (default) or 8.5 (FPM) on Debian 12; PHP 8.4 on Debian 13; with OPcache, and the Memcached, igbinary and Imagick PHP extensions where the release offers them
+# - MariaDB from the release's own archive (10.11 on Debian 12, 11.8 on Debian 13), with a database and user staged for WordPress
+# - WordPress, staged in your web root
+#
+# Options offered in vStacklet 4.0:
+#
+# | Short | Long | Description |
+# | ----- | ---- | ----------- |
+# | -h | --help | show the help |
+# | -V | --version | show the version |
+# | -hn | --hostname | hostname to use for the server |
+# | -ssh | --ssh_port | port to use for the SSH server |
+# | -http | --http_port | port to use for the HTTP server |
+# | -https | --https_port | port to use for the HTTPS server |
+# | -nginx | --nginx | install Nginx |
+# | -php | --php | PHP version to install (8.3, 8.4 or 8.5 on Debian 12; 8.4 on Debian 13; default 8.4) |
+# | -mariadb | --mariadb | install MariaDB |
+# | -mariadbP | --mariadb_port | port to use for the MariaDB server |
+# | -mariadbU | --mariadb_user | the MariaDB admin account to create (do not use root) |
+# | -mariadbPw | --mariadb_password | password for that account |
+# | -wr | --web_root | web root, a folder under /var/www/ |
+# | -wp | --wordpress | install WordPress (needs -nginx and -mariadb) |
+# | -r | --reboot | reboot the server after the install |
+# | | --rollback | undo an install: restore the state recorded before its first change; run it on its own |
+# | | --refresh-keys | re-fetch the vendor repository keys, accepted only if their pinned fingerprints still match |
+# | | --check_update | check the installed branch for a newer 4.x release |
+#
+# Example:
+#
+# ```bash
+# vstacklet -hn 'server.example.com' -nginx -php '8.4' -mariadb -mariadbU 'db_username' -mariadbPw 'db_password' -wr '/var/www/html/vsapp' -wp
+# ```
+#
+# Not offered in vStacklet 4.0 (refused before any change): -e, --email; -d, --domain; --dns, --dns_provider; -ftp; -ioncube; -mysql, -mysqlU, -mysqlPw, -mysqlP; -postgre and its options; -redis and its options; -pma; -sendmail, -sendmailP; -varnish, -varnishP; -csf, -csfCf; -hhvm.
+#
+# Rollback: `vstacklet --rollback` lists what it will do and asks before changing anything. It also works after a release leaves regular support, while its packages are still on the Debian mirrors; once a release has moved to archive.debian.org, it cannot restore the release's package sources, and the server must be rebuilt from a fresh image. A server upgraded to a new release since its install cannot be rolled back.
+#
+# vStacklet 4.0 is tested on Debian 12 and Debian 13 amd64 lab servers; arm64 installs but has not had the same test run yet.
 #
 # Important Links:
 # - :pencil: GITHUB REPO:   https://github.com/JMSDOnline/vstacklet
 # - :bug: ISSUE TRACKER: https://github.com/JMSDOnline/vstacklet/issues
-#
-# :book: vStacklet Function Documentation:
-# - [vstacklet::environment::init()](#vstackletenvironmentinit)
-# - [vstacklet::args::process()](#vstackletargsprocess)
-#   - [options](#options)
-#   - [arguments](#arguments)
-#   - [return codes](#return-codes)
-#   - [examples](#examples)
-# - [vstacklet::environment::store_flags_args()](#vstackletenvironmentstore_flags_args)
-# - [vstacklet::environment::functions()](#vstackletenvironmentfunctions)
-# - [vstacklet::log::check()](#vstackletlogcheck)
-# - [vstacklet::packages::install()](#vstackletpackagesinstall)
-#    - [return codes](#return-codes-1)
-# - [vstacklet::intro()](#vstackletintro)
-# - [vstacklet::dependencies::array()](#vstackletdependenciesarray)
-#    - [return codes](#return-codes-4)
-#    - [return codes](#return-codes-5)
-# - [vstacklet::bashrc::set()](#vstackletbashrcset)
-# - [vstacklet::hostname::set()](#vstacklethostnameset)
-#   - [options](#options-1)
-#   - [arguments](#arguments-1)
-#   - [examples](#examples-1)
-# - [vstacklet::webroot::set()](#vstackletwebrootset)
-#   - [options](#options-2)
-#   - [arguments](#arguments-2)
-#   - [examples](#examples-2)
-# - [vstacklet::ssh::set()](#vstackletsshset)
-#   - [options](#options-3)
-#   - [arguments](#arguments-3)
-#   - [return codes](#return-codes-6)
-#   - [examples](#examples-3)
-# - [vstacklet::ftp::set()](#vstackletftpset)
-#   - [options](#options-4)
-#   - [arguments](#arguments-4)
-#   - [return codes](#return-codes-7)
-#   - [examples](#examples-4)
-# - [vstacklet::block::ssdp()](#vstackletblockssdp)
-#   - [return codes](#return-codes-8)
-# - [vstacklet::apt::gate()](#vstackletaptgate)
-# - [vstacklet::apt::refresh_keys()](#vstackletaptrefresh_keys)
-# - [vstacklet::locale::set()](#vstackletlocaleset)
-#   - [return codes](#return-codes-9)
-# - [vstacklet::php::install()](#vstackletphpinstall)
-#   - [options](#options-5)
-#   - [arguments](#arguments-5)
-#   - [return codes](#return-codes-10)
-#   - [examples](#examples-5)
-#   - [options](#options-6)
-#   - [return codes](#return-codes-11)
-#   - [examples](#examples-6)
-# - [vstacklet::nginx::install()](#vstackletnginxinstall)
-#   - [options](#options-7)
-#   - [return codes](#return-codes-12)
-#   - [examples](#examples-7)
-# - [vstacklet::varnish::install()](#vstackletvarnishinstall)
-#   - [options](#options-8)
-#   - [arguments](#arguments-6)
-#   - [return codes](#return-codes-13)
-#   - [examples](#examples-8)
-# - [vstacklet::permissions::adjust()](#vstackletpermissionsadjust)
-# - [vstacklet::ioncube::install()](#vstackletioncubeinstall)
-#   - [options](#options-9)
-#   - [return codes](#return-codes-14)
-#   - [examples](#examples-9)
-# - [vstacklet::mariadb::install()](#vstackletmariadbinstall)
-#   - [options](#options-10)
-#   - [arguments](#arguments-7)
-#   - [return codes](#return-codes-15)
-#   - [examples](#examples-10)
-# - [vstacklet::mysql::install()](#vstackletmysqlinstall)
-#   - [options](#options-11)
-#   - [arguments](#arguments-8)
-#   - [return codes](#return-codes-16)
-#   - [examples](#examples-11)
-# - [vstacklet::postgre::install()](#vstackletpostgreinstall)
-#   - [options](#options-12)
-#   - [arguments](#arguments-9)
-#   - [return codes](#return-codes-17)
-#   - [examples](#examples-12)
-# - [vstacklet::redis::install()](#vstackletredisinstall)
-#   - [options](#options-13)
-#   - [arguments](#arguments-10)
-#   - [return codes](#return-codes-18)
-#   - [examples](#examples-13)
-# - [vstacklet::phpmyadmin::install()](#vstackletphpmyadmininstall)
-#   - [options](#options-14)
-#   - [arguments](#arguments-11)
-#   - [return codes](#return-codes-19)
-#   - [examples](#examples-14)
-#   - [options](#options-15)
-#   - [arguments](#arguments-12)
-#   - [return codes](#return-codes-20)
-#   - [examples](#examples-15)
-#   - [options](#options-16)
-#   - [return codes](#return-codes-21)
-#   - [examples](#examples-16)
-# - [vstacklet::sendmail::install()](#vstackletsendmailinstall)
-#   - [options](#options-17)
-#   - [parameters](#parameters)
-#   - [return codes](#return-codes-22)
-#   - [examples](#examples-17)
-# - [vstacklet::wordpress::install()](#vstackletwordpressinstall)
-#   - [options](#options-18)
-#   - [return codes](#return-codes-23)
-#   - [examples](#examples-18)
-# - [vstacklet::domain::ssl()](#vstackletdomainssl)
-#   - [options](#options-19)
-#   - [arguments](#arguments-12)
-#   - [return codes](#return-codes-23)
-#   - [examples](#examples-20)
-# - [vstacklet::clean::complete()](#vstackletcleancomplete)
-# - [vstacklet::message::complete()](#vstackletmessagecomplete)
-# - [vstacklet::error::display()](#vstackleterrordisplay)
-# - [vstacklet::rollback()](#vstackletrollback)
-# - [vstacklet::update::check()](#vstackletupdatecheck)
 #
 # @save_tasks:
 #  automated_versioning: true
@@ -179,10 +91,11 @@ declare -gr VSTACKLET_STARTED="/etc/vstacklet/started"
 # - Debian: https://www.debian.org/releases/bookworm/ , https://www.debian.org/releases/trixie/ , https://wiki.debian.org/LTS
 # - Ubuntu: https://ubuntu.com/about/release-cycle (states a month only; the gate uses the last day of that month)
 # - PHP:    https://www.php.net/supported-versions.php
-# A release counts as supported until its free security support ends: for Debian the end of Debian LTS (a Debian
-# project), for Ubuntu the end of standard support. Paid extended support (Freexian ELTS for Debian, Ubuntu ESM) is
-# not counted. A Debian release past its regular security support but inside Debian LTS installs with a notice.
+#
+# A release counts as supported until its free security support ends: for Debian the end of Debian LTS (a Debian project), for Ubuntu the end of standard support. Paid extended support (Freexian ELTS for Debian, Ubuntu ESM) is not counted. A Debian release past its regular security support but inside Debian LTS installs with a notice.
+#
 # Row: id|version|codename|regular security end|free security end|end as the vendor states it|who supports it until then
+# @break
 ##################################################################################
 declare -ga VSTACKLET_GATE_RELEASES=(
 	"debian|12|bookworm|2026-07-11|2028-06-30|30 June 2028|Debian LTS"
@@ -223,7 +136,7 @@ vstacklet::gate::system() {
 		[[ ${os_id} == "${r_id}" && ${os_version} == "${r_ver}" ]] || continue
 		[[ -z ${os_codename} || ${os_codename} == "${r_code}" ]] || vstacklet::gate::refuse "${os_id} ${os_version} reports the codename '${os_codename}', expected '${r_code}'; the release cannot be confirmed."
 		if [[ ${today} > "${r_free}" ]]; then
-			vstacklet::gate::refuse "${os_id} ${os_version} reached the end of its free security support (${r_who}, ${r_shown}). Rebuild the server on a supported release: Debian 12 or 13, Ubuntu 24.04 or 26.04."
+			vstacklet::gate::refuse "${os_id} ${os_version} reached the end of its free security support (${r_who}, ${r_shown}). Rebuild the server on a supported release: Debian 12 or 13."
 		fi
 		[[ ${today} > "${r_regular}" ]] && vstacklet::gate::notice "${os_id} ${os_version} has left regular security support and is covered by ${r_who} until ${r_shown}, for fewer packages and architectures. Plan a move to a newer release."
 		arch="$(dpkg --print-architecture 2>/dev/null)"
@@ -234,12 +147,12 @@ vstacklet::gate::system() {
 		[[ ${r_id} == "ubuntu" ]] && distro="Ubuntu"
 		return 0
 	done
-	vstacklet::gate::refuse "${os_id:-unknown} ${os_version:-unknown} is not supported. Supported: Debian 12 and 13, Ubuntu 24.04 and 26.04. For Debian 11 or Ubuntu 20.04 and 22.04, the last 3.x release is the tag v3.1.2239, which is no longer maintained."
+	vstacklet::gate::refuse "${os_id:-unknown} ${os_version:-unknown} is not supported. Supported: Debian 12 and 13 (Ubuntu 24.04 and 26.04 not yet). For Debian 11 or Ubuntu 20.04 and 22.04, the last 3.x release is the tag v3.1.2239, which is no longer maintained."
 }
 # <<< vstacklet gate
 # >>> vstacklet modules: the installer's functions live in setup/lib/ (one file per area); the loader trusts only root-owned, non-writable regular files whose SHA-256 matches this list, so a copy and a checkout from different versions never mix. Regenerate the list with developer_resources/pin-modules.sh in the same commit as any module change.
 declare -gar VSTACKLET_MODULES=("core" "ui" "gate" "args" "environment" "apt" "system" "php" "nginx" "varnish" "database" "redis" "phpmyadmin" "wordpress" "tls" "ssh" "ftp" "mail" "rollback" "update")
-declare -gA VSTACKLET_MODULE_SHA256=([core]="719601e02657e8804271b9416ae72024163a1079c2098388d11389ef288af47b" [ui]="46fa5c5b6d3f0b7b24661f2e4c7f3d95a9e5a0740c2f5d13616c16df2b02d658" [gate]="079dacac045e220838a363b7c100f588333fec50c7ec5f157efb6c8005468dd8" [args]="8a443f6ca20a09fa073a1e20a197c4ab45c120ff3820dd07e016a2331499323c" [environment]="a37cc3fd4152a8594065823713344ff5bc81e6eb24fcb37549f51656f874f4b2" [apt]="8b1045433f48343e9d607ba645e99bebc76ecf651d3dc94b7dc0d52e6a0adab9" [system]="890db15d4008381cab8c956b186ceef26066b824dd1947e3049064faf1af8ea0" [php]="e13a9c0cd7140f539a431b5c4fff7123a6ea9469d26453efdfce36bc8fd66051" [nginx]="a0069ab174bca5db19a27ce0d85bb0ce830e0b1136f2bb61b8543291ac3a9a18" [varnish]="1104d569974ccfb80a54fe1c86d704dfdcb703f1bbaff27d99b42c888e09eea3" [database]="3e41baad3cf3c595833fb67df3efbe4585ec88d8bf1148fb173018ce14efb395" [redis]="b8ab1217304731e1edb7de1b51b708f3988b0456ac586c590e70c0b025c7e427" [phpmyadmin]="625a57eb811e5de0da43069349b6c9770242a40b039b41a50d8f50662b0a565f" [wordpress]="73df6bacec982493cd93d4289faf7ec32e7331f69d24723400c7e76f263c3920" [tls]="d9d8e4de501654c57a59487190b83eeeb060bb48ea15d8d7003edd59b05ba2af" [ssh]="ea5e3383ce696db54b8b01c50cd1a731070131851767a69b8bdb74fa96767e27" [ftp]="a262099a9e080f27a8bd312b1920de38b497710a89f82578151c549270058b86" [mail]="4b0c1c4b22bbe432f6656f143325fa11cdf535e3e98704329fe8115e7b31ea99" [rollback]="716bec5d2c465d9f74c22371f6d861b9b1abf95590e9977e80b8092477b0c94a" [update]="b2f41fcb57e3fe07c1eeee40c232afac614f2250650e09afef38635190b5f66a")
+declare -gA VSTACKLET_MODULE_SHA256=([core]="719601e02657e8804271b9416ae72024163a1079c2098388d11389ef288af47b" [ui]="2b4edf75ff4eb85a67ab1d6957240951b44aa8aaac28809807661f5c3bbdfd46" [gate]="079dacac045e220838a363b7c100f588333fec50c7ec5f157efb6c8005468dd8" [args]="c6fae6319d701789a7bfbe252437ab5fdd32c876caa80eba82c58b2232ee0d4b" [environment]="a37cc3fd4152a8594065823713344ff5bc81e6eb24fcb37549f51656f874f4b2" [apt]="8b1045433f48343e9d607ba645e99bebc76ecf651d3dc94b7dc0d52e6a0adab9" [system]="890db15d4008381cab8c956b186ceef26066b824dd1947e3049064faf1af8ea0" [php]="e13a9c0cd7140f539a431b5c4fff7123a6ea9469d26453efdfce36bc8fd66051" [nginx]="a0069ab174bca5db19a27ce0d85bb0ce830e0b1136f2bb61b8543291ac3a9a18" [varnish]="1104d569974ccfb80a54fe1c86d704dfdcb703f1bbaff27d99b42c888e09eea3" [database]="3e41baad3cf3c595833fb67df3efbe4585ec88d8bf1148fb173018ce14efb395" [redis]="b8ab1217304731e1edb7de1b51b708f3988b0456ac586c590e70c0b025c7e427" [phpmyadmin]="625a57eb811e5de0da43069349b6c9770242a40b039b41a50d8f50662b0a565f" [wordpress]="73df6bacec982493cd93d4289faf7ec32e7331f69d24723400c7e76f263c3920" [tls]="d9d8e4de501654c57a59487190b83eeeb060bb48ea15d8d7003edd59b05ba2af" [ssh]="ea5e3383ce696db54b8b01c50cd1a731070131851767a69b8bdb74fa96767e27" [ftp]="a262099a9e080f27a8bd312b1920de38b497710a89f82578151c549270058b86" [mail]="4b0c1c4b22bbe432f6656f143325fa11cdf535e3e98704329fe8115e7b31ea99" [rollback]="c95147131a8a5d6107c17cbdca8ca68106f276ddbfd2339f47c210ec78d6566f" [update]="b2f41fcb57e3fe07c1eeee40c232afac614f2250650e09afef38635190b5f66a")
 vstacklet::lib::load() {
 	local lib="${vstacklet_base_path}/setup/lib" m f p sum
 	[[ -d ${vstacklet_base_path} ]] || { printf 'vStacklet: %s is missing; restore it with: git clone --branch <branch> https://github.com/JMSDOnline/vstacklet.git %s (the branch you installed from, main if unsure), then run vstacklet again. Nothing was changed.\n' "${vstacklet_base_path}" "${vstacklet_base_path}" >&2; exit 1; }

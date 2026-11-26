@@ -169,7 +169,7 @@ vstacklet::help::display() {
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " --rollback"
 	vstacklet::shell::text::white "    Undoes an install: restores the state recorded before its first change. Run it on its own, with no other options."
-	vstacklet::shell::text::white "    It works on a release that has since left support. A server upgraded to a new release since its install cannot be rolled back; rebuild it from a fresh image."
+	vstacklet::shell::text::white "    It also works after a release leaves regular support, while its packages are still on the Debian mirrors; once a release has moved to archive.debian.org, rebuild the server from a fresh image instead. A server upgraded to a new release since its install cannot be rolled back; rebuild it from a fresh image."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -r, --reboot"
 	vstacklet::shell::text::white "    Reboots the server after installation is complete."
@@ -181,7 +181,7 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -e, --email"
-	vstacklet::shell::text::white "    Sets the email address for the server."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -ftp, --ftp"
 	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
@@ -253,7 +253,7 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white "    Sets the web root for the server."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white "example: "
-	vstacklet::shell::text::white "vstacklet -e 'your@email.com' -hn 'server.example.com' -nginx -php '8.4' -mariadb -mariadbU 'username' -mariadbPw 'password' -wr '/var/www/html/vsapp' -wp"
+	vstacklet::shell::text::white "vstacklet -hn 'server.example.com' -nginx -php '8.4' -mariadb -mariadbU 'username' -mariadbPw 'password' -wr '/var/www/html/vsapp' -wp"
 	vstacklet::shell::misc::nl
 	exit 0
 }

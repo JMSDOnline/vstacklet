@@ -67,7 +67,7 @@ parse::meta_data() {
 save::versioning() {
 	declare build version_old version_number version_split version_new
 	build=$(curl -Iks "https://api.github.com/repos/JMSDOnline/vstacklet/commits?sha=development&per_page=1" | sed -n '/^[Ll]ink:/ s/.*"next".*page=\([0-9]*\).*"last".*/\1/p')
-	version_new="v3.1.1.${build}"
+	version_new="v4.0.0.${build}"
 	version_build="${build}"
 	sleep 3
 	sed -i "s/.*Version:.*/  Version: ${version_new}/g" "${workspace}/README.md"

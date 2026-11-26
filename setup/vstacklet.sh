@@ -2,39 +2,24 @@
 ################################################################################
 # <START METADATA>
 # @file_name: vstacklet.sh
-# @version: 3.1.1096
-# @description: This script will download and install the vStacklet server stack
-# on your server (this only handles downloading and setting up the vStacklet scripts).
-# The 3.x VS-Perms and VS-Backup tools stay in the repository for 3.x servers and are
-# not installed by vStacklet 4. Please ensure you have
-# read the documentation before continuing. You can find documentation on the main
-# vStacklet script, the vStacklet server stack, and the vStacklet VS-Perms and
-# VS-Backup scripts at the links seen below.
+# @version: 4.0.0
+# @description: This script downloads vStacklet 4.0 to /opt/vstacklet and installs the vstacklet command (this only handles downloading and setting up the vStacklet scripts). The 3.x VS-Perms and VS-Backup tools stay in the repository for 3.x servers and are not installed by vStacklet 4. Please read the documentation before continuing.
 #
 # @project_name: vstacklet
 #
 # @path: /usr/local/bin/vstacklet
 #
-# @brief: This script is designed to be run on a fresh Ubuntu 20.04/22.04 or
-# Debian 11/12 server. I have done my best to keep it tidy and with as much
-# error checking as possible. Couple this with loads of comments and you should
-# have a pretty good idea of what is going on. If you have any questions,
-# comments, or suggestions, please feel free to open an issue on GitHub.
+# @brief: This script is designed to be run as root on a fresh Debian 12 (bookworm) or Debian 13 (trixie) server. Ubuntu 24.04 and 26.04 are not supported yet. It records the server before adding its own tools, so `vstacklet --rollback` can remove them again. If you have any questions, comments, or suggestions, please feel free to open an issue on GitHub.
 #
 # - Documentation is available at: [/docs/](https://github.com/JMSDOnline/vstacklet/tree/main/docs)
 #   - :book: [vStacklet Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet.sh.md)
 #   - :book: [vStacklet Server Stack Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/setup/vstacklet-server-stack.sh.md)
-#   - :book: [vStacklet VS-Perms (www-permissions.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/www-permissions.sh.md)
-#     - :book: [vStacklet vs-perms (www-permissions-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/www-permissions-standalone.sh.md)
-#   - :book: [vStacklet VS-Backup (vs-backup) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/backup/vs-backup.md)
-#     - :book: [vStacklet vs-backup (vstacklet-backup-standalone.sh) Documentation](https://github.com/JMSDOnline/vstacklet/blob/main/docs/bin/backup/vstacklet-backup-standalone.sh.md)
 #
-# vStacklet will install and configure the following:
-# - NGinx 1.25.+ (mainline) | 1.18.+ (extras) (HTTP Server)
-# - PHP 8.3, 8.4 (default) or 8.5 (FPM) with common extensions
-# - MariaDB 10.11.+ (MySQL Database)
-# - Varnish 7.4.x (HTTP Cache)
-# - and more!
+# vStacklet 4.0 installs and configures the following:
+# - Nginx from nginx.org (HTTP server)
+# - PHP 8.3, 8.4 (default) or 8.5 (FPM) on Debian 12; PHP 8.4 on Debian 13
+# - MariaDB from the release's own archive (10.11 on Debian 12, 11.8 on Debian 13)
+# - WordPress
 #
 # @save_tasks:
 #  automated_versioning: true
@@ -63,10 +48,11 @@
 # - Debian: https://www.debian.org/releases/bookworm/ , https://www.debian.org/releases/trixie/ , https://wiki.debian.org/LTS
 # - Ubuntu: https://ubuntu.com/about/release-cycle (states a month only; the gate uses the last day of that month)
 # - PHP:    https://www.php.net/supported-versions.php
-# A release counts as supported until its free security support ends: for Debian the end of Debian LTS (a Debian
-# project), for Ubuntu the end of standard support. Paid extended support (Freexian ELTS for Debian, Ubuntu ESM) is
-# not counted. A Debian release past its regular security support but inside Debian LTS installs with a notice.
+#
+# A release counts as supported until its free security support ends: for Debian the end of Debian LTS (a Debian project), for Ubuntu the end of standard support. Paid extended support (Freexian ELTS for Debian, Ubuntu ESM) is not counted. A Debian release past its regular security support but inside Debian LTS installs with a notice.
+#
 # Row: id|version|codename|regular security end|free security end|end as the vendor states it|who supports it until then
+# @break
 ##################################################################################
 declare -ga VSTACKLET_GATE_RELEASES=(
 	"debian|12|bookworm|2026-07-11|2028-06-30|30 June 2028|Debian LTS"
@@ -107,7 +93,7 @@ vstacklet::gate::system() {
 		[[ ${os_id} == "${r_id}" && ${os_version} == "${r_ver}" ]] || continue
 		[[ -z ${os_codename} || ${os_codename} == "${r_code}" ]] || vstacklet::gate::refuse "${os_id} ${os_version} reports the codename '${os_codename}', expected '${r_code}'; the release cannot be confirmed."
 		if [[ ${today} > "${r_free}" ]]; then
-			vstacklet::gate::refuse "${os_id} ${os_version} reached the end of its free security support (${r_who}, ${r_shown}). Rebuild the server on a supported release: Debian 12 or 13, Ubuntu 24.04 or 26.04."
+			vstacklet::gate::refuse "${os_id} ${os_version} reached the end of its free security support (${r_who}, ${r_shown}). Rebuild the server on a supported release: Debian 12 or 13."
 		fi
 		[[ ${today} > "${r_regular}" ]] && vstacklet::gate::notice "${os_id} ${os_version} has left regular security support and is covered by ${r_who} until ${r_shown}, for fewer packages and architectures. Plan a move to a newer release."
 		arch="$(dpkg --print-architecture 2>/dev/null)"
@@ -118,7 +104,7 @@ vstacklet::gate::system() {
 		[[ ${r_id} == "ubuntu" ]] && distro="Ubuntu"
 		return 0
 	done
-	vstacklet::gate::refuse "${os_id:-unknown} ${os_version:-unknown} is not supported. Supported: Debian 12 and 13, Ubuntu 24.04 and 26.04. For Debian 11 or Ubuntu 20.04 and 22.04, the last 3.x release is the tag v3.1.2239, which is no longer maintained."
+	vstacklet::gate::refuse "${os_id:-unknown} ${os_version:-unknown} is not supported. Supported: Debian 12 and 13 (Ubuntu 24.04 and 26.04 not yet). For Debian 11 or Ubuntu 20.04 and 22.04, the last 3.x release is the tag v3.1.2239, which is no longer maintained."
 }
 # <<< vstacklet gate
 # @script-note: interim, until the Ubuntu pairs are proven: the 4.0 package sources only add vendor deb822 files (apt.sh), and Debian 12 and 13 are open; Ubuntu stops here before any change
@@ -417,13 +403,10 @@ vstacklet::setup::pre_record_after() {
 # @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L337-L396)
 #
 # notes:
-# - This script function is responsible for downloading vStacklet from GitHub
-# and setting up the environment for the installation.
+# - This script function is responsible for downloading vStacklet from GitHub and setting up the environment for the installation.
 #   - VStacklet will be downloaded to `/opt/vstacklet`.
-#   - `vstacklet-server-stack.sh` will be loaded to `/usr/local/bin/vstacklet`. This
-# will allow you to run `vstacklet [options] [args]` from anywhere on the server.
-# - This script function will also check for the existence of the required
-# packages and install them if they are not found.
+#   - `vstacklet-server-stack.sh` will be loaded to `/usr/local/bin/vstacklet`. This will allow you to run `vstacklet [options] [args]` from anywhere on the server.
+# - This script function will also check for the existence of the required packages and install them if they are not found.
 #   - these include:
 #     ```bash
 #     curl sudo wget git gpg lsb-release bind9-dnsutils openssl bc
@@ -533,14 +516,11 @@ Usage: vstacklet [options] [args]
 Options:
   -V, --version   Display the version of vStacklet
   -h, --help      Display this help menu
-  -b, --branch    Specify the branch to install from (default: main)
+  -b, --branch    Install from another branch (default: main); other branches may hold older or unfinished code
 
 Examples:
   # Install vStacklet from the main branch
   bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh)
-
-  # Install vStacklet from the development branch
-  bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh) -b 'development'
 
   # Display the help menu
   bash <(curl -s https://raw.githubusercontent.com/JMSDOnline/vstacklet/main/setup/vstacklet.sh) -h

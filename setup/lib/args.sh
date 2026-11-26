@@ -28,7 +28,7 @@ vstacklet::args::info() {
 # | ----- | -------------------------- | ------------------------------------------
 # | -h    | --help                     | show help
 # | -V    | --version                  | show version
-# | -e    | --email                    | mail address to use for the Let's Encrypt SSL certificate
+# | -e    | --email                    | not offered in 4.0
 # | -ftp  | --ftp_port                 | not offered in 4.0
 # | -ssh  | --ssh_port                 | port to use for the SSH server
 # | -http | --http_port                | port to use for the HTTP server
@@ -58,7 +58,7 @@ vstacklet::args::info() {
 # | --check_update					   | check the installed branch for a newer 4.x release
 #
 # @example: vstacklet --help
-# @example: vstacklet -e "your@email.com" -hn "server.example.com" -nginx -php "8.4" -mariadb -mariadbU "db_user" -mariadbPw "db_password" -wr "/var/www/html/vsapp" -wp
+# @example: vstacklet -hn "server.example.com" -nginx -php "8.4" -mariadb -mariadbU "db_user" -mariadbPw "db_password" -wr "/var/www/html/vsapp" -wp
 # @null
 # @break
 ##################################################################################
@@ -86,10 +86,7 @@ vstacklet::args::process() {
 			vstacklet::args::not_yet "$1"
 			;;
 		-e | --email)
-			vstacklet::args::need_value "$1" $# "${2-}"
-			vstacklet::args::email "$1" "$2"
-			declare -g email="${2}"
-			shift 2
+			vstacklet::args::not_yet "$1"
 			;;
 		-ftp | --ftp_port)
 			vstacklet::args::not_yet "$1"
