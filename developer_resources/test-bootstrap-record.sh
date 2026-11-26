@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=2016,2317
-# Checks offline: the bootstrap's TERM line is added once as a line of its own (vstacklet::setup::term_line), and the installer's record takes the bootstrap's earlier record only when it is valid (vstacklet::rollback::pre_ok), and the branch guard reads the chosen branch's version before anything is installed and checks the checkout again after the clone (vstacklet::setup::branch_gate, clone_ok).
+# Checks offline: the bootstrap's TERM line is added once as a line of its own (vstacklet::setup::term_line), and the installer's record takes the bootstrap's earlier record only when it is valid (vstacklet::rollback::pre_ok), and the branch guard reads the chosen branch's version before anything is installed and checks the checkout again after the clone (vstacklet::setup::branch_gate, clone_ok), and a server with a vStacklet 3.x install is refused before apt runs (vstacklet::setup::v3_gate).
 # Usage: bash developer_resources/test-bootstrap-record.sh
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -146,7 +146,7 @@ printf 'alias ll=ls\nexport TERM=xterm\n' >"${kt}/files_root_.bashrc"; cp "${kt}
 check "a TERM line that was already there before the bootstrap: nothing" "" "$(vstacklet::rollback::bashrc_kept "${kt}" "${kp}")"
 
 # the branch guard: the bootstrap reads the chosen branch's installer version before installing anything, and checks the checkout again after the clone
-for fn in version_of is_v4 branch_gate clone_ok; do sed -n "/^vstacklet::setup::${fn}() {\$/,/^}\$/p" "${here}/setup/vstacklet.sh"; done >"${tmp}/guard.sh"
+for fn in version_of is_v4 holds v3_gate branch_gate clone_ok; do sed -n "/^vstacklet::setup::${fn}() {\$/,/^}\$/p" "${here}/setup/vstacklet.sh"; done >"${tmp}/guard.sh"
 # shellcheck source=/dev/null
 source "${tmp}/guard.sh"
 fx="${tmp}/fixtures" && mkdir -p "${fx}"
@@ -162,24 +162,53 @@ check "the guard reads a plain version line" "4.0.0" "$(vstacklet::setup::versio
 check "the guard refuses a version line with anything after the number" "none" "$(vstacklet::setup::version_of "${fx}/odd" || echo none)"
 check "a branch holding vStacklet 4 passes the guard before anything is installed" $'\nrc=0' "$(gate four)"
 check "a branch holding vStacklet 3 is refused before anything is installed" "Error: Branch 'three' holds vStacklet 3.1.1897; this bootstrap installs vStacklet 4 only. Run it without -b to install from main. Nothing was changed."$'\nrc=1' "$(gate three)"
-check "a branch with no version line is refused" "Error: Branch 'none' holds vStacklet an unknown version; this bootstrap installs vStacklet 4 only. Run it without -b to install from main. Nothing was changed."$'\nrc=1' "$(gate none)"
+check "a branch with no version line is refused" "Error: Branch 'none' has no vStacklet version this bootstrap can read; this bootstrap installs vStacklet 4 only. Run it without -b to install from main. Nothing was changed."$'\nrc=1' "$(gate none)"
 check "a branch that can't be read is refused" "Error: Unable to read branch 'missing' from GitHub (it may not exist, or this server can't reach GitHub). Nothing was changed."$'\nrc=1' "$(gate missing)"
 cp "${fx}/three" "${fx}/main"
-check "main holding vStacklet 3 is refused with its own line" "Error: Branch 'main' holds vStacklet 3.1.1897; this bootstrap installs vStacklet 4 only, which is not on main yet. Nothing was changed."$'\nrc=1' "$(gate main)"
+check "main holding vStacklet 3 is refused with its own line" "Error: Branch 'main' holds vStacklet 3.1.1897; this bootstrap installs vStacklet 4 only. Nothing was changed."$'\nrc=1' "$(gate main)"
 check "the guard leaves no temporary file behind" "0" "$(find "${tmp}/gt" -type f | wc -l | tr -d ' ')"
 co="${tmp}/checkout" && mkdir -p "${co}/setup" && cp "${fx}/four" "${co}/setup/vstacklet-server-stack.sh"
 vstacklet::setup::clone_ok "${co}" devops >/dev/null && r=kept || r=refused
 check "after the clone, a vStacklet 4 checkout is kept" "kept $([[ -d ${co} ]] && echo there)" "${r} $([[ -d ${co} ]] && echo there)"
 cp "${fx}/three" "${co}/setup/vstacklet-server-stack.sh"
-o="$(vstacklet::setup::clone_ok "${co}" devops)" && r=kept || r=refused
-check "after the clone, a branch that moved to vStacklet 3 is refused and its checkout removed" "refused gone Error: Branch 'devops' changed while installing and now holds vStacklet 3.1.1897; this bootstrap installs vStacklet 4 only, so the new checkout was removed. Run the bootstrap again." "${r} $([[ -d ${co} ]] && echo there || echo gone) ${o}"
+o="$(vstacklet::setup::clone_ok "${co}" devops fresh 1 1)" && r=kept || r=refused
+check "after the clone, a branch that moved to vStacklet 3 is refused, its checkout removed, and the line says what the bootstrap had done" "refused gone Error: Branch 'devops' changed while installing and now holds vStacklet 3.1.1897; this bootstrap installs vStacklet 4 only, so the new checkout was removed. The bootstrap had already upgraded this server's packages, installed its tools and created /backup, and recorded this server in /root/vstacklet/pre-bootstrap; nothing else was installed." "${r} $([[ -d ${co} ]] && echo there || echo gone) ${o}"
+mkdir -p "${co}/setup" && cp "${fx}/three" "${co}/setup/vstacklet-server-stack.sh"
+check "after the clone on a server vStacklet already changed, the line names only the tools and /backup" "Error: Branch 'devops' changed while installing and now holds vStacklet 3.1.1897; this bootstrap installs vStacklet 4 only, so the new checkout was removed. The bootstrap had already installed its tools and created /backup; nothing else was installed." "$(vstacklet::setup::clone_ok "${co}" devops fresh)"
+mkdir -p "${co}/setup" && cp "${fx}/none" "${co}/setup/vstacklet-server-stack.sh"
+check "after the clone on the update path, the line says the checkout was removed and no more (the caller says the old one was kept)" "Error: Branch 'devops' changed while installing and now has no vStacklet version this bootstrap can read; this bootstrap installs vStacklet 4 only, so the new checkout was removed." "$(vstacklet::setup::clone_ok "${co}" devops update)"
+check "the refusal never says to run the bootstrap again" "0" "$(grep -c 'Run the bootstrap again' "${here}/setup/vstacklet.sh")"
 mkdir -p "${co}/setup"
 vstacklet::setup::clone_ok "${co}" devops >/dev/null && r=kept || r=refused
 check "after the clone, a checkout with no installer is refused and removed" "refused gone" "${r} $([[ -d ${co} ]] && echo there || echo gone)"
+# the tool paths: with only wget on PATH the guard reads the branch with wget; with neither it asks for curl and leaves no temporary file
 unset -f curl
+nb="${tmp}/nobin" && mkdir -p "${nb}" && for b in mktemp rm cat cp grep sed awk head; do ln -sf "$(command -v "${b}")" "${nb}/${b}"; done
+printf '#!/bin/bash\nout=""; while [[ $# -gt 0 ]]; do a="$1"; shift; [[ $a == "-O" ]] && out="$1" && shift; done; b="${a#https://raw.githubusercontent.com/JMSDOnline/vstacklet/}"; b="${b%%%%/*}"; [[ -f %s/$b ]] || exit 8; cp "%s/$b" "$out"\n' "${fx}" "${fx}" >"${tmp}/wget" && chmod +x "${tmp}/wget"
+mkdir -p "${tmp}/wbin" && cp -a "${nb}/." "${tmp}/wbin/" && cp "${tmp}/wget" "${tmp}/wbin/wget"
+o="$(PATH="${tmp}/wbin" TMPDIR="${tmp}/gt" vstacklet::setup::branch_gate four 2>&1)" && rc=0 || rc=$?
+check "with wget and no curl, a branch holding vStacklet 4 passes" $'\nrc=0' "$(printf '%s\nrc=%s' "${o}" "${rc}")"
+o="$(PATH="${tmp}/wbin" TMPDIR="${tmp}/gt" vstacklet::setup::branch_gate three 2>&1)" && rc=0 || rc=$?
+check "with wget and no curl, a branch holding vStacklet 3 is refused" "Error: Branch 'three' holds vStacklet 3.1.1897; this bootstrap installs vStacklet 4 only. Run it without -b to install from main. Nothing was changed."$'\nrc=1' "$(printf '%s\nrc=%s' "${o}" "${rc}")"
+o="$(PATH="${nb}" TMPDIR="${tmp}/gt" vstacklet::setup::branch_gate four 2>&1)" && rc=0 || rc=$?
+check "with neither curl nor wget, the guard asks for curl" "Error: curl is needed to check the branch before installing: run 'apt update && apt -y install curl', then run the bootstrap again. Nothing was changed."$'\nrc=1' "$(printf '%s\nrc=%s' "${o}" "${rc}")"
+check "the tool paths leave no temporary file behind" "0" "$(find "${tmp}/gt" -type f | wc -l | tr -d ' ')"
+# the 3.x guard: a server with a 3.x install is refused before apt runs; a 4.0 install or a fresh server goes on
+srv="${tmp}/srv"
+for p3 in /opt/vstacklet/config/system/.install_complete /usr/local/bin/vs-backup /usr/local/bin/vs-perms; do
+	rm -rf "${srv}" && mkdir -p "${srv}$(dirname "${p3}")" && : >"${srv}${p3}"
+	o="$(vstacklet::setup::v3_gate "${srv}")" && rc=0 || rc=$?
+	check "a server with ${p3} (vStacklet 3.x) is refused" "Error: This server has a vStacklet 3.x install (${p3}). vStacklet 4 installs on fresh servers only and does not upgrade 3.x; the 3.x install was left as it is. Nothing was changed."$'\nrc=1' "$(printf '%s\nrc=%s' "${o}" "${rc}")"
+done
+rm -rf "${srv}" && mkdir -p "${srv}/etc/vstacklet" "${srv}/opt/vstacklet/config/system" && : >"${srv}/opt/vstacklet/config/system/.install_complete"
+check "a server with a vStacklet 4 install (/etc/vstacklet) goes on to the update path" "rc=0" "$(vstacklet::setup::v3_gate "${srv}" && echo rc=0 || echo rc=1)"
+rm -rf "${srv}" && mkdir -p "${srv}"
+check "a fresh server with neither goes on" "rc=0" "$(vstacklet::setup::v3_gate "${srv}" && echo rc=0 || echo rc=1)"
 mainfn="$(sed -n '/^vstacklet::setup::main() {$/,/^}$/p' "${here}/setup/vstacklet.sh")"
 gl="$(grep -n 'vstacklet::setup::branch_gate' <<<"${mainfn}" | head -1 | cut -d: -f1)" dl="$(grep -n 'vstacklet::setup::download' <<<"${mainfn}" | head -1 | cut -d: -f1)"
 check "the bootstrap runs the guard before its download step" "yes" "$([[ -n ${gl} && -n ${dl} && ${gl} -lt ${dl} ]] && echo yes || echo no)"
+vl="$(grep -n 'vstacklet::setup::v3_gate' <<<"${mainfn}" | head -1 | cut -d: -f1)"
+check "the bootstrap runs the 3.x guard before its download step" "yes" "$([[ -n ${vl} && -n ${dl} && ${vl} -lt ${dl} ]] && echo yes || echo no)"
 check "both clone paths check the checkout after the clone" "2" "$(grep -c 'vstacklet::setup::clone_ok "' "${here}/setup/vstacklet.sh")"
 
 printf '%s passed, %s failed\n' "${pass}" "${fail}"

@@ -75,7 +75,7 @@ args_run() {
 	) 2>&1
 	printf 'rc=%s\n' "$?"
 }
-check "-e is refused with the 4.0 line" "ERROR -e is not offered in vStacklet 4.0; WordPress asks for its admin email during the install. Nothing was changed."$'\n'"rc=1" "$(args_run -e 'owner@example.com' -nginx)"
-check "--email is refused with the 4.0 line" "ERROR --email is not offered in vStacklet 4.0; WordPress asks for its admin email during the install. Nothing was changed."$'\n'"rc=1" "$(args_run --email 'owner@example.com')"
+check "-e is refused with the 4.0 line" "ERROR -e is not offered in vStacklet 4.0; with -wp, the installer asks for the WordPress admin email. Nothing was changed."$'\n'"rc=1" "$(args_run -e 'owner@example.com' -nginx)"
+check "--email is refused with the 4.0 line" "ERROR --email is not offered in vStacklet 4.0; with -wp, the installer asks for the WordPress admin email. Nothing was changed."$'\n'"rc=1" "$(args_run --email 'owner@example.com')"
 printf 'test-rollback-first: %s/%s passed\n' "${pass}" "$((pass + fail))"
 ((fail == 0))

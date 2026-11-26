@@ -194,6 +194,9 @@ To view the available options, run the script with the `-h` option (`vstacklet -
 **Q:** What happens when a vendor's repository key (nginx.org, Sury PHP) expires or changes?<br>
 **A:** vStacklet 4.0 installs vendor packages only with keys whose fingerprints it pins. When a pinned key is within 90 days of expiring, the installer says so during the package check and again in the end summary; after the vendor renews it, run `vstacklet --refresh-keys` to fetch the renewed key, which is accepted only if its fingerprint still matches. When a vendor replaces its key with a new one, vStacklet refuses it on purpose: update vStacklet to a version that pins the new key, then run `vstacklet --refresh-keys`.
 
+**Q:** Can I upgrade a server that runs vStacklet 3.x?<br>
+**A:** No. vStacklet 4 installs on fresh servers only. On a server with a 3.x install, the bootstrap stops before it changes anything and leaves the 3.x install as it is.
+
 **Q:** What happened to vs-backup and vs-perms?<br>
 **A:** They are 3.x tools and vStacklet 4.0 does not install them.
 
