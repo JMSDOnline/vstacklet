@@ -4,7 +4,7 @@
 
 # @script-note: interim, until the Ubuntu pairs are proven: the 4.0 package sources only add vendor deb822 files (apt.sh), and Debian 12 and 13 are open; Ubuntu stops here before any change
 vstacklet::gate::interim() {
-	[[ ${1-} == "bookworm" || ${1-} == "trixie" ]] || vstacklet::gate::refuse "this development build of vStacklet 4.0 installs on Debian 12 and 13 only for now; Ubuntu 24.04 and 26.04 follow before the 4.0 release."
+	[[ ${1-} == "bookworm" || ${1-} == "trixie" ]] || vstacklet::gate::refuse "vStacklet installs on Debian 12 and 13. Ubuntu 24.04 and 26.04 are not supported yet; vStacklet refuses them before making any change."
 }
 
 ##################################################################################
@@ -86,7 +86,13 @@ vstacklet::gate::install() {
 		[[ ${today} > "${r_active}" ]] && vstacklet::gate::notice "PHP ${php} receives security fixes only (until ${r_security}); a newer version gets bug fixes too."
 	done
 	# @script-note: on Debian 13 only the native PHP 8.4 has been through a full install and rollback; 8.3 and 8.5 come from packages.sury.org there and wait for their own run
-	[[ ${codename} == "trixie" && ${php} != "8.4" ]] && vstacklet::gate::refuse "PHP 8.3 and 8.5 on Debian 13 follow before the 4.0 release; use -php 8.4."
+	if [[ ${codename} == "trixie" && ${php} != "8.4" ]]; then
+		local -a d13_other=()
+		local v
+		for v in "${SUPPORTED_PHP[@]-}"; do [[ -z ${v} || ${v} == "8.4" ]] || d13_other+=("${v}"); done
+		((${#d13_other[@]})) || d13_other=("${php}")
+		vstacklet::gate::refuse "PHP ${d13_other[*]} is not offered on Debian 13 yet; use -php 8.4."
+	fi
 	[[ -n ${ioncube} && ${vstacklet_arch} == "arm64" ]] && vstacklet::gate::refuse "ionCube Loader is not offered on arm64 by this installer; run without -ioncube."
 	# @script-note: Docker's published ports bypass ufw and its rules conflict with direct nftables use, so the firewall vStacklet sets up could not be trusted
 	if command -v docker >/dev/null 2>&1 || [[ $(dpkg-query -W -f='${Status}' docker-ce docker.io moby-engine 2>/dev/null) == *"ok installed"* ]]; then

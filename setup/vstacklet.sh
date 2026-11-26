@@ -123,7 +123,7 @@ vstacklet::gate::system() {
 # <<< vstacklet gate
 # @script-note: interim, until the Ubuntu pairs are proven: the 4.0 package sources only add vendor deb822 files (apt.sh), and Debian 12 and 13 are open; Ubuntu stops here before any change
 vstacklet::gate::interim() {
-	[[ ${1-} == "bookworm" || ${1-} == "trixie" ]] || vstacklet::gate::refuse "this development build of vStacklet 4.0 installs on Debian 12 and 13 only for now; Ubuntu 24.04 and 26.04 follow before the 4.0 release."
+	[[ ${1-} == "bookworm" || ${1-} == "trixie" ]] || vstacklet::gate::refuse "vStacklet installs on Debian 12 and 13. Ubuntu 24.04 and 26.04 are not supported yet; vStacklet refuses them before making any change."
 }
 
 ##################################################################################
@@ -382,9 +382,34 @@ vstacklet::setup::pre_record() {
 	dpkg-query -W -f='${db:Status-Status} ${binary:Package}\n' | awk '$1 != "not-installed" && $1 != "config-files" {print $2}' | sort -u >"${t}/packages" || return 1
 	[[ -s ${t}/packages ]] || return 1
 	apt-mark showmanual | sort -u >"${t}/packages.manual" || return 1
+	[[ -s ${t}/packages.manual ]] || return 1
 	if [[ -f /root/.bashrc ]]; then cp -a /root/.bashrc "${t}/files_root_.bashrc" || return 1; fi
 	printf 'machine-id=%s\nrecorded=%s\n' "$(cat /etc/machine-id 2>/dev/null)" "$(date +%s)" >"${t}/complete" || return 1
-	{ rm -rf "${p}" && mv "${t}" "${p}"; } || return 1
+	{ sync && rm -rf "${p}" && mv "${t}" "${p}" && sync; } || return 1
+}
+
+# @script-note: after the bootstrap's own install, the same folder also records the packages, manual marks and /root/.bashrc as the bootstrap left them; the installer's record then removes only what the bootstrap added, and keeps anything installed or edited after the bootstrap finished. complete gains the time and a SHA-256 for each file; without these lines the installer does not use the folder
+vstacklet::setup::pre_record_after() {
+	local -x LC_ALL=C
+	local -
+	set -o pipefail
+	local p=/root/vstacklet/pre-bootstrap f c
+	[[ -d ${p} && ! -L ${p} && -f ${p}/complete && ! -L ${p}/complete ]] || return 1
+	dpkg-query -W -f='${db:Status-Status} ${binary:Package}\n' | awk '$1 != "not-installed" && $1 != "config-files" {print $2}' | sort -u >"${p}/packages.after.tmp" || return 1
+	[[ -s ${p}/packages.after.tmp ]] || return 1
+	apt-mark showmanual | sort -u >"${p}/packages.manual.after.tmp" || return 1
+	[[ -s ${p}/packages.manual.after.tmp ]] || return 1
+	rm -f "${p}/files_root_.bashrc.after"
+	if [[ -f /root/.bashrc ]]; then cp -a /root/.bashrc "${p}/files_root_.bashrc.after" || return 1; fi
+	mv "${p}/packages.after.tmp" "${p}/packages.after" && mv "${p}/packages.manual.after.tmp" "${p}/packages.manual.after" || return 1
+	c="$(grep -E '^(machine-id|recorded)=' "${p}/complete")" || return 1
+	{
+		printf '%s\nafter=%s\n' "${c}" "$(date +%s)"
+		for f in packages packages.manual packages.after packages.manual.after files_root_.bashrc files_root_.bashrc.after; do
+			if [[ -f ${p}/${f} ]]; then printf 'sha256=%s %s\n' "$(sha256sum <"${p}/${f}" | cut -d' ' -f1)" "${f}"; fi
+		done
+	} >"${p}/complete.tmp" || return 1
+	{ sync && mv "${p}/complete.tmp" "${p}/complete" && sync; } || return 1
 }
 
 ################################################################################
@@ -417,8 +442,10 @@ vstacklet::setup::download() {
 		DEBIAN_FRONTEND=noninteractive apt-get -yqq -o DPkg::Lock::Timeout=300 -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to run apt-upgrade, please check your apt with 'apt -y update && apt -y upgrade'" && exit 1; }
 	fi
 	# @script-note: on a fresh server, record what is installed before the bootstrap adds its own tools; the installer's record uses it, so a rollback removes those tools too (tools that were already here stay)
+	local vs_pre_taken=""
 	if [[ ! -e /root/vstacklet/baseline/complete && ! -e /etc/vstacklet ]]; then
 		vstacklet::setup::pre_record || { printf -- "%s\n" "Error: Unable to record this server's packages in /root/vstacklet/pre-bootstrap before adding the bootstrap's tools; nothing was installed" && exit 1; }
+		vs_pre_taken=1
 	fi
 	# @script-note: install the essential dependencies
 	# @script-note: on a server vStacklet already changed, only missing tools are added; present ones keep their versions, so the rollback's record still matches
@@ -427,6 +454,10 @@ vstacklet::setup::download() {
 	apt-get -yqq -o DPkg::Lock::Timeout=300 "${vs_apt_opts[@]}" install curl sudo wget git gpg lsb-release bind9-dnsutils openssl bc >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to install script dependencies" && exit 1; }
 	# @script-note: adjust .bashrc TERM variable if not set (fixes some issues with nano)
 	vstacklet::setup::term_line /root/.bashrc
+	# @script-note: on a fresh server, record the state the bootstrap's install left, so the installer's record keeps anything added after it
+	if [[ -n ${vs_pre_taken} ]]; then
+		vstacklet::setup::pre_record_after || { rm -rf /root/vstacklet/pre-bootstrap; printf -- "%s\n" "Warning: Unable to record this server's packages after the bootstrap's install; a rollback will keep the tools the bootstrap installed"; }
+	fi
 	# @script-note: source the .bashrc
 	source "${HOME}/.bashrc"
 	# @script-note: create vstacklet & backup directory strucutre

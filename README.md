@@ -88,10 +88,10 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 - Color Coding for emphasis on install processes.
 - Easy optional parameters make it a set it and forget it script.
 - Varnish Cache on port 80 with Nginx port 8080 SSL termination on 443.
-- Users choice of php8.3, php8.1, php7.4 or HHVM
+- Your choice of PHP 8.3, 8.4 or 8.5 (on Debian 13, PHP 8.4 only for now).
 - No Apache - Full throttle!
 - Full Kit functionality - backup scripts included.
-- Dynamic rollback built-in should the install fail. All dependencies and directories placed by vStacklet are removed on the rollback. This includes the tools the bootstrap installed for itself (git, gnupg and the like) when the installer ran within six hours of the bootstrap on a fresh server; tools that were already on the server stay. Run `vstacklet --rollback` on its own. It works on a release that has since left support; a server upgraded to a new release since its install cannot be rolled back and must be rebuilt from a fresh image.
+- Dynamic rollback built-in should the install fail: run `vstacklet --rollback` on its own. It removes the packages and directories the installer added. On the first install on a fresh server, run within six hours of the bootstrap, it also removes the tools the bootstrap installed for itself (git, gpg and the like), while tools that were already on the server and anything added after the bootstrap finished stay. These always stay: sudo, the vStacklet command and its folders (/opt/vstacklet, /usr/local/bin/vstacklet, /root/vstacklet) and the empty /backup folders. It works on a release that has since left support; a server upgraded to a new release since its install cannot be rolled back and must be rebuilt from a fresh image.
 - Actively maintained w/ updates added when stable.
 - HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="https://tools.keycdn.com/http2-test" target="_blank">HTTP/2 Test via KeyCDN</a>
 - Everything you need to get that Nginx + Varnish server up and running!
@@ -425,7 +425,7 @@ Quick-Lemp is geared towards python based application installs and using default
 
 My focus was and is to provide a modified version for CMS and typical website server i.e;(WordPress, Joomla!, Drupal, Ghost, Magento ... etc ... ) installations, Updated/Modified/Customized Boilerplate templates to be more 'Nginx mainline' friendly; i.e http/2, as well as the ongoing use of static websites (which the original still handles splendidly!)
 
-vStacklet 4.0 is built and tested on Debian 12 (bookworm) and Debian 13 (trixie). Ubuntu 24.04 (noble) and 26.04 (resolute) follow before the 4.0 release; until then the installer refuses them before making any change.
+vStacklet 4.0 installs on Debian 12 (bookworm) and Debian 13 (trixie). Ubuntu 24.04 (noble) and 26.04 (resolute) are not supported yet; the installer refuses them before making any change.
 
 ---
 

@@ -239,7 +239,7 @@ vstacklet::error::display() {
 		# @script-note: fail closed (4.0): a failed step stops the install; nothing is undone, the server is rebuilt
 		vstacklet::shell::misc::nl
 		if [[ -n ${vstacklet_changes_started} ]]; then
-			vstacklet::shell::text::error "the install has stopped and this server is now partly configured. To bring it back to the state recorded when the installer first changed it (the bootstrap's own tools stay), run:"
+			vstacklet::shell::text::error "the install has stopped and this server is now partly configured. To bring it back to the state recorded before vStacklet changed it, run (it lists what it will do, and asks first):"
 			vstacklet::shell::text::white "vstacklet --rollback"
 			vstacklet::shell::text::error "If the rollback cannot bring the server back to a clean state, rebuild it from a fresh image."
 		else
