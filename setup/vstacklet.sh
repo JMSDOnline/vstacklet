@@ -121,9 +121,9 @@ vstacklet::gate::system() {
 	vstacklet::gate::refuse "${os_id:-unknown} ${os_version:-unknown} is not supported. Supported: Debian 12 and 13, Ubuntu 24.04 and 26.04. For Debian 11 or Ubuntu 20.04 and 22.04, the last 3.x release is the tag v3.1.2239, which is no longer maintained."
 }
 # <<< vstacklet gate
-# @script-note: interim, until the 4.0 package sources are written: on Debian 13 and Ubuntu the 3.x sources code would rewrite the release's own sources, so this build stops there before any change
+# @script-note: interim, until the Ubuntu pairs are proven: the 4.0 package sources only add vendor deb822 files (apt.sh), and Debian 12 and 13 are open; Ubuntu stops here before any change
 vstacklet::gate::interim() {
-	[[ ${1-} == "bookworm" ]] || vstacklet::gate::refuse "this development build of vStacklet 4.0 installs on Debian 12 only for now; Debian 13 and Ubuntu 24.04 and 26.04 follow before the 4.0 release."
+	[[ ${1-} == "bookworm" || ${1-} == "trixie" ]] || vstacklet::gate::refuse "this development build of vStacklet 4.0 installs on Debian 12 and 13 only for now; Ubuntu 24.04 and 26.04 follow before the 4.0 release."
 }
 
 ##################################################################################

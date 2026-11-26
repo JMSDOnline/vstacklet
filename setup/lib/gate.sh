@@ -2,9 +2,43 @@
 # vStacklet installer module: gate. Sourced by setup/vstacklet-server-stack.sh through its loader; defines functions only, nothing runs at load time.
 # shellcheck shell=bash disable=1091,2034,2068,2119,2154,2249,2312,2317
 
-# @script-note: interim, until the 4.0 package sources are written: on Debian 13 and Ubuntu the 3.x sources code would rewrite the release's own sources, so this build stops there before any change
+# @script-note: interim, until the Ubuntu pairs are proven: the 4.0 package sources only add vendor deb822 files (apt.sh), and Debian 12 and 13 are open; Ubuntu stops here before any change
 vstacklet::gate::interim() {
-	[[ ${1-} == "bookworm" ]] || vstacklet::gate::refuse "this development build of vStacklet 4.0 installs on Debian 12 only for now; Debian 13 and Ubuntu 24.04 and 26.04 follow before the 4.0 release."
+	[[ ${1-} == "bookworm" || ${1-} == "trixie" ]] || vstacklet::gate::refuse "this development build of vStacklet 4.0 installs on Debian 12 and 13 only for now; Ubuntu 24.04 and 26.04 follow before the 4.0 release."
+}
+
+##################################################################################
+# @name: vstacklet::gate::rollback_first
+# @description: With --rollback, runs the rollback before the release gates, after the root check, so a server whose release has left support since its install can still roll back. The release identity the install record holds (rollback.sh, identity) is read from /etc/os-release here; a server whose release changed since the install (an OS upgrade) is refused by name, because a rollback would put back the old release's packages.
+##################################################################################
+vstacklet::gate::rollback_first() {
+	local a found=0 key value os_id="" os_codename="" rec cur
+	for a in "$@"; do [[ ${a} == "--rollback" ]] && found=1; done
+	((found)) || return 0
+	[[ ${EUID} -eq 0 ]] || { printf 'vStacklet: run the installer as root.\n' >&2 && exit 1; }
+	[[ -r /etc/os-release ]] || { printf 'vStacklet: cannot read /etc/os-release, so the release cannot be checked; nothing was changed.\n' >&2 && exit 1; }
+	# @script-note: read two keys only; the file is never sourced
+	while IFS='=' read -r key value; do
+		value="${value%\"}" && value="${value#\"}"
+		case "${key}" in
+		ID) os_id="${value}" ;;
+		VERSION_CODENAME) os_codename="${value}" ;;
+		esac
+	done </etc/os-release
+	declare -g distro="" codename="${os_codename}" vstacklet_arch
+	[[ ${os_id} == "debian" ]] && distro="Debian"
+	[[ ${os_id} == "ubuntu" ]] && distro="Ubuntu"
+	vstacklet_arch="$(dpkg --print-architecture 2>/dev/null)"
+	if [[ -f /root/vstacklet/baseline/complete ]]; then
+		rec="$(sed -n '2p' /root/vstacklet/baseline/complete)"
+		cur="release=${distro} ${codename}"
+		if [[ ${rec} == release=* && ${rec} != "${cur}" ]]; then
+			printf 'vStacklet: this server was recorded on %s and now runs %s; a rollback would put back the packages of the old release, so nothing was changed. Rebuild the server from a fresh image.\n' "${rec#release=}" "${cur#release=}" >&2
+			exit 1
+		fi
+	fi
+	declare -gi rollback=1
+	vstacklet::rollback
 }
 
 ##################################################################################
