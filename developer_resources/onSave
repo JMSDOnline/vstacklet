@@ -66,12 +66,18 @@ parse::meta_data() {
 ################################################################################
 save::versioning() {
 	declare build version_old version_number version_split version_new
-	build=$(curl -Iks "https://api.github.com/repos/JMSDOnline/vstacklet/commits?sha=development&per_page=1" | sed -n '/^[Ll]ink:/ s/.*"next".*page=\([0-9]*\).*"last".*/\1/p')
-	version_new="v4.0.0.${build}"
-	version_build="${build}"
-	sleep 3
-	sed -i "s/.*Version:.*/  Version: ${version_new}/g" "${workspace}/README.md"
-	sed -i "s/.*Build:.*/  Build: ${version_build}/g" "${workspace}/README.md"
+	declare release
+	# the README's version is the installer's own x.y.z plus the commit count of devops, the branch vStacklet 4 is built on; the x.y.z only moves by hand at a release
+	release=$(grep -m1 -E '^# @version:' "${workspace}/setup/vstacklet-server-stack.sh" | cut -f2- -d: | tr -d " ")
+	build=$(curl -Is --max-time 20 "https://api.github.com/repos/JMSDOnline/vstacklet/commits?sha=devops&per_page=1" | sed -n '/^[Ll]ink:/ s/.*"next".*page=\([0-9]*\).*"last".*/\1/p')
+	if [[ ${release} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && ${build} =~ ^[1-9][0-9]*$ ]]; then
+		version_new="v${release}.${build}"
+		version_build="${build}"
+		sed -i "s/.*Version:.*/  Version: ${version_new}/g" "${workspace}/README.md"
+		sed -i "s/.*Build:.*/  Build: ${version_build}/g" "${workspace}/README.md"
+	else
+		printf "%s\n" "README.md version left as it was (release '${release}', build '${build}' could not be read)"
+	fi
 	if [[ ${filename} == "developer_documentation.md" ]]; then
 		version_old=$(grep -o 'Version:.*' "${file}" | head -n 1 | cut -f2- -d: | tr -d " ")
 		version_number=$(echo "${version_old}" | grep -Eo '[0-9]+$')
@@ -94,7 +100,7 @@ save::versioning() {
 		version_new="${version_split}${version_number}"
 		sed -i "0,/.*File Version.*/s/.*File Version.*/# File Version: ${version_new}/" "${file}"
 	fi
-	printf "%s\n" "${filename} version increased from ${version_old} to ${version_new}"
+	[[ -n ${version_old:-} ]] && printf "%s\n" "${filename} version increased from ${version_old} to ${version_new}"
 }
 
 ################################################################################

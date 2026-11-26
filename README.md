@@ -122,7 +122,7 @@ The 3.x helper tools `vs-backup` and `vs-perms` are not installed by vStacklet 4
 > [!IMPORTANT]
 >
 > - This script will only download the vStacklet kit and install the `vstacklet` command.
-> - Install from the main branch. The `-b` option names another branch (default: main); other branches are for development and may hold older or unfinished code, so do not use them on a server you depend on.
+> - Install from the main branch. The `-b` option names another branch (default: main); other branches are for development and may hold older or unfinished code, so do not use them on a server you depend on. The bootstrap reads the branch's version first and refuses one that doesn't hold vStacklet 4, before anything is installed.
 > - The `-b` option is only available for the vStacklet installer script.
 > - The `-h` option will display the help menu for the vStacklet installer script.
 > - The `-V` option will display the version of the vStacklet installer script.

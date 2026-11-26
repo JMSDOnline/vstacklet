@@ -22,7 +22,7 @@
 # - WordPress
 #
 # @save_tasks:
-#  automated_versioning: true
+#  automated_versioning: false
 #  automated_documentation: true
 #
 # @build_tasks:
@@ -349,6 +349,61 @@ vstacklet::setup::variables() {
 	vstacklet_git_branch="${vstacklet_git_branch:-${branch:-main}}"
 }
 
+# @script-note: prints the version from FILE's "# @version:" line (one of its first 30 lines); fails when there is none or it isn't a plain dotted number
+vstacklet::setup::version_of() {
+	local line v
+	line="$(head -n 30 "${1}" 2>/dev/null | grep -m1 -E '^# @version:')" || return 1
+	v="${line#'# @version:'}"
+	v="${v//[[:space:]]/}"
+	[[ ${v} =~ ^[0-9]+(\.[0-9]+){0,3}$ ]] || return 1
+	printf -- "%s\n" "${v}"
+}
+
+# @script-note: this bootstrap installs vStacklet 4 only; a branch holding another version (or none it can read) is refused
+vstacklet::setup::is_v4() {
+	[[ ${1-} =~ ^4(\.|$) ]]
+}
+
+# @script-note: before anything is installed, reads the chosen branch's installer version from GitHub (that one file, nothing cloned or installed) and refuses a branch that doesn't hold vStacklet 4
+vstacklet::setup::branch_gate() {
+	local branch="${1}" url f found rc=0
+	url="https://raw.githubusercontent.com/JMSDOnline/vstacklet/${branch}/setup/vstacklet-server-stack.sh"
+	f="$(mktemp)" || { printf -- "%s\n" "Error: Unable to create a temporary file to check branch '${branch}'. Nothing was changed." && return 1; }
+	if command -v curl >/dev/null 2>&1; then
+		curl -fsSL --proto '=https' --max-time 30 -o "${f}" "${url}" >/dev/null 2>&1 || rc=1
+	elif command -v wget >/dev/null 2>&1; then
+		wget -q --https-only --timeout=30 -O "${f}" "${url}" >/dev/null 2>&1 || rc=1
+	else
+		rm -f "${f}"
+		printf -- "%s\n" "Error: curl is needed to check the branch before installing: run 'apt update && apt -y install curl', then run the bootstrap again. Nothing was changed."
+		return 1
+	fi
+	if [[ ${rc} -ne 0 ]]; then
+		rm -f "${f}"
+		printf -- "%s\n" "Error: Unable to read branch '${branch}' from GitHub (it may not exist, or this server can't reach GitHub). Nothing was changed."
+		return 1
+	fi
+	found="$(vstacklet::setup::version_of "${f}")" || found=""
+	rm -f "${f}"
+	vstacklet::setup::is_v4 "${found}" && return 0
+	if [[ ${branch} == "main" ]]; then
+		printf -- "%s\n" "Error: Branch 'main' holds vStacklet ${found:-an unknown version}; this bootstrap installs vStacklet 4 only, which is not on main yet. Nothing was changed."
+	else
+		printf -- "%s\n" "Error: Branch '${branch}' holds vStacklet ${found:-an unknown version}; this bootstrap installs vStacklet 4 only. Run it without -b to install from main. Nothing was changed."
+	fi
+	return 1
+}
+
+# @script-note: after the clone, checks the checkout in DIR again (a branch can move between the two reads); a checkout that isn't vStacklet 4 is removed
+vstacklet::setup::clone_ok() {
+	local dir="${1}" branch="${2}" found
+	found="$(vstacklet::setup::version_of "${dir}/setup/vstacklet-server-stack.sh")" || found=""
+	vstacklet::setup::is_v4 "${found}" && return 0
+	rm -rf "${dir}"
+	printf -- "%s\n" "Error: Branch '${branch}' changed while installing and now holds vStacklet ${found:-an unknown version}; this bootstrap installs vStacklet 4 only, so the new checkout was removed. Run the bootstrap again."
+	return 1
+}
+
 # @script-note: adds "export TERM=xterm" to FILE once, as a line of its own: a file that doesn't end in a newline gets one first, and an exact line already there is left alone
 vstacklet::setup::term_line() {
 	local f="$1"
@@ -453,6 +508,7 @@ vstacklet::setup::download() {
 		vs_new="$(mktemp -d "${vstacklet_base_path%/*}/.vstacklet-new.XXXXXX")" || { printf -- "%s\n" "Error: Unable to create a temporary folder beside ${vstacklet_base_path}" && exit 1; }
 		chmod 755 "${vs_new}"
 		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" "${vs_new}/vstacklet" || { rm -rf "${vs_new}"; printf -- "%s\n" "Error: Unable to update vStacklet from GitHub" && exit 1; }
+		vstacklet::setup::clone_ok "${vs_new}/vstacklet" "${vstacklet_git_branch}" || { rm -rf "${vs_new}"; printf -- "%s\n" "The current ${vstacklet_base_path} was kept." && exit 1; }
 		if [[ -d ${vstacklet_base_path}/config/system ]]; then
 			if ! { mkdir -p "${vs_new}/vstacklet/config/system" && cp -a "${vstacklet_base_path}/config/system/." "${vs_new}/vstacklet/config/system/"; }; then
 				rm -rf "${vs_new}"
@@ -477,6 +533,7 @@ vstacklet::setup::download() {
 		# @script-note: install vStacklet
 		[[ -d ${vstacklet_base_path} ]] && rm -rf "${vstacklet_base_path}"
 		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" "${vstacklet_base_path}" || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
+		vstacklet::setup::clone_ok "${vstacklet_base_path}" "${vstacklet_git_branch}" || exit 1
 	fi
 	# @script-note: the 3.x tools (bin/backup/vs-backup, bin/www-permissions.sh) stay frozen for 3.x servers and are not installed here
 	# @script-note: send vStacklet server stack script to /usr/local/bin
@@ -516,7 +573,7 @@ Usage: vstacklet [options] [args]
 Options:
   -V, --version   Display the version of vStacklet
   -h, --help      Display this help menu
-  -b, --branch    Install from another branch (default: main); other branches may hold older or unfinished code
+  -b, --branch    Install from another branch (default: main); other branches may hold older or unfinished code; a branch that doesn't hold vStacklet 4 is refused before anything is installed
 
 Examples:
   # Install vStacklet from the main branch
@@ -558,6 +615,8 @@ vstacklet::setup::main() {
 	# @script-note: the release, its support dates and the architecture are checked before apt runs or anything is downloaded
 	vstacklet::gate::system
 	vstacklet::gate::interim "${codename}"
+	# @script-note: the chosen branch must hold vStacklet 4, checked before apt runs or anything is installed
+	vstacklet::setup::branch_gate "${vstacklet_git_branch}" || exit 1
 	vstacklet::setup::download
 }
 

@@ -86,7 +86,7 @@ vstacklet::args::process() {
 			vstacklet::args::not_yet "$1"
 			;;
 		-e | --email)
-			vstacklet::args::not_yet "$1"
+			vstacklet::shell::text::error "${1} is not offered in vStacklet 4.0; WordPress asks for its admin email during the install. Nothing was changed." && exit 1
 			;;
 		-ftp | --ftp_port)
 			vstacklet::args::not_yet "$1"
