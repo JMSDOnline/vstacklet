@@ -114,5 +114,21 @@ printf 'before\nexport TERM=xterm\nalias x=y\n' >"${tmp}/bashrc-now"
 vstacklet::rollback::pre_merge "${rec}" "${pre}" "${tmp}/bashrc-now"
 check "a .bashrc edited after the bootstrap is not replaced" "no" "$([[ -e ${rec}/files_root_.bashrc ]] && echo yes || echo no)"
 
+# manual marks keep apt-mark's names: a Multi-Arch: same package is "libfoo:amd64" to dpkg and "libfoo" to apt-mark
+make_pre
+printf 'apt\nbase-files\ndpkg\nlibfoo:amd64\n' >"${pre}/packages"; printf 'apt\nlibfoo\n' >"${pre}/packages.manual"
+printf 'apt\nbase-files\ndpkg\ngit\ngnupg\nlibfoo:amd64\n' >"${pre}/packages.after"; printf 'apt\ngit\nlibfoo\n' >"${pre}/packages.manual.after"
+rm -rf "${rec}"; mkdir -p "${rec}"
+printf 'apt\nbase-files\ndpkg\ngit\ngnupg\nlibbar:amd64\nlibfoo:amd64\n' >"${rec}/packages"; printf 'apt\ngit\nlibbar\nlibfoo\n' >"${rec}/packages.manual"
+printf 'x\n' >"${tmp}/bashrc-now"
+vstacklet::rollback::pre_merge "${rec}" "${pre}" "${tmp}/bashrc-now"
+check "a manual Multi-Arch: same package from before stays manual" "yes" "$(grep -qx libfoo "${rec}/packages.manual" && echo yes || echo no)"
+check "a Multi-Arch: same package marked manual after the bootstrap stays manual" "yes" "$(grep -qx libbar "${rec}/packages.manual" && echo yes || echo no)"
+check "the bootstrap's own manual mark is not kept" "no" "$(grep -qx git "${rec}/packages.manual" && echo yes || echo no)"
+rm -rf "${rec}"; mkdir -p "${rec}"
+printf 'apt\nbase-files\ndpkg\ngit\ngnupg\nlibfoo:amd64\n' >"${rec}/packages"; printf 'apt\ngit\n' >"${rec}/packages.manual"
+vstacklet::rollback::pre_merge "${rec}" "${pre}" "${tmp}/bashrc-now"
+check "a mark the owner removed after the bootstrap stays removed" "no" "$(grep -qx libfoo "${rec}/packages.manual" && echo yes || echo no)"
+
 printf '%s passed, %s failed\n' "${pass}" "${fail}"
 [[ ${fail} -eq 0 ]]

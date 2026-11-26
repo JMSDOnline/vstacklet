@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=2016,2317
-# Checks vstacklet::gate::rollback_first offline: --rollback runs on its own, the release is read the way the install gate reads it (an empty VERSION_CODENAME is mapped through the release table), and a release change is refused by name with what the install added listed. Runs a copy of the function with /etc/os-release, the install record and the vendor apt files moved into a temporary folder, and with root and the rollback itself stubbed.
+# Checks vstacklet::gate::rollback_first offline: --rollback runs on its own, the release is read the way the install gate reads it (an empty VERSION_CODENAME is mapped through the release table), and a release change is refused by name with what the install added listed; also the version list in the Debian 13 PHP refusal. Runs a copy of the function with /etc/os-release, the install record and the vendor apt files moved into a temporary folder, and with root and the rollback itself stubbed.
 # Usage: bash developer_resources/test-rollback-first.sh
 set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -55,5 +55,13 @@ check "a release change is refused, naming both releases by number" "recorded on
 check "the refusal lists the vendor files the install added" "vstacklet-nginx.sources" "${out}"
 check "the refusal lists the install options" "the install options:  -nginx -php 8.4" "${out}"
 check "the refusal changes nothing and never runs the rollback" "rc=1" "${out}"
+# the PHP refusal on Debian 13 joins the versions for a sentence and picks the verb by count
+php_list() {
+	# shellcheck source=/dev/null
+	(source "${tmp}/gate.sh" && vstacklet::gate::versions "$@")
+}
+check "one PHP version reads 'is'" "PHP 8.3 is not offered" "PHP $(php_list 8.3) not offered"
+check "two PHP versions read 'and ... are'" "PHP 8.3 and 8.5 are not offered" "PHP $(php_list 8.3 8.5) not offered"
+check "three PHP versions are joined with commas" "PHP 8.1, 8.3 and 8.5 are not offered" "PHP $(php_list 8.1 8.3 8.5) not offered"
 printf 'test-rollback-first: %s/%s passed\n' "${pass}" "$((pass + fail))"
 ((fail == 0))

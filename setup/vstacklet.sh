@@ -388,7 +388,7 @@ vstacklet::setup::pre_record() {
 	{ sync && rm -rf "${p}" && mv "${t}" "${p}" && sync; } || return 1
 }
 
-# @script-note: after the bootstrap's own install, the same folder also records the packages, manual marks and /root/.bashrc as the bootstrap left them; the installer's record then removes only what the bootstrap added, and keeps anything installed or edited after the bootstrap finished. complete gains the time and a SHA-256 for each file; without these lines the installer does not use the folder
+# @script-note: after the bootstrap's own install, the same folder also records the packages, manual marks and /root/.bashrc as the bootstrap left them; the installer's record then removes only what the bootstrap added, and keeps anything installed or edited between the bootstrap and the installer. complete gains the time and a SHA-256 for each file; without these lines the installer does not use the folder
 vstacklet::setup::pre_record_after() {
 	local -x LC_ALL=C
 	local -

@@ -17,7 +17,7 @@
 #   - wordpress database user
 #   - wordpress database password
 # - this function requires the following options to be used:
-#   - database: `-mariadb | --mariadb` (MySQL is not available in this development build)
+#   - database: `-mariadb | --mariadb` (MySQL is not offered in vStacklet 4.0)
 #   - webserver: `-nginx | --nginx` or `-varnish | --varnish` (both can be used)
 #   - php: `-php | --php`
 # - this function will optionally use the following options:

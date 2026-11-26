@@ -175,16 +175,16 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white "    Reboots the server after installation is complete."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -d, --domain"
-	vstacklet::shell::text::white "    Sets the domain name for the server."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white " -dns, --dns"
-	vstacklet::shell::text::white "    Enables DNS-based SSL certificate verification (useful for local development)."
+	vstacklet::shell::text::white " --dns, --dns_provider"
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -e, --email"
 	vstacklet::shell::text::white "    Sets the email address for the server."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -ftp, --ftp"
-	vstacklet::shell::text::white "    Sets the FTP port for the server."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -hn, --hostname"
 	vstacklet::shell::text::white "    Sets the hostname for the server."
@@ -196,7 +196,7 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white "    Sets the HTTP port for the server."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -ioncube, --ioncube"
-	vstacklet::shell::text::white "    Installs IonCube."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -mariadb, --mariadb"
 	vstacklet::shell::text::white "    Installs and configures MariaDB."
@@ -211,40 +211,40 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white "    Sets the MariaDB port."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -mysql, --mysql"
-	vstacklet::shell::text::white "    Installs and configures MySQL."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -mysqlU, --mysql_user"
-	vstacklet::shell::text::white "    Sets the MySQL username."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -mysqlPw, --mysql_password"
-	vstacklet::shell::text::white "    Sets the MySQL password."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -mysqlP, --mysql_port"
-	vstacklet::shell::text::white "    Sets the MySQL port."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -nginx, --nginx"
 	vstacklet::shell::text::white "    Installs and configures Nginx."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -pma, --phpmyadmin"
-	vstacklet::shell::text::white "    Installs and configures phpMyAdmin."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -php, --php"
 	vstacklet::shell::text::white "    Installs and configures PHP."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -sendmail, --sendmail"
-	vstacklet::shell::text::white "    Installs and configures Sendmail."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -sendmailP, --sendmail_port"
-	vstacklet::shell::text::white "    Sets the Sendmail port."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -ssh, --ssh_port"
 	vstacklet::shell::text::white "    Sets the SSH port."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -varnish, --varnish"
-	vstacklet::shell::text::white "    Installs and configures Varnish."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -varnishP, --varnish_port"
-	vstacklet::shell::text::white "    Sets the Varnish port."
+	vstacklet::shell::text::white "    Not offered in vStacklet 4.0."
 	vstacklet::shell::misc::nl
 	vstacklet::shell::text::white " -wp, --wordpress"
 	vstacklet::shell::text::white "    Installs and configures WordPress."
@@ -252,12 +252,8 @@ vstacklet::help::display() {
 	vstacklet::shell::text::white " -wr, --web_root"
 	vstacklet::shell::text::white "    Sets the web root for the server."
 	vstacklet::shell::misc::nl
-	vstacklet::shell::text::white "example with standard HTTP-based SSL verification: "
-	vstacklet::shell::text::white "vstacklet -nginx -php '8.3' -mariadb -mariadbU 'username' -mariadbPw 'password' -varnish -wp -pma -ioncube -wr '/var/www/html/vsapp' -d 'example.com' -e 'your@email.com'"
-	vstacklet::shell::misc::nl
-	# Example with DNS-based SSL verification
-	vstacklet::shell::text::white "example with DNS-based SSL verification: "
-	vstacklet::shell::text::white "vstacklet -nginx -php '8.3' -mariadb -mariadbU 'username' -mariadbPw 'password' -wp -pma -wr '/var/www/html/vsapp' -d 'example.com' -e 'your@email.com' --dns 'cloudflare'"
+	vstacklet::shell::text::white "example: "
+	vstacklet::shell::text::white "vstacklet -e 'your@email.com' -hn 'server.example.com' -nginx -php '8.4' -mariadb -mariadbU 'username' -mariadbPw 'password' -wr '/var/www/html/vsapp' -wp"
 	vstacklet::shell::misc::nl
 	exit 0
 }

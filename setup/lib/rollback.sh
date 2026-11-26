@@ -4,7 +4,7 @@
 
 ################################################################################
 # @name: vstacklet::rollback::baseline
-# @description: Records the server's state before the installer's first change, so vstacklet --rollback can bring it back: every installed or half-installed package by its full name, the manual marks, the apt sources and keys, the enabled units, root's crontab, five system files, and which installer paths existed. Each install that passes the fresh-server gate records afresh; when the bootstrap recorded this server just before and just after adding its own tools (same machine, at most 6 hours earlier, intact, nothing removed since), the record takes the packages and manual marks from before the bootstrap plus anything added after it finished, and /root/.bashrc from before unless it was edited after, so a rollback removes only the bootstrap's own additions. The record is built in a temporary folder and ends with a manifest (machine id, release, architecture, a hash of every file) that the rollback checks before it changes anything. Stored in /root/vstacklet/baseline (mode 700).
+# @description: Records the server's state before the installer's first change, so vstacklet --rollback can bring it back: every installed or half-installed package by its full name, the manual marks, the apt sources and keys, the enabled units, root's crontab, five system files, and which installer paths existed. Each install that passes the fresh-server gate records afresh; when the bootstrap recorded this server just before and just after adding its own tools (same machine, at most 6 hours earlier, intact, nothing removed since), the record takes the packages and manual marks from before the bootstrap plus anything installed between the bootstrap and the installer, and /root/.bashrc from before unless it was edited after, so a rollback removes the bootstrap's own additions and keeps the rest. The record is built in a temporary folder and ends with a manifest (machine id, release, architecture, a hash of every file) that the rollback checks before it changes anything. Stored in /root/vstacklet/baseline (mode 700).
 # @return_code: 1 - the record could not be written; nothing was changed.
 ################################################################################
 vstacklet::rollback::paths() {
@@ -70,7 +70,7 @@ vstacklet::rollback::pre_ok() {
 	[[ -z $(comm -23 <(sort -u "${pre}/packages") <(sort -u "${now_pkgs}")) ]] || return 1
 }
 
-# @script-note: merges the bootstrap's record into the installer's record folder T: packages from before the bootstrap plus those added after it finished; manual marks from before for those, plus the current marks for the later ones; versions for the recorded names only; the copy of BASHRC from before the bootstrap only when BASHRC still equals the copy taken after the bootstrap
+# @script-note: merges the bootstrap's record into the installer's record folder T: packages from before the bootstrap plus those added after it finished; manual marks from before, minus those removed since the bootstrap finished, plus those added since; versions for the recorded names only; the copy of BASHRC from before the bootstrap only when BASHRC still equals the copy taken after the bootstrap
 vstacklet::rollback::pre_merge() {
 	local -x LC_ALL=C
 	local -
@@ -78,7 +78,8 @@ vstacklet::rollback::pre_merge() {
 	local t="$1" pre="$2" bashrc="$3"
 	comm -23 <(sort -u "${t}/packages") <(sort -u "${pre}/packages.after") >"${t}/packages.later" || return 1
 	sort -u "${pre}/packages" "${t}/packages.later" >"${t}/packages.new" || return 1
-	{ comm -12 <(sort -u "${pre}/packages.manual") <(sort -u "${pre}/packages"); comm -12 <(sort -u "${t}/packages.manual") "${t}/packages.later"; } | sort -u >"${t}/packages.manual.new" || return 1
+	# manual marks stay in apt-mark's own names and are never matched against a dpkg list (dpkg qualifies a Multi-Arch: same package with its architecture, apt-mark does not): the marks from before the bootstrap, minus any removed since it finished, plus any added since
+	{ comm -23 <(sort -u "${pre}/packages.manual") <(comm -23 <(sort -u "${pre}/packages.manual.after") <(sort -u "${t}/packages.manual")); comm -23 <(sort -u "${t}/packages.manual") <(sort -u "${pre}/packages.manual.after"); } | sort -u >"${t}/packages.manual.new" || return 1
 	[[ -s ${t}/packages.new && -s ${t}/packages.manual.new ]] || return 1
 	mv "${t}/packages.new" "${t}/packages" && mv "${t}/packages.manual.new" "${t}/packages.manual" && rm -f "${t}/packages.later" || return 1
 	if [[ -f ${t}/packages.versions ]]; then
@@ -117,14 +118,18 @@ vstacklet::rollback::baseline() {
 		if [[ -f ${p} ]]; then cp -a "${p}" "${t}/files${p//\//_}" || return 1; fi
 	done < <(vstacklet::rollback::files)
 	# @script-note: a fresh install keeps the record the bootstrap took before adding its own tools, so a rollback removes them too; versions stay the current ones for the recorded names, so nothing is downgraded
-	# @script-note: the packages become those from before the bootstrap plus anything added after the bootstrap finished (by the owner or a provider agent), so only the bootstrap's own additions are removed; the manual marks follow the same split, and /root/.bashrc goes back to its copy from before only when nobody edited it after the bootstrap
+	# @script-note: the packages become those from before the bootstrap plus anything installed between the bootstrap and the installer (by the owner or a provider agent), so of what came before the installer only the bootstrap's own additions are removed; the manual marks follow the same split, and /root/.bashrc goes back to its copy from before only when nobody edited it after the bootstrap
 	local pre=/root/vstacklet/pre-bootstrap
 	if vstacklet::rollback::pre_ok "${pre}" "${t}/packages"; then
 		vstacklet::rollback::pre_merge "${t}" "${pre}" /root/.bashrc || return 1
 		{
-			printf 'packages, manual marks and /root/.bashrc as they were before the bootstrap added its tools, plus anything added after it finished\n'
+			printf 'packages, manual marks and /root/.bashrc as they were before the bootstrap added its tools, plus anything installed between the bootstrap and the installer\n'
 			printf 'pre_recorded=%s\n' "$(sed -n 's/^recorded=//p' "${pre}/complete")"
+			# @script-note: the bootstrap's TERM line stays when /root/.bashrc was missing before the bootstrap or was edited after it; the rollback says so
+			if grep -qxF "export TERM=xterm" "${t}/files_root_.bashrc" 2>/dev/null && ! grep -qxF "export TERM=xterm" "${pre}/files_root_.bashrc" 2>/dev/null; then printf 'bashrc=kept\n'; fi
 		} >"${t}/source" || return 1
+	elif [[ -d ${pre} ]]; then
+		vstacklet::shell::text::warning "The bootstrap's record of this server is older than 6 hours or no longer matches, so a rollback will keep the tools the bootstrap installed."
 	fi
 	vstacklet::rollback::paths >"${t}/paths.checked" || return 1
 	while IFS= read -r p; do
@@ -237,7 +242,7 @@ vstacklet::rollback::plan() {
 		local pre_at
 		pre_at="$(sed -n 's/^pre_recorded=//p' "${b}/source")"
 		[[ ${pre_at} =~ ^[0-9]+$ ]] && pre_at="$(date -d "@${pre_at}" '+%F %H:%M %Z')" || pre_at="$(sed -n 's/^recorded=//p' "${b}/complete")"
-		vstacklet::shell::text::white "vStacklet will bring this server back to the state before the bootstrap added its tools (${pre_at}); the tools the bootstrap installed are removed too (sudo stays), and anything added after the bootstrap finished is kept. It will:"
+		vstacklet::shell::text::white "vStacklet will bring this server back to the state before the bootstrap added its tools (${pre_at}); the tools the bootstrap installed are removed too (sudo stays); anything installed between the bootstrap and the installer is kept. It will:"
 	else
 		vstacklet::shell::text::white "vStacklet will bring this server back to the state it recorded on $(sed -n 's/^recorded=//p' "${b}/complete") (the bootstrap's own tools stay). It will:"
 	fi
@@ -247,6 +252,7 @@ vstacklet::rollback::plan() {
 	((${#rb_gone_ok[@]})) && vstacklet::shell::text::white " - accept as gone ${#rb_gone_ok[@]} old kernel packages the system removed itself since then: ${rb_gone_ok[*]}"
 	vstacklet::shell::text::white " - disable ${#rb_units_off[@]} services added since then: ${rb_units_off[*]:-none}; enable again: ${rb_units_on[*]:-none}"
 	vstacklet::shell::text::white " - restore the package sources that differ: ${rb_apt[*]:-none}; restore these files: ${rb_files[*]:-none}"
+	if [[ -f ${b}/source ]] && grep -qx 'bashrc=kept' "${b}/source"; then vstacklet::shell::text::white " - keep /root/.bashrc as it is, with the bootstrap's TERM line (export TERM=xterm): the file was missing before the bootstrap or was edited after it"; fi
 	if ((${#rb_versions[@]})); then
 		vstacklet::shell::text::white " - check ${#rb_versions[@]} packages whose version changed since the record: a version the restored sources still offer is kept (updated by the system since the record); any other moves to the restored release's version (up or back), or to the recorded version when the release offers none (simulated first):"
 		for p in "${rb_versions[@]}"; do vstacklet::shell::text::white "   ${p% *} -> now ${p##* }"; done
@@ -308,7 +314,7 @@ vstacklet::rollback::restore() {
 		done < <(vstacklet::rollback::apt_dirs)
 		rm -rf "${cur}"
 		apt-get -o DPkg::Lock::Timeout=300 -qq update >/dev/null 2>&1 || true
-		failed="$(printf '%s\n' "${upd_out}" | grep -E '^(Err:|E:|W: Failed)' | grep -oE 'https?://[^ ]+' | sed 's#/*$##' | sort -u | tr '\n' ' ')"
+		failed="$(printf '%s\n' "${upd_out}" | grep -E '^(Err:|E:|W: Failed)' | grep -oE 'https?://[^ ]+' | sed 's#/*$##' | sort -u | paste -sd' ')"
 		vstacklet::shell::text::error "the recorded package sources could not all be read (${failed:-see apt-get update}): check the network, a proxy setting, or that source; if this release has moved to archive.debian.org, point its sources there. The current sources were kept and nothing else was changed."
 		printf '%s\n' "${upd_out}" | grep -E '^(Err:|E:)' | head -n 8 | while IFS= read -r p; do vstacklet::shell::text::white "   ${p}"; done
 		return 1

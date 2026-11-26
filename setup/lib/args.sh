@@ -29,28 +29,28 @@ vstacklet::args::info() {
 # | -h    | --help                     | show help
 # | -V    | --version                  | show version
 # | -e    | --email                    | mail address to use for the Let's Encrypt SSL certificate
-# | -ftp  | --ftp_port                 | port to use for the FTP server
+# | -ftp  | --ftp_port                 | not offered in 4.0
 # | -ssh  | --ssh_port                 | port to use for the SSH server
 # | -http | --http_port                | port to use for the HTTP server
 # | -https| --https_port               | port to use for the HTTPS server
-# | -ioncube | --ioncube               | refused until the 4.0 ionCube install is written
+# | -ioncube | --ioncube               | not offered in 4.0
 # | -hn   | --hostname                 | hostname to use for the server
-# | -d    | --domain                   | domain name to use for the server
+# | -d    | --domain                   | not offered in 4.0
 # | -php  | --php                      | PHP version to install (8.3, 8.4, 8.5; default 8.4)
 # | -hhvm | --hhvm                     | refused: HHVM is no longer supported
 # | -nginx| --nginx                    | install Nginx
-# | -varnish | --varnish               | install Varnish
-# | -varnishP | --varnish_port         | port to use for the Varnish server
+# | -varnish | --varnish               | not offered in 4.0
+# | -varnishP | --varnish_port         | not offered in 4.0
 # | -mariadb | --mariadb               | install MariaDB
 # | -mariadbP | --mariadb_port         | port to use for the MariaDB server
 # | -mariadbU | --mariadb_user         | user to use for the MariaDB server<br>Avoid using 'root' as the username
 # | -mariadbPw | --mariadb-password    | password to use for the MariaDB user
-# | -pma | --phpmyadmin                | install phpMyAdmin
+# | -pma | --phpmyadmin                | not offered in 4.0
 # | -csf | --csf                       | refused: CSF is no longer supported
 # | -csfCf | --csf_cloudflare          | refused: CSF is no longer supported
-# | -sendmail | --sendmail              | install Sendmail
-# | -sendmailP | --sendmail_port        | port to use for the Sendmail server
-# | --dns | --dns_provider             | DNS provider for SSL cert verification (e.g., cloudflare)
+# | -sendmail | --sendmail              | not offered in 4.0
+# | -sendmailP | --sendmail_port        | not offered in 4.0
+# | --dns | --dns_provider             | not offered in 4.0
 # | -wr | --web_root				   | web root to use for the server
 # | -wp | --wordpress				   | install WordPress
 # | -r | --reboot					   | reboot the server after installation
@@ -58,9 +58,7 @@ vstacklet::args::info() {
 # | --check_update					   | check the installed branch for a newer 4.x release
 #
 # @example: vstacklet --help
-# @example: vstacklet -e "your@email.com" -ftp "2133" -ssh "2244" -hn "yourhostname" -php "8.3" -ioncube -nginx -mariadb -mariadbP "3309" -mariadbU "db_user" -mariadbPw "db_password" -pma -wr "/var/www/html/vsapp" -wp
-# @example: vstacklet -e "your@email.com" -ftp "2121" -ssh "2222" -http "8080" -d "yourdomain.com" -php "8.4" -nginx -varnish -varnishP "80" -mariadb -mariadbU "db_user" -mariadbPw "db_password" -sendmail -wr "/var/www/html/vsapp" -wp --reboot
-# @example: vstacklet -e "your@email.com" -d "example.com" -php "8.3" -nginx -mariadb -mariadbU "db_user" -mariadbPw "db_password" --dns "cloudflare"
+# @example: vstacklet -e "your@email.com" -hn "server.example.com" -nginx -php "8.4" -mariadb -mariadbU "db_user" -mariadbPw "db_password" -wr "/var/www/html/vsapp" -wp
 # @null
 # @break
 ##################################################################################
@@ -118,7 +116,7 @@ vstacklet::args::process() {
 			shift 2
 			;;
 		-ioncube | --ioncube)
-			vstacklet::shell::text::error "ionCube Loader is not installed by this development build of vStacklet 4.0 yet; run without -ioncube." && exit 1
+			vstacklet::shell::text::error "ionCube Loader is not offered in vStacklet 4.0; run without -ioncube." && exit 1
 			;;
 		-mariadb | --mariadb)
 			declare -gi mariadb="1"
@@ -197,7 +195,7 @@ vstacklet::args::process() {
 			vstacklet::args::not_yet "$1"
 			;;
 		-ssh | --ssh_port)
-			[[ ${distro} == "Ubuntu" ]] && vstacklet::shell::text::error "-ssh is not available on Ubuntu in this development build yet; it returns before the 4.0 release." && exit 1
+			[[ ${distro} == "Ubuntu" ]] && vstacklet::shell::text::error "-ssh is not offered on Ubuntu in vStacklet 4.0." && exit 1
 			vstacklet::args::need_value "$1" $# "${2-}"
 			vstacklet::args::port "$1" "$2"
 			declare -gi ssh_port=$((10#$2))
@@ -365,6 +363,6 @@ vstacklet::args::webroot() {
 # @description: Refuses an option whose feature has not been rewritten for 4.0 yet, before any change, so no 3.x code runs.
 ##################################################################################
 vstacklet::args::not_yet() {
-	vstacklet::shell::text::error "${1} is not available in this development build of vStacklet 4.0 yet; it returns before the 4.0 release. Nothing was changed."
+	vstacklet::shell::text::error "${1} is not offered in vStacklet 4.0. Nothing was changed."
 	exit 1
 }

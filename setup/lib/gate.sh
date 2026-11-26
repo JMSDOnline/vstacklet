@@ -73,6 +73,18 @@ vstacklet::gate::rollback_first() {
 }
 
 ##################################################################################
+# @name: vstacklet::gate::versions
+# @description: Prints the versions as a list for a sentence, with its verb: "8.3 is", "8.3 and 8.5 are", "8.1, 8.3 and 8.5 are".
+##################################################################################
+vstacklet::gate::versions() {
+	local n=$# last="${*: -1}"
+	if ((n == 1)); then printf '%s is' "${1}"; return 0; fi
+	local IFS=,
+	local head="${*:1:n-1}"
+	printf '%s and %s are' "${head//,/, }" "${last}"
+}
+
+##################################################################################
 # @name: vstacklet::gate::install (3.i)
 # @description: Runs after the options are read and before anything on the server is changed: the PHP version's support dates, ionCube on arm64, fresh servers only (no earlier vStacklet install, no apache2, no nginx site of its own, the web ports free), then the package check (vstacklet::apt::gate: the server's sources, the vendor keys, and a simulated install of the whole package list in a private apt state).
 ##################################################################################
@@ -91,7 +103,7 @@ vstacklet::gate::install() {
 		local v
 		for v in "${SUPPORTED_PHP[@]-}"; do [[ -z ${v} || ${v} == "8.4" ]] || d13_other+=("${v}"); done
 		((${#d13_other[@]})) || d13_other=("${php}")
-		vstacklet::gate::refuse "PHP ${d13_other[*]} is not offered on Debian 13 yet; use -php 8.4."
+		vstacklet::gate::refuse "PHP $(vstacklet::gate::versions "${d13_other[@]}") not offered on Debian 13 yet; use -php 8.4."
 	fi
 	[[ -n ${ioncube} && ${vstacklet_arch} == "arm64" ]] && vstacklet::gate::refuse "ionCube Loader is not offered on arm64 by this installer; run without -ioncube."
 	# @script-note: Docker's published ports bypass ufw and its rules conflict with direct nftables use, so the firewall vStacklet sets up could not be trusted

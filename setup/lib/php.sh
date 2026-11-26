@@ -55,6 +55,6 @@ vstacklet::ioncube::install() {
 	if [[ -n ${ioncube} ]]; then
 		vstacklet::shell::misc::nl
 		# @script-note: the 3.x loader paths covered PHP 7.4 and 8.1 only; the 4.0 loader install (pinned download, every supported PHP) is not written yet
-		vstacklet::shell::text::yellow "ionCube Loader is not installed by this development build for PHP ${php}. Skipping ..."
+		vstacklet::shell::text::yellow "ionCube Loader is not offered in vStacklet 4.0. Skipping ..."
 	fi
 }
