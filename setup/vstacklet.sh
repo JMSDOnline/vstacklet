@@ -363,6 +363,30 @@ vstacklet::setup::variables() {
 	vstacklet_git_branch="${vstacklet_git_branch:-${branch:-main}}"
 }
 
+# @script-note: adds "export TERM=xterm" to FILE once, as a line of its own: a file that doesn't end in a newline gets one first, and an exact line already there is left alone
+vstacklet::setup::term_line() {
+	local f="$1"
+	grep -qxF "export TERM=xterm" "${f}" 2>/dev/null && return 0
+	if [[ -s ${f} && -n $(tail -c 1 "${f}") ]]; then printf '\n' >>"${f}"; fi
+	printf '%s\n' "export TERM=xterm" >>"${f}"
+}
+
+# @script-note: the packages, manual marks and /root/.bashrc as they are before the bootstrap installs anything, with this machine's id and the time; read by the installer's record (setup/lib/rollback.sh, vstacklet::rollback::pre_ok)
+vstacklet::setup::pre_record() {
+	local -x LC_ALL=C
+	local -
+	set -o pipefail
+	local root=/root/vstacklet p=/root/vstacklet/pre-bootstrap t=/root/vstacklet/pre-bootstrap.new
+	[[ -L ${root} || -L ${p} || -L ${t} ]] && return 1
+	{ mkdir -p "${root}" && chmod 700 "${root}" && rm -rf "${t}" && mkdir -p "${t}" && chmod 700 "${t}"; } || return 1
+	dpkg-query -W -f='${db:Status-Status} ${binary:Package}\n' | awk '$1 != "not-installed" && $1 != "config-files" {print $2}' | sort -u >"${t}/packages" || return 1
+	[[ -s ${t}/packages ]] || return 1
+	apt-mark showmanual | sort -u >"${t}/packages.manual" || return 1
+	if [[ -f /root/.bashrc ]]; then cp -a /root/.bashrc "${t}/files_root_.bashrc" || return 1; fi
+	printf 'machine-id=%s\nrecorded=%s\n' "$(cat /etc/machine-id 2>/dev/null)" "$(date +%s)" >"${t}/complete" || return 1
+	{ rm -rf "${p}" && mv "${t}" "${p}"; } || return 1
+}
+
 ################################################################################
 # @name: vstacklet::setup::download() (4)
 # @description: Setup the environment and download vStacklet. [see function](https://github.com/JMSDOnline/vstacklet/blob/main/setup/vstacklet.sh#L337-L396)
@@ -392,15 +416,17 @@ vstacklet::setup::download() {
 	if [[ ! -e /root/vstacklet/baseline/complete && ! -e /etc/vstacklet ]]; then
 		DEBIAN_FRONTEND=noninteractive apt-get -yqq -o DPkg::Lock::Timeout=300 -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to run apt-upgrade, please check your apt with 'apt -y update && apt -y upgrade'" && exit 1; }
 	fi
+	# @script-note: on a fresh server, record what is installed before the bootstrap adds its own tools; the installer's record uses it, so a rollback removes those tools too (tools that were already here stay)
+	if [[ ! -e /root/vstacklet/baseline/complete && ! -e /etc/vstacklet ]]; then
+		vstacklet::setup::pre_record || { printf -- "%s\n" "Error: Unable to record this server's packages in /root/vstacklet/pre-bootstrap before adding the bootstrap's tools; nothing was installed" && exit 1; }
+	fi
 	# @script-note: install the essential dependencies
 	# @script-note: on a server vStacklet already changed, only missing tools are added; present ones keep their versions, so the rollback's record still matches
 	local -a vs_apt_opts=()
 	[[ -e /root/vstacklet/baseline/complete || -e /etc/vstacklet ]] && vs_apt_opts=(--no-upgrade)
 	apt-get -yqq -o DPkg::Lock::Timeout=300 "${vs_apt_opts[@]}" install curl sudo wget git gpg lsb-release bind9-dnsutils openssl bc >/dev/null 2>&1 || { printf -- "%s\n" "Error: Unable to install script dependencies" && exit 1; }
 	# @script-note: adjust .bashrc TERM variable if not set (fixes some issues with nano)
-	if ! grep -q "export TERM=xterm" /root/.bashrc; then
-		echo -en "export TERM=xterm" >>"/root/.bashrc"
-	fi
+	vstacklet::setup::term_line /root/.bashrc
 	# @script-note: source the .bashrc
 	source "${HOME}/.bashrc"
 	# @script-note: create vstacklet & backup directory strucutre

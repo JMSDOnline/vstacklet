@@ -91,7 +91,7 @@ Deploys a proper directory structure, optimizes Nginx and Varnish, creates a PHP
 - Users choice of php8.3, php8.1, php7.4 or HHVM
 - No Apache - Full throttle!
 - Full Kit functionality - backup scripts included.
-- Dynamic rollback built-in should the install fail. All dependencies and directories placed by vStacklet are removed on the rollback. Run `vstacklet --rollback` on its own. It works on a release that has since left support; a server upgraded to a new release since its install cannot be rolled back and must be rebuilt from a fresh image.
+- Dynamic rollback built-in should the install fail. All dependencies and directories placed by vStacklet are removed on the rollback. This includes the tools the bootstrap installed for itself (git, gnupg and the like) when the installer ran within six hours of the bootstrap on a fresh server; tools that were already on the server stay. Run `vstacklet --rollback` on its own. It works on a release that has since left support; a server upgraded to a new release since its install cannot be rolled back and must be rebuilt from a fresh image.
 - Actively maintained w/ updates added when stable.
 - HTTP/2 Nginx ready. To view if your webserver is HTTP/2 after installing the script with SSL, check @ <a href="https://tools.keycdn.com/http2-test" target="_blank">HTTP/2 Test via KeyCDN</a>
 - Everything you need to get that Nginx + Varnish server up and running!

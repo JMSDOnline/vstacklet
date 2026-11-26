@@ -4,7 +4,7 @@
 
 ################################################################################
 # @name: vstacklet::rollback::baseline
-# @description: Records the server's state before the installer's first change, so vstacklet --rollback can bring it back: every installed or half-installed package by its full name, the manual marks, the apt sources and keys, the enabled units, root's crontab, five system files, and which installer paths existed. Each install that passes the fresh-server gate records afresh. The record is built in a temporary folder and ends with a manifest (machine id, release, architecture, a hash of every file) that the rollback checks before it changes anything. Stored in /root/vstacklet/baseline (mode 700).
+# @description: Records the server's state before the installer's first change, so vstacklet --rollback can bring it back: every installed or half-installed package by its full name, the manual marks, the apt sources and keys, the enabled units, root's crontab, five system files, and which installer paths existed. Each install that passes the fresh-server gate records afresh; when the bootstrap recorded this server just before adding its own tools (same machine, at most 6 hours earlier, nothing removed since), that record supplies the package list, the manual marks and /root/.bashrc, so a rollback removes the bootstrap's tools too. The record is built in a temporary folder and ends with a manifest (machine id, release, architecture, a hash of every file) that the rollback checks before it changes anything. Stored in /root/vstacklet/baseline (mode 700).
 # @return_code: 1 - the record could not be written; nothing was changed.
 ################################################################################
 vstacklet::rollback::paths() {
@@ -42,6 +42,19 @@ vstacklet::rollback::identity() {
 	printf 'machine-id=%s\nrelease=%s %s\narch=%s\n' "$(cat /etc/machine-id 2>/dev/null)" "${distro}" "${codename}" "${vstacklet_arch}"
 }
 
+# @script-note: the record setup/vstacklet.sh takes before the bootstrap installs its tools stands in for the package list, the manual marks and /root/.bashrc only when it is a real root-only folder, from this machine, at most 6 hours old, and nothing in it has been removed since
+vstacklet::rollback::pre_ok() {
+	local -x LC_ALL=C
+	local pre="$1" now_pkgs="$2" mid rec
+	[[ -d ${pre} && ! -L ${pre} && -f ${pre}/complete && ! -L ${pre}/complete && -s ${pre}/packages && -f ${pre}/packages.manual ]] || return 1
+	[[ $(stat -c '%u %a' "${pre}") == "0 700" ]] || return 1
+	mid="$(sed -n 's/^machine-id=//p' "${pre}/complete")"
+	rec="$(sed -n 's/^recorded=//p' "${pre}/complete")"
+	[[ -n ${mid} && ${mid} == "$(cat /etc/machine-id 2>/dev/null)" && ${rec} =~ ^[0-9]+$ ]] || return 1
+	(($(date +%s) - rec >= 0 && $(date +%s) - rec <= 21600)) || return 1
+	[[ -z $(comm -23 <(sort -u "${pre}/packages") <(sort -u "${now_pkgs}")) ]] || return 1
+}
+
 vstacklet::rollback::baseline() {
 	local -x LC_ALL=C
 	local - p
@@ -71,6 +84,14 @@ vstacklet::rollback::baseline() {
 	while IFS= read -r p; do
 		if [[ -f ${p} ]]; then cp -a "${p}" "${t}/files${p//\//_}" || return 1; fi
 	done < <(vstacklet::rollback::files)
+	# @script-note: a fresh install keeps the record the bootstrap took before adding its own tools, so a rollback removes them too; versions stay the current ones for the recorded names, so nothing is downgraded
+	if vstacklet::rollback::pre_ok /root/vstacklet/pre-bootstrap "${t}/packages"; then
+		cp /root/vstacklet/pre-bootstrap/packages "${t}/packages" || return 1
+		cp /root/vstacklet/pre-bootstrap/packages.manual "${t}/packages.manual" || return 1
+		awk 'NR == FNR {k[$1] = 1; next} ($1 in k)' "${t}/packages" "${t}/packages.versions" >"${t}/packages.versions.new" && mv "${t}/packages.versions.new" "${t}/packages.versions" || return 1
+		if [[ -f /root/vstacklet/pre-bootstrap/files_root_.bashrc ]]; then cp -a /root/vstacklet/pre-bootstrap/files_root_.bashrc "${t}/files_root_.bashrc" || return 1; fi
+		printf 'packages, manual marks and /root/.bashrc as they were before the bootstrap added its tools (recorded %s)\n' "$(date -d "@$(sed -n 's/^recorded=//p' /root/vstacklet/pre-bootstrap/complete)" '+%F %H:%M %Z')" >"${t}/source" || return 1
+	fi
 	vstacklet::rollback::paths >"${t}/paths.checked" || return 1
 	while IFS= read -r p; do
 		if [[ -e ${p} || -L ${p} ]]; then printf '%s\n' "${p}"; fi
@@ -81,6 +102,7 @@ vstacklet::rollback::baseline() {
 		(cd "${t}" && find . -type f ! -name 'complete*' -print0 | sort -z | xargs -0 -r sha256sum)
 	} >"${t}/complete.tmp" || return 1
 	{ sync && mv "${t}/complete.tmp" "${t}/complete" && rm -rf "${b}" && mv "${t}" "${b}" && sync; } || return 1
+	rm -rf /root/vstacklet/pre-bootstrap
 }
 
 ################################################################################
