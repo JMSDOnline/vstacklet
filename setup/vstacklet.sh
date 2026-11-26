@@ -369,11 +369,11 @@ vstacklet::setup::holds() {
 	if [[ -n ${1-} ]]; then printf '%s' "holds vStacklet ${1}"; else printf '%s' "has no vStacklet version this bootstrap can read"; fi
 }
 
-# @script-note: vStacklet 4 installs on fresh servers only and does not upgrade 3.x: a server with a vStacklet 3.x install is refused before apt runs (the 4.0 bootstrap writes none of these paths, and a 4.0 install keeps /etc/vstacklet); ROOT prefixes the paths (empty on a server)
+# @script-note: vStacklet 4 installs on fresh servers only and does not upgrade 3.x: a server with a vStacklet 3.x install is refused before apt runs (the 4.0 bootstrap writes none of these paths; a 4.0 install keeps /etc/vstacklet and writes it before its first log, and a 4.0 rollback moves its log folder aside); ROOT prefixes the paths (empty on a server)
 vstacklet::setup::v3_gate() {
 	local root="${1-}" p
 	[[ -e ${root}/etc/vstacklet ]] && return 0
-	for p in /opt/vstacklet/config/system/.install_complete /usr/local/bin/vs-backup /usr/local/bin/vs-perms; do
+	for p in /opt/vstacklet/config/system/.install_complete /usr/local/bin/vs-backup /usr/local/bin/vs-perms /var/log/vstacklet; do
 		if [[ -e ${root}${p} || -L ${root}${p} ]]; then
 			printf -- "%s\n" "Error: This server has a vStacklet 3.x install (${p}). vStacklet 4 installs on fresh servers only and does not upgrade 3.x; the 3.x install was left as it is. Nothing was changed."
 			return 1
@@ -423,7 +423,7 @@ vstacklet::setup::clone_ok() {
 		printf -- "%s\n" "Error: Branch '${branch}' changed while installing and now $(vstacklet::setup::holds "${found}"); this bootstrap installs vStacklet 4 only, so the new checkout was removed."
 		return 1
 	fi
-	if [[ -n ${upgraded} ]]; then done="upgraded this server's packages, installed its tools and created /backup"; else done="installed its tools and created /backup"; fi
+	if [[ -n ${upgraded} ]]; then done="upgraded this server's packages, installed any of its tools that were missing and created /backup"; else done="installed any of its tools that were missing and created /backup"; fi
 	[[ -n ${recorded} ]] && done="${done}, and recorded this server in /root/vstacklet/pre-bootstrap"
 	printf -- "%s\n" "Error: Branch '${branch}' changed while installing and now $(vstacklet::setup::holds "${found}"); this bootstrap installs vStacklet 4 only, so the new checkout was removed. The bootstrap had already ${done}; nothing else was installed."
 	return 1
@@ -558,7 +558,7 @@ vstacklet::setup::download() {
 		# @script-note: install vStacklet
 		[[ -d ${vstacklet_base_path} ]] && rm -rf "${vstacklet_base_path}"
 		git clone --quiet --branch "${vstacklet_git_branch}" "${vstacklet_git}" "${vstacklet_base_path}" || { printf -- "%s\n" "Error: Unable to clone vStacklet from GitHub" && exit 1; }
-		vstacklet::setup::clone_ok "${vstacklet_base_path}" "${vstacklet_git_branch}" fresh "${vs_pre_taken}" "$([[ -d /root/vstacklet/pre-bootstrap ]] && echo 1)" || exit 1
+		vstacklet::setup::clone_ok "${vstacklet_base_path}" "${vstacklet_git_branch}" fresh "${vs_pre_taken}" "$([[ -n ${vs_pre_taken} && -d /root/vstacklet/pre-bootstrap ]] && echo 1)" || exit 1
 	fi
 	# @script-note: the 3.x tools (bin/backup/vs-backup, bin/www-permissions.sh) stay frozen for 3.x servers and are not installed here
 	# @script-note: send vStacklet server stack script to /usr/local/bin

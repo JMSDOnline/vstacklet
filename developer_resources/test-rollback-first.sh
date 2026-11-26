@@ -8,7 +8,7 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "${tmp}"' EXIT
 pass=0 fail=0
 releases="$(sed -n '/^declare -ga VSTACKLET_GATE_RELEASES=(/,/^)/p' "${here}/setup/vstacklet-server-stack.sh")"
-sed -e "s#/etc/os-release#${tmp}/os-release#g" -e "s#/root/vstacklet#${tmp}/vstacklet#g" -e "s#/etc/apt/#${tmp}/apt/#g" -e 's#\${EUID}#${TEST_EUID}#g' "${here}/setup/lib/gate.sh" >"${tmp}/gate.sh"
+sed -e "s#/etc/os-release#${tmp}/os-release#g" -e "s#/root/vstacklet#${tmp}/vstacklet#g" -e "s#/etc/apt/#${tmp}/apt/#g" -e "s#/etc/vstacklet#${tmp}/etcv#g" -e "s#/opt/vstacklet#${tmp}/opt#g" -e "s#/var/log/vstacklet#${tmp}/logv#g" -e 's#\${EUID}#${TEST_EUID}#g' "${here}/setup/lib/gate.sh" >"${tmp}/gate.sh"
 
 # run CASE_ARGS...: prints what the function printed and its exit code
 run() {
@@ -77,5 +77,20 @@ args_run() {
 }
 check "-e is refused with the 4.0 line" "ERROR -e is not offered in vStacklet 4.0; with -wp, the installer asks for the WordPress admin email. Nothing was changed."$'\n'"rc=1" "$(args_run -e 'owner@example.com' -nginx)"
 check "--email is refused with the 4.0 line" "ERROR --email is not offered in vStacklet 4.0; with -wp, the installer asks for the WordPress admin email. Nothing was changed."$'\n'"rc=1" "$(args_run --email 'owner@example.com')"
+# the installer's gate names a vStacklet 3.x server (its install record or log folder, no /etc/vstacklet, no 4.0 install record) instead of saying "rebuild the server"
+is_v3() {
+	# shellcheck source=/dev/null
+	(source "${tmp}/gate.sh" && vstacklet::gate::is_v3 "$1") && echo yes || echo no
+}
+rm -rf "${tmp}/etcv" "${tmp}/vstacklet/baseline"
+check "a 3.x install record with no /etc/vstacklet reads as 3.x" "yes" "$(is_v3 "${tmp}/opt/config/system/.install_complete")"
+check "a 3.x log folder with no /etc/vstacklet reads as 3.x" "yes" "$(is_v3 "${tmp}/logv")"
+check "a 4.0 marker never reads as 3.x" "no" "$(is_v3 "${tmp}/etcv/installed")"
+mkdir -p "${tmp}/etcv"
+check "with /etc/vstacklet present, the install record is not read as 3.x" "no" "$(is_v3 "${tmp}/opt/config/system/.install_complete")"
+rm -rf "${tmp}/etcv" && record bookworm
+check "with a 4.0 install record present, the install record is not read as 3.x" "no" "$(is_v3 "${tmp}/opt/config/system/.install_complete")"
+rm -rf "${tmp}/vstacklet/baseline"
+check "the install gate refuses a 3.x server with the 3.x line, before the rebuild line" "yes" "$(awk '/vstacklet::gate::is_v3 "\$\{f\}" && vstacklet::gate::refuse "this server has a vStacklet 3.x install/{a=NR} /no install record to roll back/{b=NR} END{print (a && b && a<b) ? "yes" : "no"}' "${tmp}/gate.sh")"
 printf 'test-rollback-first: %s/%s passed\n' "${pass}" "$((pass + fail))"
 ((fail == 0))

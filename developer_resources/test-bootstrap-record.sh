@@ -172,9 +172,9 @@ vstacklet::setup::clone_ok "${co}" devops >/dev/null && r=kept || r=refused
 check "after the clone, a vStacklet 4 checkout is kept" "kept $([[ -d ${co} ]] && echo there)" "${r} $([[ -d ${co} ]] && echo there)"
 cp "${fx}/three" "${co}/setup/vstacklet-server-stack.sh"
 o="$(vstacklet::setup::clone_ok "${co}" devops fresh 1 1)" && r=kept || r=refused
-check "after the clone, a branch that moved to vStacklet 3 is refused, its checkout removed, and the line says what the bootstrap had done" "refused gone Error: Branch 'devops' changed while installing and now holds vStacklet 3.1.1897; this bootstrap installs vStacklet 4 only, so the new checkout was removed. The bootstrap had already upgraded this server's packages, installed its tools and created /backup, and recorded this server in /root/vstacklet/pre-bootstrap; nothing else was installed." "${r} $([[ -d ${co} ]] && echo there || echo gone) ${o}"
+check "after the clone, a branch that moved to vStacklet 3 is refused, its checkout removed, and the line says what the bootstrap had done" "refused gone Error: Branch 'devops' changed while installing and now holds vStacklet 3.1.1897; this bootstrap installs vStacklet 4 only, so the new checkout was removed. The bootstrap had already upgraded this server's packages, installed any of its tools that were missing and created /backup, and recorded this server in /root/vstacklet/pre-bootstrap; nothing else was installed." "${r} $([[ -d ${co} ]] && echo there || echo gone) ${o}"
 mkdir -p "${co}/setup" && cp "${fx}/three" "${co}/setup/vstacklet-server-stack.sh"
-check "after the clone on a server vStacklet already changed, the line names only the tools and /backup" "Error: Branch 'devops' changed while installing and now holds vStacklet 3.1.1897; this bootstrap installs vStacklet 4 only, so the new checkout was removed. The bootstrap had already installed its tools and created /backup; nothing else was installed." "$(vstacklet::setup::clone_ok "${co}" devops fresh)"
+check "after the clone on a server vStacklet already changed, the line names only the tools and /backup" "Error: Branch 'devops' changed while installing and now holds vStacklet 3.1.1897; this bootstrap installs vStacklet 4 only, so the new checkout was removed. The bootstrap had already installed any of its tools that were missing and created /backup; nothing else was installed." "$(vstacklet::setup::clone_ok "${co}" devops fresh)"
 mkdir -p "${co}/setup" && cp "${fx}/none" "${co}/setup/vstacklet-server-stack.sh"
 check "after the clone on the update path, the line says the checkout was removed and no more (the caller says the old one was kept)" "Error: Branch 'devops' changed while installing and now has no vStacklet version this bootstrap can read; this bootstrap installs vStacklet 4 only, so the new checkout was removed." "$(vstacklet::setup::clone_ok "${co}" devops update)"
 check "the refusal never says to run the bootstrap again" "0" "$(grep -c 'Run the bootstrap again' "${here}/setup/vstacklet.sh")"
@@ -195,7 +195,7 @@ check "with neither curl nor wget, the guard asks for curl" "Error: curl is need
 check "the tool paths leave no temporary file behind" "0" "$(find "${tmp}/gt" -type f | wc -l | tr -d ' ')"
 # the 3.x guard: a server with a 3.x install is refused before apt runs; a 4.0 install or a fresh server goes on
 srv="${tmp}/srv"
-for p3 in /opt/vstacklet/config/system/.install_complete /usr/local/bin/vs-backup /usr/local/bin/vs-perms; do
+for p3 in /opt/vstacklet/config/system/.install_complete /usr/local/bin/vs-backup /usr/local/bin/vs-perms /var/log/vstacklet; do
 	rm -rf "${srv}" && mkdir -p "${srv}$(dirname "${p3}")" && : >"${srv}${p3}"
 	o="$(vstacklet::setup::v3_gate "${srv}")" && rc=0 || rc=$?
 	check "a server with ${p3} (vStacklet 3.x) is refused" "Error: This server has a vStacklet 3.x install (${p3}). vStacklet 4 installs on fresh servers only and does not upgrade 3.x; the 3.x install was left as it is. Nothing was changed."$'\nrc=1' "$(printf '%s\nrc=%s' "${o}" "${rc}")"

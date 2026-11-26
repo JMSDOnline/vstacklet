@@ -88,6 +88,11 @@ vstacklet::gate::versions() {
 # @name: vstacklet::gate::install (3.i)
 # @description: Runs after the options are read and before anything on the server is changed: the PHP version's support dates, ionCube on arm64, fresh servers only (no earlier vStacklet install, no apache2, no nginx site of its own, the web ports free), then the package check (vstacklet::apt::gate: the server's sources, the vendor keys, and a simulated install of the whole package list in a private apt state).
 ##################################################################################
+# @script-note: a vStacklet 3.x install leaves its install record or its log folder, never /etc/vstacklet or a 4.0 install record (vStacklet 4 writes /etc/vstacklet before its first log), so the installer can name a 3.x server, most likely after 3.x's own --check_update
+vstacklet::gate::is_v3() {
+	[[ ! -e /etc/vstacklet && ! -f /root/vstacklet/baseline/complete ]] || return 1
+	[[ ${1-} == /opt/vstacklet/config/system/.install_complete || ${1-} == /var/log/vstacklet ]]
+}
 vstacklet::gate::install() {
 	local row r_ver r_active r_security today f p
 	today="$(date +%F)"
@@ -116,6 +121,7 @@ vstacklet::gate::install() {
 		if [[ -f /root/vstacklet/baseline/complete ]]; then
 			vstacklet::gate::refuse "an earlier vStacklet install or install attempt was found (${f}). vStacklet 4 installs on fresh servers only: run vstacklet --rollback to undo it, or rebuild the server."
 		fi
+		vstacklet::gate::is_v3 "${f}" && vstacklet::gate::refuse "this server has a vStacklet 3.x install (${f}). vStacklet 4 does not run on 3.x servers, and your 3.x install was not changed. To get the 3.x command back, see the README's question on upgrading a 3.x server."
 		vstacklet::gate::refuse "an earlier vStacklet install was found (${f}) with no install record to roll back. vStacklet 4 installs on fresh servers only: rebuild the server."
 	done
 	if [[ -n ${nginx} || -n ${varnish} ]]; then

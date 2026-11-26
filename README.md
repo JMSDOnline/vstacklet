@@ -195,7 +195,16 @@ To view the available options, run the script with the `-h` option (`vstacklet -
 **A:** vStacklet 4.0 installs vendor packages only with keys whose fingerprints it pins. When a pinned key is within 90 days of expiring, the installer says so during the package check and again in the end summary; after the vendor renews it, run `vstacklet --refresh-keys` to fetch the renewed key, which is accepted only if its fingerprint still matches. When a vendor replaces its key with a new one, vStacklet refuses it on purpose: update vStacklet to a version that pins the new key, then run `vstacklet --refresh-keys`.
 
 **Q:** Can I upgrade a server that runs vStacklet 3.x?<br>
-**A:** No. vStacklet 4 installs on fresh servers only. On a server with a 3.x install, the bootstrap stops before it changes anything and leaves the 3.x install as it is.
+**A:** No. A 3.x server can't be upgraded to vStacklet 4 in place; vStacklet 4 installs on fresh servers only. Where the bootstrap finds a 3.x install's files (its install record, vs-backup, vs-perms or its log folder), it stops before it changes anything and leaves the 3.x install as it is. Don't run `vstacklet --check_update` on a 3.x server, and don't run the bootstrap there expecting an upgrade: since 4.0, the 3.x update command resets its copy at /opt/vstacklet to vStacklet 4 and copies vStacklet 4's command over `vstacklet`, and vStacklet 4 refuses to run on a 3.x server. Your sites, `vs-backup` and `vs-perms` keep working either way. If you already ran it, run these as root to get the 3.x command back and keep `--check_update` on 3.x:
+
+```bash
+git -C /opt/vstacklet rebase --abort 2>/dev/null; git -C /opt/vstacklet fetch --tags origin
+git -C /opt/vstacklet checkout -f v3.1.2239
+install -m 0755 /opt/vstacklet/setup/vstacklet-server-stack.sh /usr/local/bin/vstacklet
+echo v3.1.2239 > /opt/vstacklet/config/system/branch
+```
+
+The last 3.x release is the tag v3.1.2239, which is no longer maintained.
 
 **Q:** What happened to vs-backup and vs-perms?<br>
 **A:** They are 3.x tools and vStacklet 4.0 does not install them.
